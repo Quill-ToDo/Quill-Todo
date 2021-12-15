@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ToDo</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    {% csrf_token %}
+
+    <!-- Add additional CSS in static file -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/application.css' %}" />
+    {% comment %} <%= javascript_include_tag 'application' %> {% endcomment %}
+    <script
+      src="https://kit.fontawesome.com/fd95a77a02.js"
+      crossorigin="anonymous"
+    ></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;600&family=Dongle:wght@300;400&family=Jost:wght@300;400;600;700&family=Kanit:wght@200;300&family=M+PLUS+Rounded+1c:wght@400;500;700;800&family=Merriweather+Sans:wght@500;700;800&family=Quicksand:wght@400;500;600&family=Secular+One&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <div id="alert-wrapper">
+      {% comment %} <%= render("layouts/alert_box", type: "notice", body:
+      notice) if !notice.nil? %> <%= render("layouts/alert_box", type: "alert",
+      body: alert) if !alert.nil? %> {% endcomment %}
+    </div>
+    {% block content %} {% endblock %}
+  </body>
+</html>

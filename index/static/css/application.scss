@@ -1,0 +1,362 @@
+/*
+ * This is a manifest file that'll be compiled into application.css, which will include all the files
+ * listed below.
+ *
+ * Any CSS and SCSS file within this directory, lib/assets/stylesheets, or any plugin's
+ * vendor/assets/stylesheets directory can be referenced here using a relative path.
+ *
+ * You're free to add application-wide styles to this file and they'll appear at the bottom of the
+ * compiled file so the styles you add here take precedence over styles defined in any other CSS/SCSS
+ * files in this directory. Styles in this file should be added after the last require_* statement.
+ * It is generally better to create a new file per style scope.
+ *
+ * ! make sure main is before tree so we can overwrite calendar styling
+ *= require main
+ *= require tempus-dominus
+ *= require_tree .
+ *= require_self
+ */
+
+@import "mixins";
+
+body {
+  background-color: red;
+}
+
+:root {
+  // Variables
+  // Colors
+  --bg: #232323;
+  --subdued: #414141;
+  --dark-font: #2c2c2c;
+  --mid-dark: #191919;
+  --darkest-dark: #111111;
+  // Font colors
+  --lightest-font: #cccbcb;
+  --light-font: #9c9c9c;
+  --mid-font: #5e5e5e;
+  // Element colors
+  --notice-bg: #7c7c7c;
+  --alert-bg: #b15353;
+  --button-primary: #273fac;
+  --success: #157c15;
+  // Spacing
+  --section-gap: 15px;
+  --inner-box-padding: 17px;
+  --box-corner-rounding: 40px;
+  --menu-width: 50px;
+  // Sizing
+  --check-box-size: 17px;
+  --menu-icon-size: 30px;
+  // Font sizes
+  --p-size: 20px;
+  --event-p-size: 13px;
+  --smaller-p-size: 15px;
+  --calendar-h1-size: 35px;
+  --h2-size: 40px;
+  --h2-padding: 15px;
+  --h3-size: 30px;
+  --h4-size: 25px;
+}
+
+// Reusable classes
+.centered {
+  display: flex;
+  justify-content: center;
+}
+
+.aligned {
+  display: flex;
+  align-items: center;
+}
+
+.take-full-space {
+  height: 100vh;
+  width: 100%;
+}
+
+.subtle {
+  font-style: italic;
+  color: var(--dark-font);
+  font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  font-size: var(--p-size);
+}
+
+// Global styling
+
+body {
+  margin: 0;
+  background-color: none;
+  background: var(--bg);
+  overflow: hidden;
+}
+
+/* Hide thingy in the top left */
+.profiler-results {
+  display: none;
+}
+
+.filter {
+  background-color: rgba(0, 0, 0, 0.507);
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+hr {
+  width: 60%;
+  color: var(--mid-font);
+  background-color: linear-gradient(
+    90deg,
+    rgba(94, 94, 94, 0.6979925759366247) 0%,
+    rgba(94, 94, 94, 1) 25%,
+    rgba(94, 94, 94, 1) 75%,
+    rgba(94, 94, 94, 0.6951914554884453) 100%
+  );
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  opacity: 0.4;
+}
+
+// Index
+
+/* @media screen and (min-width: 769px) { */
+.index-wrapper {
+  display: grid;
+  grid-template-areas: "left-menu list slider calendar";
+  grid-template-columns: 50px 2fr min-content 5fr;
+  grid-template-rows: 100vh auto 100vh 100vh 100vh;
+}
+
+#list-wrapper {
+  grid-area: list;
+}
+
+#calendar-wrapper {
+  grid-area: calendar;
+}
+
+#left-menu {
+  grid-area: left-menu;
+  display: flex;
+  flex-direction: column;
+  padding: 0 6px 0 6px;
+  z-index: 3;
+}
+
+#left-menu > * a {
+  display: flex;
+  align-items: center;
+}
+
+#left-menu img {
+  /* margin: 0%; */
+  height: var(--menu-icon-size);
+  width: var(--menu-icon-size);
+}
+
+#slider {
+  width: var(--section-gap);
+  grid-area: slider;
+}
+
+// Sections
+
+.dark-section {
+  background-color: var(--darkest-dark);
+  padding: var(--inner-box-padding);
+  border-radius: var(--box-corner-rounding);
+  margin-top: var(--section-gap);
+}
+
+.section-collapsible {
+  margin-top: var(--h2-padding);
+}
+
+section .mid-section,
+section.mid-section {
+  background-color: var(--mid-dark);
+  border-radius: var(--box-corner-rounding);
+  padding: var(--inner-box-padding);
+}
+
+section .more-padding,
+section.more-padding {
+  padding: calc(var(--inner-box-padding) * 2.5);
+}
+
+// --- Fonts ---
+
+section h2,
+.fc .fc-toolbar-title {
+  font-family: "Secular One", sans-serif;
+  font-weight: 600;
+  color: var(--lightest-font);
+  font-size: var(--h2-size);
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+p {
+  font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  font-size: var(--p-size);
+  margin: 0;
+  color: var(--light-font);
+}
+
+.menu {
+  background-color: var(--darkest-dark);
+}
+
+//  --- Buttons ---
+
+#left-menu > .btn {
+  @include button-style(var(--bg));
+  margin-top: 6px;
+  width: 100%;
+  aspect-ratio: 1/1;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-incomplete {
+  background-color: var(--darkest-dark);
+}
+
+.btn.btn-complete {
+  background-color: var(--success);
+}
+
+button,
+.fc .fc-button.fc-button-primary,
+.btn {
+  transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: box-shadow 0.2s, background-color 0.2s, transform 0.2s;
+  border-radius: 0.25em;
+  border: none;
+  opacity: 1;
+  font-family: "Azeret Mono", monospace;
+  color: var(--lightest-font);
+  font-weight: 300;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+//  --- Forms ---
+
+input,
+textarea {
+  padding: 8px;
+  background-color: var(--darkest-dark);
+  border: none;
+  border-radius: 10px;
+  font-family: "Quicksand", sans-serif;
+  font-weight: 600;
+  font-size: vr(--p-size);
+  color: var(--lightest-font);
+}
+
+//  -- Alerts ---
+
+#alert-wrapper {
+  position: absolute;
+  bottom: var(--section-gap);
+  right: var(--section-gap);
+  display: flex;
+  gap: 10px;
+  flex-direction: column;
+}
+
+.alert-pop-up {
+  z-index: 5;
+  border-radius: 10px;
+  max-width: 500px;
+  overflow: hidden;
+  position: relative;
+  padding: 10px;
+  box-shadow: 10px 10px 20px var(--darkest-dark);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+
+  &:hover {
+    right: 0;
+    opacity: 100%;
+    animation: 0;
+  }
+
+  & img {
+    opacity: 60%;
+    height: 13px;
+  }
+
+  & p {
+    font-family: "Quicksand", sans-serif;
+    font-size: 20px;
+    color: var(--dark-font);
+    font-weight: 600;
+  }
+
+  &.notice {
+    background-color: var(--notice-bg);
+    right: -550px;
+    opacity: 100%;
+    animation: alert-slide-out 10s ease-in-out;
+  }
+
+  &.alert {
+    background-color: var(--alert-bg);
+    opacity: 90%;
+  }
+}
+
+@keyframes alert-slide-in {
+  0% {
+    opacity: 70%;
+  }
+  10% {
+    opacity: 90%;
+    right: 0;
+  }
+  100% {
+    right: 0;
+  }
+}
+
+@keyframes alert-slide-out {
+  0% {
+    right: 0;
+  }
+  60% {
+    right: 0;
+    opacity: 70%;
+  }
+  100% {
+    right: -50vw;
+    opacity: 0%;
+  }
+}
+
+// Overriding bootstrap
+ol,
+ul,
+dl {
+  margin: 0;
+}
+
+ol,
+ul {
+  padding-left: 0;
+}
+
+.btn-secondary {
+  background-color: none;
+  border-color: none;
+}

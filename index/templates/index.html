@@ -1,0 +1,26 @@
+{% extends "application.html" %} {% block content %}
+<div id="new-wrapper"></div>
+<div id="show-wrapper"></div>
+
+<div class="index-wrapper">
+  <div id="left-menu" class="menu">
+    {% comment %}
+    <div class="btn" id="btn-add"><%= image_tag("add.png", alt: "Add")%></div>
+    <div class="btn">
+      <%= link_to(destroy_user_session_path, method: :delete, alt: "Logout") do
+      %> <%= image_tag "logout.png" %> <% end %> {% endcomment %}
+    </div>
+  </div>
+  <div id="list-wrapper">
+    {% comment %} <%= render 'list', overdue: @overdue, today_due: @today_due,
+    today_work: @today_work, upcoming: @upcoming %> {% endcomment %} {% for task
+    in overdue %}
+    <p>{% task %}</p>
+    {% endfor %}
+  </div>
+  <div id="slider"></div>
+  {% comment %}
+  <div id="calendar-wrapper"><%= render 'calendar' %></div>
+  {% endcomment %}
+</div>
+{% endblock %}

@@ -17,19 +17,21 @@ class Task(models.Model):
     completed_at = models.DateField(editable=False, blank=True, null=True)
     # TODO null should not be true
     # user =  models.ForeignKey('User', null=True)
+    #   validates :title, presence: true, length: { maximum: 100 }
+    #   validates :description, length: { maximum: 1000 }
+    #   validates :due, presence: true
+    #   validate :start_not_after_due?
 
     # Metadata
     class Meta:
         ordering = ['due', 'complete']
 
+
     # Methods
     def __str__(self):
         """String for representing the MyModelName object (in Admin site etc.)."""
         return f'{self.id}: {self.title}'
-    #   validates :title, presence: true, length: { maximum: 100 }
-    #   validates :description, length: { maximum: 1000 }
-    #   validates :due, presence: true
-    #   validate :start_not_after_due?
+
 
     # def get_absolute_url(self):
     #     """Returns the url to access a particular instance of the model."""
