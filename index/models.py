@@ -1,6 +1,6 @@
 from typing import Deque
 from django.db import models
-from datetime import date
+from datetime import datetime
 
 # Create your models here.
 
@@ -11,9 +11,10 @@ class Task(models.Model):
     title = models.CharField(max_length=100, help_text="Enter task title")
     description = models.TextField(blank=True, null=True, help_text="Enter task description", max_length=1000)
     start = models.DateTimeField(blank=True, null=True, help_text="Enter the date to start working on the task")
-    due = models.DateTimeField(default=date.today(), help_text="Enter the date the task is due")
+    # Default due time is today at 11:59 pm
+    due = models.DateTimeField(default=datetime.today().replace(hour=23, minute=59), help_text="Enter the date the task is due")
     complete = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(editable=False, blank=True, null=True)
+    completed_at = models.DateField(editable=False, blank=True, null=True)
     # TODO null should not be true
     # user =  models.ForeignKey('User', null=True)
 
@@ -30,9 +31,9 @@ class Task(models.Model):
     #   validates :due, presence: true
     #   validate :start_not_after_due?
 
-    def get_absolute_url(self):
-        """Returns the url to access a particular instance of the model."""
-        return reverse('task-detail', args=[str(self.id)])
+    # def get_absolute_url(self):
+    #     """Returns the url to access a particular instance of the model."""
+    #     return reverse('task-detail', args=[str(self.id)])
 
 # class User(models.Model):
 #     pass
