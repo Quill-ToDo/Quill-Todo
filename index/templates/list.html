@@ -4,7 +4,8 @@
   </section>
 {% endif %} 
 <section>
-  {% include 'tasks_two_section.html' with title="Today" class="today" tasks_due=today_due tasks_work=today_work %}
+    {% include 'tasks_two_section.html' with title="Today" class="today" tasks_due=today_due tasks_work=today_work %}
 </section>
+<section>
   {% include 'tasks_single_section.html' with title="Upcoming" class="upcoming" tasks=upcoming %}
 </section>

@@ -6,9 +6,9 @@
     {% csrf_token %}
 
     <!-- Add additional CSS in static file -->
-    {% comment %} {% load static %}
+    {% load static %}
     <link rel="stylesheet" href="{% static 'css/application.css' %}" />
-    {% endcomment %} {% comment %} <%= javascript_include_tag 'application' %>
+    {% comment %} <%= javascript_include_tag 'application' %>
     {% endcomment %}
     <script
       src="https://kit.fontawesome.com/fd95a77a02.js"
@@ -27,6 +27,8 @@
       notice) if !notice.nil? %> <%= render("layouts/alert_box", type: "alert",
       body: alert) if !alert.nil? %> {% endcomment %}
     </div>
-    {% include 'index.html'%}
+    <div class="index-wrapper">
+      {% include 'index.html'%}
+    </div>
   </body>
 </html>

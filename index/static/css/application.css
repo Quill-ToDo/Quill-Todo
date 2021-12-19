@@ -10,80 +10,43 @@
  * files in this directory. Styles in this file should be added after the last require_* statement.
  * It is generally better to create a new file per style scope.
  *
- * ! make sure main is before tree so we can overwrite calendar styling
+ * make sure main is before calendar
  *= require main
  *= require tempus-dominus
  *= require_tree .
  *= require_self
  */
 
-@import "mixins";
-
-body {
-  background-color: red;
-}
-
 :root {
-  // Variables
-  // Colors
   --bg: #232323;
+  --lightest-font: #cccbcb;
+  --light-font: #9c9c9c;
+  --mid-font: #5e5e5e;
   --subdued: #414141;
   --dark-font: #2c2c2c;
   --mid-dark: #191919;
   --darkest-dark: #111111;
-  // Font colors
-  --lightest-font: #cccbcb;
-  --light-font: #9c9c9c;
-  --mid-font: #5e5e5e;
-  // Element colors
   --notice-bg: #7c7c7c;
   --alert-bg: #b15353;
   --button-primary: #273fac;
   --success: #157c15;
-  // Spacing
+
   --section-gap: 15px;
   --inner-box-padding: 17px;
   --box-corner-rounding: 40px;
-  --menu-width: 50px;
-  // Sizing
   --check-box-size: 17px;
+  --menu-width: 50px;
   --menu-icon-size: 30px;
-  // Font sizes
-  --p-size: 20px;
-  --event-p-size: 13px;
-  --smaller-p-size: 15px;
+
   --calendar-h1-size: 35px;
+  --p-size: 20px;
+  --smaller-p-size: 15px;
   --h2-size: 40px;
   --h2-padding: 15px;
   --h3-size: 30px;
   --h4-size: 25px;
+  --event-p-size: 13px;
 }
-
-// Reusable classes
-.centered {
-  display: flex;
-  justify-content: center;
-}
-
-.aligned {
-  display: flex;
-  align-items: center;
-}
-
-.take-full-space {
-  height: 100vh;
-  width: 100%;
-}
-
-.subtle {
-  font-style: italic;
-  color: var(--dark-font);
-  font-family: "Quicksand", sans-serif;
-  font-weight: 600;
-  font-size: var(--p-size);
-}
-
-// Global styling
 
 body {
   margin: 0;
@@ -97,46 +60,19 @@ body {
   display: none;
 }
 
-.filter {
-  background-color: rgba(0, 0, 0, 0.507);
-  position: absolute;
-  z-index: 2;
-  width: 100%;
-  height: 100%;
-}
-
-hr {
-  width: 60%;
-  color: var(--mid-font);
-  background-color: linear-gradient(
-    90deg,
-    rgba(94, 94, 94, 0.6979925759366247) 0%,
-    rgba(94, 94, 94, 1) 25%,
-    rgba(94, 94, 94, 1) 75%,
-    rgba(94, 94, 94, 0.6951914554884453) 100%
-  );
-  margin: auto;
-  margin-top: 20px;
-  margin-bottom: 20px;
-  opacity: 0.4;
-}
-
-// Index
-
-/* @media screen and (min-width: 769px) { */
-.index-wrapper {
-  display: grid;
-  grid-template-areas: "left-menu list slider calendar";
-  grid-template-columns: 50px 2fr min-content 5fr;
-  grid-template-rows: 100vh auto 100vh 100vh 100vh;
-}
-
 #list-wrapper {
+  width: 100%;
   grid-area: list;
+  margin: 0;
+  display: grid;
+  overscroll-behavior: contain;
+  overflow-y: scroll;
+  grid-auto-rows: min-content;
 }
 
 #calendar-wrapper {
   grid-area: calendar;
+  margin: var(--section-gap) var(--section-gap) var(--section-gap) 0;
 }
 
 #left-menu {
@@ -145,6 +81,16 @@ hr {
   flex-direction: column;
   padding: 0 6px 0 6px;
   z-index: 3;
+}
+
+#left-menu > .btn {
+  margin-top: 6px;
+  width: 100%;
+  aspect-ratio: 1/1;
+  padding: 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 #left-menu > * a {
@@ -163,19 +109,6 @@ hr {
   grid-area: slider;
 }
 
-// Sections
-
-.dark-section {
-  background-color: var(--darkest-dark);
-  padding: var(--inner-box-padding);
-  border-radius: var(--box-corner-rounding);
-  margin-top: var(--section-gap);
-}
-
-.section-collapsible {
-  margin-top: var(--h2-padding);
-}
-
 section .mid-section,
 section.mid-section {
   background-color: var(--mid-dark);
@@ -188,16 +121,17 @@ section.more-padding {
   padding: calc(var(--inner-box-padding) * 2.5);
 }
 
-// --- Fonts ---
-
+/* Titles */
 section h2,
 .fc .fc-toolbar-title {
   font-family: "Secular One", sans-serif;
+  /* text-transform: uppercase; */
   font-weight: 600;
   color: var(--lightest-font);
   font-size: var(--h2-size);
   padding: 0;
   margin: 0;
+  /* margin: var(--h2-padding) 0 var(--h2-padding) 0; */
   line-height: 1;
 }
 
@@ -213,43 +147,58 @@ p {
   background-color: var(--darkest-dark);
 }
 
-//  --- Buttons ---
+/* @media screen and (min-width: 769px) { */
+.index-wrapper {
+  display: grid;
+  grid-template-areas: "left-menu list slider calendar";
+  grid-template-columns: 50px 2fr min-content 5fr;
+  grid-template-rows: 100vh auto 100vh 100vh 100vh;
+}
+/* } */
 
-#left-menu > .btn {
-  @include button-style(var(--bg));
-  margin-top: 6px;
-  width: 100%;
-  aspect-ratio: 1/1;
-  padding: 0px;
+.centered {
   display: flex;
-  align-items: center;
   justify-content: center;
 }
 
-.btn-incomplete {
-  background-color: var(--darkest-dark);
+.aligned {
+  display: flex;
+  align-items: center;
 }
 
-.btn.btn-complete {
-  background-color: var(--success);
+.take-full-space {
+  height: 100vh;
+  width: 100%;
 }
+
+/* Buttons */
 
 button,
 .fc .fc-button.fc-button-primary,
 .btn {
-  transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
-  transition: box-shadow 0.2s, background-color 0.2s, transform 0.2s;
   border-radius: 0.25em;
+  background-color: var(--dark-font);
   border: none;
   opacity: 1;
   font-family: "Azeret Mono", monospace;
   color: var(--lightest-font);
   font-weight: 300;
+  box-shadow: 4px 4px var(--darkest-dark);
+  transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+  transition: box-shadow 0.2s, background-color 0.2s, transform 0.2s;
   border-radius: 8px;
   padding: 8px;
 }
 
-//  --- Forms ---
+button:hover,
+.fc .fc-button.fc-button-primary:hover,
+.btn:hover {
+  background-color: var(--darkest-dark);
+  box-shadow: none;
+  transform: translate(1px, 1px);
+}
+
+/* Forms */
 
 input,
 textarea {
@@ -262,8 +211,7 @@ textarea {
   font-size: vr(--p-size);
   color: var(--lightest-font);
 }
-
-//  -- Alerts ---
+/* Alerts */
 
 #alert-wrapper {
   position: absolute;
@@ -285,36 +233,31 @@ textarea {
   display: flex;
   align-items: center;
   gap: 5px;
+}
 
-  &:hover {
-    right: 0;
-    opacity: 100%;
-    animation: 0;
-  }
+.alert-pop-up img {
+  opacity: 60%;
+  height: 13px;
+}
 
-  & img {
-    opacity: 60%;
-    height: 13px;
-  }
+.alert-pop-up p {
+  font-family: "Quicksand", sans-serif;
+  font-size: 20px;
+  color: var(--dark-font);
+  font-weight: 600;
+}
 
-  & p {
-    font-family: "Quicksand", sans-serif;
-    font-size: 20px;
-    color: var(--dark-font);
-    font-weight: 600;
-  }
+.alert-pop-up.notice {
+  background-color: var(--notice-bg);
+  right: -550px;
+  opacity: 100%;
+  animation: alert-slide-out 10s ease-in-out;
+}
 
-  &.notice {
-    background-color: var(--notice-bg);
-    right: -550px;
-    opacity: 100%;
-    animation: alert-slide-out 10s ease-in-out;
-  }
-
-  &.alert {
-    background-color: var(--alert-bg);
-    opacity: 90%;
-  }
+.alert-pop-up:hover {
+  right: 0;
+  opacity: 100%;
+  animation: 0;
 }
 
 @keyframes alert-slide-in {
@@ -344,6 +287,27 @@ textarea {
   }
 }
 
+.alert-pop-up.alert {
+  background-color: var(--alert-bg);
+  opacity: 90%;
+}
+
+hr {
+  width: 60%;
+  color: var(--mid-font);
+  background-color: linear-gradient(
+    90deg,
+    rgba(94, 94, 94, 0.6979925759366247) 0%,
+    rgba(94, 94, 94, 1) 25%,
+    rgba(94, 94, 94, 1) 75%,
+    rgba(94, 94, 94, 0.6951914554884453) 100%
+  );
+  margin: auto;
+  margin-top: 20px;
+  margin-bottom: 20px;
+  opacity: 0.4;
+}
+
 // Overriding bootstrap
 ol,
 ul,
@@ -359,4 +323,12 @@ ul {
 .btn-secondary {
   background-color: none;
   border-color: none;
+}
+
+.filter {
+  background-color: rgba(0, 0, 0, 0.507);
+  position: absolute;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
 }
