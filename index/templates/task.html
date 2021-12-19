@@ -17,7 +17,7 @@
         {% else %}
             <p class="title {{title_classes}}"> <a "data-task-id"={{task.id}} ><p> {{task.title}} </p></a>
         {% endif %}
-        {% comment %} href={% url 'task', {{task.id}} %} {% endcomment %}
+        {% comment %} TODO href={% url 'task', {{task.id}} %} {% endcomment %}
         
         <div class="date-time-wrapper"> 
             <p class="date">{{task.due|date:'m/d/y'}}</p>

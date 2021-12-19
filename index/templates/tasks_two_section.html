@@ -1,0 +1,36 @@
+<div class="{{class}} mid-section">
+    <div class="expandable-section-header">
+        <div class="expand-symbol"></div>
+        <h2>{{title}}</h2>
+    </div>
+    <div class="section-collapsible">
+        <h3>due</h3>
+        <div class="dark-section">
+            {% if tasks_due %}
+            <ul>
+                {% for t in tasks_due %}
+                <li class="task">
+                    {% include "task.html" with task=t type="due" %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="subtle centered">No tasks due!</p>
+            {% endif %}
+        </div>
+        <h3>work</h3>
+        <div class="dark-section">
+            {% if tasks_work %}
+            <ul>
+                {% for t in tasks_work %}
+                <li class="task">
+                    {% include "task.html" with task=t type="work" %}
+                </li> 
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="subtle centered">No tasks to work on!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
