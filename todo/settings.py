@@ -27,8 +27,6 @@ DEBUG = True
 
 ALLOWED_HOSTS = []
 
-TIME_ZONE = 'America/New_York'
-
 # Application definition
 
 INSTALLED_APPS = [

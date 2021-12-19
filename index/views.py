@@ -1,12 +1,12 @@
 from django.shortcuts import render
 from .models import Task
-from datetime import datetime
+from django.utils import timezone
 from django.db.models import Q
 
 # Create your views here.
 def index(request):
 
-    now = datetime.now()
+    now = timezone.now()
     context = {
         'overdue': Task.objects.filter(due__lt=now),
         'today_due': Task.objects.filter(due__range=(now.replace(hour=0, minute=0, second=0), now)),

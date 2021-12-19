@@ -1,6 +1,6 @@
-from typing import Deque
 from django.db import models
-from datetime import datetime
+import pytz
+from django.utils import timezone
 
 # Create your models here.
 
@@ -12,11 +12,13 @@ class Task(models.Model):
     description = models.TextField(blank=True, null=True, help_text="Enter task description", max_length=1000)
     start = models.DateTimeField(blank=True, null=True, help_text="Enter the date to start working on the task")
     # Default due time is today at 11:59 pm
-    due = models.DateTimeField(default=datetime.today().replace(hour=23, minute=59), help_text="Enter the date the task is due")
+    due = models.DateTimeField(default=timezone.now().replace(hour=23, minute=59), help_text="Enter the date the task is due")
     complete = models.BooleanField(default=False)
     completed_at = models.DateField(editable=False, blank=True, null=True)
-    # TODO null should not be true
+
+    # TODO null for user should not be true
     # user =  models.ForeignKey('User', null=True)
+    # TODO From rails, validations that will need to be made
     #   validates :title, presence: true, length: { maximum: 100 }
     #   validates :description, length: { maximum: 1000 }
     #   validates :due, presence: true
