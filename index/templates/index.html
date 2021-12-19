@@ -1,4 +1,3 @@
-{% extends "application.html" %} {% block content %}
 <div id="new-wrapper"></div>
 <div id="show-wrapper"></div>
 
@@ -12,15 +11,12 @@
     </div>
   </div>
   <div id="list-wrapper">
+    {% include 'list.html' %}
     {% comment %} <%= render 'list', overdue: @overdue, today_due: @today_due,
-    today_work: @today_work, upcoming: @upcoming %> {% endcomment %} {% for task
-    in overdue %}
-    <p>{% task %}</p>
-    {% endfor %}
+    today_work: @today_work, upcoming: @upcoming %> {% endcomment %} 
   </div>
   <div id="slider"></div>
-  {% comment %}
-  <div id="calendar-wrapper"><%= render 'calendar' %></div>
-  {% endcomment %}
+  <div id="calendar-wrapper">
+    {% comment %} <%= render 'calendar' %> {% endcomment %}
+  </div>
 </div>
-{% endblock %}

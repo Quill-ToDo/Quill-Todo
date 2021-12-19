@@ -6,9 +6,10 @@
     {% csrf_token %}
 
     <!-- Add additional CSS in static file -->
-    {% load static %}
+    {% comment %} {% load static %}
     <link rel="stylesheet" href="{% static 'css/application.css' %}" />
-    {% comment %} <%= javascript_include_tag 'application' %> {% endcomment %}
+    {% endcomment %} {% comment %} <%= javascript_include_tag 'application' %>
+    {% endcomment %}
     <script
       src="https://kit.fontawesome.com/fd95a77a02.js"
       crossorigin="anonymous"
@@ -26,6 +27,6 @@
       notice) if !notice.nil? %> <%= render("layouts/alert_box", type: "alert",
       body: alert) if !alert.nil? %> {% endcomment %}
     </div>
-    {% block content %} {% endblock %}
+    {% include 'index.html'%}
   </body>
 </html>
