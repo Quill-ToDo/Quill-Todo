@@ -3,5 +3,5 @@ from . import views
 
 # Use the name param to reference this url
 urlpatterns = [
-    path('', views.index, name='index'),
+    path('', views.tasks, name='tasks'),
 ]

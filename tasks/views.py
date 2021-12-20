@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.db.models import Q
 
 # Create your views here.
-def index(request):
+def tasks(request):
 
     now = timezone.now()
     context = {
