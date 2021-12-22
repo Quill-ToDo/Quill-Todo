@@ -36,7 +36,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tasks.apps.TasksConfig'
+    'tasks.apps.TasksConfig',
+    'pipeline'
 ]
 
 MIDDLEWARE = [
@@ -116,6 +117,40 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# Pipeline 
+
+STATIC_ROOT = 'static'
+STATICFILES_STORAGE = 'pipeline.storage.PipelineManifestStorage'
+
+STATICFILES_FINDERS = (
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    'pipeline.finders.PipelineFinder',
+)
+
+PIPELINE = {
+    'STYLESHEETS': {
+        'index': {
+            'source_filenames': (
+                'css/application.css',
+                'css/tasks.css'
+            ),
+            'output_filename': 'css/style.css',
+        },
+    },
+    'CSS_COMPRESSOR': 'pipeline.compressors.yuglify.YuglifyCompressor',
+    'JAVASCRIPT': {
+        'scripts': {
+            'source_filenames': (
+                'js/jquery.js',
+                'js/application.js',
+            ),
+            'output_filename': 'js/stats.js',
+        }
+    }
+}
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field

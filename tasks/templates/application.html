@@ -5,9 +5,13 @@
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     {% csrf_token %}
 
-    <!-- Add additional CSS in static file -->
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/application.css' %}" />
+    <!-- Add additional CSS from django-pipeline -->
+    {% load pipeline %}
+    {% comment %} {% stylesheet 'vendor' %} {% endcomment %}
+    {% stylesheet 'index' %}
+    {% javascript 'scripts' %}
+
+
     {% comment %} <%= javascript_include_tag 'application' %>
     {% endcomment %}
     <script
@@ -23,9 +27,12 @@
   </head>
   <body>
     <div id="alert-wrapper">
-      {% comment %} <%= render("layouts/alert_box", type: "notice", body:
-      notice) if !notice.nil? %> <%= render("layouts/alert_box", type: "alert",
-      body: alert) if !alert.nil? %> {% endcomment %}
+      {% if alert %} 
+      {% include 'alert_box.html' with type="notice" body=alert %}
+      {% endif %}
+      {% if notice %} 
+      {% include 'alert_box.html' with type="alert" body=alert %}
+      {% endif %}
     </div>
     <div class="index-wrapper">
       {% include 'index.html'%}
