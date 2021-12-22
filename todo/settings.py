@@ -134,8 +134,7 @@ PIPELINE = {
     'STYLESHEETS': {
         'index': {
             'source_filenames': (
-                'css/application.css',
-                'css/tasks.css'
+                'css/*.css',
             ),
             'output_filename': 'css/style.css',
         },

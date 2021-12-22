@@ -37,6 +37,21 @@ function collapseSectionHandler(target) {
     };
 }
 
+function renderList() {
+    // TODO call this on startup, don't have tasks there to start with
+    return new Promise(function (resolve, reject) {
+        $.get({
+            url: '/tasks/list',
+            dataType: "json"
+        }).done(data => {
+            $("#list-wrapper").html(data.html);
+            resolve();
+        }).fail(err => {
+            reject("Could not render list - " + err);
+        });
+    });
+}
+
 // Alerts 
 function handleAlerts() {
     // TODO Add back

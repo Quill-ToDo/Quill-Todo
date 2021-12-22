@@ -16,6 +16,7 @@ def tasks(request):
     }
 
     # 'today_due': Task.objects.filter(due__range=(datetime.today().replace(hour=0, minute=0, second=0), datetime.today().replace(hour=23, minute=59, second=59)), complete=False),
+    # TODO: Return this as JSON, not render
     return render(request, 'application.html', context=context)
 
 def task_details(request, id):
