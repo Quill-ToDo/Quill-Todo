@@ -38,6 +38,19 @@
 
 .section-collapsible {
   margin-top: var(--h2-padding);
+  transform-origin: 100% 0%;
+  animation: toggleOut 1000 ease-in-out 0s;
+}
+
+@keyframes toggleOut {
+  0% {
+    height: 100%;
+    transform: scaleY(1);
+  }
+  100% {
+    height: 0;
+    transform: scaleY(.1);
+  }
 }
 
 .subtle {
@@ -71,7 +84,7 @@ li:not(:last-child) {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
-  align-items: flex-start;
+  align-items: flex-end;
   column-gap: 10px;
   row-gap: 3px;
   margin: 0;

@@ -9,10 +9,10 @@ def tasks(request):
 
     now = timezone.now()
     context = {
-        'overdue': overdue_tasks(now),
-        'today_due': today_due_tasks(now),
-        'today_work': today_work_tasks(now),
-        'upcoming': upcoming_tasks(now)
+        'overdue': check_not_empty(overdue_tasks(now)),
+        'today_due': check_not_empty(today_due_tasks(now)),
+        'today_work': check_not_empty(today_work_tasks(now)),
+        'upcoming': check_not_empty(upcoming_tasks(now))
     }
 
     # 'today_due': Task.objects.filter(due__range=(datetime.today().replace(hour=0, minute=0, second=0), datetime.today().replace(hour=23, minute=59, second=59)), complete=False),
@@ -34,3 +34,9 @@ def today_work_tasks(now=timezone.now()):
 
 def upcoming_tasks(now=timezone.now()):
     return Task.objects.filter(Q(start__isnull=False) | Q(start__gt=now), due__gte=now)
+
+def check_not_empty(query_result):
+    if isinstance(query_result, tuple):
+        return None
+    else:
+        return query_result

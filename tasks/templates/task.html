@@ -13,9 +13,9 @@
     </div>
     <div class="title-date-wrapper">
         {% if task.complete %}
-            <p class="title {{title_classes}}"> <a "data-task-id"={{task.id}} complete: ""><p> {{task.title}} </p></a>
+            <p class="title {{title_classes}}"> <a "data-task-id"={{task.id}} complete: ""> {{task.title}} </a></p>
         {% else %}
-            <p class="title {{title_classes}}"> <a "data-task-id"={{task.id}} ><p> {{task.title}} </p></a>
+            <p class="title {{title_classes}}"> <a "data-task-id"={{task.id}} > {{task.title}} </a></p>
         {% endif %}
         {% comment %} TODO href={% url 'task', {{task.id}} %} {% endcomment %}
         

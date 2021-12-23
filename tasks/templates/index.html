@@ -1,14 +1,15 @@
 <div id="new-wrapper"></div>
 <div id="show-wrapper"></div>
+{% load static %}
 
 <div id="left-menu" class="menu">
-  <div class="btn" id="btn-add">
-    <img src="static/images/add.png" alt="Plus sign icon for task add"></img>
-  </div>
-  <div class="btn">
+  <button class="btn" id="btn-add">
+    <img src={% static 'images/add.png' %} alt="Plus sign icon for task add"></img>
+  </button>
+  <button class="btn">
     {% comment %} <%= link_to(destroy_user_session_path, method: :delete, alt: "Logout") do {% endcomment %}
-    <img src="static/images/logout.png" alt="Power off icon for log out"></img>
-  </div>
+    <img src={% static 'images/logout.png' %} alt="Power off icon for log out"></img>
+  </button>
 </div>
 <div id="list-wrapper">
   {% include 'list.html' %}
