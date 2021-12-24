@@ -37,20 +37,10 @@
 }
 
 .section-collapsible {
-  margin-top: var(--h2-padding);
+  /* margin-top: var(--h2-padding);  */
+  display: block;
   transform-origin: 100% 0%;
-  animation: toggleOut 1000 ease-in-out 0s;
-}
-
-@keyframes toggleOut {
-  0% {
-    height: 100%;
-    transform: scaleY(1);
-  }
-  100% {
-    height: 0;
-    transform: scaleY(.1);
-  }
+  overflow: hidden;
 }
 
 .subtle {
@@ -200,7 +190,7 @@ p.time {
   border-top: none;
   border-left: none;
   rotate: 45deg;
-  transition: rotate 0.1s ease-in-out;
+  /* transition: rotate 0.1s ease-in-out; */
 }
 
 .date-time-wrapper {

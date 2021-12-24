@@ -19,14 +19,16 @@ function initHandlers() {
     });
 }
 
-function collapseSectionHandler(target) {
+function collapseSectionHandler(target, duration = 500) {
     // Collapse/expand sections on click 
     var expand_section = parent_with_class(target, "expandable-section-header");
     if (expand_section) {
         var section = next_sibling_with_class(expand_section, "section-collapsible");
-        toggle(section);
+        toggleSection(section, duration);
+        // Flip karat(?)
         var symbol = child_with_class(expand_section, "expand-symbol");
         var rotation = symbol.style.rotate;
+        symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
         if (rotation === "45deg" || rotation === "") {
             symbol.style.rotate = "-135deg";
         } else {
@@ -50,8 +52,8 @@ function renderList() {
     });
 }
 
-function toggle(target, duration = 1000) {
-    var transition = `transform ${duration}ms ease-out 0s, height ${duration}ms ease-out 0s`;
+function toggleSection(target, duration) {
+    var transition = `transform ${duration}ms ease-out 0s`;
     target.style.transition = transition;
     new Promise((resolve) => {
         if (target.style.transition == transition) {
@@ -60,21 +62,18 @@ function toggle(target, duration = 1000) {
         }
 
     }).then(() => {
-        if (target.classList.contains("hidden")) {
+        if (target.style.display === "none") {
             // Unhide
-            target.classList.remove("hidden");
-            target.style.transform = 'scaleY(.01)';
-            // target.style.height = "1px";
-            target.style.transform = "scaleY(1)";
-            target.style.height = "100%";
-
+            target.style.display = "block";
+            target.style.transform = "scaleY(.01)";
+            setTimeout(() => {
+                target.style.transform = "scaleY(1)";
+            }, duration / 100)
         } else {
             // Hide
-            // target.style.transform = 'scaleY(.1)';
-            // target.style.height = '5%';
-            // target.style.animation = `toggleOut ${duration} ease-in-out 0s`;
+            target.style.transform = "scaleY(.01)";
             setTimeout(() => {
-                target.classList.add("hidden");
+                target.style.display = "none";
             }, duration)
         }
     });
