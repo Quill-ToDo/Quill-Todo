@@ -10,10 +10,6 @@
     {% comment %} {% stylesheet 'vendor' %} {% endcomment %}
     {% stylesheet 'index' %}
     {% javascript 'scripts' %}
-
-
-    {% comment %} <%= javascript_include_tag 'application' %>
-    {% endcomment %}
     <script
       src="https://kit.fontawesome.com/fd95a77a02.js"
       crossorigin="anonymous"
@@ -34,8 +30,6 @@
       {% include 'alert_box.html' with type="alert" body=alert %}
       {% endif %}
     </div>
-    <div class="index-wrapper">
-      {% include 'index.html'%}
-    </div>
+    <div class="index-wrapper"></div>
   </body>
 </html>

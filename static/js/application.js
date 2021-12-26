@@ -6,18 +6,40 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function initHandlers() {
     handleAlerts();
+    renderList();
 
-    // $(document).on("click", function (e) {
     document.addEventListener('click', function (e) {
         if (e.target) {
             let target = e.target;
 
             collapseSectionHandler(target);
-            // completeTaskHandler(target);
+            completeTaskHandler(target);
             // showPopupHandler(target, e);
         }
     });
 }
+
+
+function completeTaskHandler(target) {
+    // On checkbox click, update tasks as completed and rerender all partials that 
+    // contain tasks
+    var input_box = parent_with_class(target, "check-box-wrapper");
+    if (input_box.length) {
+        input_box = child_with_class(input_box, "input");
+        var taskId = input_box.attr("data-task-id");
+
+        fetch("/tasks/complete_task", {
+            method: 'POST',
+            body: {
+                'id': taskId
+            }
+        }).then(reRenderAllTasks);
+        // $.post("/tasks/complete_task", {
+        //     id: taskId
+        // }).then(() => reRenderAllTasks());
+    }
+}
+
 
 function collapseSectionHandler(target, duration = 500) {
     // Collapse/expand sections on click 
@@ -37,18 +59,42 @@ function collapseSectionHandler(target, duration = 500) {
     };
 }
 
+
+function reRenderAllTasks() {
+    // if (document.querySelector("#show-wrapper").is(":visible")) {
+    //     var id = document.querySelector("#show-wrapper .title a").attr("data-task-id");
+    //     renderShow(id).then(function () {
+    //         renderList().catch(err => console.log(err));
+    //     });
+    // } else {
+    renderList().catch(err => console.log(err));
+    // }
+    // calendar.refetchEvents();
+    // calendar.render();
+}
+
 function renderList() {
     // TODO call this on startup, don't have tasks there to start with
     return new Promise(function (resolve, reject) {
-        $.get({
-            url: '/tasks/list',
-            dataType: "json"
-        }).done(data => {
-            $("#list-wrapper").html(data.html);
+        fetch('/tasks/tasks', {
+            method: 'GET',
+            dataType: 'JSON'
+        }).then(data => {
+            document.querySelector("#list-wrapper").html(data.html);
             resolve();
-        }).fail(err => {
+        }).catch(err => {
             reject("Could not render list - " + err);
         });
+        
+        // $.get({
+        //     url: '/tasks/list',
+        //     dataType: "json"
+        // }).done(data => {
+        //     $("#list-wrapper").html(data.html);
+        //     resolve();
+        // }).fail(err => {
+        //     reject("Could not render list - " + err);
+        // });
     });
 }
 
@@ -60,7 +106,6 @@ function toggleSection(target, duration) {
             console.log("transition set");
             resolve();
         }
-
     }).then(() => {
         if (target.style.display === "none") {
             // Unhide
