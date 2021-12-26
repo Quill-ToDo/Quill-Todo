@@ -1,27 +1,54 @@
+
+from django.http import response
 from django.shortcuts import render
 from .models import Task
 from django.utils import timezone
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from rest_framework import status
+from .serializers import TaskSerializer
+from tasks import serializers
+
 # Create your views here.
+
+def home(request):
+    return render(request, 'application.html')
+
+
+@api_view(['GET'])
 def tasks(request):
+    # TODO: Add post
+    if request.method == 'GET':
+        data = Task.objects.all()
+        serializer = TaskSerializer(data, context={'request': request}, many=True)
+        return Response(serializer.data)
 
-    now = timezone.now()
-    context = {
-        'overdue': check_not_empty(overdue_tasks(now)),
-        'today_due': check_not_empty(today_due_tasks(now)),
-        'today_work': check_not_empty(today_work_tasks(now)),
-        'upcoming': check_not_empty(upcoming_tasks(now))
-    }
+@api_view(['GET'])
+def tasks_by_status(request):
+    if request.method == 'GET':
+        now = timezone.now()
+        data = {
+            'overdue': TaskSerializer(check_not_empty(overdue_tasks(now)), many=True).data,
+            'today_due': TaskSerializer(check_not_empty(today_due_tasks(now)), many=True).data,
+            'today_work': TaskSerializer(check_not_empty(today_work_tasks(now)), many=True).data,
+            'upcoming': TaskSerializer(check_not_empty(upcoming_tasks(now)), many=True).data
+        }
+        return Response(data)
 
-    # 'today_due': Task.objects.filter(due__range=(datetime.today().replace(hour=0, minute=0, second=0), datetime.today().replace(hour=23, minute=59, second=59)), complete=False),
-    # TODO: Return this as JSON, not render
-    return render(request, 'application.html', context=context)
+@api_view(['GET'])
+def task_details(request, pk):
+    # TODO Add put and delete
+    try:
+        task = Task.objects.get(pk=pk)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
 
-def task_details(request, id):
-    task = get_object_or_404(Task, id=id)
-    return render(request, 'catalog/book_detail.html', context={'task': task})
+    if request.method == 'GET':
+        serializer = TaskSerializer(task, context={"request": request})
+        return Response(serializer.data)
 
 def overdue_tasks(now=timezone.now()):
     return Task.objects.filter(due__lt=now)

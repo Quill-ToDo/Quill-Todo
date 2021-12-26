@@ -32,7 +32,7 @@ class Task(models.Model):
     # Methods
     def __str__(self):
         """String for representing the MyModelName object (in Admin site etc.)."""
-        return f'{self.id}: {self.title}'
+        return f'{self.pk}: {self.title}'
 
 
     # def get_absolute_url(self):
