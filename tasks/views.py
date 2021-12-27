@@ -1,5 +1,5 @@
 
-from django.http import response
+# from django.http import JsonResponse
 from django.shortcuts import render
 from .models import Task
 from django.utils import timezone
@@ -50,6 +50,27 @@ def task_details(request, pk):
         serializer = TaskSerializer(task, context={"request": request})
         return Response(serializer.data)
 
+
+@api_view(['PUT'])
+def toggle_complete(request, pk):
+    try:
+        task = Task.objects.get(pk=pk)
+    except Task.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+    if request.method == 'PUT':
+        serializer = TaskSerializer(task, 
+                context={"request": request}, 
+                data={'complete': not task.complete}, 
+                partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
+                "Reason": "Couldn't update task.",
+                "Data": serializer.data})
+
+
 def overdue_tasks(now=timezone.now()):
     return Task.objects.filter(due__lt=now)
 
@@ -60,7 +81,7 @@ def today_work_tasks(now=timezone.now()):
     return Task.objects.filter(start__isnull=False, start__lte=now, due__gte=now)
 
 def upcoming_tasks(now=timezone.now()):
-    return Task.objects.filter(Q(start__isnull=False) | Q(start__gt=now), due__gte=now)
+    return Task.objects.filter(Q(start__isnull=True) | Q(start__gt=now), due__gte=now)
 
 def check_not_empty(query_result):
     if isinstance(query_result, tuple):

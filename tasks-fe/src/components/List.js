@@ -1,9 +1,7 @@
 import axios from "axios";
 import React, { Fragment } from "react";
 
-import OneTaskSection from './OneTaskSection'
-import TwoTaskSection from './TwoTaskSection'
-
+import TaskSection from './TaskSection'
 
 import {
     API_URL
@@ -29,27 +27,43 @@ class List extends React.Component {
                     resolve(<p>You have no tasks to work on. Try adding one!</p>);
                 }
     
-                var section1 = "";
-                if (overdue.length > 0) {
-                    section1 = <section>
-                                <p>hi</p>
-                                <OneTaskSection 
-                                    title="Overdue"
-                                    class="overdue"
-                                    tasks={overdue}    
-                                />
-                            </section>
-                }
-    
-                resolve(
+                resolve (
                     <Fragment>
-                        {section1}
-                        {/* { (today_due.length > 0 || today_work.length > 0) && 
-                            <TwoTaskSection />
-                        }
-                        { upcoming.length > 0 &&
-                            <OneTaskSection />
-                        } */}
+                        <TaskSection 
+                            title="Overdue"
+                            section_content={
+                                [{
+                                    "tasks": overdue,
+                                    "empty_text": "No overdue tasks"
+                                }]
+                            }
+                        />
+                        <TaskSection 
+                            title="Today"
+                            section_content={
+                                [
+                                    {
+                                    "optional-title": "Due",
+                                    "tasks": today_due,
+                                    "empty_text": "No tasks due today"
+                                    },
+                                    {
+                                    "optional-title": "Work",
+                                    "tasks": today_work,
+                                    "empty_text": "No tasks to work on today"
+                                    }
+                                ]
+                            }
+                        />
+                        <TaskSection 
+                            title="Upcoming"
+                            section_content={
+                                [{
+                                    "tasks": upcoming,
+                                    "empty_text": "No upcoming tasks"
+                                }]
+                            }
+                        />
                     </Fragment>
                 );
             }).catch((e) => {

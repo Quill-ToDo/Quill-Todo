@@ -171,11 +171,18 @@ p {
   width: 100%;
 }
 
+
 /* Buttons */
 
-button,
+/* Do not show any formatting unless .btn class is also added. This will allow buttons
+to act like links without the href. */
+button {
+  background: none;
+  border: none;
+}
+
 .fc .fc-button.fc-button-primary,
-.btn {
+button.btn {
   border-radius: 0.25em;
   background-color: var(--dark-font);
   border: none;
@@ -190,9 +197,8 @@ button,
   padding: 8px;
 }
 
-button:hover,
 .fc .fc-button.fc-button-primary:hover,
-.btn:hover {
+button.btn:hover {
   background-color: var(--darkest-dark);
   box-shadow: none;
   transform: translate(1px, 1px);

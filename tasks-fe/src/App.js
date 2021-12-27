@@ -1,8 +1,9 @@
+import { Fragment } from 'react';
 import Index from './components/Index';
 
 function App() {
   return (
-    <div>
+    <Fragment>
           <div id="alert-wrapper">
             {/* {% if alert %} 
             {% include 'alert_box.html' with type="notice" body=alert %}
@@ -12,7 +13,7 @@ function App() {
             {% endif %} */}
           </div>
           <Index />
-    </div>
+    </Fragment>
   );
 }
 

@@ -100,8 +100,8 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.title-date-wrapper a[complete],
-#show-wrapper .title-wrapper a[complete] {
+.title-date-wrapper button p.title[data-complete="true"],
+#show-wrapper .title-wrapper button p.title[data-complete="true"] {
   color: var(--subdued);
   text-decoration: line-through;
 }
@@ -154,7 +154,7 @@ p.time {
 }
 
 /* Show the checkmark when checked */
-.check-box-wrapper input[checked] ~ .checkmark:after {
+.check-box-wrapper input[data-complete="true"] ~ .checkmark:after {
   display: block;
   border-color: var(--subdued);
 }
