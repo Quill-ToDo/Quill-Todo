@@ -27,6 +27,7 @@ class Task extends React.Component {
             this.setState(prevState => ({
                 complete: !prevState.complete}));
         })
+        // TODO re-render all? update state in all other task sections?
     }
 
     render () {

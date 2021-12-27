@@ -43,12 +43,12 @@ class List extends React.Component {
                             section_content={
                                 [
                                     {
-                                    "optional-title": "Due",
+                                    "optional_title": "Due",
                                     "tasks": today_due,
                                     "empty_text": "No tasks due today"
                                     },
                                     {
-                                    "optional-title": "Work",
+                                    "optional_title": "Work",
                                     "tasks": today_work,
                                     "empty_text": "No tasks to work on today"
                                     }

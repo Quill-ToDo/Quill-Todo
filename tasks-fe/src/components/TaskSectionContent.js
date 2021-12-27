@@ -32,7 +32,7 @@ class TaskSectionContent extends React.Component {
 
         return (
             <Fragment>
-                {this.state.title ? <h3>{this.state.title}</h3> : null}
+                {this.state.title !== undefined ? <h3>{this.state.title}</h3> : null}
                 <div className="dark-section">
                     {body}
                 </div>
