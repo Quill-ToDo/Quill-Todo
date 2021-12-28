@@ -6,9 +6,9 @@ class TaskSectionContent extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
-            title: props.title,
+            title: props.title, // A subtitle that can appear before the content section
             tasks: props.tasks,
-            empty_text: props.empty_text
+            empty_text: props.empty_text // Text that appears in the content section if there are no tasks
         };
     }
 

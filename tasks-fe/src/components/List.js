@@ -31,6 +31,7 @@ class List extends React.Component {
                     <Fragment>
                         <TaskSection 
                             title="Overdue"
+                            section_num={0}
                             section_content={
                                 [{
                                     "tasks": overdue,
@@ -40,6 +41,7 @@ class List extends React.Component {
                         />
                         <TaskSection 
                             title="Today"
+                            section_num={1}
                             section_content={
                                 [
                                     {
@@ -57,6 +59,7 @@ class List extends React.Component {
                         />
                         <TaskSection 
                             title="Upcoming"
+                            section_num={2}
                             section_content={
                                 [{
                                     "tasks": upcoming,
