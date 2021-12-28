@@ -5,7 +5,6 @@ import List from './List'
 import MenuButton from "./MenuButton";
 
 class Index extends Component {
-    // TODO: Logic to decide which list gets rendered goes here.
     // Insert self into application.html
     render() {
         return ( 

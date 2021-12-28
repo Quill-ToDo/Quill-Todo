@@ -9,6 +9,8 @@ import {
 
 
 class List extends React.Component {
+    // Todo: logic to determine which list gets loaded will go here eventually
+
     constructor () {
         super()
         this.state = { sectionData: null }
@@ -77,10 +79,12 @@ class List extends React.Component {
     }
 
     componentDidMount() {
+        // Load in section data after mounting
         this.byStatusThreeSection().then(res => this.setState({ sectionData: res }) )
     }
 
     render() {
+        // Before content is loaded show placeholder
         var listData = this.state.sectionData
         return <div id="list-wrapper"> {listData != null ? listData : (<span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>)}</div>
     }

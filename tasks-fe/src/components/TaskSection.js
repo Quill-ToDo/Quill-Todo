@@ -4,17 +4,24 @@ class OneTaskSection extends React.Component {
 
     constructor(props) {
         super(props);
-        // Format section_content as a list of dictionary elements with keys:
-        // {
-        //     optional_title= "",  // A subtitle that can appear before the content section
-        //     tasks= [],
-            // empty_text= ""  // Text that appears in the content section if there are no tasks
-        // }
+
         this.state = {
-            title: this.props.title,
-            section_number: this.props.section_num,
+            title: this.props.title, 
+            // The title of the section
+            section_number: this.props.section_num, 
+            // The number this section appears at in the list of sections, used in it's id. 
+            // Makes queries for this element easier
             section_content: this.props.section_content,
-            section_toggle_duration: 2000 // How long it should take for the section collapse animation
+            // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
+            // dictionaries in the list.
+            // Format as a list of dictionary elements with keys:
+            // {
+            //     optional_title= "",  // A subtitle that can appear before the content section
+            //     tasks= [],
+                // empty_text= ""  // Text that appears in the content section if there are no tasks
+            // }
+            section_toggle_duration: 100 
+            // How long it should take for the section collapse animation
         };  
 
         // Ensure that "this" works properly in these methods
@@ -23,7 +30,7 @@ class OneTaskSection extends React.Component {
     }
 
     componentDidMount () {
-        const task_section = document.getElementById(this.getSectionID());
+        const task_section = document.getElementById(this.getSectionId());
         const outer_section = task_section.querySelector(".mid-section");
         const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
         inner_section.style.transition = `transform ${this.state.section_toggle_duration * .98}ms ease-in-out 0s`;
@@ -33,36 +40,28 @@ class OneTaskSection extends React.Component {
 
     toggleInlineHeightAttribute (outer_section) {
         // Add an inline height attribute equal to the original height
-        // If I don't do this (add the height attribute) then the height transition animation wont work the first time you click 
-        // the section title to collapse it.
+        // If I don't do this (add the computed inline height attribute) then the height transition animation 
+        // wont work the first time you click the section title to collapse it.
         if (outer_section.style.height === "fit-content") {
             // Set inline height attribute
             const outer_height = parseFloat(window.getComputedStyle(outer_section).getPropertyValue('height'));
             outer_section.style.height = outer_height + "px";
         }
         else {
-            // Remove inline height attribute
+            // Remove inline height attribute (after animation is done so that the section will respond properly to window resizes)
             outer_section.style.height = "fit-content";
         }
     }
 
-    getSectionID() {
+    getSectionId() {
         return "task-section-" + this.state.section_number;
     }
 
-    handleSectionToggle (e, duration = this.state.section_toggle_duration) {
+    handleSectionToggle (event, duration = this.state.section_toggle_duration) {
         // Collapse/expand sections on click 
-        var task_section = document.getElementById(this.getSectionID())
+        var task_section = document.getElementById(this.getSectionId())
         this.toggleSection(task_section, duration);
-        // Flip karat
-        var symbol = task_section.querySelector(".expand-symbol");
-        var rotation = symbol.style.rotate;
-        symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
-        if (rotation === "45deg" || rotation === "") {
-            symbol.style.rotate = "-135deg";
-        } else {
-            symbol.style.rotate = "45deg";
-        }
+        this.flipKarat(task_section, duration);
     }
 
     toggleSection(task_section, duration) {
@@ -98,10 +97,22 @@ class OneTaskSection extends React.Component {
         }, duration)
     }
 
+    flipKarat (task_section, duration) {
+        // Flip karat
+        var symbol = task_section.querySelector(".expand-symbol");
+        var rotation = symbol.style.rotate;
+        symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
+        if (rotation === "45deg" || rotation === "") {
+            symbol.style.rotate = "-135deg";
+        } else {
+            symbol.style.rotate = "45deg";
+        }
+    }
+
 
     render () {
         return (
-            <section id={this.getSectionID()}>
+            <section id={this.getSectionId()}>
                 <div className={(this.state.className !== undefined ? this.state.className + " " : "") + "mid-section"}>
                     <div className="expandable-section-header"  onClick={this.handleSectionToggle}>
                         <div className="expand-symbol"></div>
