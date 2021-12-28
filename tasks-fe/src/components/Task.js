@@ -18,7 +18,6 @@ class Task extends React.Component {
             type: "due"
         };  
 
-        // Ensure that "this" works properly in this method
         this.toggleComplete = this.toggleComplete.bind(this);
     }
 
@@ -27,7 +26,7 @@ class Task extends React.Component {
             this.setState(prevState => ({
                 complete: !prevState.complete}));
         })
-        // TODO re-render all? update state in all other task sections?
+        // TODO re-render all sections? update state in all other task sections? Add a listener somewhere else?
     }
 
     render () {
