@@ -45,6 +45,7 @@ class Task extends React.Component {
                 <div className="title-date-wrapper">
                     <button className="plain-formatting">
                         <p className="title" data-complete={this.state.complete}>{this.state.title}</p>
+                        <span></span>
                     </button>
                     <div className="date-time-wrapper"> 
                         <p className="date">{DateTime.fromISO(this.state.due).toLocaleString(DateTime.DATE_SHORT)}</p>

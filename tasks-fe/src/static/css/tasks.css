@@ -82,11 +82,17 @@ li:not(:last-child) {
   padding-bottom: 3px;
 }
 
-.title-date-wrapper p a,
-#show-wrapper .title-wrapper p a {
-  line-height: 0.8;
+.title-date-wrapper button p,
+#show-wrapper .title-wrapper button p {
   color: var(--light-font);
-  text-decoration: none;
+  transition: background-color .1s;
+  border-radius: 12px;
+  padding: 2px 6px 2px 6px;
+}
+
+.title-date-wrapper button p:hover{
+  background-color: rgba(146, 146, 146, 0.123);
+  /* border-radius: .5; */
 }
 
 p.date,
@@ -154,13 +160,13 @@ p.time {
 }
 
 /* Show the checkmark when checked */
-.check-box-wrapper input[data-complete="true"] ~ .checkmark:after {
+.check-box-wrapper input[data-complete="true"] ~ .checkmark::after {
   display: block;
   border-color: var(--subdued);
 }
 
 /* Style the checkmark/indicator */
-.check-box-wrapper .checkmark:after {
+.check-box-wrapper .checkmark::after {
   left: 5px;
   top: 0px;
   width: 5px;
@@ -172,7 +178,7 @@ p.time {
   transform: rotate(45deg);
 }
 
-.check-box-wrapper .checkmark.round:after {
+.check-box-wrapper .checkmark.round::after {
   top: 1px;
   left: 6px;
 }
