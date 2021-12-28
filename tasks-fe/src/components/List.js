@@ -34,6 +34,7 @@ class List extends React.Component {
                         <TaskSection 
                             title="Overdue"
                             section_num={0}
+                            TaskClickCallback={this.props.TaskClickCallback}
                             section_content={
                                 [{
                                     "tasks": overdue,
@@ -44,6 +45,7 @@ class List extends React.Component {
                         <TaskSection 
                             title="Today"
                             section_num={1}
+                            TaskClickCallback={this.props.TaskClickCallback}
                             section_content={
                                 [
                                     {
@@ -62,6 +64,7 @@ class List extends React.Component {
                         <TaskSection 
                             title="Upcoming"
                             section_num={2}
+                            TaskClickCallback={this.props.TaskClickCallback}
                             section_content={
                                 [{
                                     "tasks": upcoming,

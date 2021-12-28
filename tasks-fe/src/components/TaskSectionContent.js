@@ -23,7 +23,7 @@ class TaskSectionContent extends React.Component {
                     { this.state.tasks.map((task) => {
                         return ( 
                             <li className="task" key={task.pk}>
-                                <Task data={task} />
+                                <Task data={task} clickCallback={this.props.TaskClickCallback} />
                             </li>
                         )
                     })}

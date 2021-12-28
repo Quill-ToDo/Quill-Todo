@@ -19,6 +19,7 @@ class Task extends React.Component {
         };  
 
         this.toggleComplete = this.toggleComplete.bind(this);
+        this.handleClick = this.handleClick.bind(this);
     }
 
     async toggleComplete () {
@@ -27,6 +28,10 @@ class Task extends React.Component {
                 complete: !prevState.complete}));
         })
         // TODO re-render all sections? update state in all other task sections? Add a listener somewhere else?
+    }
+
+    handleClick () {
+        this.props.clickCallback(this.state);
     }
 
     render () {
@@ -44,7 +49,7 @@ class Task extends React.Component {
                 </div>
                 <div className="title-date-wrapper">
                     <button className="plain-formatting">
-                        <p className="title" data-complete={this.state.complete}>{this.state.title}</p>
+                        <p className="title" data-complete={this.state.complete} onClick={this.handleClick}>{this.state.title}</p>
                         <span></span>
                     </button>
                     <div className="date-time-wrapper"> 

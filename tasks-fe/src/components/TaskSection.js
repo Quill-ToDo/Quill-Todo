@@ -124,6 +124,7 @@ class OneTaskSection extends React.Component {
                             <TaskSectionContent 
                                 title={section.optional_title}
                                 tasks={section.tasks}
+                                TaskClickCallback={this.props.TaskClickCallback}
                                 empty_text={section.empty_text}
                             />
                         )
