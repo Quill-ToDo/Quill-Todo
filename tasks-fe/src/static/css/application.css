@@ -180,6 +180,7 @@ to act like links without the href. */
 button {
   background: none;
   border: none;
+  padding: 0;
 }
 
 .fc .fc-button.fc-button-primary,

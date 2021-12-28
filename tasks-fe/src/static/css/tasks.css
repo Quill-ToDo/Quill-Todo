@@ -79,21 +79,26 @@ li:not(:last-child) {
   row-gap: 3px;
   margin: 0;
   width: 100%;
-  padding-bottom: 3px;
 }
 
 .title-date-wrapper button p,
 #show-wrapper .title-wrapper button p {
   color: var(--light-font);
   transition: background-color .1s;
+  text-align: left;
   border-radius: 12px;
+}
+
+#list-wrapper .title-date-wrapper button p:hover{
+  background-color: rgba(146, 146, 146, 0.068);
+  /* border-radius: .5; */
+}
+
+#list-wrapper .title-date-wrapper button p,
+#list-wrapper .date-time-wrapper {
   padding: 2px 6px 2px 6px;
 }
 
-.title-date-wrapper button p:hover{
-  background-color: rgba(146, 146, 146, 0.123);
-  /* border-radius: .5; */
-}
 
 p.date,
 p.time {
