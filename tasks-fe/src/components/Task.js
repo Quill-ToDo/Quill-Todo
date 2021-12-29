@@ -11,10 +11,11 @@ class Task extends React.Component {
     constructor(props) {
         super(props);
         this.state = {
+            pk: props.data.pk,
             title: props.data.title,
             description: props.data.description,
             complete: props.data.complete,
-            completed_at: props.data.completed_at,
+            completedAt: props.data.completed_at,
             due: props.data.due,
             start: props.data.start,
         };  
@@ -90,7 +91,6 @@ class Task extends React.Component {
                         <div className="date-wrapper">
                             <div>
                                 <h3>Start</h3>
-                                {console.log(this.state.start)}
                                 {this.state.start !== null ? 
                                     this.dateTimeWrapper(this.state.start)
                                     :
