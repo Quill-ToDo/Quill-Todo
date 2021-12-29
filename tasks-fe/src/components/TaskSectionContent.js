@@ -2,43 +2,38 @@ import React, { Fragment } from "react";
 
 import Task from './Task'
 
-class TaskSectionContent extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = {
-            title: props.title, // A subtitle that can appear before the content section
-            tasks: props.tasks,
-            empty_text: props.empty_text // Text that appears in the content section if there are no tasks
-        };
+function TaskSectionContent (props) {
+    var body;
+    if (props.tasks.length === 0) {
+        body = <p className="subtle centered">{props.emptyText}</p>;
     }
 
-    render () {
-        var body;
-        if (this.state.tasks.length === 0) {
-            body = <p className="subtle centered">{this.state.empty_text}</p>;
-        }
-        else {
-            body =  
-                <ul>
-                    { this.state.tasks.map((task) => {
-                        return ( 
-                            <li className="task" key={task.pk}>
-                                <Task data={task} clickCallback={this.props.TaskClickCallback} />
-                            </li>
-                        )
-                    })}
-                </ul>
-        }
-
-        return (
-            <Fragment>
-                {this.state.title !== undefined ? <h3>{this.state.title}</h3> : null}
-                <div className="dark-section">
-                    {body}
-                </div>
-            </Fragment>
-        )
+    else {
+        body =  
+            <ul>
+                { props.tasks.map((task) => {
+                    return ( 
+                        <li className="task" key={task.pk}>
+                            <Task
+                                data={task}
+                                basicVersion={true}
+                                clickCallback={props.TaskClickCallback}
+                                type="due"
+                            />
+                        </li>
+                    )
+                })}
+            </ul>
     }
+
+    return (
+        <Fragment>
+            {props.title !== undefined ? <h3>{props.title}</h3> : null}
+            <div className="dark-section">
+                {body}
+            </div>
+        </Fragment>
+    )
 }
 
 export default TaskSectionContent

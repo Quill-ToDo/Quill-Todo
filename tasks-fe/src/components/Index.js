@@ -11,19 +11,21 @@ class Index extends React.Component {
     constructor (props) {
         super(props);
         this.state = {
-            show: null
+            show: null,
         }
-
         this.toggleShow = this.toggleShow.bind(this);
 
     }
     
     toggleShow (task) {
         if (this.state.show === null) {
-            this.setState({show: <ShowTask task={task}/>}); 
+            console.log(task)
+            this.setState({show: <ShowTask task={task} clickOffHandler={this.toggleShow}/>}); 
+            document.getElementById("show-wrapper").style.display="flex";
         }
         else {
             this.setState({show: null});
+            document.getElementById("show-wrapper").style.display="none";
         }
     }
 
@@ -39,7 +41,6 @@ class Index extends React.Component {
                 <List TaskClickCallback={this.toggleShow} />
                 <div id="slider"></div>
                 <div id="calendar-wrapper">
-                {/* <%= render 'calendar' %> */}
                 </div>
             </div>
         );

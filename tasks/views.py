@@ -63,17 +63,22 @@ def toggle_complete(request, pk):
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
     if request.method == 'PUT':
+        if not task.complete:
+            now = timezone.now()
+        else:
+            now = None
+
         serializer = TaskSerializer(task, 
                 context={"request": request}, 
-                data={'complete': not task.complete}, 
+                data={'complete': not task.complete, 'completed_at': now}, 
                 partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
         else:
             return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
-                "Reason": "Couldn't update task.",
-                "Data": serializer.data})
+                "errors": serializer.errors,
+                "submittedData": serializer})
 
 
 def overdue_tasks(now=timezone.now()):

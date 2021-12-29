@@ -6,21 +6,21 @@ class OneTaskSection extends React.Component {
         super(props);
 
         this.state = {
-            title: this.props.title, 
+            title: props.title, 
             // The title of the section
-            section_number: this.props.section_num, 
+            sectionNumber: props.sectionNum, 
             // The number this section appears at in the list of sections, used in it's id. 
             // Makes queries for this element easier
-            section_content: this.props.section_content,
+            sectionContent: props.sectionContent,
             // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
             // dictionaries in the list.
             // Format as a list of dictionary elements with keys:
             // {
             //     optional_title= "",  // A subtitle that can appear before the content section
-            //     tasks= [],
+            //     tasks<dict?>= [],
                 // empty_text= ""  // Text that appears in the content section if there are no tasks
             // }
-            section_toggle_duration: 100 
+            sectionToggleDuration: 100 
             // How long it should take for the section collapse animation
         };  
 
@@ -33,8 +33,8 @@ class OneTaskSection extends React.Component {
         const task_section = document.getElementById(this.getSectionId());
         const outer_section = task_section.querySelector(".mid-section");
         const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
-        inner_section.style.transition = `transform ${this.state.section_toggle_duration * .98}ms ease-in-out 0s`;
-        outer_section.style.transition = `height ${this.state.section_toggle_duration}ms ease-in-out 0s`;
+        inner_section.style.transition = `transform ${this.state.sectionToggleDuration * .98}ms ease-in-out 0s`;
+        outer_section.style.transition = `height ${this.state.sectionToggleDuration}ms ease-in-out 0s`;
         outer_section.style.height = "fit-content";
     }
 
@@ -54,10 +54,10 @@ class OneTaskSection extends React.Component {
     }
 
     getSectionId() {
-        return "task-section-" + this.state.section_number;
+        return "task-section-" + this.state.sectionNumber;
     }
 
-    handleSectionToggle (event, duration = this.state.section_toggle_duration) {
+    handleSectionToggle (event, duration = this.state.sectionToggleDuration) {
         // Collapse/expand sections on click 
         var task_section = document.getElementById(this.getSectionId())
         this.toggleSection(task_section, duration);
@@ -119,13 +119,13 @@ class OneTaskSection extends React.Component {
                         <h2>{this.state.title}</h2>
                     </div>
                     <div className="section-collapsible">
-                        { this.state.section_content.map((section) => {
+                        { this.state.sectionContent.map((section) => {
                         return ( 
                             <TaskSectionContent 
                                 title={section.optional_title}
                                 tasks={section.tasks}
                                 TaskClickCallback={this.props.TaskClickCallback}
-                                empty_text={section.empty_text}
+                                emptyText={section.empty_text}
                             />
                         )
                     })}

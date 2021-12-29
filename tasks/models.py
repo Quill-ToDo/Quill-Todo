@@ -14,7 +14,7 @@ class Task(models.Model):
     # Default due time is today at 11:59 pm
     due = models.DateTimeField(default=timezone.now().replace(hour=23, minute=59), help_text="Enter the date the task is due")
     complete = models.BooleanField(default=False)
-    completed_at = models.DateField(editable=False, blank=True, null=True)
+    completed_at = models.DateTimeField(editable=True, blank=True, null=True)
 
     # TODO null for user should not be true
     # user =  models.ForeignKey('User', null=True)

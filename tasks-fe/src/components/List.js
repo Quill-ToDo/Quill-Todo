@@ -1,7 +1,8 @@
 import axios from "axios";
 import React, { Fragment } from "react";
-
 import TaskSection from './TaskSection'
+
+import '../static/css/tasks.css';
 
 import {
     API_URL
@@ -33,9 +34,9 @@ class List extends React.Component {
                     <Fragment>
                         <TaskSection 
                             title="Overdue"
-                            section_num={0}
+                            sectionNum={0}
                             TaskClickCallback={this.props.TaskClickCallback}
-                            section_content={
+                            sectionContent={
                                 [{
                                     "tasks": overdue,
                                     "empty_text": "No overdue tasks"
@@ -44,9 +45,9 @@ class List extends React.Component {
                         />
                         <TaskSection 
                             title="Today"
-                            section_num={1}
+                            sectionNum={1}
                             TaskClickCallback={this.props.TaskClickCallback}
-                            section_content={
+                            sectionContent={
                                 [
                                     {
                                     "optional_title": "Due",
@@ -63,9 +64,9 @@ class List extends React.Component {
                         />
                         <TaskSection 
                             title="Upcoming"
-                            section_num={2}
+                            sectionNum={2}
                             TaskClickCallback={this.props.TaskClickCallback}
-                            section_content={
+                            sectionContent={
                                 [{
                                     "tasks": upcoming,
                                     "empty_text": "No upcoming tasks"
