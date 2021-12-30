@@ -7,6 +7,7 @@
 #list-wrapper {
   -ms-overflow-style: none; /* IE and Edge */
   scrollbar-width: none; /* Firefox */
+  
 }
 
 #list-wrapper section {
@@ -62,8 +63,9 @@ li {
 }
 
 li:not(:last-child) {
-  margin-bottom: 10px;
+  margin-bottom: 2px;
 }
+
 
 .task-wrapper {
   display: flex;
@@ -84,19 +86,17 @@ li:not(:last-child) {
 .title-date-wrapper button p,
 #show-wrapper .title-wrapper button p {
   color: var(--light-font);
-  transition: background-color .1s;
   text-align: left;
-  border-radius: 12px;
 }
 
-#list-wrapper .title-date-wrapper button p:hover{
-  background-color: rgba(146, 146, 146, 0.068);
-  /* border-radius: .5; */
+#list-wrapper .title-date-wrapper {
+    transition: background-color .5s, color .2s;
+    border-radius: 12px;
+    padding: 8px 8px 8px 8px;
 }
 
-#list-wrapper .title-date-wrapper button p,
-#list-wrapper .date-time-wrapper {
-  padding: 2px 6px 2px 6px;
+#list-wrapper .title-date-wrapper:hover {
+    background-color: rgba(146, 146, 146, 0.05);
 }
 
 
@@ -107,6 +107,10 @@ p.time {
   font-size: var(--smaller-p-size);
 }
 
+.overdue p {
+  color: #691313;
+}
+
 p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
@@ -114,7 +118,11 @@ p.time {
 .title-date-wrapper button p.title[data-complete="true"],
 #show-wrapper .title-wrapper button p.title[data-complete="true"] {
   color: var(--subdued);
-  text-decoration: line-through;
+  text-decoration: line-through 2px;
+}
+
+#show-wrapper .title-wrapper button p.title[data-complete="true"] {
+  text-decoration: line-through 4px;
 }
 
 .check-box-wrapper {
@@ -158,7 +166,7 @@ p.time {
 }
 
 /* Create the checkmark/indicator (hidden when not checked) */
-.checkmark:after {
+.checkmark::after {
   content: "";
   position: absolute;
   display: none;

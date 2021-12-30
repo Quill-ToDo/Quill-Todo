@@ -23,6 +23,7 @@
   --light-font: #9c9c9c;
   --mid-font: #5e5e5e;
   --subdued: #414141;
+  --overdue: #691313;
   --dark-font: #2c2c2c;
   --mid-dark: #191919;
   --darkest-dark: #111111;
@@ -148,7 +149,7 @@ p {
 }
 
 /* @media screen and (min-width: 769px) { */
-.index-wrapper {
+#index-wrapper {
   display: grid;
   grid-template-areas: "left-menu list slider calendar";
   grid-template-columns: 50px 2fr min-content 5fr;

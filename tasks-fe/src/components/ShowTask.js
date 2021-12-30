@@ -1,5 +1,4 @@
 import React, { Fragment } from "react";
-import CheckBox from "./CheckBox";
 import bin from "../static/images/bin.png" 
 import edit from "../static/images/editing.png"
 import Task from "./Task";

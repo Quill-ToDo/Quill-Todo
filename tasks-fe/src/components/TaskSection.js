@@ -4,25 +4,25 @@ class OneTaskSection extends React.Component {
 
     constructor(props) {
         super(props);
+        // this.props.title;
+        // The title of the section
 
-        this.state = {
-            title: props.title, 
-            // The title of the section
-            sectionNumber: props.sectionNum, 
-            // The number this section appears at in the list of sections, used in it's id. 
-            // Makes queries for this element easier
-            sectionContent: props.sectionContent,
-            // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
-            // dictionaries in the list.
-            // Format as a list of dictionary elements with keys:
-            // {
-            //     optional_title= "",  // A subtitle that can appear before the content section
-            //     tasks<dict?>= [],
-                // empty_text= ""  // Text that appears in the content section if there are no tasks
-            // }
-            sectionToggleDuration: 100 
-            // How long it should take for the section collapse animation
-        };  
+        // this.props.sectionNum;
+        // The number this section appears at in the list of sections, used in it's id. 
+        // Makes queries for this element easier
+        
+        // this.props.sectionContent;
+        // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
+        // dictionaries in the list.
+        // Format as a list of dictionary elements with keys:
+        // {
+        //     optional_title= "",  // A subtitle that can appear before the content section
+        //     tasks<dict?>= [],
+            // empty_text= ""  // Text that appears in the content section if there are no tasks
+        // }
+        
+        this.sectionToggleDuration = 100; 
+        // How long it should take for the section collapse animation  
 
         // Ensure that "this" works properly in these methods
         this.handleSectionToggle = this.handleSectionToggle.bind(this);
@@ -33,8 +33,8 @@ class OneTaskSection extends React.Component {
         const task_section = document.getElementById(this.getSectionId());
         const outer_section = task_section.querySelector(".mid-section");
         const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
-        inner_section.style.transition = `transform ${this.state.sectionToggleDuration * .98}ms ease-in-out 0s`;
-        outer_section.style.transition = `height ${this.state.sectionToggleDuration}ms ease-in-out 0s`;
+        inner_section.style.transition = `transform ${this.sectionToggleDuration * .98}ms ease-in-out 0s`;
+        outer_section.style.transition = `height ${this.sectionToggleDuration}ms ease-in-out 0s`;
         outer_section.style.height = "fit-content";
     }
 
@@ -54,10 +54,10 @@ class OneTaskSection extends React.Component {
     }
 
     getSectionId() {
-        return "task-section-" + this.state.sectionNumber;
+        return "task-section-" + this.props.sectionNum;
     }
 
-    handleSectionToggle (event, duration = this.state.sectionToggleDuration) {
+    handleSectionToggle (event, duration = this.sectionToggleDuration) {
         // Collapse/expand sections on click 
         var task_section = document.getElementById(this.getSectionId())
         this.toggleSection(task_section, duration);
@@ -113,17 +113,18 @@ class OneTaskSection extends React.Component {
     render () {
         return (
             <section id={this.getSectionId()}>
-                <div className={(this.state.className !== undefined ? this.state.className + " " : "") + "mid-section"}>
+                <div className={(this.className !== undefined ? this.className + " " : "") + "mid-section"}>
                     <div className="expandable-section-header"  onClick={this.handleSectionToggle}>
                         <div className="expand-symbol"></div>
-                        <h2>{this.state.title}</h2>
+                        <h2>{this.props.title}</h2>
                     </div>
                     <div className="section-collapsible">
-                        { this.state.sectionContent.map((section) => {
+                        { this.props.sectionContent.map((section) => {
                         return ( 
                             <TaskSectionContent 
                                 title={section.optional_title}
                                 tasks={section.tasks}
+                                type={section.type}
                                 TaskClickCallback={this.props.TaskClickCallback}
                                 emptyText={section.empty_text}
                             />

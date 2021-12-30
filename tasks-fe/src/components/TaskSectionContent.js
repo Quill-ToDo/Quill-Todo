@@ -18,7 +18,7 @@ function TaskSectionContent (props) {
                                 data={task}
                                 basicVersion={true}
                                 clickCallback={props.TaskClickCallback}
-                                type="due"
+                                type={props.type}
                             />
                         </li>
                     )

@@ -12,7 +12,7 @@ class Task(models.Model):
     description = models.TextField(blank=True, null=True, help_text="Enter task description", max_length=1000)
     start = models.DateTimeField(blank=True, null=True, help_text="Enter the date to start working on the task")
     # Default due time is today at 11:59 pm
-    due = models.DateTimeField(default=timezone.now().replace(hour=23, minute=59), help_text="Enter the date the task is due")
+    due = models.DateTimeField(help_text="Enter the date the task is due")
     complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(editable=True, blank=True, null=True)
 
