@@ -17,10 +17,10 @@ class Index extends React.Component {
 
     }
     
-    toggleShow (task) {
+    toggleShow (task, del) {
         if (this.state.show === null) {
             console.log(task)
-            this.setState({show: <ShowTask task={task} clickOffHandler={this.toggleShow}/>}); 
+            this.setState({show: <ShowTask task={task} clickOffHandler={this.toggleShow} delHandler={del}/>}); 
             document.getElementById("show-wrapper").style.display="flex";
         }
         else {

@@ -3,10 +3,11 @@ import CheckBox from "./CheckBox";
 import bin from "../static/images/bin.png" 
 import edit from "../static/images/editing.png"
 import Task from "./Task";
-import '../static/css/show.css'
+import '../static/css/show.css';
 
-function handleDelete () {
-    console.log("Delete!!")
+async function handleDelete (props) {
+    console.log(props.delHandler)
+    props.delHandler().then(() => {props.clickOffHandler();});
 }
 
 function handleEdit () {
@@ -18,7 +19,8 @@ function ShowTask (props) {
     // Re render those sections 
 
     const buttons = <div className="aligned-buttons">
-                        <button id="btn-delete" className="btn" onClick={handleDelete}>
+                        <button id="btn-delete" className="btn" onClick={() => {
+                            handleDelete(props)}}>
                             <img src={bin} alt="Trash icon for delete"></img>
                         </button>
                         <button id="btn-edit" className="btn" onClick={handleEdit}>

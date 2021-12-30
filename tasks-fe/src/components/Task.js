@@ -10,6 +10,11 @@ import CheckBox from "./CheckBox";
 class Task extends React.Component {
     constructor(props) {
         super(props);
+        
+        this.toggleComplete = this.toggleComplete.bind(this);
+        this.handleClick = this.handleClick.bind(this);
+        this.delete = this.delete.bind(this);
+        
         this.state = {
             pk: props.data.pk,
             title: props.data.title,
@@ -18,10 +23,9 @@ class Task extends React.Component {
             completedAt: props.data.completed_at,
             due: props.data.due,
             start: props.data.start,
+            deleted: false
         };  
 
-        this.toggleComplete = this.toggleComplete.bind(this);
-        this.handleClick = this.handleClick.bind(this);
     }
 
     async toggleComplete () {
@@ -36,8 +40,20 @@ class Task extends React.Component {
         })
     }
 
+    async delete () {
+        console.log("Delete!!")
+        return axios.delete(API_URL + this.props.data.pk).then(() => {
+            this.setState({deleted: true})
+            // TODO add to alert
+        }).catch((e) => {
+            console.log("Could not delete task.")
+            console.log(e)
+        })
+        // TODO delete task from calendar, grab by id(pk)
+    }
+
     handleClick () {
-        this.props.clickCallback(this.state);
+        this.props.clickCallback(this.state, this.delete);
         // Return the correct chunk here
     }
 
@@ -51,6 +67,10 @@ class Task extends React.Component {
     }
 
     render () {
+        if (this.state.deleted) {
+            return null;
+        }
+        
         const title = <button>
                             <p className="title" data-complete={this.state.complete} onClick={this.handleClick}>{this.state.title}</p>
                         </button>;
@@ -63,7 +83,6 @@ class Task extends React.Component {
                                 type={this.props.type}
                             />
                         </div>
-
         if (this.props.basicVersion) {
             return (
                 <div className="task-wrapper"> 

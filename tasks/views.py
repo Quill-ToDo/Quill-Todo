@@ -40,7 +40,7 @@ def tasks_by_status(request):
         }
         return Response(data)
 
-@api_view(['GET'])
+@api_view(['GET', 'DELETE'])
 def task_details(request, pk):
     # TODO Add put and delete
     try:
@@ -51,6 +51,10 @@ def task_details(request, pk):
     if request.method == 'GET':
         serializer = TaskSerializer(task, context={"request": request})
         return Response(serializer.data)
+    elif request.method == 'DELETE':
+        task.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 
 @api_view(['PUT'])
