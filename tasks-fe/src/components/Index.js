@@ -5,29 +5,42 @@ import add from '../static/images/add.png';
 import List from './List'
 import MenuButton from "./MenuButton";
 import ShowTask from './ShowTask';
-
+import {
+    API_URL
+} from "../static/js/modules/TaskApi";
+import axios from "axios";
 
 class Index extends React.Component {
     constructor (props) {
         super(props);
         this.toggleShow = this.toggleShow.bind(this);
+        this.refreshShow = this.refreshShow.bind(this);
         this.handleTaskChange = this.handleTaskChange.bind(this);
         
         this.state = {
             show: null,
+            refreshList: false
         }
     }
-    
-    toggleShow (task, delHandler, completeHandlder) {
-        console.log(task)
-        if (this.state.show === null) {
+
+    async refreshShow (pk) {
+        return axios.get(API_URL + pk)
+        .then(res => {
             this.setState({show: <ShowTask 
-                task={task} 
+                task={res.data} 
                 clickOffHandler={this.toggleShow} 
-                delHandler={delHandler}
-                completeHandlder={completeHandlder}
             />}); 
-            document.getElementById("show-wrapper").style.display="flex";
+                document.getElementById("show-wrapper").style.display="flex";
+        }).catch(e => {
+            // TODO: Add to alert
+            console.log("Couldn't render task details")
+            console.log(e)
+        })
+    }
+    
+    toggleShow (pk) {
+        if (this.state.show === null) {
+            this.refreshShow(pk);
         }
         else {
             this.setState({show: null});
@@ -36,11 +49,15 @@ class Index extends React.Component {
     }
 
     handleTaskChange (e) {
-        // if (document.getElementById("show-wrapper").contains(e.srcElement)) {
-        //     // Task was changed from show wrapper, update list component
-        //     console.log("Gotta refresh list!");
-        // }
-        // TODO: Update calendar component
+        e.stopPropagation();
+        if (document.getElementById("show-wrapper").contains(e.srcElement)) {
+            // Refresh show if present
+            this.refreshShow(e.detail.pk);
+        }
+        // Refresh list
+        this.setState(prev => ({refreshListData: !prev.refreshListData}));
+        // Refresh calendar
+        console.log("Refresh calendar!")
     } 
 
     componentDidMount () {
@@ -60,7 +77,7 @@ class Index extends React.Component {
                     <MenuButton src={add} alt="Plus icon for add new task" link=""/>
                     <MenuButton src={logout} alt="Power off icon for log out" link=""/>
                 </div>
-                <List TaskClickCallback={this.toggleShow} />
+                <List TaskClickCallback={this.toggleShow} needsRefresh={this.state.refreshListData}/>
                 <div id="slider"></div>
                 <div id="calendar-wrapper">
                 </div>

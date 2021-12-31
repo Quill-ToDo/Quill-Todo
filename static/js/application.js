@@ -68,9 +68,6 @@ function reRenderAllTasks() {
     //     });
     // } else {
     renderList().catch(err => console.log(err));
-    // }
-    // calendar.refetchEvents();
-    // calendar.render();
 }
 
 function renderList() {
@@ -85,16 +82,6 @@ function renderList() {
         }).catch(err => {
             reject("Could not render list - " + err);
         });
-        
-        // $.get({
-        //     url: '/tasks/list',
-        //     dataType: "json"
-        // }).done(data => {
-        //     $("#list-wrapper").html(data.html);
-        //     resolve();
-        // }).fail(err => {
-        //     reject("Could not render list - " + err);
-        // });
     });
 }
 
@@ -103,7 +90,6 @@ function toggleSection(target, duration) {
     target.style.transition = transition;
     new Promise((resolve) => {
         if (target.style.transition == transition) {
-            console.log("transition set");
             resolve();
         }
     }).then(() => {

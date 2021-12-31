@@ -6,25 +6,35 @@ import '../static/css/tasks.css';
 
 import {
     API_URL
-} from "../constants";
+} from "../static/js/modules/TaskApi";
 
 
 class List extends React.Component {
     // Todo: logic to determine which list gets loaded will go here eventually
 
-    constructor () {
-        super()
+    constructor (props) {
+        super(props)
         this.refresh = this.refresh.bind(this);
         this.byStatusThreeSection = this.byStatusThreeSection.bind(this);
 
         this.state = { 
             renderedSection: <span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>,
-            selectedSection: "by-status"
+            selectedSection: "by-status",
+            // This is just toggled back and forth, if it doesn't match the val of the prop passed in for 
+            // needsRefresh then the list is refreshed and the value is changed to match the prop passed in.
+            needsRefresh: props.needsRefresh
         }
 
         this.sectionData = null;
         this.bindings = {"by-status" : this.byStatusThreeSection};
 
+    }
+
+    componentDidUpdate (prevProps, prevState) {
+        if (this.props.needsRefresh !== this.state.needsRefresh) {
+            this.setState({needsRefresh: this.props.needsRefresh})
+            this.refresh();
+        }
     }
 
     async fetchTasks (section) {
@@ -98,14 +108,12 @@ class List extends React.Component {
         );
     }
 
-
     refresh () {
         this.fetchTasks(this.state.selectedSection).then(res => {
             if (res.data !== this.sectionData) {
-                console.log("refresh")
                 this.sectionData = res.data;
-                this.setState({ sectionData: res.data, renderedSection: this.bindings[this.state.selectedSection](this.sectionData)});
-                console.log(this.state.renderedSection)
+                const renderedSection = this.bindings[this.state.selectedSection](res.data);
+                this.setState({ renderedSection: renderedSection});
             }
         }).catch((e) => {
             console.log("Could not render list: " + e);
@@ -115,11 +123,6 @@ class List extends React.Component {
     componentDidMount() {
         // Load in section data after mounting
         this.refresh();
-        document.getElementById("list-wrapper").addEventListener("taskStateChange", this.refresh);
-    }
-    
-    componentWillUnmount () {
-        document.getElementById("list-wrapper").removeEventListener("taskStateChange", this.refresh);
     }
 
     render() {

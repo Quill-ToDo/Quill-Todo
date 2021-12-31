@@ -3,10 +3,11 @@ import bin from "../static/images/bin.png"
 import edit from "../static/images/editing.png"
 import Task from "./Task";
 import '../static/css/show.css';
+import { del } from "../static/js/modules/TaskApi.mjs";
 
 async function handleDelete (props) {
-    console.log(props.delHandler)
-    props.delHandler().then(() => {props.clickOffHandler();});
+    del(props.task.pk, document.getElementById("show-wrapper").getElementsByClassName("task-wrapper")[0])
+    .then(() => {props.clickOffHandler();});
 }
 
 function handleEdit () {
@@ -14,9 +15,6 @@ function handleEdit () {
 }
 
 function ShowTask (props) {
-    // Figure out how to update this in the list and calendar on update. 
-    // Re render those sections 
-
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
                             handleDelete(props)}}>

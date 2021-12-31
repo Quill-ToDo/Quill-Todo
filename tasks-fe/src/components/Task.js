@@ -1,109 +1,70 @@
 import React, { Fragment } from "react";
 import { DateTime } from "luxon";
-import {
-    API_URL
-} from "../constants";
-import axios from "axios";
-import { taskStateChange } from "../static/js/modules/Events.mjs";
 
-import CheckBox from "./CheckBox";
+import { toggleComplete } from "../static/js/modules/TaskApi.mjs";
 
 class Task extends React.Component {
     constructor(props) {
         super(props);
+        this.handleListTaskClick = this.handleListTaskClick.bind(this);
+        // Things that won't change
+        this.pk = props.data.pk;
+        this.id = "task-" + this.pk;
+        this.ref = React.createRef();
         
-        this.toggleComplete = this.toggleComplete.bind(this);
-        this.handleClick = this.handleClick.bind(this);
-        this.delete = this.delete.bind(this);
-        this.dispatchChange = this.dispatchChange.bind(this);
-        this.id = "task-" + props.data.pk;
-        
-        this.state = {
-            pk: props.data.pk,
-            title: props.data.title,
-            description: props.data.description,
-            complete: props.data.complete,
-            completedAt: props.data.completed_at,
-            due: props.data.due,
-            start: props.data.start,
-            deleted: false,
-        };  
-
+        // Props: 
+        // props.data.title
+        // props.data.complete
+        // props.data.due
+        // props.data.start
+        // props.data.description
+        // props.data.completed_at
+        // props.basicVersion
+        // ^ whether it is basic (in the list) or not (in show)
     }
 
-    dispatchChange () {
-        // This will bubble from the component in the list even if they update on the show view
-        // so that the listener in list-wrapper will hear it
-        document.getElementById(this.id).dispatchEvent(taskStateChange);
-    }
-
-    async toggleComplete () {
-        // Maybe manually check if there's a task with this id elsewhere on the page and update it's styling???
-        // TODO re-render all sections? update state in all other task sections? Add a listener somewhere else?
-        return axios.put(API_URL + this.state.pk + "/toggle-complete")
-        .then((res) => {
-            this.dispatchChange();
-            this.setState(prevState => ({
-                complete: res.data.complete, completed_at: res.data.completed_at}));
-            //  TODO try just changing the styling....
-
-        }).catch((e) => {
-            console.log("Could not toggle task.")
-            console.log(e)
-        })
-    }
-
-    async delete () {
-        console.log("Delete!!")
-        return axios.delete(API_URL + this.state.pk).then(() => {
-            this.setState({deleted: true})
-            this.dispatchChange();
-            // TODO add to alert
-        }).catch((e) => {
-            console.log("Could not delete task.")
-            console.log(e)
-        })
-        // TODO delete task from calendar, grab by id(pk)
-    }
-
-    handleClick () {
-        this.props.clickCallback(this.state, this.delete, this.toggleComplete);
+    handleListTaskClick () {
+        // This should only be called when you click on a task in the list
+        this.props.clickCallback(this.pk);
     }
 
     dateTimeWrapper (time, type) {
         const converted = DateTime.fromISO(time);
         return (
-            <div className={"date-time-wrapper" + (converted < DateTime.now() && !this.state.complete && type === "due" ? " overdue" : "")}> 
+            <div className={"date-time-wrapper" + (converted < DateTime.now() && !this.props.data.complete && type === "due" ? " overdue" : "")}> 
                 <p className="date">{converted.toLocaleString(DateTime.DATE_SHORT)}</p>
                 <p className="time">{converted.toLocaleString(DateTime.TIME_SIMPLE)}</p>
             </div>
         );
     }
 
-    render () {
-        if (this.state.deleted) {
-            return null;
-        }
+    // componentDidUpdate (prevProps, prevState) {
+    //  If we want to update calendar one task at a time we could consider doing it from here
+    // }
 
+    render () {
         const title = <button>
-                            <p className="title" data-complete={this.state.complete}>{this.state.title}</p>
+                            <p className="title" data-complete={this.props.data.complete}>{this.props.data.title}</p>
                         </button>;
 
         const checkbox = <div className="check-box-wrapper">
-                            <CheckBox 
-                                title={this.state.title}
-                                toggleCompleteHandler={this.toggleComplete}
-                                complete={this.state.complete}
-                                type={this.props.type}
-                            />
-                        </div>
+                            <input 
+                                type="checkbox" 
+                                aria-labelledby={this.props.data.title} 
+                                onChange={() => {toggleComplete(this.pk, this.ref.current)}}
+                                data-complete={this.props.data.complete}
+                                >
+                            </input>
+                            <span className={this.props.type === "due" ? "checkmark" : "checkmark round"}></span>
+                        </div>;
+
         if (this.props.basicVersion) {
             return (
-                <div className="task-wrapper" id={this.id}> 
+                <div className="task-wrapper" ref={this.ref} id={this.id}> 
                     {checkbox}
-                    <div className="title-date-wrapper" onClick={this.handleClick}>
+                    <div className="title-date-wrapper" onClick={this.handleListTaskClick}>
                         {title}
-                        {this.dateTimeWrapper(this.state.due, "due")}
+                        {this.dateTimeWrapper(this.props.data.due, "due")}
                     </div>
                 </div>
             )
@@ -112,7 +73,7 @@ class Task extends React.Component {
             return (
                 <Fragment>
                     <div>
-                        <div className="task-wrapper">
+                        <div className="task-wrapper" ref={this.ref} >
                             <div className="title-wrapper">
                                 {checkbox}
                                 {title}
@@ -124,25 +85,25 @@ class Task extends React.Component {
                         <div className="date-wrapper">
                             <div>
                                 <h3>Start</h3>
-                                {this.state.start !== null ? 
-                                    this.dateTimeWrapper(this.state.start, "start")
+                                {this.props.data.start !== null ? 
+                                    this.dateTimeWrapper(this.props.data.start, "start")
                                     :
                                     <p className="subtle"> Not set </p>
                                 }
                             </div>
                             <div> 
                                 <h3>Due</h3>
-                                {this.state.due !== null ? 
-                                    this.dateTimeWrapper(this.state.due, "due")
+                                {this.props.data.due !== null ? 
+                                    this.dateTimeWrapper(this.props.data.due, "due")
                                     :
                                     <p className="subtle"> Not set </p>
                                 }
                             </div>
                         </div>
-                        {this.state.description &&
+                        {this.props.data.description &&
                             <Fragment>
                                 <hr />
-                                <p className="centered">{this.state.description}</p>    
+                                <p className="centered">{this.props.data.description}</p>    
                             </Fragment>
                         }
                     </div>
