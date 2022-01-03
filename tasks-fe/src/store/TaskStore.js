@@ -5,9 +5,10 @@ import { DateTime } from "luxon";
 export class TaskStore {
     API;
     // userStore
-    tasks;
+    // These must have a default value here to be observable
+    tasks = [];
     // Task to show details for
-    focusedTask;
+    focusedTask = null;
     isLoaded = false;
 
     constructor (API) {
@@ -53,8 +54,13 @@ export class TaskStore {
         }
     }
 
-    setFocused (task) {
-        this.focusedTask(task);
+    // get selectedTask() {
+    //     return this.focusedTask;
+    // }
+
+    setFocus (task) {
+        this.focusedTask = task;
+        console.log("in store " + this.focusedTask.pk)
     }
 
     removeFocus () {

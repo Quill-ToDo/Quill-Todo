@@ -3,21 +3,23 @@ import bin from "../static/images/bin.png"
 import edit from "../static/images/editing.png"
 import Task from "./Task";
 import '../static/css/show.css';
-
-async function handleDelete (props) {
-    console.log("delete!!!");
-    // del(props.task.pk, document.getElementById("show-wrapper").getElementsByClassName("task-wrapper")[0])
-    // .then(() => {props.clickOffHandler();});
-}
+import { observer } from "mobx-react-lite";
+import { useTaskStore } from "../store/StoreContext";
 
 function handleEdit () {
     console.log("Edit!")
 }
 
-function ShowTask (props) {
+const ShowTask = observer((props) => {
+    const task = props.task;
+    const store = useTaskStore();
+
+
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
-                            handleDelete(props)}}>
+                            task.delete();
+                            store.removeFocus();
+                            }}>
                             <img src={bin} alt="Trash icon for delete"></img>
                         </button>
                         <button id="btn-edit" className="btn" onClick={handleEdit}>
@@ -29,17 +31,16 @@ function ShowTask (props) {
         <Fragment>
             <section className="mid-section">
                 <Task 
-                    data={props.task} 
+                    data={task} 
                     basicVersion={false} 
                     buttons={buttons}
                     type="due"
                 />
             </section>
-            <div className="filter" onClick={props.clickOffHandler}>
+            <div className="filter" onClick={() => {store.removeFocus()}}>
             </div>
         </Fragment>
     );
-}
-
+})
 
 export default ShowTask

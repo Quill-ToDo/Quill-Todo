@@ -7,7 +7,6 @@ export class Task {
     start = null;
     due = null;
     description = "";
-
     store = null;
 
     constructor (store, pk) {
@@ -32,7 +31,7 @@ export class Task {
 
     delete() {
         this.store.API.deleteTask(this.pk);
-        this.store.remove(this);
+        this.store.tasks.remove(this);
     }
 
     get asJson() {

@@ -48,7 +48,7 @@ const Task = observer((props) => {
         return (
             <div className="task-wrapper" id={id}> 
                 {checkbox}
-                <div className="title-date-wrapper" onClick={() => task.setFocus }>
+                <div className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
                     {dateTimeWrapper(task, task.due, "due")}
                 </div>
