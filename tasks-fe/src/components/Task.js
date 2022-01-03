@@ -1,5 +1,6 @@
 import React, { Fragment } from "react";
 import { DateTime } from "luxon";
+import { observer } from "mobx-react-lite";
 
 const dateTimeWrapper = (task, time, type) => {
     const converted = DateTime.fromISO(time);
@@ -11,7 +12,7 @@ const dateTimeWrapper = (task, time, type) => {
     );
 }
 
-const Task = (props) => {
+const Task = observer((props) => {
     const task = props.data;
     const id = "task-" + task.pk;
     
@@ -47,7 +48,7 @@ const Task = (props) => {
         return (
             <div className="task-wrapper" id={id}> 
                 {checkbox}
-                <div className="title-date-wrapper" onClick={() => task.setFocus()}>
+                <div className="title-date-wrapper" onClick={() => task.setFocus }>
                     {title}
                     {dateTimeWrapper(task, task.due, "due")}
                 </div>
@@ -95,6 +96,6 @@ const Task = (props) => {
             </Fragment>
         );
     }
-}
+})
 
 export default Task

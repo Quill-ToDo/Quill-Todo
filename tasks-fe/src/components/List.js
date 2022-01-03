@@ -72,26 +72,10 @@ const ByStatusThreeSection = observer((props) => {
     );
 });
 
-const BigList = observer((props) => {
-    const store = props.store;
-    return (
-        store.isLoaded ? 
-        <ul>
-            {store.tasks.map(task => {
-                console.log(task.title);
-                return (<li> {task.title} </li>);
-            })}
-        </ul>
-        :
-        null
-    );
-})
-
 const List = observer((props) => {
     const sectionToggleDuration = 100;
     const bindings = {
-        "by-status": <ByStatusThreeSection toggleDuration={sectionToggleDuration} store={props.store}/>, 
-        "big-list": <BigList store={props.store}/> 
+        "by-status": <ByStatusThreeSection toggleDuration={sectionToggleDuration} store={props.store}/>
     };
 
     const type = "by-status";

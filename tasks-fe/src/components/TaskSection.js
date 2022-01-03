@@ -2,11 +2,20 @@ import React from "react";
 import TaskSectionContent from "./TaskSectionContent";
 
 
+function getSectionId(sectionNum) {
+    return "task-section-" + sectionNum;
+}
+
 function handleSectionToggle (event, sectionNum, duration) {
     // Collapse/expand sections on click 
-    var task_section = document.getElementById(getSectionId(sectionNum))
-    toggleSection(task_section, duration);
-    flipKarat(task_section, duration);
+    const taskSection = document.getElementById(getSectionId(sectionNum))
+    const outer_section = taskSection.querySelector(".mid-section");
+    const inner_section = taskSection.getElementsByClassName("section-collapsible")[0];
+    inner_section.style.transition = `transform ${duration * .98}ms ease-in-out 0s`;
+    outer_section.style.transition = `height ${duration}ms ease-in-out 0s`;
+    outer_section.style.height = "fit-content";
+    toggleSection(taskSection, duration);
+    flipKarat(taskSection, duration);
 }
 
 function toggleInlineHeightAttribute (outerSection) {
@@ -27,12 +36,17 @@ function toggleInlineHeightAttribute (outerSection) {
 function flipKarat (taskSection, duration) {
     // Flip karat
     var symbol = taskSection.querySelector(".expand-symbol");
-    var rotation = symbol.style.rotate;
-    symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
-    if (rotation === "45deg" || rotation === "") {
-        symbol.style.rotate = "-135deg";
-    } else {
-        symbol.style.rotate = "45deg";
+    symbol.style.transition = `transform ${duration}ms ease-in-out 0s`;
+    if (symbol.style._webkit_transform === "rotate(-135deg)" || 
+        symbol.style._ms_transform === "rotate(-135deg)" || 
+        symbol.style.transform === "rotate(-135deg)") {
+        symbol.style._webkit_transform = "rotate(45deg)";
+        symbol.style._ms_transform = "rotate(45deg)";
+        symbol.style.transform = "rotate(45deg)";
+        } else {
+        symbol.style._webkit_transform = "rotate(-135deg)";
+        symbol.style._ms_transform = "rotate(-135deg)";
+        symbol.style.transform = "rotate(-135deg)";
     }
 }
 
@@ -47,11 +61,11 @@ function toggleSection(taskSection, duration) {
     if (innerContent.style.display === "none") {
         // Expand
         innerContent.style.display = "block";
-        const section_content_height = parseFloat(window.getComputedStyle(outerSection).getPropertyValue('height'));
+        const sectionContentHeight = parseFloat(window.getComputedStyle(innerContent).getPropertyValue('height'));
         setTimeout(() => {
             // For some reason it needs a timeout after switching to block display before transforming
             // Works when theres a breakpoint after....
-            outerSection.style.height = (sectionHeaderHeight + section_content_height) + "px";
+            outerSection.style.height = (sectionHeaderHeight + sectionContentHeight) + "px";
             innerContent.style.transform = "scaleY(1)";
         }, duration/100)
     } else {
@@ -66,11 +80,7 @@ function toggleSection(taskSection, duration) {
 
     setTimeout(() => {
         toggleInlineHeightAttribute(outerSection);
-    }, duration)
-}
-
-function getSectionId(props) {
-    return "task-section-" + props.sectionNum;
+    }, duration+10)
 }
 
 const TaskSection = (props) => {
@@ -93,17 +103,9 @@ const TaskSection = (props) => {
     //     tasks<dict?>= [],
         // emptyText= ""  // Text that appears in the content section if there are no tasks
     // }
-
-    // Figure out where to put this
-    // const task_section = document.getElementById(this.getSectionId());
-    // const outer_section = task_section.querySelector(".mid-section");
-    // const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
-    // inner_section.style.transition = `transform ${this.sectionToggleDuration * .98}ms ease-in-out 0s`;
-    // outer_section.style.transition = `height ${this.sectionToggleDuration}ms ease-in-out 0s`;
-    // outer_section.style.height = "fit-content";
     
     return (
-        <section id={getSectionId(props)}>
+        <section id={getSectionId(props.sectionNum)}>
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
                 <div className="expandable-section-header"  onClick={(e) => handleSectionToggle(e, props.sectionNum, props.toggleDuration)}>
                     <div className="expand-symbol"></div>
@@ -112,7 +114,6 @@ const TaskSection = (props) => {
                 <div className="section-collapsible">
                     { props.sectionContent.map((section) => {
                     return ( 
-                        // <p>ah</p>
                         <TaskSectionContent 
                             title={section.optionalTitle}
                             tasks={section.tasks}

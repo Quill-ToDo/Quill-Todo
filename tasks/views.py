@@ -15,17 +15,19 @@ from tasks import serializers
 def home(request):
     return render(request, 'application.html')
 
-@api_view(['GET'])
+@api_view(['GET', 'PUT'])
 def tasks(request):
     # TODO: Add post handler
     if request.method == 'GET':
         data = Task.objects.all()
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
+    elif request.method == 'PUT':
+        # TODO: Create new task
+        return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
 
-@api_view(['GET', 'DELETE'])
+@api_view(['GET', 'DELETE', 'PATCH'])
 def task_details(request, pk):
-    # TODO Add put and delete
     try:
         task = Task.objects.get(pk=pk)
     except Task.DoesNotExist:
@@ -37,8 +39,25 @@ def task_details(request, pk):
     elif request.method == 'DELETE':
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
+    elif request.method == 'PATCH':
+        # Update fields
+        t_data = request.data.copy()
+        t_data["updated_at"] = timezone.now()
+        serializer = TaskSerializer(
+            task, 
+            data=t_data, 
+            partial=True)
 
-@api_view(['PUT'])
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
+                "errors": serializer.errors,
+                "submittedData": serializer})
+
+@api_view(['PATCH'])
 def toggle_complete(request, pk):
     '''
     Toggle task complete status

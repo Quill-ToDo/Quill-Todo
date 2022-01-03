@@ -209,7 +209,10 @@ p.time {
   border: 3px solid var(--mid-font);
   border-top: none;
   border-left: none;
-  rotate: 45deg;
+  /* rotate: 45deg; */
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
   /* transition: rotate 0.1s ease-in-out; */
 }
 

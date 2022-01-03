@@ -17,15 +17,8 @@ export class TaskApi {
         })
     }
 
-    async toggleComplete(pk) {
-        return axios.put(this.url + pk + "/toggle-complete")
-            .then((res) => {
-                return res;
-            }).catch((e) => {
-                console.log("Could not toggle task completion")
-                console.log(e)
-                return e;
-            })
+    async updateTask(pk, data) {
+        return axios.patch(this.url + pk, data)
     }
     
     async deleteTask(pk) {

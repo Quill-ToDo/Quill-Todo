@@ -25,7 +25,7 @@ export class Task {
             json => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {
-                    this.store.API.saveTask(json);
+                    this.store.API.updateTask(this.pk, json);
                 }
             });
     }
@@ -47,7 +47,7 @@ export class Task {
     }
 
     toggleComplete () {
-        this.store.API.toggleComplete(this.pk);
+        // this.store.API.toggleComplete(this.pk);
         this.complete = !this.complete;
     }
 
