@@ -74,31 +74,38 @@ import { observer } from "mobx-react-lite";
 //     );
 // });
 
-// const BigList = observer((props) => {
-//     const context = useContext(StoreContext);
-
-//     return (
-//         <p>
-//             {context}
-//         </p>
-//     )
-// });
-
-const List = (props) => {
+const BigList = observer((props) => {
     const context = useTaskStore();
     console.log(context.tasks);
-    // const bindings = {"by-status": ByStatusThreeSection, "big-list": BigList};
-    // const type = "big-list";
-    // const loading = <span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>;
-    // // const renderedSection = bindings[type](props);
-    // const renderedSection = <p>hi!</p>;
+    return (
+        context.isLoaded ? 
+        <ul>
+            {context.tasks.map((pk, task) => {
+                return <li> {task.title} </li>;
+            })}
+        </ul>
+        :
+        null
+    );
+})
+
+const List = observer((props) => {
+    const context = useTaskStore();
+    console.log(context.tasks);
+    // const bindings = {
+    //     "by-status": ByStatusThreeSection, 
+    //     "big-list": BigList
+    // };
+    const type = "big-list";
+    const loading = <span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>;
+    // const renderedSection = <p>{context}</p>;
 
     // Before content is loaded show placeholder
     return (
         <div id="list-wrapper">
-            {/* {context.isLoading ? loading : renderedSection} */}
+            {context.isLoaded ? loading : BigList(props)}
         </div>
     );
-}
+})
 
 export default List;

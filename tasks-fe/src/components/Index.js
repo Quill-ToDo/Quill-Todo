@@ -1,7 +1,7 @@
 import React from "react";
 import logout from '../static/images/logout.png';
 import add from '../static/images/add.png';
-// import List from './List'
+import List from './List'
 // import ShowTask from './ShowTask';
 import MenuButton from "./MenuButton";
 import { observer } from "mobx-react-lite";
@@ -21,9 +21,9 @@ const Index = observer((props) => {
             </div>
             <ul>
             </ul>
-            {/* <List 
+            <List 
                 // TaskClickCallback={toggleShow} 
-            /> */}
+            />
             <div id="slider"></div>
             <div id="calendar-wrapper">
             </div>

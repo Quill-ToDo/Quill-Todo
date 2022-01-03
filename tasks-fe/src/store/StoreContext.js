@@ -1,13 +1,12 @@
 import React from "react";
 import { TaskApi } from "./TaskApi.js";
-import { CreateTaskStore } from "../store/TaskStore";
+import { TaskStore } from "../store/TaskStore";
 
 const StoreContext = React.createContext(null);
 const useTaskStore = () => React.useContext(StoreContext);
 
 const StoreProvider = function ({children}) {
-    const taskStore = CreateTaskStore(new TaskApi());
-    taskStore.loadTasks();
+    const taskStore = new TaskStore(new TaskApi());
 
     // Breaks here
     // Checks to see if its string, function
