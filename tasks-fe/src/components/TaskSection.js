@@ -1,140 +1,130 @@
-import React from "react";
-import TaskSectionContent from "./TaskSectionContent";
-class OneTaskSection extends React.Component {
-
-    constructor(props) {
-        super(props);
-        // this.props.title;
-        // The title of the section
-
-        // this.props.sectionNum;
-        // The number this section appears at in the list of sections, used in it's id. 
-        // Makes queries for this element easier
-        
-        // this.props.sectionContent;
-        // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
-        // dictionaries in the list.
-        // Format as a list of dictionary elements with keys:
-        // {
-        //     optional_title= "",  // A subtitle that can appear before the content section
-        //     tasks<dict?>= [],
-            // empty_text= ""  // Text that appears in the content section if there are no tasks
-        // }
-        
-        this.sectionToggleDuration = 100; 
-        // How long it should take for the section collapse animation  
-
-        // Ensure that "this" works properly in these methods
-        this.handleSectionToggle = this.handleSectionToggle.bind(this);
-        this.componentDidMount = this.componentDidMount.bind(this);
-    }
-
-    componentDidMount () {
-        const task_section = document.getElementById(this.getSectionId());
-        const outer_section = task_section.querySelector(".mid-section");
-        const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
-        inner_section.style.transition = `transform ${this.sectionToggleDuration * .98}ms ease-in-out 0s`;
-        outer_section.style.transition = `height ${this.sectionToggleDuration}ms ease-in-out 0s`;
-        outer_section.style.height = "fit-content";
-    }
-
-    toggleInlineHeightAttribute (outer_section) {
-        // Add an inline height attribute equal to the original height
-        // If I don't do this (add the computed inline height attribute) then the height transition animation 
-        // wont work the first time you click the section title to collapse it.
-        if (outer_section.style.height === "fit-content") {
-            // Set inline height attribute
-            const outer_height = parseFloat(window.getComputedStyle(outer_section).getPropertyValue('height'));
-            outer_section.style.height = outer_height + "px";
-        }
-        else {
-            // Remove inline height attribute (after animation is done so that the section will respond properly to window resizes)
-            outer_section.style.height = "fit-content";
-        }
-    }
-
-    getSectionId() {
-        return "task-section-" + this.props.sectionNum;
-    }
-
-    handleSectionToggle (event, duration = this.sectionToggleDuration) {
-        // Collapse/expand sections on click 
-        var task_section = document.getElementById(this.getSectionId())
-        this.toggleSection(task_section, duration);
-        this.flipKarat(task_section, duration);
-    }
-
-    toggleSection(task_section, duration) {
-        var outer_section = task_section.querySelector(".mid-section");
-        var inner_content = task_section.querySelector(".section-collapsible");
-        
-        this.toggleInlineHeightAttribute(outer_section);
-
-        const section_header_height = parseFloat(window.getComputedStyle(task_section.querySelector(".expandable-section-header")).getPropertyValue('height'));
-
-        if (inner_content.style.display === "none") {
-            // Expand
-            inner_content.style.display = "block";
-            const section_content_height = parseFloat(window.getComputedStyle(inner_content).getPropertyValue('height'));
-            setTimeout(() => {
-                // For some reason it needs a timeout after switching to block display before transforming
-                // Works when theres a breakpoint after....
-                outer_section.style.height = (section_header_height + section_content_height) + "px";
-                inner_content.style.transform = "scaleY(1)";
-            }, duration/100)
-        } else {
-            // Hide
-            inner_content.style.transform = "scaleY(.01)";
-            var collapsed_height = section_header_height + "px";
-            outer_section.style.height = collapsed_height;
-            setTimeout(() => {
-                inner_content.style.display = "none";
-            }, duration)
-        }
-
-        setTimeout(() => {
-            this.toggleInlineHeightAttribute(outer_section);
-        }, duration)
-    }
-
-    flipKarat (task_section, duration) {
-        // Flip karat
-        var symbol = task_section.querySelector(".expand-symbol");
-        var rotation = symbol.style.rotate;
-        symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
-        if (rotation === "45deg" || rotation === "") {
-            symbol.style.rotate = "-135deg";
-        } else {
-            symbol.style.rotate = "45deg";
-        }
-    }
+// import React from "react";
+// import TaskSectionContent from "./TaskSectionContent";
 
 
-    render () {
-        return (
-            <section id={this.getSectionId()}>
-                <div className={(this.className !== undefined ? this.className + " " : "") + "mid-section"}>
-                    <div className="expandable-section-header"  onClick={this.handleSectionToggle}>
-                        <div className="expand-symbol"></div>
-                        <h2>{this.props.title}</h2>
-                    </div>
-                    <div className="section-collapsible">
-                        { this.props.sectionContent.map((section) => {
-                        return ( 
-                            <TaskSectionContent 
-                                title={section.optional_title}
-                                tasks={section.tasks}
-                                type={section.type}
-                                TaskClickCallback={this.props.TaskClickCallback}
-                                emptyText={section.empty_text}
-                            />
-                        )
-                    })}
-                    </div>
-                </div>
-            </section>
-        );
-    }
-}
+// function handleSectionToggle (event, duration) {
+//     // Collapse/expand sections on click 
+//     var task_section = document.getElementById(this.getSectionId())
+//     this.toggleSection(task_section, duration);
+//     this.flipKarat(task_section, duration);
+// }
 
-export default OneTaskSection;
+// function toggleInlineHeightAttribute (outerSection) {
+//     // Add an inline height attribute equal to the original height
+//     // If I don't do this (add the computed inline height attribute) then the height transition animation 
+//     // wont work the first time you click the section title to collapse it.
+//     if (outerSection.style.height === "fit-content") {
+//         // Set inline height attribute
+//         const outerHeight = parseFloat(window.getComputedStyle(outerSection).getPropertyValue('height'));
+//         outerSection.style.height = outerHeight + "px";
+//     }
+//     else {
+//         // Remove inline height attribute (after animation is done so that the section will respond properly to window resizes)
+//         outerSection.style.height = "fit-content";
+//     }
+// }
+
+// function flipKarat (taskSection, duration) {
+//     // Flip karat
+//     var symbol = taskSection.querySelector(".expand-symbol");
+//     var rotation = symbol.style.rotate;
+//     symbol.style.transition = `rotate ${duration}ms ease-in-out 0s`;
+//     if (rotation === "45deg" || rotation === "") {
+//         symbol.style.rotate = "-135deg";
+//     } else {
+//         symbol.style.rotate = "45deg";
+//     }
+// }
+
+// function toggleSection(taskSection, duration) {
+//     var outerSection = taskSection.querySelector(".mid-section");
+//     var outerSection = taskSection.querySelector(".section-collapsible");
+    
+//     this.toggleInlineHeightAttribute(outerSection);
+
+//     const sectionHeaderHeight = parseFloat(window.getComputedStyle(taskSection.querySelector(".expandable-section-header")).getPropertyValue('height'));
+
+//     if (outerSection.style.display === "none") {
+//         // Expand
+//         outerSection.style.display = "block";
+//         const section_content_height = parseFloat(window.getComputedStyle(outerSection).getPropertyValue('height'));
+//         setTimeout(() => {
+//             // For some reason it needs a timeout after switching to block display before transforming
+//             // Works when theres a breakpoint after....
+//             outerSection.style.height = (sectionHeaderHeight + section_content_height) + "px";
+//             outerSection.style.transform = "scaleY(1)";
+//         }, duration/100)
+//     } else {
+//         // Hide
+//         outerSection.style.transform = "scaleY(.01)";
+//         var collapsedHeight = sectionHeaderHeight + "px";
+//         outerSection.style.height = collapsedHeight;
+//         setTimeout(() => {
+//             outerSection.style.display = "none";
+//         }, duration)
+//     }
+
+//     setTimeout(() => {
+//         this.toggleInlineHeightAttribute(outerSection);
+//     }, duration)
+// }
+
+// function getSectionId(props) {
+//     return "task-section-" + props.sectionNum;
+// }
+
+// const TaskSection = (props) => {
+//     // props.title;
+//     // The title of the section
+
+//     // props.sectionNum;
+//     // The number this section appears at in the list of sections, used in it's id. 
+//     // Makes queries for this element easier
+    
+//     // props.toggleDuration
+//     // How long the section collapse animation should be  
+
+//     // props.sectionContent;
+//     // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
+//     // dictionaries in the list.
+//     // Format as a list of dictionary elements with keys:
+//     // {
+//     //     optional_title= "",  // A subtitle that can appear before the content section
+//     //     tasks<dict?>= [],
+//         // emptyText= ""  // Text that appears in the content section if there are no tasks
+//     // }
+
+//     // Figure out where to put this
+//     // const task_section = document.getElementById(this.getSectionId());
+//     // const outer_section = task_section.querySelector(".mid-section");
+//     // const inner_section = task_section.getElementsByClassName("section-collapsible")[0];
+//     // inner_section.style.transition = `transform ${this.sectionToggleDuration * .98}ms ease-in-out 0s`;
+//     // outer_section.style.transition = `height ${this.sectionToggleDuration}ms ease-in-out 0s`;
+//     // outer_section.style.height = "fit-content";
+    
+//     return (
+//         <section id={getSectionId(props)}>
+//             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
+//                 <div className="expandable-section-header"  onClick={handleSectionToggle}>
+//                     <div className="expand-symbol"></div>
+//                     <h2>{props.title}</h2>
+//                 </div>
+//                 <div className="section-collapsible">
+//                     { props.sectionContent.map((section) => {
+//                     return ( 
+//                         <TaskSectionContent 
+//                             title={section.optionalitle}
+//                             tasks={section.tasks}
+//                             type={section.type}
+//                             TaskClickCallback={this.props.TaskClickCallback}
+//                             emptyText={section.emptyText}
+//                         />
+//                     )
+//                 })}
+//                 </div>
+//             </div>
+//         </section>
+//     );
+// }
+
+// export default TaskSection;

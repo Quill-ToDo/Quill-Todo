@@ -5,6 +5,8 @@ export class TaskStore {
     API;
     // userStore
     tasks;
+    // Task to show details for
+    focusedTask;
     isLoaded = false;
 
     constructor (API) {
@@ -15,6 +17,7 @@ export class TaskStore {
         this.API = API;
         this.tasks = [];
         this.loadTasks();
+        this.focusedTask = null;
     }
 
     // Fetch all tasks from server
