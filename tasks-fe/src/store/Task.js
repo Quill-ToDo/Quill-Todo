@@ -15,7 +15,6 @@ export class Task {
             pk: false,
             store: false,
             saveHandler: false,
-            dispose: false
         });
         // Could do validations here too if I wanted...
         this.store = store;
@@ -62,10 +61,5 @@ export class Task {
         this.due = json.due;
         this.description = json.description;
         this.autoSave = true;
-    }
-
-    dispose () {
-        // Call this if the object is not needed but not deleted
-        this.saveHandler();
     }
 }

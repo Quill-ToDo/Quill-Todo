@@ -74,14 +74,15 @@ import { observer } from "mobx-react-lite";
 //     );
 // });
 
-const BigList = observer((props) => {
+const BigList = observer(({props}) => {
     const context = useTaskStore();
     console.log(context.tasks);
     return (
         context.isLoaded ? 
         <ul>
-            {context.tasks.map((pk, task) => {
-                return <li> {task.title} </li>;
+            {context.tasks.map(task => {
+                console.log(task.title);
+                return (<li> {task.title} </li>);
             })}
         </ul>
         :
@@ -89,9 +90,8 @@ const BigList = observer((props) => {
     );
 })
 
-const List = observer((props) => {
+const List = observer(({props}) => {
     const context = useTaskStore();
-    console.log(context.tasks);
     // const bindings = {
     //     "by-status": ByStatusThreeSection, 
     //     "big-list": BigList
@@ -103,7 +103,7 @@ const List = observer((props) => {
     // Before content is loaded show placeholder
     return (
         <div id="list-wrapper">
-            {context.isLoaded ? loading : BigList(props)}
+            {context.isLoaded ? <BigList /> : loading}
         </div>
     );
 })

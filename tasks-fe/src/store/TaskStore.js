@@ -1,42 +1,10 @@
-import { makeAutoObservable, observable, runInAction} from "mobx";
+import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
-
-// export const CreateTaskStore = (API) => {
-//     return makeAutoObservable({
-//         API: API,
-//         tasks: {},
-//         isLoaded: false,
-//         // Fetch all tasks from server
-//         loadTasks () {
-//             this.isLoaded = false;
-//             this.API.fetchTasks().then(fetchedTasks => {
-//                 runInAction(() => {
-//                     fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
-//                     this.isLoaded = true;
-//                 });
-//             })
-//         },
-//         // Update a todo with into from a server and guarantee it only exists once
-//         updateTaskFromServer (taskJson) {
-//             let task;
-//             if (taskJson.pk in this.tasks) {
-//                 task = this.tasks[taskJson.pk];
-//             }
-//             else {
-//                 // Does not yet exist in store
-//                 task = new Task(this, taskJson.pk);
-//                 this.tasks[taskJson.pk] = task;
-//             }
-            
-//             task.updateFromJson(taskJson);
-//         }
-//     }, {API:false})
-// };
 
 export class TaskStore {
     API;
     // userStore
-    tasks = {};
+    tasks;
     isLoaded = false;
 
     constructor (API) {
@@ -45,7 +13,7 @@ export class TaskStore {
         })
 
         this.API = API;
-        this.tasks = {};
+        this.tasks = [];
         this.loadTasks();
     }
 
@@ -62,16 +30,12 @@ export class TaskStore {
 
     // Update a todo with into from a server and guarantee it only exists once
     updateTaskFromServer (taskJson) {
-        let task;
-        if (taskJson.pk in this.tasks) {
-            task = this.tasks[taskJson.pk];
-        }
-        else {
+        let task = this.tasks.find(t => t.pk === taskJson.pk)
+        if (!task) {
             // Does not yet exist in store
             task = new Task(this, taskJson.pk);
-            this.tasks[taskJson.pk] = task;
+            this.tasks.push(task);
         }
-        
         task.updateFromJson(taskJson);
     } 
 
