@@ -3,11 +3,11 @@ import bin from "../static/images/bin.png"
 import edit from "../static/images/editing.png"
 import Task from "./Task";
 import '../static/css/show.css';
-import { del } from "../static/js/modules/TaskApi.mjs";
 
 async function handleDelete (props) {
-    del(props.task.pk, document.getElementById("show-wrapper").getElementsByClassName("task-wrapper")[0])
-    .then(() => {props.clickOffHandler();});
+    console.log("delete!!!");
+    // del(props.task.pk, document.getElementById("show-wrapper").getElementsByClassName("task-wrapper")[0])
+    // .then(() => {props.clickOffHandler();});
 }
 
 function handleEdit () {

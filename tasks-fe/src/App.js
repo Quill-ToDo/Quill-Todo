@@ -1,5 +1,5 @@
 import { Fragment } from 'react';
-import Index from './components/Index';
+import {Index} from './components/Index';
 
 function App() {
   return (

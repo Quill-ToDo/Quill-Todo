@@ -1,16 +1,20 @@
 import React, { Fragment } from "react";
 import { DateTime } from "luxon";
 
-import { toggleComplete } from "../static/js/modules/TaskApi.mjs";
+// import { toggleComplete } from "../store/TaskApi.js";
+import { useTaskStore } from "../store/StoreContext";
 
 class Task extends React.Component {
+    static contextType = useTaskStore();
+
     constructor(props) {
         super(props);
         this.handleListTaskClick = this.handleListTaskClick.bind(this);
         // Things that won't change
-        this.pk = props.data.pk;
+        const self = this.context.tasks[this.pk];
+        this.pk = self.pk;
         this.id = "task-" + this.pk;
-        this.ref = React.createRef();
+        // this.ref = React.createRef();
         
         // Props: 
         // props.data.title
@@ -51,7 +55,7 @@ class Task extends React.Component {
                             <input 
                                 type="checkbox" 
                                 aria-labelledby={this.props.data.title} 
-                                onChange={() => {toggleComplete(this.pk, this.ref.current)}}
+                                onChange={() => { this.context.toggleComplete(this.pk)}}
                                 data-complete={this.props.data.complete}
                                 >
                             </input>
