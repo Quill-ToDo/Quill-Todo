@@ -2,7 +2,7 @@ import React, { Fragment } from "react";
 
 import Task from './Task'
 
-function TaskSectionContent (props) {
+const TaskSectionContent = (props) => {
     return (
         <Fragment>
             {props.title !== undefined ? <h3>{props.title}</h3> : null}
@@ -17,7 +17,6 @@ function TaskSectionContent (props) {
                                 <Task
                                     data={task}
                                     basicVersion={true}
-                                    clickCallback={props.TaskClickCallback}
                                     type={props.type}
                                 />
                             </li>

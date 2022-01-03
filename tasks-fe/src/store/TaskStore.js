@@ -1,5 +1,6 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
+import { DateTime } from "luxon";
 
 export class TaskStore {
     API;
@@ -41,6 +42,24 @@ export class TaskStore {
         }
         task.updateFromJson(taskJson);
     } 
+
+    get byStatus() {
+        const now = DateTime.now();
+        return {
+            "overdue": this.tasks.filter(task => DateTime.fromISO(task.due) <= now),
+            "todayDue": this.tasks.filter(task => (now.set({hour: 0, minute: 0, second: 0}) < DateTime.fromISO(task.due)) && (DateTime.fromISO(task.due) < now)),
+            "todayWork": this.tasks.filter(task => (task.start && DateTime.fromISO(task.start) <= now) && (now <= DateTime.fromISO(task.due))),
+            "upcoming": this.tasks.filter(task => (!task.start || now <= DateTime.fromISO(task.start) ) && (now <= DateTime.fromISO(task.due)))
+        }
+    }
+
+    setFocused (task) {
+        this.focusedTask(task);
+    }
+
+    removeFocus () {
+        this.focusedTask = null;
+    }
 
     // createTask (taskData) {
     //     // Create on server, get pk

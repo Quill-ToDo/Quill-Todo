@@ -62,4 +62,8 @@ export class Task {
         this.description = json.description;
         this.autoSave = true;
     }
+
+    setFocus() {
+        this.store.setFocus(this);
+    }
 }
