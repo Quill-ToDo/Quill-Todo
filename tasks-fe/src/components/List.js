@@ -80,10 +80,8 @@ const List = observer((props) => {
 
     const type = "by-status";
     const loading = <span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>;
-    // const renderedSection = <p>{context}</p>;
 
     // Before content is loaded show placeholder
-    // TODO: if this doesn't update put the component in return 
     return (
         <div id="list-wrapper">
             {props.store.isLoaded ? bindings[type] : loading}

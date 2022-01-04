@@ -1,27 +1,27 @@
-import React from "react";
+import React, { useState } from "react";
 import logout from '../static/images/logout.png';
 import add from '../static/images/add.png';
+
 import List from './List'
 import ShowTask from './ShowTask';
 import MenuButton from "./MenuButton";
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../store/StoreContext";
-import { isObservable, isObservableProp } from "mobx";
-    
+import { useTaskStore} from "../store/StoreContext";
+import { dispatchAlert } from "../static/js/events";
 
-const Index = observer((props) => {
+
+const Home = observer(() => {
     const context = useTaskStore();
-    // useState
 
-    
-    // console.log(isObservableProp(context, "focusedTask"))
     return ( 
-        <div id="index-wrapper">
+        <div id="home-wrapper">
             <div id="new-wrapper"></div>
             <div id="show-wrapper">{ context.focusedTask ? <ShowTask task={context.focusedTask} /> : null }</div>
             <div id="left-menu" className="menu">
-                <MenuButton src={add} alt="Plus icon for add new task" link=""/>
-                <MenuButton src={logout} alt="Power off icon for log out" link=""/>
+                <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {
+                    dispatchAlert(document.getElementById("left-menu"), "alert", "test alert");
+                }}/>
+                <MenuButton src={logout} alt="Power off icon for log out"/>
             </div>
             <ul>
             </ul>
@@ -33,4 +33,4 @@ const Index = observer((props) => {
     );
 })
 
-export {Index};
+export {Home};

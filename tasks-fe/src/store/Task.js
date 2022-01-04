@@ -46,7 +46,6 @@ export class Task {
     }
 
     toggleComplete () {
-        // this.store.API.toggleComplete(this.pk);
         this.complete = !this.complete;
     }
 

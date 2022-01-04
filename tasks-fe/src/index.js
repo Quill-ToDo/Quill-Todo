@@ -3,15 +3,10 @@ import ReactDOM from 'react-dom';
 import './static/css/application.css';
 import App from './App';
 // import reportWebVitals from './reportWebVitals';
-import { StoreProvider } from "./store/StoreContext";
-
-// Add this in your component file
 
 ReactDOM.render(
   <React.StrictMode>
-    <StoreProvider>
-      <App />
-    </StoreProvider>
+    <App />
   </React.StrictMode>,
   document.getElementById('root')
 );

@@ -27,7 +27,7 @@
   --mid-dark: #191919;
   --darkest-dark: #111111;
   --notice-bg: #7c7c7c;
-  --alert-bg: #b15353;
+  --alert-bg: #990707;
   --button-primary: #273fac;
   --success: #157c15;
 
@@ -149,7 +149,7 @@ p {
 }
 
 /* @media screen and (min-width: 769px) { */
-#index-wrapper {
+#home-wrapper {
   display: grid;
   grid-template-areas: "left-menu list slider calendar";
   grid-template-columns: 50px minmax(min-content, 2fr) min-content 5fr;
@@ -225,22 +225,26 @@ textarea {
 #alert-wrapper {
   position: absolute;
   bottom: var(--section-gap);
-  right: var(--section-gap);
+  right: 0;
   display: flex;
   gap: 10px;
   flex-direction: column;
+  align-items: flex-end;
 }
 
 .alert-pop-up {
   z-index: 5;
-  border-radius: 10px;
   max-width: 500px;
+  line-break:loose;
+  width: fit-content;
   overflow: hidden;
   position: relative;
   padding: 10px;
-  box-shadow: 10px 10px 20px var(--darkest-dark);
+  padding-left: 30px;
+  box-shadow: 20px 10px 10px var(--mid-dark);
   display: flex;
   align-items: center;
+  transition: opacity 1s;
   gap: 5px;
 }
 
@@ -252,34 +256,29 @@ textarea {
 .alert-pop-up p {
   font-family: "Quicksand", sans-serif;
   font-size: 20px;
-  color: var(--dark-font);
+  /* color: var(--dark-font); */
+  color: var(--lightest-font);
   font-weight: 600;
 }
 
 .alert-pop-up.notice {
-  background-color: var(--notice-bg);
+  background: var(--notice-bg);
+  background: linear-gradient(90deg, rgba(124,124,124,0) 3%, rgba(124,124,124,1) 100%);
   right: -550px;
   opacity: 100%;
   animation: alert-slide-out 10s ease-in-out;
+}
+
+.alert-pop-up.alert {
+  background: var(--alert-bg);
+  background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, rgb(163, 29, 29) 100%);
+  opacity: 90%;
 }
 
 .alert-pop-up:hover {
   right: 0;
   opacity: 100%;
   animation: 0;
-}
-
-@keyframes alert-slide-in {
-  0% {
-    opacity: 70%;
-  }
-  10% {
-    opacity: 90%;
-    right: 0;
-  }
-  100% {
-    right: 0;
-  }
 }
 
 @keyframes alert-slide-out {
@@ -294,11 +293,6 @@ textarea {
     right: -50vw;
     opacity: 0%;
   }
-}
-
-.alert-pop-up.alert {
-  background-color: var(--alert-bg);
-  opacity: 90%;
 }
 
 hr {

@@ -54,10 +54,6 @@ export class TaskStore {
         }
     }
 
-    // get selectedTask() {
-    //     return this.focusedTask;
-    // }
-
     setFocus (task) {
         this.focusedTask = task;
         console.log("in store " + this.focusedTask.pk)

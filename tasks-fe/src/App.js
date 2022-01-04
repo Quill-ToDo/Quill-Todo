@@ -1,19 +1,14 @@
-import { Fragment } from 'react';
-import {Index} from './components/Index';
+import {Home} from './components/Home';
+import { TaskProvider, AlertProvider } from "./store/StoreContext";
+import AlertWrapper from './components/AlertWrapper';
 
 function App() {
   return (
-    <Fragment>
-          <div id="alert-wrapper">
-            {/* {% if alert %} 
-            {% include 'alert_box.html' with type="notice" body=alert %}
-            {% endif %}
-            {% if notice %} 
-            {% include 'alert_box.html' with type="alert" body=alert %}
-            {% endif %} */}
-          </div>
-          <Index />
-    </Fragment>
+      <TaskProvider>
+          <AlertWrapper>
+            <Home />
+          </AlertWrapper>
+      </TaskProvider>
   );
 }
 
