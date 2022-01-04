@@ -249,8 +249,8 @@ textarea {
 }
 
 .alert-pop-up img {
-  opacity: 60%;
-  height: 13px;
+  opacity: 55%;
+  height: 14px;
 }
 
 .alert-pop-up p {
@@ -264,7 +264,7 @@ textarea {
 .alert-pop-up.notice {
   background: var(--notice-bg);
   background: linear-gradient(90deg, rgba(124,124,124,0) 3%, rgba(124,124,124,1) 100%);
-  right: -550px;
+  /* right: -550px; */
   opacity: 100%;
   animation: alert-slide-out 10s ease-in-out;
 }

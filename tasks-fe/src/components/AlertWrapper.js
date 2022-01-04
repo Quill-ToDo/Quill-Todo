@@ -2,38 +2,39 @@ import { Fragment, useState, useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
 import { v4 as v4uuid } from 'uuid';
 
-const setRemoveTimer = (type, body, callback) => {
+const setRemoveTimer = (id, type, body, callback) => {
     if (type === "notice") {
-        console.log("setting timeout for " + body)
+        console.log("setting timeout for " + body, id)
+        // document.getElementById(id).style.animation=`alert-slide-out ${10000}ms ease-in-out`;
         return setTimeout(() => {
             callback();
             console.log("removing " + body)
-        }, 8500)
+        }, 5000)
     }
 }
 
 const Alert = (props) => {
     // If one is removed before hte others can be tehn it will be rerendered, don't want this
     const timeout = useRef(null);
+    // timeout.current = setRemoveTimer(props.type, props.body, props.removeCallback);
     useEffect(() => {
-        timeout.current = setRemoveTimer(props.type, props.body, props.removeCallback);
+        timeout.current = setRemoveTimer(props.id, props.type, props.body, props.removeCallback);
         return () => {
             clearTimeout(timeout.current);
         }
-    }, [])
-
+    })
     return (
         <div
             id={props.id}
             className={"alert-pop-up " + props.type} 
             onMouseEnter={() => {
-                console.log("hover")
                 if (timeout) {
+                    console.log("clearing timer")
                     clearTimeout(timeout)
                 }
                 }}
             onMouseLeave={() => {
-                timeout.current = setRemoveTimer(props.type, props.body, props.removeCallback);
+                timeout.current = setRemoveTimer(props.id, props.type, props.body, props.removeCallback);
             }}
             >
             <p>{props.body}</p>
@@ -59,6 +60,7 @@ const AlertBox = (props) => {
 
 const AlertWrapper = ({children}) => {
     const [alerts, setAlerts] = useState([
+        {"id":4, "type":"alert", "body": "ooga ooga"},
         {"id":0, "type":"notice", "body": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
         {"id":1, "type":"notice", "body": "AGAGAGAGGAGA"},
         {"id":2, "type":"alert", "body": "ba ba black sheep have u any wool ewe"},
@@ -85,12 +87,10 @@ const AlertWrapper = ({children}) => {
     console.log(alerts)
     
     return (
-        <Fragment>
-            <div id="alert-listener">
-                <AlertBox alerts={alerts} removeCallback={(id) => removeAlert(id)} />
-                {children}
-            </div>
-        </Fragment>   
+        <div id="alert-listener">
+            <AlertBox alerts={alerts} removeCallback={(id) => removeAlert(id)} />
+            {children}
+        </div>
     )
 }
 

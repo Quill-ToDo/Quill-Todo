@@ -33,6 +33,11 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
     py manage.py runserver
     ```
 
+##### Back-end Notes
+
+- The homepage is currently broken for some reason, to access the API navigate to localhost:[port number]/api/tasks/
+- If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep this file updated
+
 #### Front-end
 
 0. Follow steps for back-end to get server running
@@ -45,45 +50,50 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
     ```Bash
     cd tasks-fe
+    npm install
     npm start
     ```
 
- > Note: If you install more dependencies during development, please run `pip3 freeze > requirements.txt` to keep this file updated
+##### FE Notes
 
-## Commits, Branches, and Pull Requests   
+- If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`
+
+## Commits, Branches, and Pull Requests
 
 ### To work on a feature
 
-1. Pull
+1. Assign yourself to the appropriate issue
+
+2. Pull
 
     ```Bash
     git pull
     ```
 
-2. Create a branch for the feature if there is not one already
+3. Create a branch for the feature if there is not one already
 
     ```Bash
     git branch  [feature branch name]
     git checkout [feature branch name]
     ```
 
-3. Make a working branch for your code based off of the feature branch
+4. Make a working branch for your code based off of the feature branch
 
     ```Bash
     git branch  [working branch name]
     git checkout [working branch name]
     ```
 
-4. Code on the working branch
+5. Code on the working branch
 
-5. Commit your changes
+6. Commit your changes
 
     ```Bash
     git add -A
     git commit -m "[your commit message. include a # issue number to link it]"
     ```
 
-6. Merge your working with the feature branch
+7. Merge your working with the feature branch
 
     ```Bash
     git checkout [feature branch name]
@@ -92,7 +102,7 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
    If there are merge conflicts, manually change the files listed under "merge" and commit changes
 
-7. When the feature is done, merge it with main.
+8. When the feature is done, merge it with main.
 
    Make sure main is up to date.
 
@@ -111,15 +121,15 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
     Resolve any merge conflicts. Make sure tests pass (Once we have tests!) before submitting a PR.
 
-8. Push local feature branch to remote.
+9. Push local feature branch to remote.
 
     ```Bash
     git checkout [feature branch name]
     git push origin [feature branch name]
     ```
 
-9. To merge to main, on GitHub, click pull request button on code page and submit a pull request.
+10. To merge to main, on GitHub, click pull request button on code page and submit a pull request.
 
     Link the issue to the PR so that when the PR is closed, the issue is as well.
 
-10. Monitor the PR and make any changes necessary! Thank you for helping!! ✨
+11. Monitor the PR and make any changes necessary! Thank you for helping!! ✨
