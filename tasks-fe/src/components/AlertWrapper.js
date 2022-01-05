@@ -1,42 +1,11 @@
 import { Fragment, useState, useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
 import { v4 as v4uuid } from 'uuid';
-
-const setRemoveTimer = (id, type, body, callback) => {
-    if (type === "notice") {
-        console.log("setting timeout for " + body, id)
-        // document.getElementById(id).style.animation=`alert-slide-out ${10000}ms ease-in-out`;
-        return setTimeout(() => {
-            callback();
-            console.log("removing " + body)
-        }, 5000)
-    }
-}
+import { set } from 'mobx';
 
 const Alert = (props) => {
-    // If one is removed before hte others can be tehn it will be rerendered, don't want this
-    const timeout = useRef(null);
-    // timeout.current = setRemoveTimer(props.type, props.body, props.removeCallback);
-    useEffect(() => {
-        timeout.current = setRemoveTimer(props.id, props.type, props.body, props.removeCallback);
-        return () => {
-            clearTimeout(timeout.current);
-        }
-    })
     return (
-        <div
-            id={props.id}
-            className={"alert-pop-up " + props.type} 
-            onMouseEnter={() => {
-                if (timeout) {
-                    console.log("clearing timer")
-                    clearTimeout(timeout)
-                }
-                }}
-            onMouseLeave={() => {
-                timeout.current = setRemoveTimer(props.id, props.type, props.body, props.removeCallback);
-            }}
-            >
+        <div id={props.id} className={"alert-pop-up " + props.type}>
             <p>{props.body}</p>
             <img src={close} alt="An x to close" onClick={props.removeCallback}></img>
         </div>
@@ -44,14 +13,62 @@ const Alert = (props) => {
 }
 
 const AlertBox = (props) => {
+    // The number of elements currently being animated
+    const numInProgressAnimations = useRef(0);
+    // Ids of elements to animate
+    var animateIds = [];
+
+
+    const hide = (ele) => {ele.style.display = "none";}
+    const incAnimations = () => {
+        numInProgressAnimations.current += 1
+    };
+    const decAnimations = (e) => {numInProgressAnimations.current -= 1};
+
+    
+    const alertFinished = (id) => {
+        hide(document.getElementById(id));
+        props.removeCallback(id, numInProgressAnimations.current)
+    }
+
+    // Manipulate animations and number of animations in progress
+    const playAnimation = (animation) => {incAnimations(); animation.play()}
+    const stopAnimation = (animation) => {decAnimations(); animation.cancel()}
+    const pauseAnimation = (animation) => {decAnimations(); animation.cancel()}
+    
+    const slideOutAnimation = [
+        {right: 0},
+        {right: 0, opacity: .5, offset: .6, easing: "ease-in"},
+        {right: "-100%", opacity: 0}
+    ]
+
+    useEffect(() => {
+        animateIds.forEach((id) => {
+            const alert = document.getElementById(id);
+            var animation = alert.animate(slideOutAnimation, 5000);
+            numInProgressAnimations.current += 1;
+            pauseAnimation(animation);
+            setTimeout(() => {playAnimation(animation)}, 2000)
+            animation.onfinish = () => {decAnimations(); alertFinished(id)};
+            alert.onmouseenter = () => {stopAnimation(animation)};
+            alert.onmouseleave = () => {playAnimation(animation)};
+        });
+    }, [])
+
+
     return (
         <div id="alert-wrapper">
             {props.alerts.map((alert) => {
+                const id = "alert-"+alert.id; 
+                if (alert.type === "notice") {
+                    animateIds.push(id)
+                }
                 return <Alert 
-                    id={alert.id}
+                    id={id}
+                    key={id}
                     body={alert.body} 
                     type={alert.type}
-                    removeCallback={() => props.removeCallback(alert.id)}
+                    removeCallback={()=>alertFinished(id)}
                     />
                 })}
         </div>
@@ -66,29 +83,34 @@ const AlertWrapper = ({children}) => {
         {"id":2, "type":"alert", "body": "ba ba black sheep have u any wool ewe"},
         {"id":3, "type":"notice", "body": "very cool things are happening lul"},
     ]);
+    var toRemove = [];
+
+    const queueToRemove = (id, ongoingAnimations) => {
+        // When an event finishes its animation cycle, if there are no other animations happening then remove every task that 
+        // has finished its animation cycle from alerts (and the page) 
+        toRemove.push(id);
+        if (!ongoingAnimations) {
+            setAlerts(alerts.filter((alert) => !(toRemove.includes("alert-"+alert.id))));
+            toRemove = [];
+        }
+    }
 
     const addAlert = (event) => {
         console.log("got event")
-        setAlerts(alerts.concat({"id": v4uuid(), "type": event.detail.type, "body": event.detail.body}))
+        setAlerts(alerts.concat({"id": v4uuid(), "type": event.detail.type, "body": event.detail.body}));
     };
-
-    const removeAlert = (id) => {
-        setAlerts(alerts.filter((alert) => alert.id !== id));
-    }
 
     useEffect(() => {
         const wrapper = document.getElementById("alert-listener");
         wrapper.addEventListener("alert", addAlert);
-        return () => {
-            wrapper.removeEventListener("alert", addAlert)
-        }
     }, [])
-
-    console.log(alerts)
     
     return (
         <div id="alert-listener">
-            <AlertBox alerts={alerts} removeCallback={(id) => removeAlert(id)} />
+            <AlertBox 
+                alerts={alerts}
+                removeCallback={(id, numOngoingAnimations) => queueToRemove(id, numOngoingAnimations)}
+            />
             {children}
         </div>
     )
