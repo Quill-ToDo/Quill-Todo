@@ -13,13 +13,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from rest_framework import status
 from .serializers import TaskSerializer
-from tasks import serializers
 
 # Create your views here.
-
-def home(request):
-#     # TODO: Route this to the API url
-#     return render(request, 'application.html')
+def serve_front_end(request):
     """
     Serves the compiled frontend entry point (only works if you have run `npm
     run build`).
@@ -37,6 +33,7 @@ def home(request):
             """,
             status=501,
         )
+
 
 @api_view(['GET', 'PUT'])
 def tasks(request):

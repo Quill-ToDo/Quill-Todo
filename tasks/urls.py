@@ -1,9 +1,9 @@
 from django.urls import path
-# from django.conf.urls import url
 from . import views
 from rest_framework import routers, serializers, viewsets
 
-# Use the name param to reference this url
+# Use the name param to reference this url : using the method reverse('[name]') like
+# reverse('task-detail')
 urlpatterns = [
     path('', views.tasks, name='tasks'),
     path('<int:pk>', views.task_details, name='task-detail'),
