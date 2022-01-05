@@ -1,8 +1,7 @@
-import { useState, useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
 import { useAlertStore } from '../store/StoreContext';
 import { observer } from 'mobx-react-lite';
-import { AlertStore } from '../store/AlertStore';
 
 const Alert = (props) => {
     return (
@@ -14,26 +13,28 @@ const Alert = (props) => {
 }
 
 const AlertBox = observer((props) => {
-    // The number of elements currently being animated
     const alertStore = useAlertStore();
+    // The number of elements currently being animated
     const ongoingAnimations = useRef(0);
     // Ids of elements to animate
     var animateIds = [];
-
+    // Ids of elements who's animation cycles have finished and can be removed
     var toRemove = [];
 
     const dismissAlert = (id) => {
-        // When an event finishes its animation cycle, if there are no other animations happening then remove every task that 
-        // has finished its animation cycle from alerts (and the page) 
+        // When an event finishes its animation cycle, if there are no other animations currently happening 
+        // then remove every task that has also finished its animation cycle
         document.getElementById(id).style.display = "none";
         toRemove.push(id);
         if (!ongoingAnimations.current) {
-            alertStore.remove(id);
-            toRemove = [];
+            toRemove.forEach((oldId)=>{
+                alertStore.remove(oldId);
+                toRemove = [];
+            })
         }
     }
 
-    // Manipulate animations and number of animations in progress
+    // Manipulate animations and counter for number of animations in progress
     const incAnimations = () => {ongoingAnimations.current += 1};
     const decAnimations = () => {ongoingAnimations.current -= 1};
     const playAnimation = (animation) => {incAnimations(); animation.play()}
@@ -46,9 +47,11 @@ const AlertBox = observer((props) => {
     ]
 
     useEffect(() => {
+        // Every time the component re-renders, re-start the animation process for every alert 
+        // that isn't of type "failure"
         animateIds.forEach((id) => {
             const alert = document.getElementById(id);
-            var animation = new Animation(new KeyframeEffect(alert, slideOutAnimation, {"duration": 3000, "delay": 2000}),);
+            var animation = new Animation(new KeyframeEffect(alert, slideOutAnimation, {"duration": 3000, "delay": 4000}),);
             playAnimation(animation);
             animation.onfinish = () => {decAnimations(); dismissAlert(id)};
             alert.onmouseenter = () => {stopAnimation(animation)};

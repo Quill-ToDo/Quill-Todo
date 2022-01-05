@@ -64,10 +64,12 @@ export class TaskStore {
         }
     }
 
+    // Specify which task is selected to show the details of
     setFocus (task) {
         this.focusedTask = task;
     }
-
+    
+    // Specify that no task is being shown
     removeFocus () {
         this.focusedTask = null;
     }
