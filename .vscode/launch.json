@@ -1,0 +1,35 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch Chrome",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "webRoot": "${workspaceFolder}/src",
+            "sourceMapPathOverrides": {
+                "webpack:///src/*": "${webRoot}/*"
+            }
+        },
+        {
+            "name": "Launch Firefox",
+            "type": "firefox",
+            "request": "launch",
+            "url": "http://localhost:3000",
+            "pathMappings": [
+                {
+                    "url": "file:///C:/Users/Lily/Documents/School/senior_fall/SWE/Proj/ToDo%20Django/todo/tasks-fe/src",
+                    "path": "${workspaceFolder}/tasks-fe/src"
+                },
+                {
+                    "url": "http://localhost:3000/",
+                    "path": "${workspaceFolder}/"
+                },
+                {
+                    "url": "http://localhost:3000",
+                    "path": "${workspaceFolder}/"
+                }
+            ]
+        }
+    ]
+}

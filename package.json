@@ -1,6 +1,8 @@
 {
   "dependencies": {
     "axios": "^0.24.0",
-    "luxon": "^2.2.0"
+    "luxon": "^2.2.0",
+    "mobx": "^6.3.10",
+    "mobx-react-lite": "^3.2.3"
   }
 }

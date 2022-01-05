@@ -149,7 +149,7 @@ p {
 }
 
 /* @media screen and (min-width: 769px) { */
-#index-wrapper {
+#home-wrapper {
   display: grid;
   grid-template-areas: "left-menu list slider calendar";
   grid-template-columns: 50px 2fr min-content 5fr;

@@ -3,24 +3,27 @@ import bin from "../static/images/bin.png"
 import edit from "../static/images/editing.png"
 import Task from "./Task";
 import '../static/css/show.css';
-import { del } from "../static/js/modules/TaskApi.mjs";
+import { observer } from "mobx-react-lite";
+import { useTaskStore, useAlertStore} from "../store/StoreContext";
 
-async function handleDelete (props) {
-    del(props.task.pk, document.getElementById("show-wrapper").getElementsByClassName("task-wrapper")[0])
-    .then(() => {props.clickOffHandler();});
+function handleEdit (alerts) {
+    alerts.add("notice", "Edit is not implemented")
 }
 
-function handleEdit () {
-    console.log("Edit!")
-}
+const ShowTask = observer((props) => {
+    const task = props.task;
+    const taskStore = useTaskStore();
+    const alertStore = useAlertStore();
 
-function ShowTask (props) {
+
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
-                            handleDelete(props)}}>
+                            task.delete();
+                            taskStore.removeFocus();
+                            }}>
                             <img src={bin} alt="Trash icon for delete"></img>
                         </button>
-                        <button id="btn-edit" className="btn" onClick={handleEdit}>
+                        <button id="btn-edit" className="btn" onClick={()=>handleEdit(alertStore)}>
                             <img src={edit} alt="Pencil and paper icon for edit"></img>
                         </button>
                     </div>;
@@ -29,17 +32,16 @@ function ShowTask (props) {
         <Fragment>
             <section className="mid-section">
                 <Task 
-                    data={props.task} 
+                    data={task} 
                     basicVersion={false} 
                     buttons={buttons}
                     type="due"
                 />
             </section>
-            <div className="filter" onClick={props.clickOffHandler}>
+            <div className="filter" onClick={() => {taskStore.removeFocus()}}>
             </div>
         </Fragment>
     );
-}
-
+})
 
 export default ShowTask
