@@ -3,27 +3,26 @@ import { TaskApi } from "./TaskApi.js";
 import { TaskStore } from "../store/TaskStore";
 import { AlertStore } from "./AlertStore.js";
 
-// Tasks
-const TaskContext = React.createContext(null);
-const useTaskStore = () => React.useContext(TaskContext);
+class RootStore {
+    constructor () {
+        // this.userStore
+        this.taskStore = new TaskStore(this, new TaskApi());
+        this.alertStore = new AlertStore(this);
+    }
+}
 
-const TaskProvider = function ({children}) {
-    const taskStore = new TaskStore(new TaskApi());
-
+const StoreContext = React.createContext(null);
+const useStoreContext = () => React.useContext(StoreContext);
+var rootStore;
+const StoreProvider = function ({children}) {
+    rootStore = new RootStore();
+    
     return (
-        <TaskContext.Provider value={taskStore}>{children}</TaskContext.Provider>
+        <StoreContext.Provider value={rootStore}>{children}</StoreContext.Provider>
     );
 }
 
-// Alerts
-const AlertContext = React.createContext(null);
-const useAlertStore = () => React.useContext(AlertContext);
+const useTaskStore = () => rootStore.taskStore;
+const useAlertStore = () => rootStore.alertStore;
 
-const AlertProvider = function ({children}) {
-    const alertStore = new AlertStore();
-    return (
-        <AlertContext.Provider value={alertStore}>{children}</AlertContext.Provider>
-    );
-}
-
-export {useTaskStore, TaskProvider, useAlertStore, AlertProvider}
+export {useStoreContext, StoreProvider, useTaskStore, useAlertStore }

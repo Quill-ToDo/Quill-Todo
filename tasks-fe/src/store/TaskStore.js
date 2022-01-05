@@ -4,6 +4,7 @@ import { DateTime } from "luxon";
 
 export class TaskStore {
     API;
+    rootStore;
     // userStore
     // These must have a default value here to be observable
     tasks = [];
@@ -11,11 +12,13 @@ export class TaskStore {
     focusedTask = null;
     isLoaded = false;
 
-    constructor (API) {
+    constructor (rootStore, API) {
         makeAutoObservable(this, {
-            API: false
+            API: false,
+            rootStore: false
         })
 
+        this.rootStore = rootStore;
         this.API = API;
         this.tasks = [];
         this.loadTasks();
@@ -56,7 +59,6 @@ export class TaskStore {
 
     setFocus (task) {
         this.focusedTask = task;
-        console.log("in store " + this.focusedTask.pk)
     }
 
     removeFocus () {

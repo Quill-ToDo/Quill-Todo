@@ -1,14 +1,12 @@
 import {Home} from './components/Home';
-import { TaskProvider, AlertProvider } from "./store/StoreContext";
+import { StoreProvider } from "./store/StoreContext";
 import AlertWrapper from './components/AlertWrapper';
 
 function App() {
   return (
-      <TaskProvider>
-          <AlertWrapper>
+      <StoreProvider>
             <Home />
-          </AlertWrapper>
-      </TaskProvider>
+      </StoreProvider>
   );
 }
 

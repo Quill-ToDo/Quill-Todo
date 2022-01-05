@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
+import { useAlertStore } from '../store/StoreContext';
 
 const Alert = (props) => {
     return (
@@ -68,14 +69,8 @@ const AlertBox = (props) => {
     )
 }
 
-const AlertWrapper = ({children}) => {
-    const [alerts, setAlerts] = useState([
-        {"id":4, "type":"alert", "body": "ooga ooga"},
-        {"id":0, "type":"notice", "body": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"},
-        {"id":1, "type":"notice", "body": "AGAGAGAGGAGA"},
-        {"id":2, "type":"alert", "body": "ba ba black sheep have u any wool ewe"},
-        {"id":3, "type":"notice", "body": "very cool things are happening lul"},
-    ]);
+const AlertWrapper = () => {
+    const alerts = useAlertStore();
     var toRemove = [];
 
     const queueToRemove = (id, ongoingAnimations) => {
@@ -83,14 +78,15 @@ const AlertWrapper = ({children}) => {
         // has finished its animation cycle from alerts (and the page) 
         toRemove.push(id);
         if (!ongoingAnimations) {
-            setAlerts(alerts.filter((alert) => !(toRemove.includes("alert-"+alert.id))));
+            alerts.remove(id);
             toRemove = [];
         }
     }
 
     const addAlert = (event) => {
         console.log("got event")
-        setAlerts(alerts.concat({"id": event.detail.id, "type": event.detail.type, "body": event.detail.body}));
+        // alerts.add
+        // setAlerts(alerts.concat({"id": event.detail.id, "type": event.detail.type, "body": event.detail.body}));
     };
 
     useEffect(() => {
@@ -99,13 +95,10 @@ const AlertWrapper = ({children}) => {
     }, [])
     
     return (
-        <div id="alert-listener">
-            <AlertBox 
-                alerts={alerts}
-                removeCallback={(id, numOngoingAnimations) => queueToRemove(id, numOngoingAnimations)}
-            />
-            {children}
-        </div>
+        <AlertBox 
+            alerts={alerts}
+            removeCallback={(id, numOngoingAnimations) => queueToRemove(id, numOngoingAnimations)}
+        />
     )
 }
 
