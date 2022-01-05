@@ -24,7 +24,16 @@ const AlertBox = observer((props) => {
     const dismissAlert = (id) => {
         // When an event finishes its animation cycle, if there are no other animations currently happening 
         // then remove every task that has also finished its animation cycle
-        document.getElementById(id).style.display = "none";
+        try {
+            document.getElementById(id).style.display = "none";
+        }
+        catch (e) {
+            // This happens sometimes when the element has been removed before the animation finishes.
+            // It finishes and then tries to do this again.
+            if (!(e instanceof TypeError)) {
+                throw e;
+            }
+        }
         toRemove.push(id);
         if (!ongoingAnimations.current) {
             toRemove.forEach((oldId)=>{
