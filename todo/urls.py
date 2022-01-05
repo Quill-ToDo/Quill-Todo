@@ -22,7 +22,7 @@ from django.conf.urls.static import static
 from tasks import views as task_views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', task_views.home),
+    path('admin/', admin.site.urls),
     path(r'api/tasks/', include('tasks.urls')),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
