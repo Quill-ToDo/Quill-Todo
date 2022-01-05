@@ -1,4 +1,4 @@
-import { makeAutoObservable} from "mobx";
+import { makeAutoObservable, observable} from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export class AlertStore {
@@ -6,7 +6,7 @@ export class AlertStore {
     alerts = [];
 
     constructor (rootStore) {
-        makeAutoObservable(this);
+        makeAutoObservable(this, {proxy: false});
         // Consider making remove not observed
         this.alerts = [];
         this.rootStore = rootStore;
@@ -18,7 +18,7 @@ export class AlertStore {
         return alert;
     }
 
-    remove(uuid) {
-        this.alerts = this.alerts.filter((alert) => alert.uuid !== uuid);
+    remove(id) {
+        this.alerts = this.alerts.filter((alert) => "alert-"+alert.id !== id)
     }
 }

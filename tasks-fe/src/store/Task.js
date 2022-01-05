@@ -1,4 +1,4 @@
-import { makeAutoObservable, reaction } from "mobx"
+import { makeAutoObservable, observable, reaction } from "mobx"
 
 export class Task {
     pk = null;
@@ -14,7 +14,7 @@ export class Task {
             pk: false,
             store: false,
             saveHandler: false,
-        });
+        }, {proxy: false});
         // Could do validations here too if I wanted...
         this.store = store;
         this.pk = pk;

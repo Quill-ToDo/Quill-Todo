@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
 import { useAlertStore } from '../store/StoreContext';
+import { observer } from 'mobx-react-lite';
+import { AlertStore } from '../store/AlertStore';
 
 const Alert = (props) => {
     return (
@@ -11,25 +13,33 @@ const Alert = (props) => {
     )
 }
 
-const AlertBox = (props) => {
+const AlertBox = observer((props) => {
     // The number of elements currently being animated
-    const numInProgressAnimations = useRef(0);
+    const alertStore = useAlertStore();
+    const ongoingAnimations = useRef(0);
     // Ids of elements to animate
     var animateIds = [];
 
-    const incAnimations = () => {numInProgressAnimations.current += 1};
-    const decAnimations = (e) => {numInProgressAnimations.current -= 1};
+    var toRemove = [];
 
-    const alertFinished = (id) => {
+    const dismissAlert = (id) => {
+        // When an event finishes its animation cycle, if there are no other animations happening then remove every task that 
+        // has finished its animation cycle from alerts (and the page) 
         document.getElementById(id).style.display = "none";
-        props.removeCallback(id, numInProgressAnimations.current)
+        toRemove.push(id);
+        console.log(ongoingAnimations.current)
+        if (!ongoingAnimations.current) {
+            alertStore.remove(id);
+            toRemove = [];
+        }
     }
 
     // Manipulate animations and number of animations in progress
+    const incAnimations = () => {ongoingAnimations.current += 1};
+    const decAnimations = () => {ongoingAnimations.current -= 1};
     const playAnimation = (animation) => {incAnimations(); animation.play()}
     const stopAnimation = (animation) => {decAnimations(); animation.cancel()}
-    const pauseAnimation = (animation) => {decAnimations(); animation.cancel()}
-    
+
     const slideOutAnimation = [
         {right: 0},
         {right: 0, opacity: .5, offset: .6, easing: "ease-in"},
@@ -39,68 +49,35 @@ const AlertBox = (props) => {
     useEffect(() => {
         animateIds.forEach((id) => {
             const alert = document.getElementById(id);
-            var animation = alert.animate(slideOutAnimation, 5000);
-            numInProgressAnimations.current += 1;
-            pauseAnimation(animation);
-            setTimeout(() => {playAnimation(animation)}, 2000)
-            animation.onfinish = () => {decAnimations(); alertFinished(id)};
+            var animation = new Animation(new KeyframeEffect(alert, slideOutAnimation, {"duration": 3000, "delay": 2000}),);
+            playAnimation(animation);
+            animation.onfinish = () => {decAnimations(); dismissAlert(id)};
             alert.onmouseenter = () => {stopAnimation(animation)};
             alert.onmouseleave = () => {playAnimation(animation)};
         });
-    }, [])
+    })
 
 
-    return (
-        <div id="alert-wrapper">
-            {props.alerts.map((alert) => {
-                const id = "alert-"+alert.id; 
-                if (alert.type === "notice") {
-                    animateIds.push(id)
-                }
-                return <Alert 
-                    id={id}
-                    key={id}
-                    body={alert.body} 
-                    type={alert.type}
-                    removeCallback={()=>alertFinished(id)}
-                    />
-                })}
-        </div>
-    )
-}
-
-const AlertWrapper = () => {
-    const alerts = useAlertStore();
-    var toRemove = [];
-
-    const queueToRemove = (id, ongoingAnimations) => {
-        // When an event finishes its animation cycle, if there are no other animations happening then remove every task that 
-        // has finished its animation cycle from alerts (and the page) 
-        toRemove.push(id);
-        if (!ongoingAnimations) {
-            alerts.remove(id);
-            toRemove = [];
-        }
+    if (alertStore.alerts.length){
+        return (
+            <div id="alert-wrapper">
+                {alertStore.alerts.map((alert) => {
+                    const id = "alert-"+alert.id; 
+                    if (alert.type === "notice") {
+                        animateIds.push(id)
+                    }
+                    return <Alert 
+                        id={id}
+                        key={id}
+                        body={alert.body} 
+                        type={alert.type}
+                        removeCallback={()=>dismissAlert(id)}
+                        />
+                    })}
+            </div>
+        )
     }
+    else { return null }
+})
 
-    const addAlert = (event) => {
-        console.log("got event")
-        // alerts.add
-        // setAlerts(alerts.concat({"id": event.detail.id, "type": event.detail.type, "body": event.detail.body}));
-    };
-
-    useEffect(() => {
-        const wrapper = document.getElementById("alert-listener");
-        wrapper.addEventListener("alert", addAlert);
-    }, [])
-    
-    return (
-        <AlertBox 
-            alerts={alerts}
-            removeCallback={(id, numOngoingAnimations) => queueToRemove(id, numOngoingAnimations)}
-        />
-    )
-}
-
-
-export default AlertWrapper;
+export default AlertBox;

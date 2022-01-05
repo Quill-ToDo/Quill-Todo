@@ -1,4 +1,4 @@
-import { makeAutoObservable, runInAction} from "mobx";
+import { makeAutoObservable, observable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 
@@ -15,8 +15,9 @@ export class TaskStore {
     constructor (rootStore, API) {
         makeAutoObservable(this, {
             API: false,
-            rootStore: false
-        })
+            rootStore: false,
+            isLoaded: true
+        }, {proxy: false})
 
         this.rootStore = rootStore;
         this.API = API;
