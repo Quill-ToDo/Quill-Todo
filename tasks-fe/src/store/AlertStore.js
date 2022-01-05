@@ -4,7 +4,10 @@ import { v4 as uuidv4 } from 'uuid';
 export class AlertStore {
     // These must have a default value here to be observable
     alerts = [];
-    // Supports types: "failure" - Red, errors/danger/alert, "notice" - Grey, neutral, "success" - Green, nice!
+    // Supported types: 
+    // "failure" - Red, errors/danger/alert, must be manually exited out of
+    // "notice" - Grey, neutral, disappears after a bit
+    // "success" - Green, nice!, disappears after a bit
 
     constructor (rootStore) {
         makeAutoObservable(this, {proxy: false});

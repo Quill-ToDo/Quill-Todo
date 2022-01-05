@@ -14,6 +14,8 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
 3. Switch to virtual environment following instructions of whichever virtual environment you're using
 
+**Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
+
 4. Install dependencies:  
   
     ```Bash
