@@ -51,7 +51,7 @@ const AlertBox = observer((props) => {
         // that isn't of type "failure"
         animateIds.forEach((id) => {
             const alert = document.getElementById(id);
-            var animation = new Animation(new KeyframeEffect(alert, slideOutAnimation, {"duration": 3000, "delay": 4000}),);
+            var animation = new Animation(new KeyframeEffect(alert, slideOutAnimation, {"duration": 3000, "delay": 3000}),);
             playAnimation(animation);
             animation.onfinish = () => {decAnimations(); dismissAlert(id)};
             alert.onmouseenter = () => {stopAnimation(animation)};

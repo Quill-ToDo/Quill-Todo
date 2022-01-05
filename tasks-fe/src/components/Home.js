@@ -19,7 +19,7 @@ const Home = observer(() => {
             <div id="show-wrapper">{ taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }</div>
             <div id="left-menu" className="menu">
                 <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented adding new tasks.")}}/>
-                <MenuButton src={logout} alt="Power off icon for log out"/>
+                <MenuButton src={logout} alt="Power off icon for log out" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented users or logging out.")}}/>
             </div>
             <ul>
             </ul>
