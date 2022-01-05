@@ -27,13 +27,19 @@ export class TaskStore {
     }
 
     // Fetch all tasks from server
-    loadTasks () {
+    loadTasks (retry=0) {
         this.isLoaded = false;
         this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
                 fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
                 this.isLoaded = true;
             });
+        }).catch(e => {
+            console.log(e)
+            this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
+            if (retry < 5) {
+                this.loadTasks(retry+1);
+            }
         })
     }
 
@@ -48,13 +54,13 @@ export class TaskStore {
         task.updateFromJson(taskJson);
     } 
 
-    get byStatus() {
+    byStatus() {
         const now = DateTime.now();
         return {
             "overdue": this.tasks.filter(task => DateTime.fromISO(task.due) <= now),
-            "todayDue": this.tasks.filter(task => (now.set({hour: 0, minute: 0, second: 0}) < DateTime.fromISO(task.due)) && (DateTime.fromISO(task.due) < now)),
+            "todayDue": this.tasks.filter(task => (DateTime.fromISO(task.due) <= now.set({hour: 23, minute: 59, second: 59})) && (now < DateTime.fromISO(task.due))),
             "todayWork": this.tasks.filter(task => (task.start && DateTime.fromISO(task.start) <= now) && (now <= DateTime.fromISO(task.due))),
-            "upcoming": this.tasks.filter(task => (!task.start || now <= DateTime.fromISO(task.start) ) && (now <= DateTime.fromISO(task.due)))
+            "upcoming": this.tasks.filter(task => (!task.start || now <= DateTime.fromISO(task.start) ) && (now.set({hour: 23, minute: 59, second: 59}) < DateTime.fromISO(task.due)))
         }
     }
 

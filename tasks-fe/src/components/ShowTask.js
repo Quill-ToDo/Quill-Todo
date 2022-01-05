@@ -4,25 +4,26 @@ import edit from "../static/images/editing.png"
 import Task from "./Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../store/StoreContext";
+import { useTaskStore, useAlertStore} from "../store/StoreContext";
 
-function handleEdit () {
-    console.log("Edit!")
+function handleEdit (alerts) {
+    alerts.add("notice", "Edit is not implemented")
 }
 
 const ShowTask = observer((props) => {
     const task = props.task;
-    const store = useTaskStore();
+    const taskStore = useTaskStore();
+    const alertStore = useAlertStore();
 
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
                             task.delete();
-                            store.removeFocus();
+                            taskStore.removeFocus();
                             }}>
                             <img src={bin} alt="Trash icon for delete"></img>
                         </button>
-                        <button id="btn-edit" className="btn" onClick={handleEdit}>
+                        <button id="btn-edit" className="btn" onClick={()=>handleEdit(alertStore)}>
                             <img src={edit} alt="Pencil and paper icon for edit"></img>
                         </button>
                     </div>;
@@ -37,7 +38,7 @@ const ShowTask = observer((props) => {
                     type="due"
                 />
             </section>
-            <div className="filter" onClick={() => {store.removeFocus()}}>
+            <div className="filter" onClick={() => {taskStore.removeFocus()}}>
             </div>
         </Fragment>
     );

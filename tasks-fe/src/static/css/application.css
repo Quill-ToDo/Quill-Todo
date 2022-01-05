@@ -29,7 +29,7 @@
   --notice-bg: #7c7c7c;
   --alert-bg: #990707;
   --button-primary: #273fac;
-  --success: #157c15;
+  --success: #1eac1e;
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
@@ -269,9 +269,15 @@ textarea {
   /* animation: alert-slide-out 10s ease-in-out; */
 }
 
-.alert-pop-up.alert {
+.alert-pop-up.failure {
   background: var(--alert-bg);
   background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, rgb(163, 29, 29) 100%);
+  opacity: 90%;
+}
+
+.alert-pop-up.success {
+  background: var(--success);
+  background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, #1eac1e);
   opacity: 90%;
 }
 

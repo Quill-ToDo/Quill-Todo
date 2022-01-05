@@ -27,7 +27,6 @@ const AlertBox = observer((props) => {
         // has finished its animation cycle from alerts (and the page) 
         document.getElementById(id).style.display = "none";
         toRemove.push(id);
-        console.log(ongoingAnimations.current)
         if (!ongoingAnimations.current) {
             alertStore.remove(id);
             toRemove = [];
@@ -63,7 +62,8 @@ const AlertBox = observer((props) => {
             <div id="alert-wrapper">
                 {alertStore.alerts.map((alert) => {
                     const id = "alert-"+alert.id; 
-                    if (alert.type === "notice") {
+                    if (alert.type !== "failure") {
+                        // Danger should persist
                         animateIds.push(id)
                     }
                     return <Alert 

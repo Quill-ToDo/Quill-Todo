@@ -4,7 +4,7 @@ import '../static/css/tasks.css';
 import { observer } from "mobx-react-lite";
 
 const ByStatusThreeSection = observer((props) => {
-    const byStatus = props.store.byStatus;
+    const byStatus = props.store.byStatus();
     const overdue = byStatus["overdue"];
     const todayDue = byStatus["todayDue"];
     const todayWork = byStatus["todayWork"];

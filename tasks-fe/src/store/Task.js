@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable, reaction } from "mobx"
+import { makeAutoObservable, reaction } from "mobx"
 
 export class Task {
     pk = null;
@@ -24,14 +24,25 @@ export class Task {
             json => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {
-                    this.store.API.updateTask(this.pk, json);
+                    this.store.API.updateTask(this.pk, json)
+                    .catch(error => {
+                        this.store.rootStore.alertStore.add("failure", 
+                            "Task could not be updated - " + error.toString());
+                        this.store.loadTasks();
+                    });
                 }
             });
     }
 
     delete() {
-        this.store.API.deleteTask(this.pk);
         this.store.tasks.remove(this);
+        this.store.API.deleteTask(this.pk)
+        .then(this.store.rootStore.alertStore.add("notice", "Task deleted"))
+        .catch(error => {
+            this.store.rootStore.alertStore.add("failure", 
+                "Task could not be deleted - " + error.toString());
+            this.store.tasks.push(this);
+        });
     }
 
     get asJson() {
