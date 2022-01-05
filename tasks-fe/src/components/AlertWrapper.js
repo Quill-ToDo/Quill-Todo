@@ -1,7 +1,5 @@
-import { Fragment, useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import close from '../static/images/close.png';
-import { v4 as v4uuid } from 'uuid';
-import { set } from 'mobx';
 
 const Alert = (props) => {
     return (
@@ -18,16 +16,11 @@ const AlertBox = (props) => {
     // Ids of elements to animate
     var animateIds = [];
 
-
-    const hide = (ele) => {ele.style.display = "none";}
-    const incAnimations = () => {
-        numInProgressAnimations.current += 1
-    };
+    const incAnimations = () => {numInProgressAnimations.current += 1};
     const decAnimations = (e) => {numInProgressAnimations.current -= 1};
 
-    
     const alertFinished = (id) => {
-        hide(document.getElementById(id));
+        document.getElementById(id).style.display = "none";
         props.removeCallback(id, numInProgressAnimations.current)
     }
 
@@ -97,7 +90,7 @@ const AlertWrapper = ({children}) => {
 
     const addAlert = (event) => {
         console.log("got event")
-        setAlerts(alerts.concat({"id": v4uuid(), "type": event.detail.type, "body": event.detail.body}));
+        setAlerts(alerts.concat({"id": event.detail.id, "type": event.detail.type, "body": event.detail.body}));
     };
 
     useEffect(() => {
