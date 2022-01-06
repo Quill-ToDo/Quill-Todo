@@ -83,9 +83,9 @@ const List = observer((props) => {
 
     // Before content is loaded show placeholder
     return (
-        <div id="list-wrapper">
+        <section id="list-wrapper">
             {props.store.isLoaded ? bindings[type] : loading}
-        </div>
+        </section>
     );
 })
 

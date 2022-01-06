@@ -15,7 +15,6 @@ const ShowTask = observer((props) => {
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
 
-
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
                             task.delete();
@@ -29,7 +28,7 @@ const ShowTask = observer((props) => {
                     </div>;
 
     return (
-        <Fragment>
+        <section id="show-wrapper">
             <section className="mid-section">
                 <Task 
                     data={task} 
@@ -40,7 +39,7 @@ const ShowTask = observer((props) => {
             </section>
             <div className="filter" onClick={() => {taskStore.removeFocus()}}>
             </div>
-        </Fragment>
+        </section>
     );
 })
 

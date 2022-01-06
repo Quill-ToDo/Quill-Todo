@@ -76,6 +76,7 @@ body {
 }
 
 #left-menu {
+  margin: 0;
   grid-area: left-menu;
   display: flex;
   flex-direction: column;
@@ -222,6 +223,11 @@ textarea {
 }
 /* Alerts */
 
+dialog {
+  /* outline: none; */
+  border: none;
+}
+
 #alert-wrapper {
   position: absolute;
   bottom: var(--section-gap);
@@ -256,7 +262,6 @@ textarea {
 .alert-pop-up p {
   font-family: "Quicksand", sans-serif;
   font-size: 20px;
-  /* color: var(--dark-font); */
   color: var(--lightest-font);
   font-weight: 600;
 }
@@ -264,9 +269,7 @@ textarea {
 .alert-pop-up.notice {
   background: var(--notice-bg);
   background: linear-gradient(90deg, rgba(124,124,124,0) 3%, rgba(124,124,124,1) 100%);
-  /* right: -300%; */
   opacity: 100%;
-  /* animation: alert-slide-out 10s ease-in-out; */
 }
 
 .alert-pop-up.failure {
@@ -279,6 +282,10 @@ textarea {
   background: var(--success);
   background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, #1eac1e);
   opacity: 90%;
+}
+
+.slide-out {
+  animation: alert-slide-out 2s ease-in 2s;
 }
 
 .alert-pop-up:hover {

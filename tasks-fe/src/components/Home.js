@@ -12,21 +12,19 @@ import { useTaskStore, useAlertStore } from "../store/StoreContext";
 const Home = observer(() => {
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
+    const showNewPopUp = false;
 
     return ( 
         <div id="home-wrapper">
-            <div id="new-wrapper"></div>
-            <div id="show-wrapper">{ taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }</div>
-            <div id="left-menu" className="menu">
+            { showNewPopUp ? < div id="new-wrapper"></div> : null }
+            { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
+            <menu id="left-menu" className="menu">
                 <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented adding new tasks.")}}/>
                 <MenuButton src={logout} alt="Power off icon for log out" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented users or logging out.")}}/>
-            </div>
-            <ul>
-            </ul>
+            </menu>
             <List store={taskStore} />
             <div id="slider"></div>
-            <div id="calendar-wrapper">
-            </div>
+            <section id="calendar-wrapper"></section>
         </div>
     );
 })

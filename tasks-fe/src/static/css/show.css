@@ -8,10 +8,6 @@
   justify-content: center;
 }
 
-#show-wrapper:empty {
-  display: none;
-}
-
 #show-wrapper .mid-section {
   width: 35%;
   z-index: 5;

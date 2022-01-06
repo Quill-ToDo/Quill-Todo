@@ -5,10 +5,10 @@ import { observer } from "mobx-react-lite";
 const dateTimeWrapper = (task, time, type) => {
     const converted = DateTime.fromISO(time);
     return (
-        <div className={"date-time-wrapper" + (converted < DateTime.now() && !task.complete && type === "due" ? " overdue" : "")}> 
+        <time dateTime={converted} className={"date-time-wrapper" + (converted < DateTime.now() && !task.complete && type === "due" ? " overdue" : "")}> 
             <p className="date">{converted.toLocaleString(DateTime.DATE_SHORT)}</p>
             <p className="time">{converted.toLocaleString(DateTime.TIME_SIMPLE)}</p>
-        </div>
+        </time>
     );
 }
 
