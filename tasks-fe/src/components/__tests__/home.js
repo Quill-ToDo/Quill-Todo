@@ -1,0 +1,29 @@
+import {
+    render,
+    screen
+} from '@testing-library/react';
+import ReactDOM from 'react-dom';
+import App from "../../App"
+import Home from '../Home';
+
+it("should render the app without crashing", () => {
+    render(<App />);
+})
+
+it.todo("should now allow not signed out users to access the home page")
+it.todo("should redirect users to home after sign in")
+it.todo("should render the home component")
+it.todo("Should render the calendar component")
+
+
+it("should render the list component", () => {
+    render(<Home />);
+    expect().toBeTruthy();
+})
+
+it.todo("should should a task-creation popup when users click the add button")
+it.todo("should show error message if the user tries to create task without title")
+it.todo("should show error message if the user tries to create task without due date")
+it.todo("should show error message if the user tries to create task with start after due date")
+it.todo("should show error message if the user tries to create task with a ill-formed start date")
+it.todo("should show error message if the user tries to create task with a ill-formed due date")

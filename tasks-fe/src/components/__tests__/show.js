@@ -1,0 +1,5 @@
+it.todo("should correctly render task details after clicking it in the list")
+it.todo("should be able to mark tasks as complete from show and have it update in list")
+it.todo("should be able to revert a completed task to incomplete from show")
+it.todo("should be able to delete a task")
+it.todo("should remove a task from the server on delete")
