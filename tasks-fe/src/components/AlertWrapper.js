@@ -12,7 +12,9 @@ const Alert = (props) => {
             "alert-pop-up " + props.type + (props.type !== "failure" ? " slide-out" : "")
         } >
             <p>{props.body}</p>
-            <img src={close} alt="An x to close" onClick={props.removeCallback}></img>
+            <button onClick={props.removeCallback}>
+                <img src={close} alt="An x to close"></img>
+            </button>
         </dialog>
     )
 }

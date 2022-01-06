@@ -125,6 +125,29 @@ p.time {
   text-decoration: line-through 2px;
 }
 
+.title-date-wrapper button p.title[data-complete="true"]::before,
+#show-wrapper .title-wrapper button p.title[data-complete="true"]::before,
+.title-date-wrapper button p.title[data-complete="true"]::after,
+#show-wrapper .title-wrapper button p.title[data-complete="true"]::after {
+  clip-path: inset(100%);
+  clip: rect(1px, 1px, 1px, 1px);
+  height: 1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.title-date-wrapper button p.title[data-complete="true"]::before,
+#show-wrapper .title-wrapper button p.title[data-complete="true"]::before {
+  content: " [start of stricken text] ";
+}
+
+.title-date-wrapper button p.title[data-complete="true"]::after,
+#show-wrapper .title-wrapper button p.title[data-complete="true"]::after {
+  content: " [end of stricken text] ";
+}
+
 #show-wrapper .title-wrapper button p.title[data-complete="true"] {
   text-decoration: line-through 4px;
 }

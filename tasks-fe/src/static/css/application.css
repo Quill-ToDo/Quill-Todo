@@ -254,9 +254,13 @@ dialog {
   gap: 5px;
 }
 
-.alert-pop-up img {
+.alert-pop-up button {
   opacity: 55%;
   height: 14px;
+}
+
+.alert-pop-up button img {
+  height: 100%;
 }
 
 .alert-pop-up p {
