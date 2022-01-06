@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import logout from '../static/images/logout.png';
 import add from '../static/images/add.png';
 

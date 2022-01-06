@@ -1,4 +1,4 @@
-import React, { Fragment } from "react";
+import React from "react";
 import bin from "../static/images/bin.png" 
 import edit from "../static/images/editing.png"
 import Task from "./Task";

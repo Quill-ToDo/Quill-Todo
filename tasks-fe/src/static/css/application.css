@@ -285,7 +285,7 @@ dialog {
 }
 
 .slide-out {
-  animation: alert-slide-out 2s ease-in 2s;
+  animation: alert-slide-out 3s ease-in 4s;
 }
 
 .alert-pop-up:hover {
@@ -296,15 +296,14 @@ dialog {
 
 @keyframes alert-slide-out {
   0% {
-    right: 0;
   }
   60% {
-    right: 0;
     opacity: 70%;
+    transform: translateX(0);
   }
   100% {
-    right: -50vw;
     opacity: 0%;
+    transform: translateX(100%);
   }
 }
 

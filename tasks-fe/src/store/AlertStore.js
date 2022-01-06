@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable} from "mobx";
+import { makeAutoObservable} from "mobx";
 import { v4 as uuidv4 } from 'uuid';
 
 export class AlertStore {
