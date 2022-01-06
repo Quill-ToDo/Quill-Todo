@@ -29,4 +29,4 @@ const Home = observer(() => {
     );
 })
 
-export {Home};
+export default Home;

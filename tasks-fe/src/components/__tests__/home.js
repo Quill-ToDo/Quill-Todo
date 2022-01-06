@@ -1,4 +1,5 @@
 import {
+    getByRole,
     render,
     screen
 } from '@testing-library/react';
@@ -18,7 +19,7 @@ it.todo("Should render the calendar component")
 
 it("should render the list component", () => {
     render(<Home />);
-    expect().toBeTruthy();
+    expect(screen.getByRole("region", {name:"Task list"})).toBeInTheDocument();
 })
 
 it.todo("should should a task-creation popup when users click the add button")

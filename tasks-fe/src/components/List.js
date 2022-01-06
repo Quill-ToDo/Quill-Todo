@@ -83,7 +83,7 @@ const List = observer((props) => {
 
     // Before content is loaded show placeholder
     return (
-        <section id="list-wrapper">
+        <section id="list-wrapper" aria-label="Task list">
             {props.store.isLoaded ? bindings[type] : loading}
         </section>
     );

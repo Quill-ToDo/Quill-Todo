@@ -1,3 +1,5 @@
+it.todo("should load tasks in the database")
+it.todo("should show a loading message before tasks are loaded")
 it.todo("should show completed task's check boxes as filled")
 it.todo("should show uncompleted task's check boxes as unfilled")
 it.todo("should show tasks as completed after clicking on its check box")
