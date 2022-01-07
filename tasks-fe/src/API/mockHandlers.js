@@ -222,7 +222,7 @@ export class ApiMocks {
 
     mocks = [
         rest.get("*/api/tasks/", (req, res, ctx) => {
-            // Only works with full url or regex
+            // Only works with full url or regex for some reason
             return res(
                 ctx.status(200),
                 ctx.json(this.tasks)

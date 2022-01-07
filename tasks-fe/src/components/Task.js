@@ -27,7 +27,9 @@ const Task = observer((props) => {
     // ^ whether it is basic (in the list) or not (in show)
     const title = (
         <button>
-            <p className="title" data-complete={task.complete}>{task.title}</p>
+            <label htmlFor={"checkbox-"+task.pk} onClick={(e) => {e.preventDefault()}}>
+                <p className={"title " + (task.complete ? "complete" : "")}>{task.title}</p>    
+            </label>
         </button>
     );
 
@@ -35,10 +37,10 @@ const Task = observer((props) => {
         <div className="check-box-wrapper">
             <input 
                 type="checkbox" 
-                aria-labelledby={task.title} 
-                onChange={() => { task.toggleComplete()}}
-                data-complete={task.complete}
-                >
+                id={"checkbox-"+task.pk}
+                onChange={() => {task.toggleComplete()}}
+                checked={task.complete}
+            >
             </input>
             <span className={props.type === "due" ? "checkmark" : "checkmark round"}></span>
         </div>

@@ -119,16 +119,16 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.title-date-wrapper button p.title[data-complete="true"],
-#show-wrapper .title-wrapper button p.title[data-complete="true"] {
+.title-date-wrapper button p.title.complete,
+#show-wrapper .title-wrapper button p.title.complete {
   color: var(--subdued);
   text-decoration: line-through 2px;
 }
 
-.title-date-wrapper button p.title[data-complete="true"]::before,
-#show-wrapper .title-wrapper button p.title[data-complete="true"]::before,
-.title-date-wrapper button p.title[data-complete="true"]::after,
-#show-wrapper .title-wrapper button p.title[data-complete="true"]::after {
+.title-date-wrapper button p.title.complete::before,
+#show-wrapper .title-wrapper button p.title.complete::before,
+.title-date-wrapper button p.title.complete::after,
+#show-wrapper .title-wrapper button p.title.complete::after {
   clip-path: inset(100%);
   clip: rect(1px, 1px, 1px, 1px);
   height: 1px;
@@ -138,17 +138,17 @@ p.time {
   width: 1px;
 }
 
-.title-date-wrapper button p.title[data-complete="true"]::before,
-#show-wrapper .title-wrapper button p.title[data-complete="true"]::before {
+.title-date-wrapper button p.title.complete::before,
+#show-wrapper .title-wrapper button p.title.complete::before {
   content: " [start of stricken text] ";
 }
 
-.title-date-wrapper button p.title[data-complete="true"]::after,
-#show-wrapper .title-wrapper button p.title[data-complete="true"]::after {
+.title-date-wrapper button p.title.complete::after,
+#show-wrapper .title-wrapper button p.title.complete::after {
   content: " [end of stricken text] ";
 }
 
-#show-wrapper .title-wrapper button p.title[data-complete="true"] {
+#show-wrapper .title-wrapper button p.title.complete {
   text-decoration: line-through 4px;
 }
 
@@ -200,7 +200,7 @@ p.time {
 }
 
 /* Show the checkmark when checked */
-.check-box-wrapper input[data-complete="true"] ~ .checkmark::after {
+.check-box-wrapper input[checked] ~ .checkmark::after {
   display: block;
   border-color: var(--subdued);
 }
