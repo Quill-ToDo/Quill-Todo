@@ -1,11 +1,9 @@
+import App from "../../App"
+import Home from '../Home';
 import {
-    getByRole,
     render,
     screen
 } from '@testing-library/react';
-import ReactDOM from 'react-dom';
-import App from "../../App"
-import Home from '../Home';
 
 it("should render the app without crashing", () => {
     render(<App />);
@@ -13,7 +11,6 @@ it("should render the app without crashing", () => {
 
 it.todo("should now allow not signed out users to access the home page")
 it.todo("should redirect users to home after sign in")
-it.todo("should render the home component")
 it.todo("Should render the calendar component")
 
 

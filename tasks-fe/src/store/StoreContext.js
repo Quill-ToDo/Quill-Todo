@@ -1,5 +1,5 @@
 import React from "react";
-import { TaskApi } from "./TaskApi.js";
+import { TaskApi } from "../API/TaskApi.js";
 import { TaskStore } from "../store/TaskStore";
 import { AlertStore } from "./AlertStore.js";
 

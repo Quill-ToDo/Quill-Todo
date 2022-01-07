@@ -1,4 +1,34 @@
-it.todo("should load tasks in the database")
+import { defaultServer } from '../../API/mockHandlers';
+import {
+    render,
+    screen
+} from '@testing-library/react';
+import App from "../../App"
+import { rest } from 'msw'
+
+const server = defaultServer();
+
+beforeAll(() => {
+    server.listen();
+})
+
+afterAll(() => {
+    server.close();
+})
+
+it("should load tasks in the list", () => {
+    // server.use(
+    //     rest.get("/api/tasks/", (req, res, ctx) => {
+    //         console.log("aye");
+    //         return res(ctx.json({"boo": "eek"}))
+    //     })
+    // )
+    render(<App />)
+    // expect(screen.getByRole("region", {name: "Task list"}))
+    // .toContain(screen.getByRole("button", {name: "Overdue incomplete"}))
+})
+
+
 it.todo("should show a loading message before tasks are loaded")
 it.todo("should show completed task's check boxes as filled")
 it.todo("should show uncompleted task's check boxes as unfilled")

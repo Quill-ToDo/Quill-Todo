@@ -3,3 +3,12 @@
 // expect(element).toHaveTextContent(/react/i)
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
+
+// Not working :(
+// import {
+//     render,
+//     screen
+// } from '@testing-library/react';
+
+// global.render = render;
+// global.screen = screen;
