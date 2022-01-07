@@ -16,16 +16,10 @@ afterAll(() => {
     server.close();
 })
 
-it("should load tasks in the list", () => {
-    // server.use(
-    //     rest.get("/api/tasks/", (req, res, ctx) => {
-    //         console.log("aye");
-    //         return res(ctx.json({"boo": "eek"}))
-    //     })
-    // )
+it("should load tasks in the list", async () => {
     render(<App />)
-    // expect(screen.getByRole("region", {name: "Task list"}))
-    // .toContain(screen.getByRole("button", {name: "Overdue incomplete"}))
+    expect(screen.getByRole("region", {name: "Task list"}))
+    .toContainElement(await screen.findByRole("button", {name: "Overdue incomplete"}))
 })
 
 

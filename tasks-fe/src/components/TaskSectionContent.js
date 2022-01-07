@@ -13,7 +13,7 @@ const TaskSectionContent = (props) => {
                 <ul>
                     { props.tasks.map((task) => {
                         return ( 
-                            <li className="task" key={task.pk}>
+                            <li className="task" key={"task-li-"+task.pk}>
                                 <Task
                                     data={task}
                                     basicVersion={true}

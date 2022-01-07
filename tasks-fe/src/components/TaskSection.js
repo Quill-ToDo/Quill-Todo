@@ -112,9 +112,10 @@ const TaskSection = (props) => {
                     <h2>{props.title}</h2>
                 </div>
                 <div className="section-collapsible">
-                    { props.sectionContent.map((section) => {
+                    { props.sectionContent.map((section, i) => {
                     return ( 
                         <TaskSectionContent 
+                            key={"sec-"+props.sectionNum+"-cont-"+i}
                             title={section.optionalTitle}
                             tasks={section.tasks}
                             type={section.type}

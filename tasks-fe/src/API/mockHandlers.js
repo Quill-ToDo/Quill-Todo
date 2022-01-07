@@ -221,22 +221,23 @@ export class ApiMocks {
     }
 
     mocks = [
-        rest.get(API_URL, (req, res, ctx) => {
-            if (this.serverOn) {
-                return res(
-                    ctx.status(200),
-                    ctx.json(this.tasks)
+        rest.get("*/api/tasks/", (req, res, ctx) => {
+            // Only works with full url or regex
+            return res(
+                ctx.status(200),
+                ctx.json(this.tasks)
                 );
-            } else {
-                return res(
-                    ctx.status(503),
-                    // Not sure what this json should be, need to test with production build server 
-                    ctx.json({})
-                )
-            }
         }),
     ]
 
+                // if (this.serverOn) {
+                // } else {
+                //     return res(
+                //         ctx.status(503),
+                //         // Not sure what this json should be, need to test with production build server 
+                //         ctx.json({})
+                //     )
+                // }
 
     // fetchTasks = (desiredResponseJson=null, desiredResponse=null) => {
     //     const responseJsonToServe = desiredResponseJson ? desiredResponseJson : this.tasks;
