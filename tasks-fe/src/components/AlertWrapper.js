@@ -6,7 +6,8 @@ const Alert = (props) => {
     const descId = props.id + "-desc";
     const labelId = props.id + "-label";
     const btnId = props.id + "-close";
-    const closeBtn = <button className="btn" id={btnId} title="Close" onClick={props.removeCallback}>
+    const colorMapping = {"success": "btn-green", "failure": "btn-red", "notice": "btn-light-grey"}
+    const closeBtn = <button className={"btn " + colorMapping[props.type] } id={btnId} title="Close" onClick={props.removeCallback}>
                         <i className="fas fa-times fa-fw fa-2x"></i>
                     </button>
 
@@ -41,7 +42,7 @@ const Alert = (props) => {
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + props.type}>
                 <div className='alert-cont-wrapper'>
-                    <h3 id={labelId}>Notice:</h3>
+                    <h3 id={labelId}>{props.type === "notice" ? "Notice:" : "Success!"}</h3>
                     <p id={descId}>{props.body}</p>
                 </div>
                 {closeBtn}

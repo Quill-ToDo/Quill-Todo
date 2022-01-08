@@ -33,13 +33,18 @@ export class TaskStore {
             runInAction(() => {
                 fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
                 this.isLoaded = true;
+                if (retry !== 0) {
+                    Array.from(document.getElementsByClassName("failure")).forEach(ele => {
+                        ele.querySelector('button').click()})
+                    this.rootStore.alertStore.add("success", "Re-established connection");
+                }
             });
         }).catch(e => {
             console.log(e)
-            this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
-            if (retry < 5) {
-                this.loadTasks(retry+1);
+            if (retry === 0) {
+                this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
             }
+            setTimeout(() => {this.loadTasks(retry + 1)}, 3000);
         })
     }
 

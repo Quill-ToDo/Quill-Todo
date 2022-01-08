@@ -22,7 +22,7 @@
   --lightest-font: #cccbcb;
   --light-font: #9c9c9c;
   --mid-font: #5e5e5e;
-  --subdued: #414141;
+  --subdued: #494949;
   --dark-font: #2c2c2c;
   --mid-dark: #191919;
   --darkest-dark: #111111;
@@ -30,12 +30,12 @@
   --alert-bg: #990707;
   --button-primary: #273fac;
   --success: #1eac1e;
-  --light-select: rgba(146, 146, 146, 0.178);
+  --light-select: rgba(146, 146, 146, 0.151);
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
   --box-corner-rounding: 40px;
-  --check-box-size: 17px;
+  --check-box-size: 23px;
   --menu-width: 50px;
   --menu-icon-size: 25px;
   --button: #2c2c2c;
@@ -190,16 +190,6 @@ button {
   border: none;
 }
 
-/* Focus */
-
-#list-wrapper .dark-section button:focus {
-  background: var(--light-select);
-}
-
-#list-wrapper input:focus {
-  background: rgb(255, 0, 0);
-}
-
 button:focus {
   outline: none;
 }
@@ -234,6 +224,62 @@ button.btn:hover {
   background-color: var(--button-outline);
   box-shadow: none;
   transform: translate(1px, 1px);
+}
+
+/* Colored buttons */
+
+button.btn.btn-red,
+button.btn.btn-green,
+button.btn.btn-light-grey {
+  color: var(--lightest-font)
+}
+
+button.btn.btn-red:focus,
+button.btn.btn-green:focus,
+button.btn.btn-light-grey:focus {
+  background-color: var(--lightest-font);
+}
+
+button.btn.btn-red:hover,
+button.btn.btn-green:hover,
+button.btn.btn-light-grey:hover {
+  box-shadow: none;
+}
+
+/* Red button */
+
+button.btn.btn-red {
+  background-color: rgb(105, 10, 10);
+  box-shadow: 2px 2px rgb(90, 8, 8);
+}
+
+button.btn.btn-red:focus {
+  color: rgb(105, 10, 10);
+}
+
+button.btn.btn-red:hover {
+  background-color: rgb(90, 8, 8);
+}
+
+/* Green button */
+
+button.btn.btn-green {
+  background-color: #075307;
+  box-shadow: 2px 2px #054105;
+}
+
+button.btn.btn-green:focus {
+  color: #054105;
+}
+
+button.btn.btn-green:hover {
+  background-color: #054105;
+}
+
+/* Grey button */
+
+button.btn.btn-light-grey:focus {
+  color: var(--button);
 }
 
 /* Forms */
@@ -301,13 +347,12 @@ dialog {
   font-family: "Secular One", sans-serif;
   color: var(--lightest-font);
   font-weight: 800;
-  font-size: 19px;
+  font-size: 20px;
   padding: 0;
 }
 
 .alert-pop-up .alert-cont-wrapper > * {
   margin:0;
-
 }
 
 .alert-pop-up p {
@@ -327,24 +372,6 @@ dialog {
   background: var(--alert-bg);
   background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, rgb(163, 29, 29) 100%);
   opacity: 90%;
-}
-
-.alert-pop-up.failure button,
-.btn.btn-red {
-  background-color: rgb(105, 10, 10);
-  box-shadow: 2px 2px rgb(90, 8, 8);
-  color: var(--lightest-font);
-}
-
-.alert-pop-up.failure button:hover,
-.btn.btn-red:hover {
-  background-color: rgb(90, 8, 8);
-  box-shadow: none;
-}
-
-.alert-pop-up.failure button:focus {
-  background-color: var(--lightest-font);
-  color: rgb(105, 10, 10);
 }
 
 .alert-pop-up.success {
@@ -429,7 +456,8 @@ ul {
   flex-direction: column;
   justify-content: center;
   row-gap: 10px;
-  color: var(--mid-font)
+  color: var(--mid-font);
+  text-align: center;
 }
 
 .loading-wrapper > div p {

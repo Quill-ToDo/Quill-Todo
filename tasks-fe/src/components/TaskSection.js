@@ -137,11 +137,11 @@ const TaskSection = (props) => {
     return (
         <section id={getSectionId(props.sectionNum)}>
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
-                <div className="expandable-section-header"  onClick={(e) => {
+                <div className="expandable-section-header">
+                    <button className="btn" title={collapseToolTip} onClick={(e) => {
                         handleSectionToggle(e, props.sectionNum, props.toggleDuration);
                         setSectionOpen(!sectionOpen);
-                    }}>
-                    <button className="btn" title={collapseToolTip}>
+                }}>
                         <i 
                         className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
                         ></i>

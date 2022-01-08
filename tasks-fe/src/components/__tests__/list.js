@@ -34,11 +34,15 @@ it("should show completed task's check boxes as filled", async () => {
     const taskName = "Overdue complete";
     const checkbox = await screen.findByRole("checkbox", {name: taskName});
     expect(checkbox).toBeChecked();
-    expect(within(screen.queryByTestId("taskwrapper-"+taskName)).findByRole("")).toContainHTML("::after");
-
 })
 
-it.todo("should show completed task's title with a line-through")
+it("should show completed task's title with a line-through", async () => {
+    render(<App />);
+    const taskName = "Overdue complete";
+    const title = await screen.findByRole("label", {name: taskName});
+    console.log()
+})
+
 it.todo("should show uncompleted task's check boxes as unfilled")
 it.todo("should show completed task's title without a line-through")
 it.todo("should show tasks as completed after clicking on its check box")

@@ -31,6 +31,9 @@ const Task = observer((props) => {
             </label>
     );
 
+
+    const workCheckbox = task.complete ? <i className="far fa-check-circle fa-fw checkmark round"></i> : <i className="far fa-circle fa-fw checkmark round"></i>;
+    const dueCheckbox = task.complete ? <i className="far fa-check-square fa-fw checkmark"></i> : <i className="far fa-square fa-fw checkmark"></i>; 
     const checkbox = (
         <div className="check-box-wrapper">
             <input 
@@ -40,7 +43,8 @@ const Task = observer((props) => {
                 checked={task.complete}
             >
             </input>
-            <span className={props.type === "due" ? "checkmark" : "checkmark round"}></span>
+            {props.type === "due" ? dueCheckbox : workCheckbox}
+            {/* <span className={props.type === "due" ? "checkmark" : "checkmark round"}></span> */}
         </div>
     );
 
