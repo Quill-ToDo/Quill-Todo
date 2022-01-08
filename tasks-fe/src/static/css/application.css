@@ -415,3 +415,48 @@ ul {
   display: none;
   opacity: 0;
 }
+
+
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+}
+
+.loading-wrapper > div {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  row-gap: 10px;
+  color: var(--mid-font)
+}
+
+.loading-wrapper > div p {
+  color: var(--mid-font)
+}
+
+.loading-wrapper > div i {
+  animation: jiggle 3s infinite;
+}
+
+@keyframes jiggle {
+  0%,
+  5%,
+  38%,
+  100% {
+    transform: rotate(6deg);
+  }
+
+  10%,
+  20% {
+    transform: rotate(12deg);
+  }
+
+  15% {
+    transform: rotate(0deg);
+  }
+
+  30% {
+    transform: rotate(2deg);
+  }
+}
