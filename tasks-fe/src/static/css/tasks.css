@@ -188,6 +188,11 @@ p.time {
   border: 2px solid var(--subdued);
 }
 
+.check-box-wrapper input:focus ~ .checkmark {
+  background-color: var(--light-select);
+/* margin: 3px; */
+}
+
 .checkmark.round {
   border-radius: 100%;
   height: calc(var(--check-box-size) + 2px);
@@ -229,20 +234,17 @@ p.time {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 0;
+  border-radius: 12px;
   width: fit-content;
 }
 
-.expand-symbol {
-  height: 11px;
-  width: 11px;
-  border: 3px solid var(--mid-font);
-  border-top: none;
-  border-left: none;
-  /* rotate: 45deg; */
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-  /* transition: rotate 0.1s ease-in-out; */
+.expandable-section-header .btn {
+  padding: 2px;  
+}
+
+.expandable-section-header .btn i {
+  font-size: 23px;
 }
 
 .date-time-wrapper {

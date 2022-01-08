@@ -1,6 +1,6 @@
-import React from "react";
-import bin from "../static/images/bin.png" 
-import edit from "../static/images/editing.png"
+import React, {
+    useEffect
+} from "react";
 import Task from "./Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
@@ -11,24 +11,54 @@ function handleEdit (alerts) {
 }
 
 const ShowTask = observer((props) => {
+
+    // const previously = useRef(initialValue)
     const task = props.task;
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
+
+    useEffect(() => {
+        document.getElementById("checkbox-"+task.pk).focus();
+        window.addEventListener("keydown", (e) => {
+
+            if (e.defaultPrevented) {
+                return;
+            }
+            switch (e.key) {
+                case "Escape":
+                    taskStore.removeFocus();
+                    break;
+                case "Esc":
+                    taskStore.removeFocus();
+                    break;
+                default:
+                    return;
+            }
+
+            e.preventDefault();
+        })
+
+        return () => {
+            // 
+        }
+    }, [])
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" onClick={() => {
                             task.delete();
                             taskStore.removeFocus();
                             }}>
-                            <img src={bin} alt="Trash icon for delete"></img>
+                            {/* <img src={bin} alt="Trash icon for delete"></img> */}
+                            <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
                         <button id="btn-edit" className="btn" onClick={()=>handleEdit(alertStore)}>
-                            <img src={edit} alt="Pencil and paper icon for edit"></img>
+                            <i className="far fa-edit fa-fw fa"></i>
                         </button>
                     </div>;
 
     return (
         <section id="show-wrapper">
+            <h2>Task Details</h2>
             <section className="mid-section">
                 <Task 
                     data={task} 

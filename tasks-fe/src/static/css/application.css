@@ -30,14 +30,16 @@
   --alert-bg: #990707;
   --button-primary: #273fac;
   --success: #1eac1e;
-  --light-select: rgba(146, 146, 146, 0.05);
+  --light-select: rgba(146, 146, 146, 0.178);
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
   --box-corner-rounding: 40px;
   --check-box-size: 17px;
   --menu-width: 50px;
-  --menu-icon-size: 30px;
+  --menu-icon-size: 25px;
+  --button: #2c2c2c;
+  --button-outline: #222222;
 
   --calendar-h1-size: 35px;
   --p-size: 20px;
@@ -54,6 +56,23 @@ body {
   background-color: none;
   background: var(--bg);
   overflow: hidden;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+button.btn:focus {
+  background-color: var(--lightest-font);
+  color: var(--button);
+  box-shadow: 3px 3px var(--light-font);
+}
+
+button.btn:focus:hover,
+button.btn:focus:active {
+  background-color: var(--lightest-font);
+  color: var(--button);
+  box-shadow: none;
 }
 
 /* Hide thingy in the top left */
@@ -81,29 +100,16 @@ body {
   grid-area: left-menu;
   display: flex;
   flex-direction: column;
-  padding: 0 6px 0 6px;
+  padding: 0 8px 0 6px;
   z-index: 3;
 }
 
 #left-menu > .btn {
-  margin-top: 6px;
-  width: 100%;
-  aspect-ratio: 1/1;
-  padding: 0px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  margin-top: 10px;
 }
 
-#left-menu > * a {
-  display: flex;
-  align-items: center;
-}
-
-#left-menu img {
-  /* margin: 0%; */
-  height: var(--menu-icon-size);
-  width: var(--menu-icon-size);
+#left-menu > .btn i {
+  font-size: var(--menu-icon-size);
 }
 
 #slider {
@@ -183,18 +189,16 @@ to act like links without the href. */
 button {
   background: none;
   border: none;
-  padding: 5px;
-border-radius: 14px;
 }
 
 /* Focus */
 
-#list-wrapper button:focus {
+#list-wrapper .dark-section button:focus {
   background: var(--light-select);
 }
 
 #list-wrapper input:focus {
-  background: rgba(255, 255, 255, 0.082);
+  background: rgb(255, 0, 0);
 }
 
 button:focus {
@@ -203,23 +207,32 @@ button:focus {
 
 .fc .fc-button.fc-button-primary,
 button.btn {
-  border-radius: 0.25em;
-  background-color: var(--dark-font);
   border: none;
   opacity: 1;
   font-family: "Azeret Mono", monospace;
-  color: var(--lightest-font);
+  color: var(--light-font);
   font-weight: 300;
-  box-shadow: 4px 4px var(--darkest-dark);
+  background-color: var(--button);
+  box-shadow: 3px 3px var(--button-outline);
   transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
   transition: box-shadow 0.2s, background-color 0.2s, transform 0.2s;
   border-radius: 8px;
-  padding: 8px;
+  display: flex;
+  aspect-ratio: 1/1;
+  align-items: center;
+  justify-content: center;
+}
+
+button.btn i {
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .fc .fc-button.fc-button-primary:hover,
 button.btn:hover {
-  background-color: var(--darkest-dark);
+  background-color: var(--button-outline);
   box-shadow: none;
   transform: translate(1px, 1px);
 }
@@ -268,18 +281,15 @@ dialog {
   align-items: center;
   transition: opacity 1s;
   gap: 5px;
+  margin: 0;
 }
 
 .alert-pop-up button {
-  opacity: 55%;
   height: 30px;
   display: flex;
   justify-content: center;
 }
 
-.alert-pop-up button img {
-  height: 100%;
-}
 
 .alert-pop-up .alert-cont-wrapper {
   display: flex;
@@ -318,6 +328,22 @@ dialog {
   background: var(--alert-bg);
   background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, rgb(163, 29, 29) 100%);
   opacity: 90%;
+}
+
+.alert-pop-up.failure button {
+  background-color: rgb(105, 10, 10);
+  box-shadow: 2px 2px rgb(90, 8, 8);
+  color: var(--lightest-font);
+}
+
+.alert-pop-up.failure button:hover {
+  background-color: rgb(90, 8, 8);
+  box-shadow: none;
+}
+
+.alert-pop-up.failure button:focus {
+  background-color: var(--lightest-font);
+  color: rgb(105, 10, 10);
 }
 
 .alert-pop-up.success {
@@ -375,11 +401,6 @@ dl {
 ol,
 ul {
   padding-left: 0;
-}
-
-.btn-secondary {
-  background-color: none;
-  border-color: none;
 }
 
 .filter {

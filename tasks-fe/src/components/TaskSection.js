@@ -36,17 +36,19 @@ function toggleInlineHeightAttribute (outerSection) {
 function flipKarat (taskSection, duration) {
     // Flip karat
     var symbol = taskSection.querySelector(".expand-symbol");
+    const start = "rotate(180deg)";
+    const end = "rotate(0deg)";
     symbol.style.transition = `transform ${duration}ms ease-in-out 0s`;
-    if (symbol.style._webkit_transform === "rotate(-135deg)" || 
-        symbol.style._ms_transform === "rotate(-135deg)" || 
-        symbol.style.transform === "rotate(-135deg)") {
-        symbol.style._webkit_transform = "rotate(45deg)";
-        symbol.style._ms_transform = "rotate(45deg)";
-        symbol.style.transform = "rotate(45deg)";
+    if (symbol.style._webkit_transform === start || 
+        symbol.style._ms_transform === start || 
+        symbol.style.transform === start) {
+        symbol.style._webkit_transform = end;
+        symbol.style._ms_transform = end;
+        symbol.style.transform = end;
         } else {
-        symbol.style._webkit_transform = "rotate(-135deg)";
-        symbol.style._ms_transform = "rotate(-135deg)";
-        symbol.style.transform = "rotate(-135deg)";
+        symbol.style._webkit_transform = start;
+        symbol.style._ms_transform = start;
+        symbol.style.transform = start;
     }
 }
 
@@ -108,7 +110,9 @@ const TaskSection = (props) => {
         <section id={getSectionId(props.sectionNum)}>
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
                 <div className="expandable-section-header"  onClick={(e) => handleSectionToggle(e, props.sectionNum, props.toggleDuration)}>
-                    <div className="expand-symbol"></div>
+                    <button className="btn">
+                        <i className="fas fa-chevron-down expand-symbol fa-fw fa-lg"></i>
+                    </button>
                     <h2>{props.title}</h2>
                 </div>
                 <div className="section-collapsible">

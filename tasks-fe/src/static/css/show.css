@@ -6,11 +6,14 @@
   z-index: 2;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
+  row-gap: 15px;
 }
 
 #show-wrapper .mid-section {
   width: 35%;
   z-index: 5;
+  margin-bottom: 100px;
 }
 
 #show-wrapper .aligned-buttons {
@@ -19,19 +22,16 @@
   gap: 7px;
 }
 
-.aligned-buttons button {
-  height: 40px;
-  aspect-ratio: 1/1;
-  padding: 5px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+#show-wrapper h2 {
+  opacity: .8;
 }
 
-.aligned-buttons button img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 1/1;
+#show-wrapper .btn {
+  height: fit-content;
+}
+
+#show-wrapper button.btn i {
+  font-size: 30px;
 }
 
 /* Tasks */

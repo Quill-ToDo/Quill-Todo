@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import close from '../static/images/close.png';
 import { useAlertStore } from '../store/StoreContext';
 import { observer } from 'mobx-react-lite';
 
@@ -7,12 +6,14 @@ const Alert = (props) => {
     const descId = props.id + "-desc";
     const labelId = props.id + "-label";
     const btnId = props.id + "-close";
-    const closeBtn = <button id={btnId} onClick={props.removeCallback}>
-                        <img src={close} alt="Close"></img>
+    const closeBtn = <button class="btn" id={btnId} onClick={props.removeCallback}>
+                        <i class="fas fa-times fa-fw fa-2x"></i>
                     </button>
 
     useEffect(() => {
-        document.getElementById(btnId).focus();
+        if (props.type === "failure") {
+            document.getElementById(btnId).focus();
+        }
     })
 
     if (props.type === "failure") {
