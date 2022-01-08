@@ -4,19 +4,49 @@ import { useAlertStore } from '../store/StoreContext';
 import { observer } from 'mobx-react-lite';
 
 const Alert = (props) => {
-    return (
-        < dialog id = {
-            props.id
-        }
-        className = {
-            "alert-pop-up " + props.type + (props.type !== "failure" ? " slide-out" : "")
-        } >
-            <p>{props.body}</p>
-            <button onClick={props.removeCallback}>
-                <img src={close} alt="An x to close"></img>
-            </button>
-        </dialog>
-    )
+    const descId = props.id + "-desc";
+    const labelId = props.id + "-label";
+    const btnId = props.id + "-close";
+    const closeBtn = <button id={btnId} onClick={props.removeCallback}>
+                        <img src={close} alt="Close"></img>
+                    </button>
+
+    useEffect(() => {
+        document.getElementById(btnId).focus();
+    })
+
+    if (props.type === "failure") {
+        return (
+            <dialog 
+                id={props.id}
+                role="alertdialog"
+                aria-describedby={descId}
+                aria-labelledby={labelId}
+                className={"alert-pop-up " + props.type}>
+                <div className='alert-cont-wrapper'>
+                    <h3 id={labelId}>Error:</h3>
+                    <p id={descId}>{props.body}</p>
+                </div>
+                {closeBtn}
+            </dialog>
+        )   
+    }
+    else {
+        return (
+            <dialog 
+                id = {props.id}
+                aria-live= "polite"
+                aria-describedby={descId}
+                aria-labelledby={labelId}
+                className={"alert-pop-up slide-out " + props.type}>
+                <div className='alert-cont-wrapper'>
+                    <h3 id={labelId}>Notice:</h3>
+                    <p id={descId}>{props.body}</p>
+                </div>
+                {closeBtn}
+            </dialog>
+        )  
+    }
 }
 
 const AlertBox = observer((props) => {

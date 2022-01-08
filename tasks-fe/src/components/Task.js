@@ -26,11 +26,9 @@ const Task = observer((props) => {
     // props.basicVersion
     // ^ whether it is basic (in the list) or not (in show)
     const title = (
-        <button>
             <label htmlFor={"checkbox-"+task.pk} onClick={(e) => {e.preventDefault()}}>
                 <p className={"title " + (task.complete ? "complete" : "")}>{task.title}</p>    
             </label>
-        </button>
     );
 
     const checkbox = (
@@ -50,10 +48,10 @@ const Task = observer((props) => {
         return (
             <div className="task-wrapper" id={id} key={task.pk}> 
                 {checkbox}
-                <div className="title-date-wrapper" onClick={() => task.setFocus()} key={task.pk}>
+                <button className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
                     {dateTimeWrapper(task, task.due, "due")}
-                </div>
+                </button>
             </div>
         )
     }
@@ -61,7 +59,7 @@ const Task = observer((props) => {
         return (
             <Fragment>
                 <div>
-                    <div className="task-wrapper" >
+                    <div className="task-wrapper" data-testid={"taskwrapper-"+task.title} >
                         <div className="title-wrapper">
                             {checkbox}
                             {title}

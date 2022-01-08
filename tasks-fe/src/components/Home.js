@@ -19,8 +19,8 @@ const Home = observer(() => {
             { showNewPopUp ? < div id="new-wrapper"></div> : null }
             { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
             <menu id="left-menu" className="menu">
-                <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented adding new tasks.")}}/>
-                <MenuButton src={logout} alt="Power off icon for log out" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented users or logging out.")}}/>
+                <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {alertStore.add("failure", "We haven't implemented adding new tasks.")}}/>
+                <MenuButton src={logout} alt="Power off icon for log out" onClick={() => {alertStore.add("notice", "We haven't implemented users or logging out.")}}/>
             </menu>
             <List store={taskStore} />
             <div id="slider"></div>

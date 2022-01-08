@@ -87,20 +87,20 @@ li:not(:last-child) {
   width: 100%;
 }
 
-.title-date-wrapper button p,
-#show-wrapper .title-wrapper button p {
+.title-date-wrapper p,
+#show-wrapper .title-wrapper p {
   color: var(--light-font);
   text-align: left;
 }
 
 #list-wrapper .title-date-wrapper {
-    transition: background-color .5s, color .2s;
-    border-radius: 12px;
-    padding: 8px 8px 8px 8px;
+  transition: background-color .2s, color .2s;
+  border-radius: 12px;
+  padding: 8px 8px 8px 8px;
 }
 
 #list-wrapper .title-date-wrapper:hover {
-    background-color: rgba(146, 146, 146, 0.05);
+    background-color: var(--light-select);
 }
 
 
@@ -119,16 +119,16 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.title-date-wrapper button p.title.complete,
-#show-wrapper .title-wrapper button p.title.complete {
+.title-date-wrapper p.title.complete,
+#show-wrapper .title-wrapper p.title.complete {
   color: var(--subdued);
   text-decoration: line-through 2px;
 }
 
-.title-date-wrapper button p.title.complete::before,
-#show-wrapper .title-wrapper button p.title.complete::before,
-.title-date-wrapper button p.title.complete::after,
-#show-wrapper .title-wrapper button p.title.complete::after {
+.title-date-wrapper p.title.complete::before,
+#show-wrapper .title-wrapper p.title.complete::before,
+.title-date-wrapper p.title.complete::after,
+#show-wrapper .title-wrapper p.title.complete::after {
   clip-path: inset(100%);
   clip: rect(1px, 1px, 1px, 1px);
   height: 1px;
@@ -138,17 +138,17 @@ p.time {
   width: 1px;
 }
 
-.title-date-wrapper button p.title.complete::before,
-#show-wrapper .title-wrapper button p.title.complete::before {
+.title-date-wrapper p.title.complete::before,
+#show-wrapper .title-wrapper p.title.complete::before {
   content: " [start of stricken text] ";
 }
 
-.title-date-wrapper button p.title.complete::after,
-#show-wrapper .title-wrapper button p.title.complete::after {
+.title-date-wrapper p.title.complete::after,
+#show-wrapper .title-wrapper p.title.complete::after {
   content: " [end of stricken text] ";
 }
 
-#show-wrapper .title-wrapper button p.title.complete {
+#show-wrapper .title-wrapper p.title.complete {
   text-decoration: line-through 4px;
 }
 
@@ -169,6 +169,8 @@ p.time {
   z-index: 1;
   position: absolute;
   opacity: 0;
+  /* background:none;
+  background-color:none; */
   top: 0;
   left: 0;
   cursor: pointer;
@@ -200,7 +202,7 @@ p.time {
 }
 
 /* Show the checkmark when checked */
-.check-box-wrapper input[checked] ~ .checkmark::after {
+.check-box-wrapper input:checked ~ .checkmark::after {
   display: block;
   border-color: var(--subdued);
 }

@@ -30,6 +30,7 @@
   --alert-bg: #990707;
   --button-primary: #273fac;
   --success: #1eac1e;
+  --light-select: rgba(146, 146, 146, 0.05);
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
@@ -182,7 +183,22 @@ to act like links without the href. */
 button {
   background: none;
   border: none;
-  padding: 0;
+  padding: 5px;
+border-radius: 14px;
+}
+
+/* Focus */
+
+#list-wrapper button:focus {
+  background: var(--light-select);
+}
+
+#list-wrapper input:focus {
+  background: rgba(255, 255, 255, 0.082);
+}
+
+button:focus {
+  outline: none;
 }
 
 .fc .fc-button.fc-button-primary,
@@ -256,16 +272,38 @@ dialog {
 
 .alert-pop-up button {
   opacity: 55%;
-  height: 14px;
+  height: 30px;
+  display: flex;
+  justify-content: center;
 }
 
 .alert-pop-up button img {
   height: 100%;
 }
 
+.alert-pop-up .alert-cont-wrapper {
+  display: flex;
+  flex-direction: column;
+  row-gap: 2px;
+}
+
+.alert-pop-up h3 {
+  /* font-family: "Quicksand", sans-serif; */
+  font-family: "Secular One", sans-serif;
+  color: var(--lightest-font);
+  font-weight: 800;
+  font-size: 19px;
+  padding: 0;
+}
+
+.alert-pop-up .alert-cont-wrapper > * {
+  margin:0;
+
+}
+
 .alert-pop-up p {
+  font-size: 18px;
   font-family: "Quicksand", sans-serif;
-  font-size: 20px;
   color: var(--lightest-font);
   font-weight: 600;
 }

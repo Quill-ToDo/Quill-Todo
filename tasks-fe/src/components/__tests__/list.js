@@ -31,10 +31,10 @@ it("should show a loading message before tasks are loaded", () => {
 
 it("should show completed task's check boxes as filled", async () => {
     render(<App />);
-    const checkbox = await screen.findByRole("checkbox", {name: "Overdue complete"});
-    console.log(checkbox.ariaChecked)
-    expect(checkbox).toBeChecked()
-    // expect(checkbox)
+    const taskName = "Overdue complete";
+    const checkbox = await screen.findByRole("checkbox", {name: taskName});
+    expect(checkbox).toBeChecked();
+    expect(within(screen.queryByTestId("taskwrapper-"+taskName)).findByRole("")).toContainHTML("::after");
 
 })
 
