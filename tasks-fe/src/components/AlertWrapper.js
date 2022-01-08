@@ -6,8 +6,8 @@ const Alert = (props) => {
     const descId = props.id + "-desc";
     const labelId = props.id + "-label";
     const btnId = props.id + "-close";
-    const closeBtn = <button class="btn" id={btnId} onClick={props.removeCallback}>
-                        <i class="fas fa-times fa-fw fa-2x"></i>
+    const closeBtn = <button className="btn" id={btnId} title="Close" onClick={props.removeCallback}>
+                        <i className="fas fa-times fa-fw fa-2x"></i>
                     </button>
 
     useEffect(() => {

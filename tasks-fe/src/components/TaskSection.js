@@ -1,6 +1,31 @@
-import React from "react";
-import TaskSectionContent from "./TaskSectionContent";
+import React, { useState, Fragment } from "react";
+import Task from './Task'
 
+const TaskSectionContent = (props) => {
+    return (
+        <Fragment>
+            {props.title !== undefined ? <h3>{props.title}</h3> : null}
+            <div className="dark-section">
+                {props.tasks.length === 0 ? 
+                <p className="subtle centered">{props.emptyText}</p>
+                :
+                <ul>
+                    { props.tasks.map((task) => {
+                        return ( 
+                            <li className="task" key={"task-li-"+task.pk}>
+                                <Task
+                                    data={task}
+                                    basicVersion={true}
+                                    type={props.type}
+                                />
+                            </li>
+                        )
+                    })}
+                </ul>}
+            </div>
+        </Fragment>
+    )
+}
 
 function getSectionId(sectionNum) {
     return "task-section-" + sectionNum;
@@ -86,6 +111,7 @@ function toggleSection(taskSection, duration) {
 }
 
 const TaskSection = (props) => {
+    const [sectionOpen, setSectionOpen] = useState(true);
     // props.title;
     // The title of the section
 
@@ -105,13 +131,20 @@ const TaskSection = (props) => {
     //     tasks<dict?>= [],
         // emptyText= ""  // Text that appears in the content section if there are no tasks
     // }
+
+    var collapseToolTip = sectionOpen ? "Collapse " + props.title.toLowerCase() + " tasks" : "Expand " + props.title.toLowerCase() + " tasks";
     
     return (
         <section id={getSectionId(props.sectionNum)}>
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
-                <div className="expandable-section-header"  onClick={(e) => handleSectionToggle(e, props.sectionNum, props.toggleDuration)}>
-                    <button className="btn">
-                        <i className="fas fa-chevron-down expand-symbol fa-fw fa-lg"></i>
+                <div className="expandable-section-header"  onClick={(e) => {
+                        handleSectionToggle(e, props.sectionNum, props.toggleDuration);
+                        setSectionOpen(!sectionOpen);
+                    }}>
+                    <button className="btn" title={collapseToolTip}>
+                        <i 
+                        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
+                        ></i>
                     </button>
                     <h2>{props.title}</h2>
                 </div>

@@ -101,7 +101,6 @@ button.btn:focus:active {
   display: flex;
   flex-direction: column;
   padding: 0 8px 0 6px;
-  z-index: 3;
 }
 
 #left-menu > .btn {
@@ -330,13 +329,15 @@ dialog {
   opacity: 90%;
 }
 
-.alert-pop-up.failure button {
+.alert-pop-up.failure button,
+.btn.btn-red {
   background-color: rgb(105, 10, 10);
   box-shadow: 2px 2px rgb(90, 8, 8);
   color: var(--lightest-font);
 }
 
-.alert-pop-up.failure button:hover {
+.alert-pop-up.failure button:hover,
+.btn.btn-red:hover {
   background-color: rgb(90, 8, 8);
   box-shadow: none;
 }

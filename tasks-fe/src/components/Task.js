@@ -27,7 +27,7 @@ const Task = observer((props) => {
     // ^ whether it is basic (in the list) or not (in show)
     const title = (
             <label htmlFor={"checkbox-"+task.pk} onClick={(e) => {e.preventDefault()}}>
-                <p className={"title " + (task.complete ? "complete" : "")}>{task.title}</p>    
+                <p id={"task-title-" + task.pk} className={"title " + (task.complete ? "complete" : "")}>{task.title}</p>    
             </label>
     );
 

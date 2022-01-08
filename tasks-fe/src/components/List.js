@@ -82,7 +82,7 @@ const List = observer((props) => {
     const loading = 
         <div className="loading-wrapper take-full-space">
             <div>
-                <i className="fas fa-feather-alt loading-icon fa-2x"></i>
+                <i className="fas fa-feather-alt loading-icon fa-2x" aria-hidden="true"></i>
                 <p className="">Loading tasks...</p>
             </div>
         </div>;
