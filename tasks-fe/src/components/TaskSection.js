@@ -2,14 +2,16 @@ import React, { useState, Fragment } from "react";
 import Task from './Task'
 
 const TaskSectionContent = (props) => {
+    const sectionTitleId = "dark-section-title-"+props.title;
     return (
-        <Fragment>
-            {props.title !== undefined ? <h3>{props.title}</h3> : null}
+        <section aria-labelledby={props.title !== undefined ? "dark-section-title-"+props.title : null}>
+            {props.title !== undefined ? <h3 id={sectionTitleId}>{props.title}</h3> : null}
             <div className="dark-section">
                 {props.tasks.length === 0 ? 
                 <p className="subtle centered">{props.emptyText}</p>
                 :
-                <ul>
+                // Don't show in TOC
+                <ul role="group">
                     { props.tasks.map((task) => {
                         return ( 
                             <li className="task" key={"task-li-"+task.pk}>
@@ -17,13 +19,13 @@ const TaskSectionContent = (props) => {
                                     data={task}
                                     basicVersion={true}
                                     type={props.type}
-                                />
+                                    />
                             </li>
                         )
                     })}
                 </ul>}
             </div>
-        </Fragment>
+        </section>
     )
 }
 
@@ -135,18 +137,23 @@ const TaskSection = (props) => {
     var collapseToolTip = sectionOpen ? "Collapse " + props.title.toLowerCase() + " tasks" : "Expand " + props.title.toLowerCase() + " tasks";
     
     return (
-        <section id={getSectionId(props.sectionNum)}>
+        <section id={getSectionId(props.sectionNum)} aria-labelledby={"section-"+props.sectionNum+"-title"} >
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
                 <div className="expandable-section-header">
-                    <button className="btn" title={collapseToolTip} onClick={(e) => {
-                        handleSectionToggle(e, props.sectionNum, props.toggleDuration);
-                        setSectionOpen(!sectionOpen);
-                }}>
+                    <button 
+                        className="btn" 
+                        title={collapseToolTip} 
+                        aria-expanded={sectionOpen}
+                        onClick={(e) => {
+                            handleSectionToggle(e, props.sectionNum, props.toggleDuration);
+                            setSectionOpen(!sectionOpen);
+                        }}
+                    >
                         <i 
                         className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
                         ></i>
                     </button>
-                    <h2>{props.title}</h2>
+                    <h2 id={"section-"+props.sectionNum+"-title"}>{props.title}</h2>
                 </div>
                 <div className="section-collapsible">
                     { props.sectionContent.map((section, i) => {

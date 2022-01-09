@@ -59,13 +59,28 @@ export class TaskStore {
         task.updateFromJson(taskJson);
     } 
 
+
+    timeOccursBeforeEOD (time, currentTime) {
+        return (DateTime.fromISO(time) <= currentTime.set({hour: 23, minute: 59, second: 59}))
+    }
+
+    timeOccursBetweenNowAndEOD (time, currentTime) {
+        return (this.timeOccursBeforeEOD(time, currentTime) && (currentTime < DateTime.fromISO(time)))
+    }
+
     byStatus() {
         const now = DateTime.now();
         return {
             "overdue": this.tasks.filter(task => DateTime.fromISO(task.due) <= now),
-            "todayDue": this.tasks.filter(task => (DateTime.fromISO(task.due) <= now.set({hour: 23, minute: 59, second: 59})) && (now < DateTime.fromISO(task.due))),
-            "todayWork": this.tasks.filter(task => (task.start && DateTime.fromISO(task.start) <= now) && (now <= DateTime.fromISO(task.due))),
-            "upcoming": this.tasks.filter(task => (!task.start || now <= DateTime.fromISO(task.start) ) && (now.set({hour: 23, minute: 59, second: 59}) < DateTime.fromISO(task.due)))
+            "todayDue": this.tasks.filter(task => (this.timeOccursBetweenNowAndEOD(task.due, now))),
+            "todayWork": this.tasks.filter(task => 
+                (task.start && DateTime.fromISO(task.start) <= now) 
+                && (now < DateTime.fromISO(task.due))
+                && !(this.timeOccursBetweenNowAndEOD(task.due, now))
+                ),
+            "upcoming": this.tasks.filter(task => 
+                (!task.start || now <= DateTime.fromISO(task.start)) && !(this.timeOccursBeforeEOD(task.due, now))
+                )
         }
     }
 

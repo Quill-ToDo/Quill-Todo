@@ -129,29 +129,6 @@ p.time {
   text-decoration: line-through 2px;
 }
 
-.title-date-wrapper p.title.complete::before,
-#show-wrapper .title-wrapper p.title.complete::before,
-.title-date-wrapper p.title.complete::after,
-#show-wrapper .title-wrapper p.title.complete::after {
-  clip-path: inset(100%);
-  clip: rect(1px, 1px, 1px, 1px);
-  height: 1px;
-  overflow: hidden;
-  position: absolute;
-  white-space: nowrap;
-  width: 1px;
-}
-
-.title-date-wrapper p.title.complete::before,
-#show-wrapper .title-wrapper p.title.complete::before {
-  content: " [start of stricken text] ";
-}
-
-.title-date-wrapper p.title.complete::after,
-#show-wrapper .title-wrapper p.title.complete::after {
-  content: " [end of stricken text] ";
-}
-
 #show-wrapper .title-wrapper p.title.complete {
   text-decoration: line-through 4px;
 }

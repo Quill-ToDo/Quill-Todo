@@ -9,6 +9,7 @@ import {
 } from 'msw/node'
 
 const API_URL = "/api/tasks/";
+const BAD_WILDCARD = "*/api/tasks/";
 
 export class ApiMocks {
     // Default API mock methods to use, populated with some default data.
@@ -162,13 +163,13 @@ export class ApiMocks {
             {
                 "pk": 7,
                 "title": "Due today span",
-                "complete": true,
+                "complete": false,
                 "completed_at": null,
                 "start": this.date.minus({
                     weeks: 1
                 }),
                 "due": this.date.plus({
-                    hours: 1
+                    hours: 3
                 }),
                 "description": "Omg!",
                 "created_at": this.date.minus({
@@ -221,41 +222,31 @@ export class ApiMocks {
     }
 
     mocks = [
-        rest.get("*/api/tasks/", (req, res, ctx) => {
-            // Only works with full url or regex for some reason
+        rest.get(BAD_WILDCARD, (req, res, ctx) => {
+            // Only works with full url or regex for some reason... You aren't supposed to use wildcard though
+            // https://mswjs.io/docs/basics/request-matching
             return res(
                 ctx.status(200),
                 ctx.json(this.tasks)
                 );
         }),
+        rest.patch(BAD_WILDCARD + ":pk", (req, res, ctx) => {
+            // I'm not going to bother with validations. If there is a
+            // test that requires an error that test should write a handler
+            // for that particular situation and make it a one-time thing
+            // https://mswjs.io/docs/api/response/once
+            // I don't even know that I need ot do this but It's simple so I will
+            this.tasks.forEach((task, i) => {
+                if (task.pk === req.headers.pk) {
+                    this.tasks.splice(i, 1, req.body);
+                }
+            }) 
+            return res(
+                ctx.status(200),
+                ctx.json(req)
+            )
+        }),
     ]
-
-                // if (this.serverOn) {
-                // } else {
-                //     return res(
-                //         ctx.status(503),
-                //         // Not sure what this json should be, need to test with production build server 
-                //         ctx.json({})
-                //     )
-                // }
-
-    // fetchTasks = (desiredResponseJson=null, desiredResponse=null) => {
-    //     const responseJsonToServe = desiredResponseJson ? desiredResponseJson : this.tasks;
-    //     const responseToServe = desiredResponse ? desiredResponse : 200;
-
-
-    // }
-
-    // updateTask = (desiredResponseJson=null, desiredResponse=null) => {
-
-
-    //     rest.patch(API_URL + ":pk", (req, res, ctx) => {
-    //         res(
-
-    //             ctx.json()
-    //         )
-    //     })
-    // }
 }
 
 export const defaultServer = (baseDate = null) => {

@@ -25,15 +25,19 @@ const Task = observer((props) => {
     // props.data.completed_at
     // props.basicVersion
     // ^ whether it is basic (in the list) or not (in show)
+    const classAddition = task.complete ? "complete" : "";
     const title = (
             <label htmlFor={"checkbox-"+task.pk} onClick={(e) => {e.preventDefault()}}>
-                <p id={"task-title-" + task.pk} className={"title " + (task.complete ? "complete" : "")}>{task.title}</p>    
+                {task.complete ? <p id={"task-title-" + task.pk} className={"title " + classAddition}><s>{task.title}</s></p>
+                : <p id={"task-title-" + task.pk} className={"title " + classAddition}>{task.title}</p>}    
             </label>
     );
 
 
-    const workCheckbox = task.complete ? <i className="far fa-check-circle fa-fw checkmark round"></i> : <i className="far fa-circle fa-fw checkmark round"></i>;
-    const dueCheckbox = task.complete ? <i className="far fa-check-square fa-fw checkmark"></i> : <i className="far fa-square fa-fw checkmark"></i>; 
+    const workCheckbox = task.complete ? <i className="far fa-check-circle fa-fw checkmark round" aria-hidden="true"></i> 
+        : <i className="far fa-circle fa-fw checkmark round" title="Empty circle checkbox" aria-hidden="true"></i>;
+    const dueCheckbox = task.complete ? <i className="far fa-check-square fa-fw checkmark" aria-hidden="true"></i> 
+        : <i className="far fa-square fa-fw checkmark" title="Empty square checkbox" aria-hidden="true"></i>; 
     const checkbox = (
         <div className="check-box-wrapper">
             <input 
@@ -44,7 +48,6 @@ const Task = observer((props) => {
             >
             </input>
             {props.type === "due" ? dueCheckbox : workCheckbox}
-            {/* <span className={props.type === "due" ? "checkmark" : "checkmark round"}></span> */}
         </div>
     );
 
@@ -52,7 +55,7 @@ const Task = observer((props) => {
         return (
             <div className="task-wrapper" id={id} key={task.pk}> 
                 {checkbox}
-                <button className="title-date-wrapper" onClick={() => task.setFocus()}>
+                <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
                     {dateTimeWrapper(task, task.due, "due")}
                 </button>
