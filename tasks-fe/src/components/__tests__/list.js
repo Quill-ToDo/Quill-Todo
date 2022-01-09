@@ -18,10 +18,8 @@ const baseDate = DateTime.utc(2021, 6, 6, 6);
 const mockServerHandler = new MockTaskApiHandler(baseDate);
 const luxonNow = Settings.now;
 
-const showRoles = async () => {
-    await screen.findByText("Overdue incomplete");
-    logRoles(screen.getByRole("region", {name: "Task list"}));
-}
+// await screen.findByText("Overdue incomplete");
+// logRoles(screen.getByRole("region", {name: "Task list"}));
 
 beforeAll(() => {
     // Start mock API

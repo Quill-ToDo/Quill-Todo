@@ -15,6 +15,7 @@ const dateTimeWrapper = (task, time, type) => {
 const Task = observer((props) => {
     const task = props.data;
     const id = "task-" + task.pk;
+    const checkboxId = (props.basicVersion ? "list" : "show")+ "-checkbox-"+task.pk;
     
     // Props: 
     // props.data.title
@@ -27,22 +28,20 @@ const Task = observer((props) => {
     // ^ whether it is basic (in the list) or not (in show)
     const classAddition = task.complete ? "complete" : "";
     const title = (
-            <label htmlFor={"checkbox-"+task.pk} onClick={(e) => {e.preventDefault()}}>
+            <label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
                 {task.complete ? <p id={"task-title-" + task.pk} className={"title " + classAddition}><s>{task.title}</s></p>
                 : <p id={"task-title-" + task.pk} className={"title " + classAddition}>{task.title}</p>}    
             </label>
     );
-
-
     const workCheckbox = task.complete ? <i className="far fa-check-circle fa-fw checkmark round" aria-hidden="true"></i> 
-        : <i className="far fa-circle fa-fw checkmark round" title="Empty circle checkbox" aria-hidden="true"></i>;
+        : <i className="far fa-circle fa-fw checkmark round" aria-hidden="true"></i>;
     const dueCheckbox = task.complete ? <i className="far fa-check-square fa-fw checkmark" aria-hidden="true"></i> 
-        : <i className="far fa-square fa-fw checkmark" title="Empty square checkbox" aria-hidden="true"></i>; 
+        : <i className="far fa-square fa-fw checkmark" aria-hidden="true"></i>; 
     const checkbox = (
         <div className="check-box-wrapper">
             <input 
                 type="checkbox" 
-                id={"checkbox-"+task.pk}
+                id={checkboxId}
                 onChange={() => {task.toggleComplete()}}
                 checked={task.complete}
             >

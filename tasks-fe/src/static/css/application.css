@@ -437,6 +437,11 @@ ul {
   z-index: 2;
   width: 100%;
   height: 100%;
+  transition: background-color .7s;
+}
+
+.filter:focus {
+  background-color: rgba(0, 0, 0, 0.226);
 }
 
 .hidden {
