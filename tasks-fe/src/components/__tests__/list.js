@@ -10,12 +10,12 @@ import userEvent from '@testing-library/user-event'
 import { logRoles } from '@testing-library/react';
 import { DateTime, Settings } from 'luxon';
 
-import { defaultServer } from '../../API/mockHandlers';
+import MockTaskApiHandler from '../../API/MockTakApiHandler';
 import App from "../../App";
 
 
 const baseDate = DateTime.utc(2021, 6, 6, 6);
-const server = defaultServer(baseDate);
+const mockServerHandler = new MockTaskApiHandler(baseDate);
 const luxonNow = Settings.now;
 
 const showRoles = async () => {
@@ -25,7 +25,7 @@ const showRoles = async () => {
 
 beforeAll(() => {
     // Start mock API
-    server.listen();
+    mockServerHandler.server.listen();
     // Set constant time for DateTime.now()
     const millis = baseDate.toMillis();
     Settings.now = () => millis;
@@ -33,7 +33,7 @@ beforeAll(() => {
 
 afterAll(() => {
     Settings.now = luxonNow;
-    server.close();
+    mockServerHandler.server.close();
 })
 
 it("should load tasks in the list", async () => {
@@ -144,6 +144,14 @@ it("should be able to toggle sections opened and closed", async () => {
     await waitFor(() => {
         expect(task).toBeVisible();
     })
+})
+
+it("should show a message on the list if no tasks are present", async () => {
+    const prevTasks = mockServerHandler.tasks;
+    mockServerHandler.setup.setTasks([]);
+    render(<App />);
+    await screen.findByText("You have no tasks to work on. Try adding one!");
+    mockServerHandler.setup.setTasks(prevTasks);
 })
 
 // TODO

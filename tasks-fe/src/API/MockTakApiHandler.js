@@ -11,7 +11,7 @@ import {
 const API_URL = "/api/tasks/";
 const BAD_WILDCARD = "*/api/tasks/";
 
-export class ApiMocks {
+export default class MockTaskApiHandler {
     // Default API mock methods to use, populated with some default data.
     // You can also update the tasks in this DB using the methods prefixed with setup
 
@@ -19,9 +19,9 @@ export class ApiMocks {
     tasks = [];
     // This base "current" date to base computations of off
     date = "";
-    serverOn;
+    server = null;
 
-    constructor(dateOverride = null, taskOverrides = null, serverOn = true) {
+    constructor(dateOverride = null, taskOverrides = null) {
         this.date = dateOverride ? dateOverride : DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
         this.tasks = taskOverrides ? taskOverrides : [{
                 "pk": 0,
@@ -203,22 +203,31 @@ export class ApiMocks {
                 }),
             },
         ];
-        this.serverOn = serverOn;
+        this.server = setupServer(...this.mocks);
     }
 
     // NOT NETWORK CALLS: Set up/change this DB however you'd like after 
     // initialization. 
     setup = {
+        handler: this,
         // Set the tasks of this object if you want to override them
         setTasks(tasks) {
-            console.log(this.tasks)
-            this.tasks = tasks;
+            this.handler.tasks = tasks;
         },
 
         // Add one task to this "DB"
         addTask(task) {
-            this.tasks.push(task);
+            this.handler.tasks.push(task);
         },
+
+        // Add a server that will use the mocks in this module
+        setServer(server) {
+            this.handler.server = server;
+        },
+
+        // addMock() {
+        //     this.server=const server = setupServer(...mockHandler.mocks);
+        // }
     }
 
     mocks = [
@@ -235,7 +244,7 @@ export class ApiMocks {
             // test that requires an error that test should write a handler
             // for that particular situation and make it a one-time thing
             // https://mswjs.io/docs/api/response/once
-            // I don't even know that I need ot do this but It's simple so I will
+            // I don't even know that I need to do this but It's simple so I will
             this.tasks.forEach((task, i) => {
                 if (task.pk === req.headers.pk) {
                     this.tasks.splice(i, 1, req.body);
@@ -246,22 +255,6 @@ export class ApiMocks {
                 ctx.json(req)
             )
         }),
+        // rest.delete(API_URL + ":pk")
     ]
 }
-
-export const defaultServer = (baseDate = null) => {
-    // By default, use all the mock handlers with defaults define in ApiMocks. If you want to
-    // override default values served or write your own methods to add, follow this basic 
-    // process but pass in the method called with overrides or pass in your own methods.
-    const mockHandler = new ApiMocks(baseDate);
-    return setupServer(...mockHandler.mocks);
-}
-
-
-
-
-
-
-// export const deleteTask = (desiredResponseJson) => {
-//     rest.delete(API_URL + ":pk")
-// }

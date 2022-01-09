@@ -14,8 +14,6 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
 3. Switch to virtual environment following instructions of whichever virtual environment you're using
 
-**Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
-
 4. Install dependencies:  
   
     ```Bash
@@ -23,6 +21,7 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
     ```
 
 5. Make and apply migrations if needed:
+    **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
     ```Bash
     py manage.py makemigrations 
@@ -59,6 +58,57 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 ##### FE Notes
 
 - If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`
+
+### Testing
+
+#### Front-end Testing
+
+The test files are store near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
+
+After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`. The tests should re-run automatically every time you save.
+Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
+You can also isolate the execution of tests to a single test by adding `only` after the test.
+
+**Ex:**
+```JS
+it.only("should load tasks in the list", async () => {
+    render(<App />);
+    expect(screen.getByRole("region", {name: "Task list"}))
+    .toContainElement(await screen.findByLabelText("Overdue incomplete"));
+})
+```
+
+Additionally, you can mark a test as not yet implemented by adding `todo`.
+
+**Ex:** `it.todo("should do something cool);`
+
+##### Mocking Network Calls
+
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+
+An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
+
+##### Mocking time
+
+Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
+
+##### Useful testing resources
+
+- [Create React App testing basics](https://create-react-app.dev/docs/running-tests/)
+- Matchers
+  - [Built-in Jest expect matchers](https://jestjs.io/docs/expect)
+  - [jest-dom matchers to test the state of DOM elements](https://github.com/testing-library/jest-dom)
+- Queries / Selecting elements
+  - [Testing library about queries](https://testing-library.com/docs/queries/about)
+  - Role-based matching (helps ensure accessibility, try to use this as much as you can)
+    - [Testing library helper to display node roles](https://testing-library.com/docs/dom-testing-library/api-debugging#logroles)
+    - [Implicit ARIA role table (if the HTML tag is not used as a role and one is not specified, it may be using one of these)](https://www.w3.org/TR/html-aria/#docconformance-attr)
+- Network Calls
+  - [Mock Service Worker for mocking network calls](https://mswjs.io/docs/getting-started/mocks/rest-api)
+
+#### Back-end Testing
+
+*To-do!*
 
 ## Commits, Branches, and Pull Requests
 
