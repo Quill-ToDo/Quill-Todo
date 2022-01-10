@@ -25,7 +25,6 @@ const ShowTask = observer((props) => {
         document.getElementById("home-wrapper").tabIndex = -1;
         document.getElementById("show-checkbox-"+task.pk).focus();
         window.addEventListener("keydown", (e) => {
-            console.log(e);
             if (e.defaultPrevented) {
                 return;
             }

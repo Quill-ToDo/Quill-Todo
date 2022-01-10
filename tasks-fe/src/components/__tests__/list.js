@@ -10,7 +10,7 @@ import userEvent from '@testing-library/user-event'
 import { logRoles } from '@testing-library/react';
 import { DateTime, Settings } from 'luxon';
 
-import MockTaskApiHandler from '../../API/MockTakApiHandler';
+import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 import App from "../../App";
 
 
@@ -38,6 +38,16 @@ it("should load tasks in the list", async () => {
     render(<App />);
     expect(screen.getByRole("region", {name: "Task list"}))
     .toContainElement(await screen.findByLabelText("Overdue incomplete"));
+})
+
+it("should show the correct time and date in the list", async () => {
+    render(<App />);
+    const list = await screen.findByRole("region", {name: "Task list"});
+    const listTaskLink = await within(list).findByRole("link", {name: /^Overdue incomplete */, exact: false});
+    const due = baseDate.minus({days: 7}).setZone(DateTime.local().zoneName);
+    // Validate that the dates are right
+    within(listTaskLink).getByText(due.toLocaleString(DateTime.DATE_SHORT));
+    within(listTaskLink).getByText(due.toLocaleString(DateTime.TIME_SIMPLE));
 })
 
 it("should show a loading message before tasks are loaded", () => {
@@ -131,17 +141,19 @@ it("should show in-progress tasks in the work on today section", async () => {
 
 it("should be able to toggle sections opened and closed", async () => {
     render(<App />);
-    const overdueSection = await screen.findByRole("region", {name: "Overdue"});
-    const task = await within(overdueSection).findByText("Overdue incomplete");
-    const toggleBtn = within(overdueSection).getByRole("button", {name: "Collapse overdue tasks"});
-    userEvent.click(toggleBtn);
+    const todaySection = await screen.findByRole("region", {name: "Today"});
+    userEvent.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
     await waitFor(() => {
-        expect(task).not.toBeVisible();
+        expect(within(todaySection).getByText("Due")).not.toBeVisible();
     })
-    userEvent.click(toggleBtn);
+    expect(within(todaySection).getByText("Work")).not.toBeVisible();
+    userEvent.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
     await waitFor(() => {
-        expect(task).toBeVisible();
+        expect(within(todaySection).getByText("Due")).toBeVisible();
     })
+    expect(within(todaySection).getByText("Work")).toBeVisible();
+    userEvent.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
+    userEvent.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
 })
 
 it("should show a message on the list if no tasks are present", async () => {

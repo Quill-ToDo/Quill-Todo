@@ -17,7 +17,7 @@ const Home = observer(() => {
             { showNewPopUp ? < div id="new-wrapper"></div> : null }
             { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
-                <button role="menuitem" className="btn" title="Add task" onClick={() => alertStore.add("notice", "We haven't implemented adding new tasks.")}>
+            <button role="menuitem" className="btn" title="Add task" onClick={() => alertStore.add("notice", "We haven't implemented adding new tasks.")}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>
                 <button role="menuitem" className="btn" title="Log out" onClick={() => alertStore.add("notice", "We haven't implemented users or logging out.")}>

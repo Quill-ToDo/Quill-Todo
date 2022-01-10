@@ -3,17 +3,42 @@ import { useAlertStore } from '../store/StoreContext';
 import { observer } from 'mobx-react-lite';
 
 const Alert = (props) => {
+    const previouslyFocused = useRef(null);
     const descId = props.id + "-desc";
     const labelId = props.id + "-label";
     const btnId = props.id + "-close";
     const colorMapping = {"success": "btn-green", "failure": "btn-red", "notice": "btn-light-grey"}
-    const closeBtn = <button className={"btn " + colorMapping[props.type] } id={btnId} title="Close" onClick={props.removeCallback}>
-                        <i className="fas fa-times fa-fw fa-2x"></i>
-                    </button>
+    const closeBtn = 
+        <button 
+            className={"btn " + colorMapping[props.type] } 
+            id={btnId} 
+            title="Close" 
+            onClick={props.removeCallback}
+        >
+            <i className="fas fa-times fa-fw fa-2x"></i>
+        </button>
 
     useEffect(() => {
+        // On focus, save previously focused element to return focus to on dismount. 
+        // Also, stop animation on focus.
+        document.getElementById(btnId).addEventListener("focus", (e) => {
+            previouslyFocused.current = e.relatedTarget;
+            const alert = document.getElementById(props.id);
+            const prevAnimation = alert.style.animation;
+            alert.style.animation="0";
+            alert.addEventListener("blur", () => {
+                alert.style.animation = prevAnimation;
+            })
+        })
+        
         if (props.type === "failure") {
             document.getElementById(btnId).focus();
+        }
+        
+        return () => {
+            if (previouslyFocused.current !== null) {
+                previouslyFocused.current.focus();
+            }
         }
     })
 
@@ -22,6 +47,7 @@ const Alert = (props) => {
             <dialog 
                 id={props.id}
                 role="alertdialog"
+                open=""
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up " + props.type}>
@@ -38,6 +64,7 @@ const Alert = (props) => {
             <dialog 
                 id = {props.id}
                 aria-live= "polite"
+                open=""
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + props.type}>

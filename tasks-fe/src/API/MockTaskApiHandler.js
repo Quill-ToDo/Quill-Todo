@@ -50,7 +50,7 @@ export default class MockTaskApiHandler {
                 due: this.date.minus({
                     days: 7
                 }),
-                description: "Delta is cheaper. I have a card with them too",
+                description: "Task description",
                 created_at: this.date.minus({
                     weeks: 3
                 }),
@@ -250,6 +250,10 @@ export default class MockTaskApiHandler {
          */
         setTasks(tasks) {
             this.handler.tasks = tasks;
+        },
+
+        getTasks() {
+            return this.handler.tasks;
         },
 
         /**

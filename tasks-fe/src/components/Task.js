@@ -2,11 +2,12 @@ import React, { Fragment } from "react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 
-const dateTimeWrapper = (task, time, type) => {
+const dateTimeWrapper = (task, time, type, dateForm) => {
     const converted = DateTime.fromISO(time);
+    
     return (
         <time dateTime={converted} className={"date-time-wrapper" + (converted < DateTime.now() && !task.complete && type === "due" ? " overdue" : "")}> 
-            <p className="date">{converted.toLocaleString(DateTime.DATE_SHORT)}</p>
+            <p className="date">{converted.toLocaleString(dateForm)}</p>
             <p className="time">{converted.toLocaleString(DateTime.TIME_SIMPLE)}</p>
         </time>
     );
@@ -49,6 +50,7 @@ const Task = observer((props) => {
             {props.type === "due" ? dueCheckbox : workCheckbox}
         </div>
     );
+    const dateForm = props.basicVersion? DateTime.DATE_SHORT : DateTime.DATE_MED_WITH_WEEKDAY;
 
     if (props.basicVersion) {
         return (
@@ -56,7 +58,7 @@ const Task = observer((props) => {
                 {checkbox}
                 <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
-                    {dateTimeWrapper(task, task.due, "due")}
+                    {dateTimeWrapper(task, task.due, "due", dateForm)}
                 </button>
             </div>
         )
@@ -78,7 +80,7 @@ const Task = observer((props) => {
                         <div>
                             <h3>Start</h3>
                             {task.start !== null ? 
-                                dateTimeWrapper(task, task.start, "start")
+                                dateTimeWrapper(task, task.start, "start", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
                             }
@@ -86,7 +88,7 @@ const Task = observer((props) => {
                         <div> 
                             <h3>Due</h3>
                             {task.due !== null ? 
-                                dateTimeWrapper(task, task.due, "due")
+                                dateTimeWrapper(task, task.due, "due", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
                             }

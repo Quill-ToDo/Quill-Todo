@@ -10,11 +10,11 @@
   
 }
 
-#list-wrapper section {
+#list-wrapper > section {
   margin: var(--section-gap) 0 0 var(--section-gap);
 }
 
-#list-wrapper section:last-child {
+#list-wrapper > section:last-child {
   margin-bottom: var(--section-gap);
 }
 

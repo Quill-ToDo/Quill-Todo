@@ -1,7 +1,17 @@
 {
     "version": "0.2.0",
     "configurations": [
-
+        {
+            "name": "Debug CRA Tests",
+            "type": "node",
+            "request": "launch",
+            "runtimeExecutable": "${workspaceRoot}/tasks-fe/node_modules/.bin/react-scripts",
+            "args": ["test", "--runInBand", "--no-cache", "--env=jsdom"],
+            "cwd": "${workspaceRoot}/tasks-fe",
+            "protocol": "inspector",
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen"
+        },
         {
             "name": "Launch Chrome",
             "type": "chrome",
