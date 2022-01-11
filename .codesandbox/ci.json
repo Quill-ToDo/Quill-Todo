@@ -1,4 +1,3 @@
 {
-    "sandboxes": ["/tasks-fe"],
-    "installCommand": "installFE"
+    "packages": ["/tasks-fe"]
 }
