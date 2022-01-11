@@ -1,3 +1,4 @@
 {
+    "installCommand": "install",
     "packages": ["/tasks-fe"]
 }
