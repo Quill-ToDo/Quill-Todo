@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable, runInAction} from "mobx";
+import { makeAutoObservable, runInAction } from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 
