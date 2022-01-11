@@ -29,6 +29,11 @@ beforeAll(() => {
     Settings.now = () => millis;
 })
 
+beforeEach(() => {
+    mockServerHandler.server.resetHandlers();
+    mockServerHandler.setup.initTasks();
+})
+
 afterAll(() => {
     Settings.now = luxonNow;
     mockServerHandler.server.close();
@@ -87,7 +92,6 @@ it("should show tasks as completed after clicking on its check box", async () =>
     const box = await screen.findByRole("checkbox", {name: "Overdue incomplete"});
     userEvent.click(box);
     expect(box).toBeChecked();
-    userEvent.click(box);
 })
 
 it("should show completed tasks as incomplete after clicking on its check box", async () => {
@@ -95,7 +99,6 @@ it("should show completed tasks as incomplete after clicking on its check box", 
     const box = await screen.findByRole("checkbox", {name: "Overdue complete"});
     userEvent.click(box);
     expect(box).not.toBeChecked();
-    userEvent.click(box);
 })
 
 const ensureTasksInSection = (tasks, section) => {
@@ -152,16 +155,12 @@ it("should be able to toggle sections opened and closed", async () => {
         expect(within(todaySection).getByText("Due")).toBeVisible();
     })
     expect(within(todaySection).getByText("Work")).toBeVisible();
-    userEvent.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
-    userEvent.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
 })
 
 it("should show a message on the list if no tasks are present", async () => {
-    const prevTasks = mockServerHandler.tasks;
     mockServerHandler.setup.setTasks([]);
     render(<App />);
     await screen.findByText("You have no tasks to work on. Try adding one!");
-    mockServerHandler.setup.setTasks(prevTasks);
 })
 
 // TODO

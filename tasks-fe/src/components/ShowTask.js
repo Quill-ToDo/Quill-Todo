@@ -30,6 +30,7 @@ const ShowTask = observer((props) => {
             }
             switch (e.key) {
                 case "Escape":
+                    console.log("ESCAPE LOGGED")
                     closeFn();
                     break;
                 case "Esc":

@@ -39,39 +39,57 @@ export default class MockTaskApiHandler {
         this.date = dateOverride ? dateOverride : DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
         // If you change these hard-coded tasks, please just add to them or make sure you don't break a lot of
         // tests by removing any.
-        this.tasks = taskOverrides ? taskOverrides : [{
+        if (taskOverrides) {
+            this.tasks = taskOverrides; 
+        }
+        else {
+            this.setup.initTasks();
+        }
+
+        this.server = setupServer(...this.mocks);
+    }
+
+    /**
+     * **NOT NETWORK CALLS:** Set up/change this DB however you'd like after 
+     * initialization. 
+     */
+    setup = {
+        handler: this,
+
+        initTasks() {
+            this.handler.tasks = [{
                 pk: 0,
                 title: "Overdue incomplete",
                 complete: false,
                 completed_at: null,
-                start: this.date.minus({
+                start: this.handler.date.minus({
                     months: 1
                 }),
-                due: this.date.minus({
+                due: this.handler.date.minus({
                     days: 7
                 }),
                 description: "Task description",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     weeks: 3
                 }),
-                updated_at: this.date,
+                updated_at: this.handler.date,
             },
             {
                 pk: 1,
                 title: "Overdue complete",
                 complete: true,
                 completed_at: null,
-                start: this.date.minus({
+                start: this.handler.date.minus({
                     months: 1
                 }),
-                due: this.date.minus({
+                due: this.handler.date.minus({
                     weeks: 3
                 }),
                 description: "",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -83,14 +101,14 @@ export default class MockTaskApiHandler {
                 complete: false,
                 completed_at: null,
                 start: null,
-                due: this.date.minus({
+                due: this.handler.date.minus({
                     weeks: 3
                 }),
                 description: "",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -101,17 +119,17 @@ export default class MockTaskApiHandler {
                 title: "Work on today",
                 complete: false,
                 completed_at: null,
-                start: this.date.minus({
+                start: this.handler.date.minus({
                     months: 2
                 }),
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     months: 2
                 }),
                 description: "A long project",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -123,14 +141,14 @@ export default class MockTaskApiHandler {
                 complete: false,
                 completed_at: null,
                 start: "",
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     months: 2
                 }),
                 description: "",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -141,17 +159,17 @@ export default class MockTaskApiHandler {
                 title: "Upcoming span",
                 complete: true,
                 completed_at: null,
-                start: this.date.plus({
+                start: this.handler.date.plus({
                     weeks: 2
                 }),
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     weeks: 4
                 }),
                 description: "",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -163,14 +181,14 @@ export default class MockTaskApiHandler {
                 complete: true,
                 completed_at: null,
                 start: null,
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     hours: 2
                 }),
                 description: "Omg!",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -181,17 +199,17 @@ export default class MockTaskApiHandler {
                 title: "Due today span",
                 complete: false,
                 completed_at: null,
-                start: this.date.minus({
+                start: this.handler.date.minus({
                     weeks: 1
                 }),
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     hours: 3
                 }),
                 description: "Omg!",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
@@ -202,32 +220,25 @@ export default class MockTaskApiHandler {
                 title: "Due tomorrow",
                 complete: true,
                 completed_at: null,
-                start: this.date.minus({
+                start: this.handler.date.minus({
                     days: 3
                 }),
-                due: this.date.plus({
+                due: this.handler.date.plus({
                     days: 1
                 }),
                 description: "Omg!",
-                created_at: this.date.minus({
+                created_at: this.handler.date.minus({
                     months: 2
                 }),
-                updated_at: this.date.minus({
+                updated_at: this.handler.date.minus({
                     months: 1
                 }).plus({
                     days: 1
                 }),
             },
         ];
-        this.server = setupServer(...this.mocks);
-    }
+        },
 
-    /**
-     * **NOT NETWORK CALLS:** Set up/change this DB however you'd like after 
-     * initialization. 
-     */
-    setup = {
-        handler: this,
         /**
          * Set the tasks for this object if you would like to override them.
          * 

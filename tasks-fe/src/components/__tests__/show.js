@@ -4,14 +4,14 @@ import {
     within,
     logRoles,
     waitFor,
-    fireEvent
+    fireEvent,
+    waitForElementToBeRemoved
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
 import { DateTime, Settings } from 'luxon';
 
 import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 import App from "../../App";
-
 
 const baseDate = DateTime.utc(2021, 1, 9, 7);
 const mockServerHandler = new MockTaskApiHandler(baseDate);
@@ -27,6 +27,11 @@ beforeAll(() => {
     const millis = baseDate.toMillis();
     Settings.now = () => millis;
 });
+
+beforeEach(() => {
+    mockServerHandler.server.resetHandlers();
+    mockServerHandler.setup.initTasks();
+})
 
 afterAll(() => {
     Settings.now = luxonNow;
@@ -60,7 +65,6 @@ it("should display task details on show", async () => {
     within(show).getByText(start.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY));
     within(show).getAllByText(due.toLocaleString(DateTime.TIME_SIMPLE));
     within(show).getAllByText(start.toLocaleString(DateTime.TIME_SIMPLE));
-    userEvent.click(screen.getByRole("button", {name: "Close"}));
 });
 
 it("should be able to close show via clicking off show", async () => {
@@ -74,29 +78,34 @@ it("should be able to close show via clicking off show", async () => {
 });
 
 // Doesn't work when it's run with other tests. there are probably things that are being changed I guess
-// Two things to try: use fire event or vanilla event stuff to press the button
+// Two things to try:
 // Change setting up the tasks to before each test, it's possible the one removing all tests 
 // if like running at the same time as this and is messing it up.
 // because when I set the tests it breaks a bunch of other ones
-it("should be able to close show via escape button", async () => {
+it.only("should be able to close show via escape button", async () => {
+    const taskName = "Overdue incomplete";
+    // mockServerHandler.setup.addTask([{
+    //     title: taskName,
+    //     due: mockServerHandler.date
+    // }])
+    const user = userEvent.setup();
     render(<App />);
-    const taskName = "Oh ah ah ah";
     // const prevTasks = mockServerHandler.setup.getTasks();
-    const prevTasks = mockServerHandler.tasks;
+    // const prevTasks = mockServerHandler.tasks;
     // mockServerHandler.setup.setTasks([]);
-    mockServerHandler.setup.setTasks([{
-        title: taskName,
-        due: mockServerHandler.date
-    }])
+    // console.log(mockServerHandler.setup.getTasks())
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
     userEvent.click(listTask);
-    await screen.findByRole("dialog", {name: "Task Details"});
-    userEvent.keyboard('[Escape]');
-    await waitFor(() => {
-        expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
-    });
-    mockServerHandler.setup.setTasks(prevTasks);
+    const show = await screen.findByRole("dialog", {name: "Task Details"});
+    user.keyboard('[Escape]');
+    // expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
+
+    await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
+    // fireEvent.keyDown(show, {key: "Escape"});
+    // await waitFor(() => {
+    // });
+    // mockServerHandler.setup.setTasks(prevTasks);
 });
 
 // DIDnt work 
