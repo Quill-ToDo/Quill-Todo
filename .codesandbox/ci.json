@@ -4,5 +4,6 @@
     "publishDirectory": {
         "tasks-fe": "./tasks-fe/build"
     },
-    "sandboxes": ["/tasks"]
+    "sandboxes": ["/tasks"],
+    "node": "14"
 }
