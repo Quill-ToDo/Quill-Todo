@@ -1,5 +1,6 @@
 {
   "scripts": {
-    "build": "cd ./tasks-fe && npm run build"
+    "build": "cd ./tasks-fe && npm run build",
+    "installFE": "cd ./tasks-fe && npm ci"
   }
 }
