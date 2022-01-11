@@ -1,4 +1,5 @@
 {
-    "installCommand": "install",
-    "packages": ["/tasks-fe"]
-}
+    "packages": ["/tasks-fe"],
+    "publishDirectory": {
+        "tasks-fe": "./tasks-fe/build"
+    }}
