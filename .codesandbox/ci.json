@@ -1,9 +1,6 @@
 {
     "installCommand": "install",
     "packages": ["/tasks-fe"],
-    "publishDirectory": {
-        "tasks-fe": "./tasks-fe/build"
-    },
     "sandboxes": ["/tasks"],
     "node": "14"
 }
