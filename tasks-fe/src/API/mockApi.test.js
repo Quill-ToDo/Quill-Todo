@@ -2,7 +2,7 @@ import MockTaskApiHandler from "./MockTaskApiHandler";
 import { DateTime } from "luxon";
 import { setupServer } from 'msw/node'
 import { rest } from "msw";
-import axios from "axios";
+import { TaskApi } from "./TaskApi"
 
 describe("should init with", () => {
     const defaultBaseDate = DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
@@ -115,12 +115,12 @@ it("should set a new server", () => {
 
 
 describe("should intercept network call", () => {
-    const API_URL = "http://localhost:8000/api/tasks/";
+    const api = new TaskApi();
 
     it("fetch", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
-        const res = await axios.get(API_URL);
+        const res = await api.fetchTasks();
         handler.server.close();
         handler.tasks.forEach(task => {
             expect(res.data.find((resTask) => resTask.title === task.title)).toBeDefined();
@@ -131,7 +131,7 @@ describe("should intercept network call", () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
         const pk = handler.tasks[0].pk;
-        const res = await axios.get(API_URL+pk);
+        const res = await api.detail(pk);
         handler.server.close();
         expect(handler.tasks[0].title).toEqual(res.data.title);
     })
@@ -141,7 +141,7 @@ describe("should intercept network call", () => {
         handler.server.listen();
         const pk = handler.tasks[0].pk;
         const title = handler.tasks[0].title;
-        await axios.delete(API_URL+pk);
+        await api.deleteTask(pk);
         handler.server.close();
         expect(handler.tasks.find(t => t.title === title)).toBeUndefined();
     })

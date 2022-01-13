@@ -27,9 +27,9 @@ export class TaskStore {
     }
 
     // Fetch all tasks from server
-    loadTasks (retry=0) {
+    async loadTasks (retry=0) {
         this.isLoaded = false;
-        this.API.fetchTasks().then(fetchedTasks => {
+        return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
                 fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
                 this.isLoaded = true;
@@ -40,7 +40,6 @@ export class TaskStore {
                 }
             });
         }).catch(e => {
-            console.log(e)
             if (retry === 0) {
                 this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
             }

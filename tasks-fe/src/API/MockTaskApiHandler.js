@@ -9,9 +9,6 @@ import {
 } from 'msw/node'
 import { v4 as uuidv4 } from 'uuid';
 
-const API_URL = "/api/tasks/";
-const BAD_WILDCARD = "*/api/tasks/";
-
 function DuplicatePkException (pk) {
     this.message = `pk ${pk} already exists as a fake task`;
     this.name = "DuplicatePkException"; 
@@ -34,6 +31,9 @@ export default class MockTaskApiHandler {
     date = "";
     // The MSW server
     server = null;
+    // API_URL = "/api/tasks/";
+    API_URL = "*/api/tasks/";
+    // THIS IS BAD! ^^^ Should be using it without the wildcard
 
     /**
      * Initialize a handler with an optional date or task override values. 
@@ -309,7 +309,7 @@ export default class MockTaskApiHandler {
     }
 
     mocks = [
-        rest.get(BAD_WILDCARD, (req, res, ctx) => {
+        rest.get(this.API_URL, (req, res, ctx) => {
             // Only works with full url or regex for some reason... You aren't supposed to use wildcard though
             // https://mswjs.io/docs/basics/request-matching
             return res(
@@ -317,7 +317,7 @@ export default class MockTaskApiHandler {
                 ctx.json(this.tasks)
                 );
         }),
-        rest.patch(BAD_WILDCARD + ":pk", (req, res, ctx) => {
+        rest.patch(this.API_URL + ":pk", (req, res, ctx) => {
             // I'm not going to bother with validations. If there is a
             // test that requires an error that test should write a handler
             // for that particular situation and make it a one-time thing
@@ -333,14 +333,14 @@ export default class MockTaskApiHandler {
                 ctx.json(req)
             )
         }),
-        rest.get(BAD_WILDCARD + ":pk", (req, res, ctx) => {
+        rest.get(this.API_URL + ":pk", (req, res, ctx) => {
             const task = this.tasks.find((t) => t.pk === req.params.pk);
             return res(
                 ctx.status(200),
                 ctx.json(task)
             )
         }),
-        rest.delete(BAD_WILDCARD + ":pk", (req, res, ctx) => {
+        rest.delete(this.API_URL + ":pk", (req, res, ctx) => {
             this.tasks.forEach((task, i) => {
                 if (task.pk === req.params.pk) {
                     this.tasks.splice(i, 1);
