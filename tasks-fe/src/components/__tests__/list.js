@@ -15,7 +15,7 @@ import App from "../../App";
 
 
 const baseDate = DateTime.utc(2021, 6, 6, 6);
-const mockServerHandler = new MockTaskApiHandler(baseDate);
+const mockServerHandler = new MockTaskApiHandler({date: baseDate});
 const luxonNow = Settings.now;
 
 // await screen.findByText("Overdue incomplete");

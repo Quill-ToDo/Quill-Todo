@@ -12,6 +12,11 @@ import { v4 as uuidv4 } from 'uuid';
 const API_URL = "/api/tasks/";
 const BAD_WILDCARD = "*/api/tasks/";
 
+function DuplicatePkException (pk) {
+    this.message = `pk ${pk} already exists as a fake task`;
+    this.name = "DuplicatePkException"; 
+}
+
 /**
  * Sets up handling for a MSW mock server to intercept REST calls complete with dummy data.
  * 
@@ -35,13 +40,17 @@ export default class MockTaskApiHandler {
      * @param {DateTime} dateOverride Optional date to make tasks relative to.
      * @param {[object]} taskOverrides Optional tasks to add to DB relative to `dateOverride`. 
      */
-    constructor(dateOverride = null, taskOverrides = null) {
-        this.date = dateOverride ? dateOverride : DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
+    /**
+     *  Initialize a handler with an optional date or task override values. 
+     * @param {*} overrides Optional overrides. Takes properties `date` (to make tasks relative to) 
+     * and `tasks` (to add to DB relative to `dateOverride`)
+     */
+    constructor({date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), tasks=null}={}) {
+        this.date = date;
         // If you change these hard-coded tasks, please just add to them or make sure you don't break a lot of
         // tests by removing any.
-        if (taskOverrides) {
-            this.tasks = taskOverrides; 
-        }
+        if (tasks) {
+            tasks.forEach((task) => {this.setup.addTask(task)});        }
         else {
             this.setup.initTasks();
         }
@@ -57,186 +66,156 @@ export default class MockTaskApiHandler {
         handler: this,
 
         initTasks() {
-            this.handler.tasks = [{
-                pk: 0,
-                title: "Overdue incomplete",
-                complete: false,
-                completed_at: null,
-                start: this.handler.date.minus({
-                    months: 1
-                }),
-                due: this.handler.date.minus({
-                    days: 7
-                }),
-                description: "Task description",
-                created_at: this.handler.date.minus({
-                    weeks: 3
-                }),
-                updated_at: this.handler.date,
-            },
-            {
-                pk: 1,
-                title: "Overdue complete",
-                complete: true,
-                completed_at: null,
-                start: this.handler.date.minus({
-                    months: 1
-                }),
-                due: this.handler.date.minus({
-                    weeks: 3
-                }),
-                description: "",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 2,
-                title: "No start",
-                complete: false,
-                completed_at: null,
-                start: null,
-                due: this.handler.date.minus({
-                    weeks: 3
-                }),
-                description: "",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 3,
-                title: "Work on today",
-                complete: false,
-                completed_at: null,
-                start: this.handler.date.minus({
-                    months: 2
-                }),
-                due: this.handler.date.plus({
-                    months: 2
-                }),
-                description: "A long project",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 4,
-                title: "Upcoming",
-                complete: false,
-                completed_at: null,
-                start: "",
-                due: this.handler.date.plus({
-                    months: 2
-                }),
-                description: "",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 5,
-                title: "Upcoming span",
-                complete: true,
-                completed_at: null,
-                start: this.handler.date.plus({
-                    weeks: 2
-                }),
-                due: this.handler.date.plus({
-                    weeks: 4
-                }),
-                description: "",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 6,
-                title: "Due today",
-                complete: true,
-                completed_at: null,
-                start: null,
-                due: this.handler.date.plus({
-                    hours: 2
-                }),
-                description: "Omg!",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 7,
-                title: "Due today span",
-                complete: false,
-                completed_at: null,
-                start: this.handler.date.minus({
-                    weeks: 1
-                }),
-                due: this.handler.date.plus({
-                    hours: 3
-                }),
-                description: "Omg!",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-            {
-                pk: 8,
-                title: "Due tomorrow",
-                complete: true,
-                completed_at: null,
-                start: this.handler.date.minus({
-                    days: 3
-                }),
-                due: this.handler.date.plus({
-                    days: 1
-                }),
-                description: "Omg!",
-                created_at: this.handler.date.minus({
-                    months: 2
-                }),
-                updated_at: this.handler.date.minus({
-                    months: 1
-                }).plus({
-                    days: 1
-                }),
-            },
-        ];
+            this.handler.tasks = [];
+            const tasks = [{
+                    title: "Overdue incomplete",
+                    complete: false,
+                    start: this.handler.date.minus({
+                        months: 1
+                    }),
+                    due: this.handler.date.minus({
+                        days: 7
+                    }),
+                    description: "Task description"
+                },
+                {
+                    title: "Overdue complete",
+                    complete: true,
+                    start: this.handler.date.minus({
+                        months: 1
+                    }),
+                    due: this.handler.date.minus({
+                        weeks: 3
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    })
+                },
+                {
+                    title: "No start",
+                    complete: false,
+                    due: this.handler.date.minus({
+                        weeks: 3
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                },
+                {
+                    title: "Work on today",
+                    complete: false,
+                    start: this.handler.date.minus({
+                        months: 2
+                    }),
+                    due: this.handler.date.plus({
+                        months: 2
+                    }),
+                    description: "A long project",
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    })
+                },
+                {
+                    title: "Upcoming",
+                    complete: false,
+                    due: this.handler.date.plus({
+                        months: 2
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                },
+                {
+                    title: "Upcoming span",
+                    complete: true,
+                    completed_at: this.handler.date.minus({
+                        days: 2
+                    }),
+                    start: this.handler.date.plus({
+                        weeks: 2
+                    }),
+                    due: this.handler.date.plus({
+                        weeks: 4
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                },
+                {
+                    title: "Due today",
+                    complete: true,
+                    due: this.handler.date.plus({
+                        hours: 2
+                    }),
+                    description: "Omg!",
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                },
+                {
+                    title: "Due today span",
+                    complete: false,
+                    start: this.handler.date.minus({
+                        weeks: 1
+                    }),
+                    due: this.handler.date.plus({
+                        hours: 3
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                },
+                {
+                    title: "Due tomorrow",
+                    complete: true,
+                    start: this.handler.date.minus({
+                        days: 3
+                    }),
+                    due: this.handler.date.plus({
+                        days: 1
+                    }),
+                    created_at: this.handler.date.minus({
+                        months: 2
+                    }),
+                    updated_at: this.handler.date.minus({
+                        months: 1
+                    }).plus({
+                        days: 1
+                    }),
+                }];
+            tasks.forEach((taskData) => {
+                this.addTask(taskData);
+            })
+
+
         },
 
         /**
@@ -260,11 +239,8 @@ export default class MockTaskApiHandler {
          * @param {[Object]} tasks 
          */
         setTasks(tasks) {
-            this.handler.tasks = tasks;
-        },
-
-        getTasks() {
-            return this.handler.tasks;
+            this.handler.tasks = [];
+            tasks.forEach((task) => {this.addTask(task)});
         },
 
         /**
@@ -298,48 +274,25 @@ export default class MockTaskApiHandler {
                 newTask.pk = uuidv4();    
             } 
             else {
-                newTask.pk = task.pk;
-            }
-            if (task.description === undefined) {
-                newTask.description = "";
-            }
-            else {
-                newTask.description = task.description;
-            }
-            if (task.complete === undefined) {
-                newTask.complete = false;
-            }
-            else {
-                newTask.complete = task.complete;
-            }
-            if (task.completed_at === undefined) {
-                if (newTask.complete) {
-                    newTask.completed_at = DateTime.fromISO(newTask.due).minus({days: 3});
+                if (this.handler.tasks.find(t => t.pk === task.pk)) {
+                    throw new DuplicatePkException(task.pk);
                 }
                 else {
-                    newTask.completed_at = null;
+                    newTask.pk = task.pk;
                 }
             }
-            if (task.start === undefined) {
-                newTask.start = null;
+            newTask.description = task.description ? task.description : "";
+            newTask.complete = task.complete ? task.complete : false; 
+            if (task.completed_at) {
+                newTask.completed_at = task.completed_at;
             }
             else {
-                newTask.start = task.start;
+                newTask.completed_at = newTask.complete ? DateTime.fromISO(newTask.due).minus({days: 3}) :  null;
             }
-            if (task.created_at === undefined) {
-                newTask.created_at = DateTime.fromISO(newTask.due).minus({weeks: 1});
-            }
-            else {
-                newTask.created_at = task.created_at;
-            }
-            if (task.updated_at === undefined) {
-                newTask.updated_at = DateTime.fromISO(newTask.due).minus({days: 2});
-            }
-            else {
-                newTask.updated_at = task.updated_at;
-            }
-
-            this.handler.tasks.push(task);
+            newTask.start = task.start ? task.start : null;
+            newTask.created_at = task.created_at ? task.created_at : DateTime.fromISO(newTask.due).minus({weeks: 1});
+            newTask.updated_at = task.updated_at ? task.updated_at : DateTime.fromISO(newTask.due).minus({days: 2}); 
+            this.handler.tasks.push(newTask);
         },
 
         /**
@@ -371,7 +324,7 @@ export default class MockTaskApiHandler {
             // https://mswjs.io/docs/api/response/once
             // I don't even know that I need to do this but It's simple so I will
             this.tasks.forEach((task, i) => {
-                if (task.pk === req.headers.pk) {
+                if (task.pk === req.params.pk) {
                     this.tasks.splice(i, 1, req.body);
                 }
             }) 
@@ -380,9 +333,16 @@ export default class MockTaskApiHandler {
                 ctx.json(req)
             )
         }),
+        rest.get(BAD_WILDCARD + ":pk", (req, res, ctx) => {
+            const task = this.tasks.find((t) => t.pk === req.params.pk);
+            return res(
+                ctx.status(200),
+                ctx.json(task)
+            )
+        }),
         rest.delete(BAD_WILDCARD + ":pk", (req, res, ctx) => {
             this.tasks.forEach((task, i) => {
-                if (task.pk === req.headers.pk) {
+                if (task.pk === req.params.pk) {
                     this.tasks.splice(i, 1);
                 }
             }) 
