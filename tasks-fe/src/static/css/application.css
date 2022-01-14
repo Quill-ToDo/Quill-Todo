@@ -306,6 +306,9 @@ dialog {
   position: absolute;
   bottom: var(--section-gap);
   right: 0;
+}
+
+#alert-wrapper ul {
   display: flex;
   gap: 10px;
   flex-direction: column;

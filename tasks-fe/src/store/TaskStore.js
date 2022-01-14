@@ -93,6 +93,10 @@ export class TaskStore {
         this.focusedTask = null;
     }
 
+    add(taskObj) {
+        this.tasks.push(taskObj);
+    } 
+
     // createTask (taskData) {
     //     // Create on server, get pk
     //     // let task = new Task(this, pk);

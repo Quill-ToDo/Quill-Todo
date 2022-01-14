@@ -89,15 +89,17 @@ it("should show uncompleted task's check boxes as unfilled", async () => {
 
 it("should show tasks as completed after clicking on its check box", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const box = await screen.findByRole("checkbox", {name: "Overdue incomplete"});
-    userEvent.click(box);
+    await user.click(box);
     expect(box).toBeChecked();
 })
 
 it("should show completed tasks as incomplete after clicking on its check box", async () => {
+    const user = userEvent.setup()
     render(<App />);
     const box = await screen.findByRole("checkbox", {name: "Overdue complete"});
-    userEvent.click(box);
+    await user.click(box);
     expect(box).not.toBeChecked();
 })
 
@@ -144,13 +146,14 @@ it("should show in-progress tasks in the work on today section", async () => {
 
 it("should be able to toggle sections opened and closed", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const todaySection = await screen.findByRole("region", {name: "Today"});
-    userEvent.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
+    await user.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
     await waitFor(() => {
         expect(within(todaySection).getByText("Due")).not.toBeVisible();
     })
     expect(within(todaySection).getByText("Work")).not.toBeVisible();
-    userEvent.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
+    await user.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
     await waitFor(() => {
         expect(within(todaySection).getByText("Due")).toBeVisible();
     })

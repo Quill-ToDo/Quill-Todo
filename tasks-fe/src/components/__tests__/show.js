@@ -37,19 +37,21 @@ afterAll(() => {
 
 it("should be able to open and close task details", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText( "Overdue complete");
-    userEvent.click(listTask);
+    await user.click(listTask);
     expect(await screen.findByRole("dialog", {name: "Task Details"})).toBeInTheDocument();
-    userEvent.click(screen.getByRole("button", {name: "Close"}));
+    await user.click(screen.getByRole("button", {name: "Close"}));
     expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
 });
 
 it("should display task details on show", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText( "Overdue incomplete");
-    userEvent.click(listTask);
+    await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
     expect(show).toBeInTheDocument();
     within(show).getByText("Task description");
@@ -66,11 +68,12 @@ it("should display task details on show", async () => {
 
 it("should be able to close show via clicking off show", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText( "Overdue complete");
-    userEvent.click(listTask);
+    await user.click(listTask);
     await screen.findByRole("dialog", {name: "Task Details"});
-    userEvent.click(screen.getByTestId("show-filter"));
+    await user.click(screen.getByTestId("show-filter"));
     expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
 });
 
@@ -81,7 +84,7 @@ it.skip("should be able to close show via escape button", async () => {
     render(<App />);
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
-    userEvent.click(listTask);
+    await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
     user.keyboard('[Escape]');
     // expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
@@ -91,21 +94,23 @@ it.skip("should be able to close show via escape button", async () => {
 
 it.skip("should not close show via any other buttons", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText( "Overdue complete");
-    userEvent.click(listTask);
-    userEvent.keyboard('k');
+    await user.click(listTask);
+    await user.keyboard('k');
     screen.getByRole("dialog", {name: "Task Details"});
 });
 
 it("should be able to mark tasks as complete from show and have it update in list", async () => {
     render(<App />);
+    const user = userEvent.setup()
     const taskName = "Overdue incomplete";
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
-    userEvent.click(listTask);
+    await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
-    userEvent.click(within(show).getByRole("checkbox", {name: taskName}));
+    await user.click(within(show).getByRole("checkbox", {name: taskName}));
     expect(within(list).getByRole("checkbox", {name: taskName})).toBeChecked();
 });
 
@@ -116,11 +121,12 @@ it("should be able to delete a task", async () => {
         due: mockServerHandler.date
     });
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
-    userEvent.click(listTask);
+    await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
-    userEvent.click(within(show).getByRole("button", {name: "Delete task"}));
+    await user.click(within(show).getByRole("button", {name: "Delete task"}));
     expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
     expect(within(list).queryByText(taskName)).toBeNull();
 });
@@ -129,10 +135,11 @@ it("should be able to edit a task", async () => {
     // TODO Will need to change this once it's implemented
     const taskName = "Overdue incomplete"
     render(<App />);
+    const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
-    userEvent.click(listTask);
+    await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
-    userEvent.click(within(show).getByRole("button", {name: "Edit task"}));
+    await user.click(within(show).getByRole("button", {name: "Edit task"}));
     await screen.findByText(/\\*not implemented*/);
 });

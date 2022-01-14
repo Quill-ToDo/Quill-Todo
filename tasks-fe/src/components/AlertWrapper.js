@@ -44,10 +44,11 @@ const Alert = (props) => {
 
     if (props.type === "failure") {
         return (
-            <dialog 
+            <li 
                 id={props.id}
                 role="alertdialog"
                 open=""
+                aria-live='assertive'
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up " + props.type}>
@@ -56,15 +57,13 @@ const Alert = (props) => {
                     <p id={descId}>{props.body}</p>
                 </div>
                 {closeBtn}
-            </dialog>
+            </li>
         )   
     }
     else {
         return (
-            <dialog 
+            <li 
                 id = {props.id}
-                aria-live= "polite"
-                open=""
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + props.type}>
@@ -73,7 +72,7 @@ const Alert = (props) => {
                     <p id={descId}>{props.body}</p>
                 </div>
                 {closeBtn}
-            </dialog>
+            </li>
         )  
     }
 }
@@ -113,9 +112,15 @@ const AlertBox = observer((props) => {
     })
 
 
-    if (alertStore.alerts.length){
-        return (
-            <div id="alert-wrapper">
+    return (
+        <section 
+            id="alert-wrapper" 
+            data-testid="alert-wrapper" 
+            role="log" 
+            aria-atomic="false"
+            aria-label='Alerts'
+        >
+            <ul>
                 {alertStore.alerts.map((alert) => {
                     const id = "alert-"+alert.id; 
                     if (alert.type !== "failure") {
@@ -127,12 +132,11 @@ const AlertBox = observer((props) => {
                         body={alert.body} 
                         type={alert.type}
                         removeCallback={()=>dismissAlert(id)}
-                        />
-                    })}
-            </div>
-        )
-    }
-    else { return null }
+                    />
+                })}
+            </ul>
+        </section>
+    )
 })
 
 export default AlertBox;
