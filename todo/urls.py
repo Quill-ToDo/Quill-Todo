@@ -15,14 +15,14 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-#Add URL maps to redirect the base URL to our application
-from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 from tasks import views as task_views
+from django.views.generic import RedirectView
 
 urlpatterns = [
+    path('', task_views.serve_front_end),
     path('admin/', admin.site.urls),
-    path('', task_views.home),
     path(r'api/tasks/', include('tasks.urls')),
+    # path('tasks/', RedirectView.as_view(url='/', permanent=True)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
