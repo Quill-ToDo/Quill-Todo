@@ -28,5 +28,5 @@ jobs:
         cache: 'npm'
         cache-dependency-path: 'tasks-fe/package-lock.json'
     - run: cd ./tasks-fe && npm install
-    - run: npm run build --if-present
-    - run: npm test
+    - run: cd ./tasks-fe && npm run build --if-present
+    - run: cd ./tasks-fe && npm test
