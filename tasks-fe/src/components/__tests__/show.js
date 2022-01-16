@@ -77,6 +77,20 @@ it("should be able to close show via clicking off show", async () => {
     expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
 });
 
+it("should be able to close show via enter on filter", async () => {
+    render(<App />);
+    const user = userEvent.setup()
+    const list = await screen.findByRole("region", {name: "Task list"});
+    const listTask = await within(list).findByText( "Overdue complete");
+    await user.click(listTask);
+    await screen.findByRole("dialog", {name: "Task Details"});
+    const filter = screen.getByTestId("show-filter");
+    filter.focus();
+    expect(filter).toHaveFocus();
+    await user.keyboard('[Enter]');
+    expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
+});
+
 it.skip("should be able to close show via escape button", async () => {
     // Cannot figure out how to make this work when ran with other tests. It works alone
     const taskName = "Overdue incomplete";
@@ -86,13 +100,13 @@ it.skip("should be able to close show via escape button", async () => {
     const listTask = await within(list).findByText(taskName);
     await user.click(listTask);
     const show = await screen.findByRole("dialog", {name: "Task Details"});
-    user.keyboard('[Escape]');
+    await user.keyboard('[Escape]');
     // expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
-
     await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
 }); 
 
 it.skip("should not close show via any other buttons", async () => {
+    // Cant be sure this is working before the one above i working
     render(<App />);
     const user = userEvent.setup()
     const list = await screen.findByRole("region", {name: "Task list"});

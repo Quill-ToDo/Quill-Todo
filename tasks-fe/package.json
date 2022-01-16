@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.1",
-    "@testing-library/react": "^12.1.2",
-    "@testing-library/user-event": "^14.0.0-beta.7",
     "luxon": "^2.3.0",
     "mobx": "^6.3.10",
     "mobx-react-lite": "^3.2.3",
@@ -14,6 +11,12 @@
     "react-scripts": "5.0.0",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.2"
+  },
+  "devDependencies": {
+    "msw": "^0.36.3",
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^14.0.0-beta.7"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -38,8 +41,5 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
-  },
-  "devDependencies": {
-    "msw": "^0.36.3"
   }
 }

@@ -2,6 +2,7 @@ import axios from "axios";
 
 export class TaskApi {
     url;
+    
     constructor (url=null) {
         this.url = url ? url : "http://localhost:8000/api/tasks/";
     }

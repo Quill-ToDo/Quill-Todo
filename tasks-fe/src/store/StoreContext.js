@@ -14,6 +14,7 @@ class RootStore {
 const StoreContext = React.createContext(null);
 const useStoreContext = () => React.useContext(StoreContext);
 var rootStore;
+
 const StoreProvider = function ({children}) {
     rootStore = new RootStore();
     

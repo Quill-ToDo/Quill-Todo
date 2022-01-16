@@ -25,12 +25,8 @@ const ShowTask = observer((props) => {
         document.getElementById("home-wrapper").tabIndex = -1;
         document.getElementById("show-checkbox-"+task.pk).focus();
         window.addEventListener("keydown", (e) => {
-            if (e.defaultPrevented) {
-                return;
-            }
             switch (e.key) {
                 case "Escape":
-                    console.log("ESCAPE LOGGED")
                     closeFn();
                     break;
                 case "Esc":
@@ -39,8 +35,7 @@ const ShowTask = observer((props) => {
                 default:
                     return;
             }
-            e.preventDefault();
-        })
+        });
 
         return () => {
             previouslyFocused.current.focus();
