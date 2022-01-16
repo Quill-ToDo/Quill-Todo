@@ -1,14 +1,18 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:8000/api/tasks/";
-
 export class TaskApi {
-    constructor () {
-        this.url = API_URL;
+    url;
+    
+    constructor (url=null) {
+        this.url = url ? url : "http://localhost:8000/api/tasks/";
     }
 
     async fetchTasks() {
         return axios.get(this.url);
+    }
+
+    async detail(pk) {
+        return axios.get(this.url + pk);
     }
 
     async updateTask(pk, data) {

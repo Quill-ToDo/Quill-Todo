@@ -1,4 +1,4 @@
-import {Home} from './components/Home';
+import Home from './components/Home';
 import { StoreProvider } from "./store/StoreContext";
 import AlertBox from './components/AlertWrapper';
 

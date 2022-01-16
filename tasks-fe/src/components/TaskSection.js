@@ -1,6 +1,33 @@
-import React from "react";
-import TaskSectionContent from "./TaskSectionContent";
+import React, { useState } from "react";
+import Task from './Task'
 
+const TaskSectionContent = (props) => {
+    const sectionTitleId = "dark-section-title-"+props.title;
+    return (
+        <section aria-labelledby={props.title !== undefined ? "dark-section-title-"+props.title : null}>
+            {props.title !== undefined ? <h3 id={sectionTitleId}>{props.title}</h3> : null}
+            <div className="dark-section">
+                {props.tasks.length === 0 ? 
+                <p className="subtle centered">{props.emptyText}</p>
+                :
+                // Don't show in TOC
+                <ul role="group">
+                    { props.tasks.map((task) => {
+                        return ( 
+                            <li className="task" key={"task-li-"+task.pk}>
+                                <Task
+                                    data={task}
+                                    basicVersion={true}
+                                    type={props.type}
+                                    />
+                            </li>
+                        )
+                    })}
+                </ul>}
+            </div>
+        </section>
+    )
+}
 
 function getSectionId(sectionNum) {
     return "task-section-" + sectionNum;
@@ -36,17 +63,19 @@ function toggleInlineHeightAttribute (outerSection) {
 function flipKarat (taskSection, duration) {
     // Flip karat
     var symbol = taskSection.querySelector(".expand-symbol");
+    const start = "rotate(180deg)";
+    const end = "rotate(0deg)";
     symbol.style.transition = `transform ${duration}ms ease-in-out 0s`;
-    if (symbol.style._webkit_transform === "rotate(-135deg)" || 
-        symbol.style._ms_transform === "rotate(-135deg)" || 
-        symbol.style.transform === "rotate(-135deg)") {
-        symbol.style._webkit_transform = "rotate(45deg)";
-        symbol.style._ms_transform = "rotate(45deg)";
-        symbol.style.transform = "rotate(45deg)";
+    if (symbol.style._webkit_transform === start || 
+        symbol.style._ms_transform === start || 
+        symbol.style.transform === start) {
+        symbol.style._webkit_transform = end;
+        symbol.style._ms_transform = end;
+        symbol.style.transform = end;
         } else {
-        symbol.style._webkit_transform = "rotate(-135deg)";
-        symbol.style._ms_transform = "rotate(-135deg)";
-        symbol.style.transform = "rotate(-135deg)";
+        symbol.style._webkit_transform = start;
+        symbol.style._ms_transform = start;
+        symbol.style.transform = start;
     }
 }
 
@@ -84,6 +113,7 @@ function toggleSection(taskSection, duration) {
 }
 
 const TaskSection = (props) => {
+    const [sectionOpen, setSectionOpen] = useState(true);
     // props.title;
     // The title of the section
 
@@ -103,25 +133,40 @@ const TaskSection = (props) => {
     //     tasks<dict?>= [],
         // emptyText= ""  // Text that appears in the content section if there are no tasks
     // }
+
+    var collapseToolTip = sectionOpen ? "Collapse " + props.title.toLowerCase() + " tasks" : "Expand " + props.title.toLowerCase() + " tasks";
     
     return (
-        <section id={getSectionId(props.sectionNum)}>
+        <section id={getSectionId(props.sectionNum)} aria-labelledby={"section-"+props.sectionNum+"-title"} >
             <div className={(props.className !== undefined ? props.className + " " : "") + "mid-section"}>
-                <div className="expandable-section-header"  onClick={(e) => handleSectionToggle(e, props.sectionNum, props.toggleDuration)}>
-                    <div className="expand-symbol"></div>
-                    <h2>{props.title}</h2>
+                <div className="expandable-section-header">
+                    <button 
+                        className="btn" 
+                        title={collapseToolTip} 
+                        aria-expanded={sectionOpen}
+                        onClick={(e) => {
+                            handleSectionToggle(e, props.sectionNum, props.toggleDuration);
+                            setSectionOpen(!sectionOpen);
+                        }}
+                    >
+                        <i 
+                        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
+                        ></i>
+                    </button>
+                    <h2 id={"section-"+props.sectionNum+"-title"}>{props.title}</h2>
                 </div>
                 <div className="section-collapsible">
-                    { props.sectionContent.map((section) => {
-                    return ( 
-                        <TaskSectionContent 
+                    { props.sectionContent.map((section, i) => {
+                        return ( 
+                            <TaskSectionContent 
+                            key={"sec-"+props.sectionNum+"-cont-"+i}
                             title={section.optionalTitle}
                             tasks={section.tasks}
                             type={section.type}
                             emptyText={section.emptyText}
-                        />
-                    )
-                })}
+                            />
+                            )
+                        })}
                 </div>
             </div>
         </section>

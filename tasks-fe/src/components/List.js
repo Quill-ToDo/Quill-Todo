@@ -79,13 +79,19 @@ const List = observer((props) => {
     };
 
     const type = "by-status";
-    const loading = <span><p className="subtle centered aligned take-full-space">Loading tasks...</p></span>;
+    const loading = 
+        <div className="loading-wrapper take-full-space">
+            <div>
+                <i className="fas fa-feather-alt loading-icon fa-2x" aria-hidden="true"></i>
+                <p className="">Loading tasks...</p>
+            </div>
+        </div>;
 
     // Before content is loaded show placeholder
     return (
-        <div id="list-wrapper">
+        <section id="list-wrapper" aria-label="Task list">
             {props.store.isLoaded ? bindings[type] : loading}
-        </div>
+        </section>
     );
 })
 

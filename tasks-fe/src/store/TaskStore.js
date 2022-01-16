@@ -1,4 +1,4 @@
-import { makeAutoObservable, observable, runInAction} from "mobx";
+import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 
@@ -27,19 +27,23 @@ export class TaskStore {
     }
 
     // Fetch all tasks from server
-    loadTasks (retry=0) {
+    async loadTasks (retry=0) {
         this.isLoaded = false;
-        this.API.fetchTasks().then(fetchedTasks => {
+        return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
                 fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
                 this.isLoaded = true;
+                if (retry !== 0) {
+                    Array.from(document.getElementsByClassName("failure")).forEach(ele => {
+                        ele.querySelector('button').click()})
+                    this.rootStore.alertStore.add("success", "Re-established connection");
+                }
             });
         }).catch(e => {
-            console.log(e)
-            this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
-            if (retry < 5) {
-                this.loadTasks(retry+1);
+            if (retry === 0) {
+                this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
             }
+            setTimeout(() => {this.loadTasks(retry + 1)}, 3000);
         })
     }
 
@@ -54,13 +58,28 @@ export class TaskStore {
         task.updateFromJson(taskJson);
     } 
 
+
+    timeOccursBeforeEOD (time, currentTime) {
+        return (DateTime.fromISO(time) <= currentTime.set({hour: 23, minute: 59, second: 59}))
+    }
+
+    timeOccursBetweenNowAndEOD (time, currentTime) {
+        return (this.timeOccursBeforeEOD(time, currentTime) && (currentTime < DateTime.fromISO(time)))
+    }
+
     byStatus() {
         const now = DateTime.now();
         return {
             "overdue": this.tasks.filter(task => DateTime.fromISO(task.due) <= now),
-            "todayDue": this.tasks.filter(task => (DateTime.fromISO(task.due) <= now.set({hour: 23, minute: 59, second: 59})) && (now < DateTime.fromISO(task.due))),
-            "todayWork": this.tasks.filter(task => (task.start && DateTime.fromISO(task.start) <= now) && (now <= DateTime.fromISO(task.due))),
-            "upcoming": this.tasks.filter(task => (!task.start || now <= DateTime.fromISO(task.start) ) && (now.set({hour: 23, minute: 59, second: 59}) < DateTime.fromISO(task.due)))
+            "todayDue": this.tasks.filter(task => (this.timeOccursBetweenNowAndEOD(task.due, now))),
+            "todayWork": this.tasks.filter(task => 
+                (task.start && DateTime.fromISO(task.start) <= now) 
+                && (now < DateTime.fromISO(task.due))
+                && !(this.timeOccursBetweenNowAndEOD(task.due, now))
+                ),
+            "upcoming": this.tasks.filter(task => 
+                (!task.start || now <= DateTime.fromISO(task.start)) && !(this.timeOccursBeforeEOD(task.due, now))
+                )
         }
     }
 
@@ -73,6 +92,10 @@ export class TaskStore {
     removeFocus () {
         this.focusedTask = null;
     }
+
+    add(taskObj) {
+        this.tasks.push(taskObj);
+    } 
 
     // createTask (taskData) {
     //     // Create on server, get pk
