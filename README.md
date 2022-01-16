@@ -87,9 +87,9 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 - If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`
 
-### Testing
+## Testing
 
-#### Front-end Testing
+### Front-end Testing
 
 The test files are store near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
 
@@ -98,6 +98,7 @@ Notice that in watch mode, you can press `w` to show options to filter the tests
 You can also isolate the execution of tests to a single test by adding `only` after the test.
 
 **Ex:**
+
 ```JS
 it.only("should load tasks in the list", async () => {
     render(<App />);
@@ -110,17 +111,15 @@ Additionally, you can mark a test as not yet implemented by adding `todo`.
 
 **Ex:** `it.todo("should do something cool);`
 
-##### Mocking Network Calls
+#### Mocking Network Calls
 
-We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [MockTaskApiHandler.js](./tasks-fe/src/API/MockTaskApiHandler.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, see [alerts.js](./tasks-fe/src/components/__tests__/alerts.js) for examples.
 
-An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
+#### Mocking time
 
-##### Mocking time
+Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L29)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies I believe.
 
-Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
-
-##### Useful testing resources
+#### Useful testing resources
 
 - [Create React App testing basics](https://create-react-app.dev/docs/running-tests/)
 - Matchers
@@ -134,7 +133,7 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 - Network Calls
   - [Mock Service Worker for mocking network calls](https://mswjs.io/docs/getting-started/mocks/rest-api)
 
-#### Back-end Testing
+### Back-end Testing
 
 *To-do!*
 
