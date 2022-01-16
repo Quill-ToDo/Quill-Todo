@@ -10,7 +10,6 @@ const Home = observer(() => {
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
     const showNewPopUp = false;
-    var sliderPos = 30;
 
     return ( 
         <div id="home-wrapper">
@@ -26,7 +25,7 @@ const Home = observer(() => {
             </menu>
             <List store={taskStore} />
             <div>
-                <hr tabIndex={0} id="slider" aria-orientation="vertical" aria-valuenow={sliderPos}/>
+                <hr tabIndex={0} id="slider" aria-orientation="vertical"/>
             </div>
             <section id="calendar-wrapper"></section>
         </div>

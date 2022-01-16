@@ -1,5 +1,6 @@
 import React, {
     useEffect,
+    useCallback,
     useRef
 } from "react";
 import Task from "./Task";
@@ -17,8 +18,12 @@ const ShowTask = observer((props) => {
     const task = props.task;
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
-    const closeFn = () => {taskStore.removeFocus()};
-
+    const closeFn = useCallback(
+        () => {
+            taskStore.removeFocus();
+        },
+        [taskStore],
+    )
     useEffect(() => {
         previouslyFocused.current = document.activeElement;
         filterEle.current = document.getElementsByClassName("filter")[0];
@@ -40,7 +45,7 @@ const ShowTask = observer((props) => {
         return () => {
             previouslyFocused.current.focus();
         }
-    }, [])
+    }, [closeFn, task.pk])
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" title="Delete task" onClick={() => {

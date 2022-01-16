@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from "react";
+import React, { useState } from "react";
 import Task from './Task'
 
 const TaskSectionContent = (props) => {
