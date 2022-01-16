@@ -28,7 +28,7 @@ SECRET_KEY = config("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
 
@@ -39,9 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'tasks.apps.TasksConfig',
+    #'tasks.apps.TasksConfig',
     'rest_framework',
     'corsheaders',
+
+    'tasks',
 ]
 
 MIDDLEWARE = [
@@ -81,8 +83,14 @@ WSGI_APPLICATION = 'todo.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        # 'ENGINE': 'django.db.backends.sqlite3',
+        # 'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE' : 'django.db.backends.postgresql_psycopg2',
+        'NAME' : 'quill_db',
+        'USER' : 'quill_user',
+        'PASSWORD' : os.environ.get('DB_PASSWORD'),
+        'HOST' : 'localhost',
+        'PORT' : '5432',
     }
 }
 
@@ -126,7 +134,7 @@ STATIC_URL = 'static/'
 REACT_APP_DIR = os.path.join(BASE_DIR, 'tasks-fe')
 
 STATICFILES_DIRS = [
-    os.path.join(REACT_APP_DIR, 'build', 'static'),
+    os.path.join(REACT_APP_DIR, 'src', 'static'),
 ]
 
 # CORS
