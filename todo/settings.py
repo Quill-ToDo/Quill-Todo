@@ -39,11 +39,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    #'tasks.apps.TasksConfig',
+    'tasks.apps.TasksConfig',
     'rest_framework',
     'corsheaders',
 
-    'tasks',
+    #'tasks',
 ]
 
 MIDDLEWARE = [
@@ -134,7 +134,7 @@ STATIC_URL = 'static/'
 REACT_APP_DIR = os.path.join(BASE_DIR, 'tasks-fe')
 
 STATICFILES_DIRS = [
-    os.path.join(REACT_APP_DIR, 'src', 'static'),
+    os.path.join(REACT_APP_DIR, 'build', 'static'),
 ]
 
 # CORS
