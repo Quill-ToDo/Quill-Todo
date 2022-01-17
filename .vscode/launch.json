@@ -28,7 +28,7 @@
             "request": "launch",
             "url": "http://localhost:3000",
             "pathMappings": [{
-                    "url": "file:///C:/Users/Lily/Documents/School/senior_fall/SWE/Proj/ToDo%20Django/todo/tasks-fe/src",
+                    "url": "${workspaceRoot}/tasks-fe/src",
                     "path": "${workspaceFolder}/tasks-fe/src"
                 },
                 {
