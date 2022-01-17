@@ -20,7 +20,17 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 4. Add secret `.env` file to `App` dir. Ask in Slack for the file. Add `.` to the front of the file in the directory so it is invisible. (Filename should be: `.env`) **This should never be pushed to GitHub!**
 
-5. [Install PostgreSQL](https://www.postgresql.org/download/)
+5. Set up the database:
+    - [Install PostgreSQL](https://www.postgresql.org/download/)
+    - (Windows) Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
+    - Start server and start psql
+
+        ```bash
+        pg_ctl start
+        psql postgres
+        ```
+
+    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV. (Eventually we will automate this process)  
 
 6. Install dependencies:  
   
@@ -28,7 +38,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
     pip install -r requirements.txt
     ```
 
-7. Make and apply migrations if needed:
+7. Make and apply migrations:
 
     > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
