@@ -1,7 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 
 import List from './List'
 import ShowTask from './ShowTask';
+import TaskCreatePopup from "./TaskCreatePopup";
 import { observer } from "mobx-react-lite";
 import { useTaskStore, useAlertStore } from "../store/StoreContext";
 
@@ -9,14 +10,14 @@ import { useTaskStore, useAlertStore } from "../store/StoreContext";
 const Home = observer(() => {
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
-    const showNewPopUp = false;
+    const [showNewTaskPopup, setShowNewTaskPopup] = useState(false);
 
     return ( 
         <div id="home-wrapper">
-            { showNewPopUp ? < div id="new-wrapper"></div> : null }
+            { showNewTaskPopup && !taskStore.focusedTask ? <TaskCreatePopup closeFn={() => setShowNewTaskPopup(!showNewTaskPopup)}/> : null }
             { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
-            <button role="menuitem" className="btn" title="Add task" onClick={() => alertStore.add("failure", "We haven't implemented adding new tasks.")}>
+                <button role="menuitem" className="btn" title="Add task" onClick={() => setShowNewTaskPopup(!showNewTaskPopup)}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>
                 <button role="menuitem" className="btn" title="Log out" onClick={() => alertStore.add("notice", "We haven't implemented users or logging out.")}>

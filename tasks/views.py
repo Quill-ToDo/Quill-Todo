@@ -35,16 +35,26 @@ def serve_front_end(request):
         )
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET', 'POST'])
 def tasks(request):
-    # TODO: Add post handler
     if request.method == 'GET':
         data = Task.objects.all()
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
-    elif request.method == 'PUT':
-        # TODO: Create new task
-        return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+    elif request.method == 'POST':
+        print(request.data)
+        serializer = TaskSerializer( 
+            data=request.data, 
+            partial=True)
+
+        if serializer.is_valid():
+            print(serializer.data)
+            serializer.save()
+            return Response(serializer.data)
+        else:
+            return Response(status=status.HTTP_400_BAD_REQUEST, data={
+                "errors": serializer.errors,
+                "submittedData": serializer})
 
 @api_view(['GET', 'DELETE', 'PATCH'])
 def task_details(request, pk):

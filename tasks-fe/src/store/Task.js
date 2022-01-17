@@ -75,6 +75,9 @@ export class Task {
         this.autoSave = true;
     }
 
+    /**
+     * Mark this task as the one that details should be rendered for
+     */
     setFocus() {
         this.store.setFocus(this);
     }

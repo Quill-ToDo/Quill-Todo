@@ -66,7 +66,7 @@ const Task = observer((props) => {
     else if (props.buttons) {
         return (
             <Fragment>
-                <div>
+                <div className="title-button-wrapper">
                     <div className="task-wrapper" data-testid={"taskwrapper-"+task.title} >
                         <div className="title-wrapper">
                             {checkbox}

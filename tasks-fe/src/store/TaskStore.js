@@ -1,6 +1,7 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
+import { v4 } from "uuid";
 
 export class TaskStore {
     API;
@@ -97,10 +98,30 @@ export class TaskStore {
         this.tasks.push(taskObj);
     } 
 
-    // createTask (taskData) {
-    //     // Create on server, get pk
-    //     // let task = new Task(this, pk);
-    //     // task.updateFromJson(json);
-    //     // this.tasks[pk] = task;
-    // }
+    /**
+     * This method assumes the task has already been checked for validity on the FE, does not render error messages
+     * 
+     * @param {*} taskData 
+     */
+    createTask (taskData) {
+        // Method 1:
+        // Create on server, get pk
+        // let task = new Task(this, pk);
+        // task.updateFromJson(json);
+        // this.tasks[pk] = task;
+        // Method 2: UUID
+        // Generate UUID, add task to store.
+        // Pass task to BE, render alert and remove from taskStore if it could not be posted
+        const task = new Task(this, v4()); 
+        const data = taskData;
+        data.complete = false;
+        console.log(data);
+        task.updateFromJson(data);
+        this.add(task);
+        this.API.createTask(data).catch(e => {
+            console.log(e.response.data.errors)
+            this.rootStore.alertStore.add("failure", "Could not add task - " + e.response.errors);
+            this.tasks.remove(task);
+        });
+    }
 }

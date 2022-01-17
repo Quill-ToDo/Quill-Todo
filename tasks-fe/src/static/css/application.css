@@ -62,14 +62,14 @@ body {
   top: 0;
 }
 
-button.btn:focus {
+.btn:focus {
   background-color: var(--lightest-font);
   color: var(--button);
   box-shadow: 3px 3px var(--light-font);
 }
 
-button.btn:focus:hover,
-button.btn:focus:active {
+.btn:focus:hover,
+.btn:focus:active {
   background-color: var(--lightest-font);
   color: var(--button);
   box-shadow: none;
@@ -133,14 +133,33 @@ section.more-padding {
 section h2,
 .fc .fc-toolbar-title {
   font-family: "Secular One", sans-serif;
-  /* text-transform: uppercase; */
   font-weight: 600;
   color: var(--lightest-font);
   font-size: var(--h2-size);
   padding: 0;
   margin: 0;
-  /* margin: var(--h2-padding) 0 var(--h2-padding) 0; */
   line-height: 1;
+  width: max-content;
+}
+
+#list-wrapper h3,
+#show-wrapper h3,
+form label {
+  color: var(--mid-font);
+  font-family: "Quicksand", sans-serif;
+  font-weight: 700;
+  font-size: var(--h3-size);
+  margin: var(--section-gap) 0 0 0;
+  justify-self: center;
+  align-self: center;
+  text-align: center;
+}
+
+.title-button-wrapper {
+  display: flex;
+  column-gap: var(--section-gap);
+  justify-content: space-between;
+  align-items: center;
 }
 
 p {
@@ -185,6 +204,7 @@ p {
 
 /* Do not show any formatting unless .btn class is also added. This will allow buttons
 to act like links without the href. */
+
 button {
   background: none;
   border: none;
@@ -194,13 +214,20 @@ button:focus {
   outline: none;
 }
 
+.aligned-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
 .fc .fc-button.fc-button-primary,
-button.btn {
+.btn {
   border: none;
   opacity: 1;
   font-family: "Azeret Mono", monospace;
   color: var(--light-font);
-  font-weight: 300;
+  font-weight: 600;
+  font-size: var(--p-size);
   background-color: var(--button);
   box-shadow: 3px 3px var(--button-outline);
   transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -210,9 +237,11 @@ button.btn {
   aspect-ratio: 1/1;
   align-items: center;
   justify-content: center;
+  text-align: center;
 }
 
-button.btn i {
+.btn i {
+  font-size: var(--menu-icon-size);
   aspect-ratio: 1/1;
   display: flex;
   justify-content: center;
@@ -220,7 +249,7 @@ button.btn i {
 }
 
 .fc .fc-button.fc-button-primary:hover,
-button.btn:hover {
+.btn:hover {
   background-color: var(--button-outline);
   box-shadow: none;
   transform: translate(1px, 1px);
@@ -228,57 +257,57 @@ button.btn:hover {
 
 /* Colored buttons */
 
-button.btn.btn-red,
-button.btn.btn-green,
-button.btn.btn-light-grey {
+.btn.btn-red,
+.btn.btn-green,
+.btn.btn-light-grey {
   color: var(--lightest-font)
 }
 
-button.btn.btn-red:focus,
-button.btn.btn-green:focus,
-button.btn.btn-light-grey:focus {
+.btn.btn-red:focus,
+.btn.btn-green:focus,
+.btn.btn-light-grey:focus {
   background-color: var(--lightest-font);
 }
 
-button.btn.btn-red:hover,
-button.btn.btn-green:hover,
-button.btn.btn-light-grey:hover {
+.btn.btn-red:hover,
+.btn.btn-green:hover,
+.btn.btn-light-grey:hover {
   box-shadow: none;
 }
 
 /* Red button */
 
-button.btn.btn-red {
+.btn.btn-red {
   background-color: rgb(105, 10, 10);
   box-shadow: 2px 2px rgb(90, 8, 8);
 }
 
-button.btn.btn-red:focus {
+.btn.btn-red:focus {
   color: rgb(105, 10, 10);
 }
 
-button.btn.btn-red:hover {
+.btn.btn-red:hover {
   background-color: rgb(90, 8, 8);
 }
 
 /* Green button */
 
-button.btn.btn-green {
+.btn.btn-green {
   background-color: #075307;
   box-shadow: 2px 2px #054105;
 }
 
-button.btn.btn-green:focus {
+.btn.btn-green:focus {
   color: #054105;
 }
 
-button.btn.btn-green:hover {
+.btn.btn-green:hover {
   background-color: #054105;
 }
 
 /* Grey button */
 
-button.btn.btn-light-grey:focus {
+.btn.btn-light-grey:focus {
   color: var(--button);
 }
 

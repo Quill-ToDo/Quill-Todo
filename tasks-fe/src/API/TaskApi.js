@@ -22,4 +22,8 @@ export class TaskApi {
     async deleteTask(pk) {
         return axios.delete(this.url + pk);
     }
+
+    async createTask(taskData) {
+        return axios.post(this.url, JSON.stringify(taskData));
+    }
 }
