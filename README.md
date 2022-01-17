@@ -20,13 +20,15 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 4. Add secret `.env` file to `App` dir. Ask in Slack for the file. Add `.` to the front of the file in the directory so it is invisible. (Filename should be: `.env`) **This should never be pushed to GitHub!**
 
-5. Install dependencies:  
+5. [Install PostgreSQL](https://www.postgresql.org/download/)
+
+6. Install dependencies:  
   
     ```Bash
     pip install -r requirements.txt
     ```
 
-6. Make and apply migrations if needed:
+7. Make and apply migrations if needed:
 
     > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
@@ -35,7 +37,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
     py manage.py migrate
     ```
 
-7. Start server:
+8. Start server:
 
     ```Bash
     py manage.py runserver
