@@ -1,5 +1,4 @@
 .env
 node_modules
-db.sqlite3
 tasks/__pycache__
 tasks/migrations/__pycache__
