@@ -1,6 +1,6 @@
-- name: TOC Generator
-  on: push
-  jobs:
+on: 
+  push:
+    jobs:
     generateTOC:
       name: TOC Generator
       runs-on: ubuntu-latest
