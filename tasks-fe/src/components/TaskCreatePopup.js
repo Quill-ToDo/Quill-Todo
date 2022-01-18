@@ -117,7 +117,7 @@ const TaskCreatePopup = (props) => {
             data.set("due", DateTime.fromFormat(due.value, dateFormat).toISO())
             const converted = Object.fromEntries(data.entries());
             tasks.createTask(converted);
-            // props.closeFn;
+            props.closeFn();
         }
         else {
             alerts.add("failure", "You must correct all errors before submitting")

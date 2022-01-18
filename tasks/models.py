@@ -3,11 +3,11 @@ import pytz
 import uuid
 from django.utils import timezone
 
-# Create your models here.
+
 
 class Task(models.Model):
     # Fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(editable=False, auto_now=True)
     title = models.CharField(max_length=100, help_text="Enter task title")

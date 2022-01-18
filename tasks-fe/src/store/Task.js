@@ -1,4 +1,5 @@
 import { makeAutoObservable, reaction } from "mobx"
+import { v4 } from "uuid";
 
 export class Task {
     id = null;
@@ -9,7 +10,7 @@ export class Task {
     description = "";
     store = null;
 
-    constructor (store, id) {
+    constructor (store, id = v4()) {
         makeAutoObservable(this, {
             id: false,
             store: false,

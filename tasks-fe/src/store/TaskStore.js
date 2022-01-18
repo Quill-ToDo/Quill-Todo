@@ -1,7 +1,6 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
-import { v4 } from "uuid";
 
 export class TaskStore {
     API;
@@ -104,13 +103,15 @@ export class TaskStore {
      * @param {*} taskData 
      */
     createTask (taskData) {
-        const task = new Task(this, v4()); 
+        const task = new Task(this); 
         const data = taskData;
         data.complete = false;
         task.updateFromJson(data);
         this.add(task);
         this.API.createTask(task.asJson)
-        .then(() => {this.rootStore.alertStore.add("notice", "Added task")})
+        .then(() => {
+            task.updateTaskFromServer();
+        })
         .catch(e => {
             console.log(e.response.data.errors)
             this.rootStore.alertStore.add("failure", "Could not add task - " + e.response.errors);

@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Task
+from uuid import UUID
 
 class TaskSerializer(serializers.ModelSerializer):
 
