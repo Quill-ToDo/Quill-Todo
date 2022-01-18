@@ -84,7 +84,6 @@ const TaskCreatePopup = (props) => {
     }
 
     const handleSubmit = (event) => {
-        // compose JSON? /send to API
         event.preventDefault();
         var valid = true;
 
@@ -111,25 +110,18 @@ const TaskCreatePopup = (props) => {
         }
 
         if (valid) {
-            console.log(event.target);
             const data = new FormData(event.target);
             if (start.value !== "") {
                 data.set("start", DateTime.fromFormat(start.value, dateFormat).toISO())
             }
             data.set("due", DateTime.fromFormat(due.value, dateFormat).toISO())
-            console.log(data);
             const converted = Object.fromEntries(data.entries());
-            console.log(converted);
             tasks.createTask(converted);
             // props.closeFn;
         }
         else {
             alerts.add("failure", "You must correct all errors before submitting")
         }
-        // Call method to check if valid.
-        // If valid, add to taskStore. This should wait for response and render any alerts
-        // /errors and remove from store if it was invalid
-        // If invalid, highlight incorrect portions and have error message above them.
     }
 
     return (

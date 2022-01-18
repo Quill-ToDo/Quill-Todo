@@ -24,6 +24,6 @@ export class TaskApi {
     }
 
     async createTask(taskData) {
-        return axios.post(this.url, JSON.stringify(taskData));
+        return axios.post(this.url, taskData);
     }
 }

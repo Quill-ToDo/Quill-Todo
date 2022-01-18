@@ -104,21 +104,14 @@ export class TaskStore {
      * @param {*} taskData 
      */
     createTask (taskData) {
-        // Method 1:
-        // Create on server, get pk
-        // let task = new Task(this, pk);
-        // task.updateFromJson(json);
-        // this.tasks[pk] = task;
-        // Method 2: UUID
-        // Generate UUID, add task to store.
-        // Pass task to BE, render alert and remove from taskStore if it could not be posted
         const task = new Task(this, v4()); 
         const data = taskData;
         data.complete = false;
-        console.log(data);
         task.updateFromJson(data);
         this.add(task);
-        this.API.createTask(data).catch(e => {
+        this.API.createTask(task.asJson)
+        .then(() => {this.rootStore.alertStore.add("notice", "Added task")})
+        .catch(e => {
             console.log(e.response.data.errors)
             this.rootStore.alertStore.add("failure", "Could not add task - " + e.response.errors);
             this.tasks.remove(task);

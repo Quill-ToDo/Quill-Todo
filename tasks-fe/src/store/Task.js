@@ -67,11 +67,11 @@ export class Task {
     updateFromJson(json) {
         this.autoSave = false;
         // Prevent sending these changes back to the server
-        this.title = json.title;
-        this.complete = json.complete;
-        this.start = json.start;
-        this.due = json.due;
-        this.description = json.description;
+        this.title = json.title === "" ? null : json.title;
+        this.complete = json.complete === "" ? null : json.complete;
+        this.start = json.start === "" ? null : json.start;
+        this.due = json.due === "" ? null : json.due;
+        this.description = json.description === "" ? null : json.description;
         this.autoSave = true;
     }
 

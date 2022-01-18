@@ -42,19 +42,17 @@ def tasks(request):
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        print(request.data)
         serializer = TaskSerializer( 
             data=request.data, 
             partial=True)
 
         if serializer.is_valid():
-            print(serializer.data)
             serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST, data={
-                "errors": serializer.errors,
-                "submittedData": serializer})
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+            "errors": serializer.errors,
+            "submittedData": serializer})
 
 @api_view(['GET', 'DELETE', 'PATCH'])
 def task_details(request, pk):
@@ -78,34 +76,6 @@ def task_details(request, pk):
             data=t_data, 
             partial=True)
 
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
-                "errors": serializer.errors,
-                "submittedData": serializer})
-
-@api_view(['PATCH'])
-def toggle_complete(request, pk):
-    '''
-    Toggle task complete status
-    '''
-    try:
-        task = Task.objects.get(pk=pk)
-    except Task.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    if request.method == 'PUT':
-        if not task.complete:
-            now = timezone.now()
-        else:
-            now = None
-
-        serializer = TaskSerializer(task, 
-                context={"request": request}, 
-                data={'complete': not task.complete, 'completed_at': now}, 
-                partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
