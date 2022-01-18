@@ -2,19 +2,8 @@
 
 If there are any issues with these instructions or if anything is unclear, please let us know in Slack!
 
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
-
-- [Setting up the development environment](#setting-up-the-development-environment)
-  - [Back-end](#back-end)
-    - [Back-end Notes](#back-end-notes)
-  - [Front-end](#front-end)
-    - [FE Notes](#fe-notes)
-- [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
-  - [To work on a feature](#to-work-on-a-feature)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+<!-- START doctoc -->
+<!-- END doctoc -->
 
 ## Setting up the development environment
 
@@ -33,14 +22,27 @@ If there are any issues with these instructions or if anything is unclear, pleas
 5. Set up the database:
     - [Install PostgreSQL](https://www.postgresql.org/download/)
     - (Windows) Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
-    - Start server and start psql
+    - Start the server:
+
+        Run `pg_ctl status` to see if the server is already running. If not, run `pg_ctl start`
+
+        > **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `pg_ctl status`.
+
+    - Start psql
 
         ```bash
-        pg_ctl start
         psql postgres
         ```
 
-    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV. (Eventually we will automate this process)  
+        > Useful psql commands:
+        >
+        > - `\q` Quit
+        > - `\l` List databases
+        > - `\du` List roles
+
+    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
+
+        ❗**Make sure you don't commit setup.sql with the password in it in git.**
 
 6. Install dependencies:  
   
@@ -65,6 +67,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 #### Back-end Notes
 
+- If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end.
 - To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
 
 > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep dependencies up to date for everyone else
@@ -97,61 +100,80 @@ If there are any issues with these instructions or if anything is unclear, pleas
     nvm use 16.13.1
     ```
 
-4. Start React FE:
+4. Install dependencies:
 
     ```Bash
     cd tasks-fe
     npm install
+    ```
+
+- To launch in development mode:
+
+    ```Bash
     npm start
     ```
 
+    It will open the browser window for you.
+
+- To build for production:
+
+    ```bash
+    npm build
+    ```
+
+    Navigate to the url that the back-end server is running at and it should serve the built app.
+
 #### FE Notes
 
-- If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`
+> **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`.
 
 ## Commits, Branches, and Pull Requests
 
 ### To work on a feature
 
-1. Assign yourself to the appropriate issue
+1. Assign yourself to the appropriate issue.
 
-2. Pull
+2. Pull on main branch.
 
     ```Bash
     git pull
     ```
 
-3. Create a branch for the feature if there is not one already
+3. Create a branch for the feature if there is not one already.
 
     ```Bash
-    git branch  [feature branch name]
-    git checkout [feature branch name]
+    git checkout -b  <feature branch name>
     ```
 
-4. Make a working branch for your code based off of the feature branch
+    Otherwise, if one already exists, switch to it.
+
+    ```bash
+    git checkout <feature branch name>
+    ```
+
+4. If others will also be working on the feature, make a working branch for **your** code based off of the feature branch.
 
     ```Bash
-    git branch  [working branch name]
-    git checkout [working branch name]
+    git checkout -b  <working branch name>
     ```
 
-5. Code on the working branch
+5. Code on the working branch.
 
-6. Commit your changes
+6. Commit your changes.
 
     ```Bash
     git add -A
-    git commit -m "[your commit message. include a # issue number to link it]"
+    git commit -m "<your commit message. include a # issue number to link it>"
     ```
 
-7. Merge your working with the feature branch
+7. Merge your working with the feature branch.
 
     ```Bash
-    git checkout [feature branch name]
-    git merge [working branch name]
+    git checkout <feature branch name>
+    git merge <working branch name>
     ```
 
-   If there are merge conflicts, manually change the files listed under "merge" and commit changes
+   If there are merge conflicts, manually change the files listed under "merge" and commit changes.
 
 8. When the feature is done, merge it with main.
 
@@ -165,18 +187,18 @@ If there are any issues with these instructions or if anything is unclear, pleas
    Merge main with your feature branch.
 
     ```Bash
-    git checkout [feature branch name]
+    git checkout <feature branch name>
     git pull
     git merge main
     ```
 
-    Resolve any merge conflicts. Make sure tests pass (Once we have tests!) before submitting a PR.
+    Resolve any merge conflicts. Make sure tests pass before submitting a PR.
 
 9. Push local feature branch to remote.
 
     ```Bash
-    git checkout [feature branch name]
-    git push origin [feature branch name]
+    git checkout <feature branch name>
+    git push origin <feature branch name>
     ```
 
 10. To merge to main, on GitHub, click pull request button on code page and submit a pull request.
