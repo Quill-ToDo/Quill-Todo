@@ -109,12 +109,9 @@ export class TaskStore {
         task.updateFromJson(data);
         this.add(task);
         this.API.createTask(task.asJson)
-        .then(() => {
-            task.updateTaskFromServer();
-        })
         .catch(e => {
-            console.log(e.response.data.errors)
-            this.rootStore.alertStore.add("failure", "Could not add task - " + e.response.errors);
+            console.log(e)
+            this.rootStore.alertStore.add("failure", "Could not add task - " + e);
             this.tasks.remove(task);
         });
     }

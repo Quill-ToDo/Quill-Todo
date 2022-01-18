@@ -17,10 +17,10 @@ const Home = observer(() => {
             { showNewTaskPopup && !taskStore.focusedTask ? <TaskCreatePopup closeFn={() => setShowNewTaskPopup(!showNewTaskPopup)}/> : null }
             { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
-                <button role="menuitem" className="btn" title="Add task" onClick={() => setShowNewTaskPopup(!showNewTaskPopup)}>
+                <button role="menuitem" className="btn" title="Add task" type="button" onClick={() => setShowNewTaskPopup(!showNewTaskPopup)}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>
-                <button role="menuitem" className="btn" title="Log out" onClick={() => alertStore.add("notice", "We haven't implemented users or logging out.")}>
+                <button role="menuitem" className="btn" title="Log out" type="button" onClick={() => alertStore.add("notice", "We haven't implemented users or logging out.")}>
                     <i className="fas fa-power-off fa-fw"></i>
                 </button>
             </menu>

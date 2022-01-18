@@ -57,9 +57,9 @@ const TaskCreatePopup = (props) => {
                     if (parsedTime.invalid) {
                         errors.push('Start is not of the format M/m/yyyy h:mm a')
                     }
-                    else if (due.value && DateTime.fromFormat(due.value, dateFormat) <= parsedTime) {
-                        errors.push('Start does not come before due')
-                    } 
+                    // else if (due.value && DateTime.fromFormat(due.value, dateFormat) <= parsedTime) {
+                    //     errors.push('Start does not come before due')
+                    // } 
                 }
                 break;
             case 'due':
@@ -83,30 +83,38 @@ const TaskCreatePopup = (props) => {
         return errors;
     }
 
+    const getSelector = (name, type) => {
+        return `#new-wrapper ${type}[name='${name}']`;
+    }
+
     const handleSubmit = (event) => {
         event.preventDefault();
         var valid = true;
+        var focusEle = null;
 
         const titleErrors = getErrors("title", title.value);
         if (titleErrors.length !== 0) {
             valid = false;
-            setTitle({value: title.value, errors: titleErrors})
+            setTitle({value: title.value, errors: titleErrors});
+            focusEle = document.querySelector(getSelector('title', 'input'));
         }
         const descErrors = getErrors("description", desc.value);
         if (descErrors.length !== 0) {
             valid = false;
-            setDesc({value: desc.value, errors: descErrors})
+            setDesc({value: desc.value, errors: descErrors});
+            if (!focusEle) {focusEle = document.querySelector(getSelector('description', 'textarea'))}
         }
         const startErrors = getErrors('start', start.value);
         if (startErrors.length !== 0) {
             valid = false;
-            setStart({value: start.value, errors: startErrors})
+            setStart({value: start.value, errors: startErrors});
+            if (!focusEle) {focusEle = document.querySelector(getSelector('start', 'input'))}
         }
         const dueErrors = getErrors('due', due.value);
         if (dueErrors.length !== 0) {
             valid = false;
-            console.log("here");
-            setDue({value: due.value, errors: dueErrors})
+            setDue({value: due.value, errors: dueErrors});
+            if (!focusEle) {focusEle = document.querySelector(getSelector('due', 'input'))}
         }
 
         if (valid) {
@@ -118,10 +126,10 @@ const TaskCreatePopup = (props) => {
             const converted = Object.fromEntries(data.entries());
             tasks.createTask(converted);
             props.closeFn();
+            return;
         }
-        else {
-            alerts.add("failure", "You must correct all errors before submitting")
-        }
+
+        focusEle.focus();
     }
 
     return (
@@ -135,7 +143,7 @@ const TaskCreatePopup = (props) => {
                         </button>
                     </div>
                 </div>
-                <form className="form" onSubmit={handleSubmit}>
+                <form id="add-task" className="form" onSubmit={handleSubmit}>
                     <label>
                         Title
                         { title.errors.length ? errorsList(title.errors) : null }
@@ -143,7 +151,7 @@ const TaskCreatePopup = (props) => {
                             name="title"
                             className={title.errors.length ? "errors" : ""}
                             onChange={e => setTitle({value: e.target.value, errors: getErrors(e.target.name, e.target.value)})}
-                            onBlur={e => setTitle({value: title.value, errors: getErrors(e.target.name, e.target.value)})}
+                            // onBlur={e => setTitle({value: title.value, errors: getErrors(e.target.name, e.target.value)})}
                             value={title.value}
                             required
                         />
@@ -167,12 +175,15 @@ const TaskCreatePopup = (props) => {
                                     name="start"
                                     className={start.errors.length ? "errors" : ""}
                                     onChange={e => setStart({value: e.target.value, errors: start.errors})}
-                                    onBlur={e => {
-                                        setStart({value: start.value, errors: getErrors(e.target.name, e.target.value)});
-                                        setDue({value: due.value, errors: getErrors("due", due.value)});
-                                    }}
+                                    // onBlur={e => {
+                                    //     setStart({value: start.value, errors: getErrors(e.target.name, e.target.value)});
+                                    //     setDue({value: due.value, errors: getErrors("due", due.value)});
+                                    // }}
                                     value={start.value}
                                 />
+                                <button className="btn no-shadow" type="button">
+                                    <i className="far fa-clock fa-fw"></i>
+                                </button>
                             </div>
                         </label>
                         <label>
@@ -185,18 +196,19 @@ const TaskCreatePopup = (props) => {
                                     onChange={e => setDue({value: e.target.value, errors: due.errors})}
                                     onBlur={e => {
                                         setDue({value: due.value, errors: getErrors(e.target.name, e.target.value)});
-                                        setStart({value: start.value, errors: getErrors("start", start.value)});
+                                        // setStart({value: start.value, errors: getErrors("start", start.value)});
                                     }}
                                     value={due.value}
                                     required
                                 />
+                                <button className="btn no-shadow" form="" type="button">
+                                    <i className="far fa-clock fa-fw"></i>
+                                </button>
                             </div>
                         </label>
                     </div>
-                    <div 
-                        id="add-btn" className="centered"
-                    >
-                        <input className="btn" value="Add task" type="submit" />
+                    <div className="centered">
+                        <button id="add-btn" className="btn not-square" type="submit" formNoValidate={true}>Add task</button>
                     </div>
                 </form>
             </section>

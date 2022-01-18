@@ -240,6 +240,14 @@ button:focus {
   text-align: center;
 }
 
+.btn.no-shadow {
+  box-shadow: none;
+}
+
+.btn.not-square {
+  aspect-ratio: unset;
+}
+
 .btn i {
   font-size: var(--menu-icon-size);
   aspect-ratio: 1/1;
@@ -252,6 +260,10 @@ button:focus {
 .btn:hover {
   background-color: var(--button-outline);
   box-shadow: none;
+}
+
+.fc .fc-button.fc-button-primary:hover:not(.no-shadow),
+.btn:hover:not(.no-shadow) {
   transform: translate(1px, 1px);
 }
 
