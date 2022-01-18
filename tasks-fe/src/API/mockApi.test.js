@@ -74,27 +74,27 @@ it("should set tasks properly", () => {
         {
             title: "Bing bong",
             complete: true,
-            pk: 1
+            id: 1
         }
     ]);
     expect(handler.tasks[0].title).toEqual("Bing bong");
     expect(handler.tasks.length).toEqual(1);
 })
 
-it("should not add tasks with duplicate pks", () => {
+it("should not add tasks with duplicate ids", () => {
     const handler = new MockTaskApiHandler();
     handler.setup.addTask(
         {
             title: "Bing bong",
             complete: true,
-            pk: 1
+            id: 1
         });
 
     expect(() => {
         handler.setup.addTask({
                 title: "BONG",
                 complete: true,
-                pk: 1
+                id: 1
             });
     }).toThrow("already exists");
 })
@@ -130,8 +130,8 @@ describe("should intercept network call", () => {
     it("detail", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
-        const pk = handler.tasks[0].pk;
-        const res = await api.detail(pk);
+        const id = handler.tasks[0].id;
+        const res = await api.detail(id);
         handler.server.close();
         expect(handler.tasks[0].title).toEqual(res.data.title);
     })
@@ -139,9 +139,9 @@ describe("should intercept network call", () => {
     it("delete", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
-        const pk = handler.tasks[0].pk;
+        const id = handler.tasks[0].id;
         const title = handler.tasks[0].title;
-        await api.deleteTask(pk);
+        await api.deleteTask(id);
         handler.server.close();
         expect(handler.tasks.find(t => t.title === title)).toBeUndefined();
     })

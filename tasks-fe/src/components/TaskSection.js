@@ -14,7 +14,7 @@ const TaskSectionContent = (props) => {
                 <ul role="group">
                     { props.tasks.map((task) => {
                         return ( 
-                            <li className="task" key={"task-li-"+task.pk}>
+                            <li className="task" key={"task-li-"+task.id}>
                                 <Task
                                     data={task}
                                     basicVersion={true}
@@ -42,7 +42,7 @@ function handleSectionToggle (event, sectionNum, duration) {
     outer_section.style.transition = `height ${duration}ms ease-in-out 0s`;
     outer_section.style.height = "fit-content";
     toggleSection(taskSection, duration);
-    flipKarat(taskSection, duration);
+    fliidarat(taskSection, duration);
 }
 
 function toggleInlineHeightAttribute (outerSection) {
@@ -60,7 +60,7 @@ function toggleInlineHeightAttribute (outerSection) {
     }
 }
 
-function flipKarat (taskSection, duration) {
+function fliidarat (taskSection, duration) {
     // Flip karat
     var symbol = taskSection.querySelector(".expand-symbol");
     const start = "rotate(180deg)";

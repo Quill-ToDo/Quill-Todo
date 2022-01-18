@@ -50,10 +50,10 @@ export class TaskStore {
 
     // Update a todo with into from a server and guarantee it only exists once
     updateTaskFromServer (taskJson) {
-        let task = this.tasks.find(t => t.pk === taskJson.pk)
+        let task = this.tasks.find(t => t.id === taskJson.id)
         if (!task) {
             // Does not yet exist in store
-            task = new Task(this, taskJson.pk);
+            task = new Task(this, taskJson.id);
             this.tasks.push(task);
         }
         task.updateFromJson(taskJson);

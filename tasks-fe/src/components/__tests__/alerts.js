@@ -75,7 +75,7 @@ it("should remove alerts from the DOM after they are exited", async () => {
 
 it("should handle failure to update task", async () => {
     handler.server.use(
-        rest.patch(handler.API_URL+":pk", (req, res, ctx) => {
+        rest.patch(handler.API_URL+":id", (req, res, ctx) => {
             return res.once(
                 ctx.status(500),
                 ctx.json({message: "Server error"})
@@ -96,7 +96,7 @@ it("should handle failure to update task", async () => {
 
 it("should handle failure to delete task", async () => {
     handler.server.use(
-        rest.delete(handler.API_URL+":pk", (req, res, ctx) => {
+        rest.delete(handler.API_URL+":id", (req, res, ctx) => {
             return res.once(
                 ctx.status(500),
                 ctx.json({message: "Server error"})

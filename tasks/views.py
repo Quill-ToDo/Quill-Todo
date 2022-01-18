@@ -55,9 +55,9 @@ def tasks(request):
             "submittedData": serializer})
 
 @api_view(['GET', 'DELETE', 'PATCH'])
-def task_details(request, pk):
+def task_details(request, id):
     try:
-        task = Task.objects.get(pk=pk)
+        task = Task.objects.get(id=id)
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 

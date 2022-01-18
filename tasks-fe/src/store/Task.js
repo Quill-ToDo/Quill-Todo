@@ -1,7 +1,7 @@
 import { makeAutoObservable, reaction } from "mobx"
 
 export class Task {
-    pk = null;
+    id = null;
     title = "";
     complete = null;
     start = null;
@@ -9,22 +9,22 @@ export class Task {
     description = "";
     store = null;
 
-    constructor (store, pk) {
+    constructor (store, id) {
         makeAutoObservable(this, {
-            pk: false,
+            id: false,
             store: false,
             saveHandler: false,
         }, {proxy: false});
         // Could do validations here too if I wanted...
         this.store = store;
-        this.pk = pk;
+        this.id = id;
 
         this.saveHandler = reaction(
             () => this.asJson, // Observe everything used in the JSON
             json => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {
-                    this.store.API.updateTask(this.pk, json)
+                    this.store.API.updateTask(this.id, json)
                     .catch(error => {
                         this.store.rootStore.alertStore.add("failure", 
                             "Task could not be updated - " + error.toString());
@@ -37,7 +37,7 @@ export class Task {
 
     delete() {
         this.store.tasks.remove(this);
-        this.store.API.deleteTask(this.pk)
+        this.store.API.deleteTask(this.id)
         .then(() => {
             this.store.rootStore.alertStore.add("notice", "Task deleted")
         })
@@ -50,7 +50,7 @@ export class Task {
 
     get asJson() {
         return {
-            pk: this.pk,
+            id: this.id,
             title: this.title,
             complete: this.complete,
             start: this.start, 

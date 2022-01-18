@@ -1,11 +1,13 @@
 from django.db import models
 import pytz
+import uuid
 from django.utils import timezone
 
 # Create your models here.
 
 class Task(models.Model):
     # Fields
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(editable=False, auto_now=True)
     title = models.CharField(max_length=100, help_text="Enter task title")
@@ -32,7 +34,7 @@ class Task(models.Model):
     # Methods
     def __str__(self):
         """String for representing the MyModelName object (in Admin site etc.)."""
-        return f'{self.pk}: {self.title}'
+        return f'{self.id}: {self.title}'
 
 
     # def get_absolute_url(self):

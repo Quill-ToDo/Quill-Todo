@@ -15,8 +15,8 @@ const dateTimeWrapper = (task, time, type, dateForm) => {
 
 const Task = observer((props) => {
     const task = props.data;
-    const id = "task-" + task.pk;
-    const checkboxId = (props.basicVersion ? "list" : "show")+ "-checkbox-"+task.pk;
+    const id = "task-" + task.id;
+    const checkboxId = (props.basicVersion ? "list" : "show")+ "-checkbox-"+task.id;
     
     // Props: 
     // props.data.title
@@ -30,8 +30,8 @@ const Task = observer((props) => {
     const classAddition = task.complete ? "complete" : "";
     const title = (
             <label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
-                {task.complete ? <p id={"task-title-" + task.pk} className={"title " + classAddition}><s>{task.title}</s></p>
-                : <p id={"task-title-" + task.pk} className={"title " + classAddition}>{task.title}</p>}    
+                {task.complete ? <p id={"task-title-" + task.id} className={"title " + classAddition}><s>{task.title}</s></p>
+                : <p id={"task-title-" + task.id} className={"title " + classAddition}>{task.title}</p>}    
             </label>
     );
     const workCheckbox = task.complete ? <i className="far fa-check-circle fa-fw checkmark round" aria-hidden="true"></i> 
@@ -54,7 +54,7 @@ const Task = observer((props) => {
 
     if (props.basicVersion) {
         return (
-            <div className="task-wrapper" id={id} key={task.pk}> 
+            <div className="task-wrapper" id={id} key={task.id}> 
                 {checkbox}
                 <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}

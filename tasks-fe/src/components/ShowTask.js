@@ -28,7 +28,7 @@ const ShowTask = observer((props) => {
         previouslyFocused.current = document.activeElement;
         filterEle.current = document.getElementsByClassName("filter")[0];
         document.getElementById("home-wrapper").tabIndex = -1;
-        document.getElementById("show-checkbox-"+task.pk).focus();
+        document.getElementById("show-checkbox-"+task.id).focus();
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
@@ -45,7 +45,7 @@ const ShowTask = observer((props) => {
         return () => {
             previouslyFocused.current.focus();
         }
-    }, [closeFn, task.pk])
+    }, [closeFn, task.id])
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" title="Delete task" onClick={() => {
@@ -70,7 +70,7 @@ const ShowTask = observer((props) => {
                 className="mid-section" 
                 role="dialog"
                 aria-labelledby="task-show-title"
-                aria-describedby={"task-title-" + task.pk}
+                aria-describedby={"task-title-" + task.id}
             >
                 <Task 
                     data={task} 
