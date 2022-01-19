@@ -1,87 +1,101 @@
-import { Fragment, useState, useRef, useEffect } from "react";
+import { Fragment, useState, useEffect } from "react";
 import { DateTime } from "luxon";
 import pluralize from 'pluralize';
 import '../static/css/new.css';
+import '../static/css/datetimepicker.css';
 import { useTaskStore } from "../store/StoreContext";
-import { useAlertStore } from "../store/StoreContext";
+import {TempusDominus} from "@eonasdan/tempus-dominus";
 
+const errorsList = (errors) => {
+    return <Fragment>
+        <p className="error-list">Errors:</p> 
+        <ul className="error-list">
+            {errors.map((errorText) => {
+                return <li key={"error-"+errorText}>
+                    {errorText}
+                </li>
+            })}
+        </ul>
+    </Fragment>
+}
+
+const TimeDateLabel = (props) => {
+    useEffect(() => {
+        const options = {
+            display: {
+                components: {
+                    calendar: false,
+                    date: false, 
+                    month: false,
+                    year: false,
+                    decades: false, 
+                }
+            },
+            allowInputToggle: false
+        }
+        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), options);
+        return () => {
+            // cleanup
+        }
+    }, [])
+
+    // label, date, time, dateChangeCallBack, timeChangeCallBack, requiredDate
+    return <label>
+        {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
+        { props.stateObj.errors.length ? errorsList(props.stateObj.errors) : null }
+        <div className="horizontal-align">
+            <label className="date">
+                Date
+                <input
+                    name={`${props.label} date`}
+                    className={props.stateObj.errors.length ? "errors" : ""}
+                    onChange={props.dateChangeCallback}
+                    onBlur={props.dateBlurCallback}
+                    value={props.stateObj.value}
+                    required={props.requiredDate}
+                    />
+                </label>
+            <label className="time">
+                Time
+                <div className="horizontal-align">
+                    <input
+                        name={`${props.label} time`}
+                        id={`${props.label}-time`}
+                        data-td-target={`#datetime-picker-${props.label}`}
+                        className={props.stateObj.errors.length ? "errors" : ""}
+                        onChange={props.timeChangeCallback}
+                        onBlur={props.timeBlurCallback}
+                        value={props.stateObj.value}
+                        placeholder={props.timePlaceholder}
+                    />
+                    <button 
+                        id={`datetime-picker-${props.label}`} 
+                        data-td-target-input={`#${props.label}-time`} 
+                        className="btn no-shadow datepicker-toggle" 
+                        type="button"
+                        >
+                        <i className="far fa-clock fa-fw"></i>
+                    </button>
+                </div>
+            </label>
+        </div>
+    </label>
+}
 
 const TaskCreatePopup = (props) => {
     const [title, setTitle] = useState({value: "", errors: []});
     const [desc, setDesc] = useState({value: "", errors: []});
-    const [start, setStart] = useState({value: "", errors: []});
-    const [due, setDue] = useState({value: "", errors: []});
+    const [start, setStart] = useState({date: "", time: "", errors: []});
+    const [due, setDue] = useState({date: "", time: "", errors: []});
     const tasks = useTaskStore();
-    const alerts = useAlertStore();
-    const dateFormat = "D t";
+    const dateFormat = "D";
+    const timeFormat = "t";
+    const dateTimeFormat = dateFormat + " " + timeFormat;
 
     useEffect(() => {
-        const firstInput = document.querySelector("input[name='title']")
-        firstInput.focus()
+        const firstInput = document.querySelector("input[name='title']");
+        firstInput.focus();
     }, [])
-
-    const errorsList = (errors) => {
-        return <Fragment>
-            <p className="error-list">Errors:</p> 
-            <ul className="error-list">
-                {errors.map((errorText) => {
-                    return <li key={"error-"+errorText}>
-                        {errorText}
-                    </li>
-                })}
-            </ul>
-        </Fragment>
-    }
-
-    const getErrors = (name, value) => {
-        // Time format until we get parsing done: 8/6/2014 1:07 PM
-        const errors = [];
-        var parsedTime;
-        switch (name) {
-            case 'title':
-                if (value.length > 100) { 
-                    errors.push(`Title is ${pluralize("character", value.length-100, true)} too long`);
-                }
-                else if (value.length === 0) {
-                    errors.push(`Title is required`);
-                }
-                break;
-            case 'description':
-                if (value.length > 1000) { 
-                    errors.push(`Description is ${pluralize("character", value.length-1000, true)} too long`);
-                }
-                break;
-            case 'start':
-                if (value !== "") {
-                    parsedTime = DateTime.fromFormat(value, dateFormat);
-                    if (parsedTime.invalid) {
-                        errors.push('Start is not of the format M/m/yyyy h:mm a')
-                    }
-                    // else if (due.value && DateTime.fromFormat(due.value, dateFormat) <= parsedTime) {
-                    //     errors.push('Start does not come before due')
-                    // } 
-                }
-                break;
-            case 'due':
-                if (value === "") {
-                    errors.push("Due date is required")
-                }
-                else {
-                    parsedTime = DateTime.fromFormat(value, dateFormat);
-                    if (parsedTime.invalid) {
-                        errors.push("Date is not of the format M/m/yyyy h:mm a")
-                    }
-                    else if (start.value && DateTime.fromFormat(start.value, dateFormat) >= parsedTime) {
-                        errors.push('Due does not come after start')
-                    }
-                }
-                break;
-            default:
-                console.error("How did I get here.")
-                break;
-        } 
-        return errors;
-    }
 
     const getSelector = (name, type) => {
         return `#new-wrapper ${type}[name='${name}']`;
@@ -104,26 +118,29 @@ const TaskCreatePopup = (props) => {
             setDesc({value: desc.value, errors: descErrors});
             if (!focusEle) {focusEle = document.querySelector(getSelector('description', 'textarea'))}
         }
-        const startErrors = getErrors('start', start.value);
+        const startErrors = getErrors('start', start.date, start.time);
         if (startErrors.length !== 0) {
             valid = false;
-            setStart({value: start.value, errors: startErrors});
-            if (!focusEle) {focusEle = document.querySelector(getSelector('start', 'input'))}
+            setStart({date: start.date, time: start.time, errors: startErrors});
+            if (!focusEle) {focusEle = document.querySelector(getSelector('start date', 'input'))}
         }
-        const dueErrors = getErrors('due', due.value);
+        const dueErrors = getErrors('due', due.date, due.time);
         if (dueErrors.length !== 0) {
             valid = false;
-            setDue({value: due.value, errors: dueErrors});
-            if (!focusEle) {focusEle = document.querySelector(getSelector('due', 'input'))}
+            setDue({date: due.date, time: due.time, errors: dueErrors});
+            if (!focusEle) {focusEle = document.querySelector(getSelector('due date', 'input'))}
         }
 
         if (valid) {
             const data = new FormData(event.target);
-            if (start.value !== "") {
-                data.set("start", DateTime.fromFormat(start.value, dateFormat).toISO())
+            // Don't input start time if there is no date
+            if (start.date !== "") {
+                data.set("start", DateTime.fromFormat(`${start.date} ${start.time === "" ? "12:00 AM" : start.time}`, dateTimeFormat).toISO())
             }
-            data.set("due", DateTime.fromFormat(due.value, dateFormat).toISO())
+            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? "11:59 PM" : due.time}`, dateTimeFormat).toISO())
             const converted = Object.fromEntries(data.entries());
+            console.log(`${due.date}  ${due.time === "" ? "11:59 PM" : due.time}`)
+            console.log(converted)
             tasks.createTask(converted);
             props.closeFn();
             return;
@@ -131,6 +148,72 @@ const TaskCreatePopup = (props) => {
 
         focusEle.focus();
     }
+
+    const validTime = (date, time, errors) => {
+        var parsedDate;
+        var parsedTime;
+        var validTime = true;
+        parsedTime = DateTime.fromFormat(time, timeFormat);
+        parsedDate = DateTime.fromFormat(date, dateFormat);
+        if (parsedTime.invalid) {
+            errors.push("Time is not of the format h:mm P");
+            validTime = false;
+        }
+        if (parsedDate.invalid) {
+            errors.push("Date is not of the format mm/dd/yyyy");
+            validTime = false;
+        }
+        return validTime;
+    }
+
+    const getErrors = (name, value1, time = null) => {
+        // Time format until we get parsing done: 8/6/2014 1:07 PM
+        // Assume time is EOD if blank
+        var time;
+
+        const errors = [];
+        var timeIsValid
+        switch (name) {
+            case 'title':
+                if (value1.length > 100) { 
+                    errors.push(`Title is ${pluralize("character", value1.length-100, true)} too long`);
+                }
+                else if (value1.length === 0) {
+                    errors.push(`Title is required`);
+                }
+                break;
+            case 'description':
+                if (value1.length > 1000) { 
+                    errors.push(`Description is ${pluralize("character", value1.length-1000, true)} too long`);
+                }
+                break;
+            case 'start':
+                if (value1 !== "") {
+                    time = time === "" ? "12:00 AM" : time;
+                    validTime(value1, time, errors);
+                }
+                break;
+            case 'due':
+                if (value1 === "") {
+                    errors.push("Due date is required")
+                }
+                else {
+                    time = time === "" ? "11:59 PM" : time;
+                    timeIsValid = validTime(value1, time, errors);
+                    if (start.value && timeIsValid && DateTime.fromFormat(start.date + " " + start.time, dateTimeFormat) >=  DateTime.fromFormat(value1 + " " + time)) {
+                        errors.push('Due does not come after start')
+                    }
+                }
+                break;
+            default:
+                console.error("Proper name was not supplied to getErrors()")
+                break;
+        } 
+        return errors;
+    }
+
+    const startBlur = () => setStart({date: start.date, time: start.time, errors: getErrors("start", start.date, start.time)});
+    const dueBlur = () => setDue({date: due.date, time: due.time, errors: getErrors("due", due.date, due.time)});
 
     return (
         <div id="new-wrapper">
@@ -151,7 +234,7 @@ const TaskCreatePopup = (props) => {
                             name="title"
                             className={title.errors.length ? "errors" : ""}
                             onChange={e => setTitle({value: e.target.value, errors: getErrors(e.target.name, e.target.value)})}
-                            // onBlur={e => setTitle({value: title.value, errors: getErrors(e.target.name, e.target.value)})}
+                            onBlur={e => setTitle({value: title.value, errors: getErrors(e.target.name, e.target.value)})}
                             value={title.value}
                             required
                         />
@@ -166,46 +249,27 @@ const TaskCreatePopup = (props) => {
                             value={desc.value}
                         />
                     </label>
-                    <div className="horizontal-align"> 
-                        <label>
-                            Start
-                            { start.errors.length ? errorsList(start.errors) : null }
-                            <div className="datetime-picker" id="datetime-picker-start" data-td-target-input="nearest" data-td-target-toggle='nearest'>
-                                <input
-                                    name="start"
-                                    className={start.errors.length ? "errors" : ""}
-                                    onChange={e => setStart({value: e.target.value, errors: start.errors})}
-                                    // onBlur={e => {
-                                    //     setStart({value: start.value, errors: getErrors(e.target.name, e.target.value)});
-                                    //     setDue({value: due.value, errors: getErrors("due", due.value)});
-                                    // }}
-                                    value={start.value}
-                                />
-                                <button className="btn no-shadow" type="button">
-                                    <i className="far fa-clock fa-fw"></i>
-                                </button>
-                            </div>
-                        </label>
-                        <label>
-                            Due
-                            { due.errors.length ? errorsList(due.errors) : null }
-                            <div className="datetime-picker" id="datetime-picker-due" data-target-input="nearest">
-                                <input 
-                                    name="due"
-                                    className={due.errors.length ? "errors" : ""}
-                                    onChange={e => setDue({value: e.target.value, errors: due.errors})}
-                                    onBlur={e => {
-                                        setDue({value: due.value, errors: getErrors(e.target.name, e.target.value)});
-                                        // setStart({value: start.value, errors: getErrors("start", start.value)});
-                                    }}
-                                    value={due.value}
-                                    required
-                                />
-                                <button className="btn no-shadow" form="" type="button">
-                                    <i className="far fa-clock fa-fw"></i>
-                                </button>
-                            </div>
-                        </label>
+                    <div className="start-due-wrapper horizontal-align"> 
+                        <TimeDateLabel 
+                            label="start"
+                            stateObj={start}
+                            timePlaceholder="12:00 AM"
+                            requiredDate={false}
+                            dateChangeCallback={e => setStart({date: e.target.value, time: start.time, errors: start.errors})}
+                            timeChangeCallback={e => setStart({date: start.date, time: e.target.value, errors: start.errors})}
+                            dateBlurCallback={startBlur}
+                            timeBlurCallback={startBlur}
+                        />
+                        <TimeDateLabel 
+                            label="due"
+                            stateObj={due}
+                            timePlaceholder="11:59 PM"
+                            requiredDate={true}
+                            dateChangeCallback={e => setDue({date: e.target.value, time: due.time, errors: due.errors})}
+                            timeChangeCallback={e => setDue({date: due.date, time: e.target.value, errors: due.errors})}
+                            dateBlurCallback={dueBlur}
+                            timeBlurCallback={dueBlur}
+                        />
                     </div>
                     <div className="centered">
                         <button id="add-btn" className="btn not-square" type="submit" formNoValidate={true}>Add task</button>

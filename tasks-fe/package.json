@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@eonasdan/tempus-dominus": "^6.0.0-beta1",
+    "@popperjs/core": "^2.11.2",
     "axios": "^0.24.0",
     "luxon": "^2.3.0",
     "mobx": "^6.3.10",

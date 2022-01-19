@@ -1,0 +1,56 @@
+.tempus-dominus-widget {
+    padding: 15px;
+    border-radius: 15px;
+    box-shadow: 0px 0px 50px var(--darkest-dark);
+    /* background-color: var(--mid-dark); */
+    background-color: var(--button);
+    color: var(--lightest-font);
+    font-family: "Quicksand", sans-serif;
+    font-weight: 600;
+    font-size: 17px;
+    transform: translateX(-40px);
+    transition: color .1s;
+}
+
+/* Darker dates */
+.tempus-dominus-widget .date-container-decades div:not(.no-highlight).old,
+.tempus-dominus-widget .date-container-decades div:not(.no-highlight).new,
+.tempus-dominus-widget .date-container-years div:not(.no-highlight).old,
+.tempus-dominus-widget .date-container-years div:not(.no-highlight).new,
+.tempus-dominus-widget .date-container-months div:not(.no-highlight).old,
+.tempus-dominus-widget .date-container-months div:not(.no-highlight).new,
+.tempus-dominus-widget .date-container-days div:not(.no-highlight).old,
+.tempus-dominus-widget .date-container-days div:not(.no-highlight).new,
+.tempus-dominus-widget .time-container-clock div:not(.no-highlight).old,
+.tempus-dominus-widget .time-container-clock div:not(.no-highlight).new,
+.tempus-dominus-widget .time-container-hour div:not(.no-highlight).old,
+.tempus-dominus-widget .time-container-hour div:not(.no-highlight).new,
+.tempus-dominus-widget .time-container-minute div:not(.no-highlight).old,
+.tempus-dominus-widget .time-container-minute div:not(.no-highlight).new,
+.tempus-dominus-widget .time-container-second div:not(.no-highlight).old,
+.tempus-dominus-widget .time-container-second div:not(.no-highlight).new {
+    color: var(--button-outline);
+}
+
+.tempus-dominus-widget .date-container-decades div:not(.no-highlight):hover,
+.tempus-dominus-widget .date-container-years div:not(.no-highlight):hover,
+.tempus-dominus-widget .date-container-months div:not(.no-highlight):hover,
+.tempus-dominus-widget .date-container-days div:not(.no-highlight):hover,
+.tempus-dominus-widget .time-container-clock div:not(.no-highlight):hover,
+.tempus-dominus-widget .time-container-hour div:not(.no-highlight):hover,
+.tempus-dominus-widget .time-container-minute div:not(.no-highlight):hover,
+.tempus-dominus-widget .time-container-second div:not(.no-highlight):hover,
+.tempus-dominus-widget .toolbar div:hover {
+    background: var(--subdued);
+}
+
+.tempus-dominus-widget .date-container-days .dow {
+    color: var(--lightest-font);
+}
+
+.tempus-dominus-widget .calendar-header .picker-switch {
+    font-family: "Secular One", sans-serif;
+    font-weight: 600;
+    font-size: 22px;
+    color: var(--lightest-font);
+}

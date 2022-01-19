@@ -1,45 +1,45 @@
 body {
-    background-color: var(--bg);
+  background-color: var(--bg);
 }
 
 .row {
   width: 100%;
 }
 
-.form-group{
-    text-align: center;
-    color: var(--lightest-font);
-    justify-content: center;
-    font-family: "Dongle", sans-serif;
-    padding-bottom: 7px;
+.form-group {
+  text-align: center;
+  color: var(--lightest-font);
+  justify-content: center;
+  font-family: "Dongle", sans-serif;
+  padding-bottom: 7px;
 }
 
-.form-control{
-    width: 250px;
-    border-radius: 6px;
-    background: var(--darkest-dark);
-    color: var(--lightest-font);
-    border: solid var(--darkest-dark);
+.form-control {
+  width: 250px;
+  border-radius: 6px;
+  background: var(--darkest-dark);
+  color: var(--lightest-font);
+  border: solid var(--darkest-dark);
 }
 
-.text-center-head{
-    color: var(--lightest-font);
-    text-align: center;
-    font-family: "Secular One", sans-serif;
+.text-center-head {
+  color: var(--lightest-font);
+  text-align: center;
+  font-family: "Secular One", sans-serif;
 }
 
-.text-center{
-    text-align: center;
-    font-family: "Dongle", sans-serif;
-    font-size: 150%;
+.text-center {
+  text-align: center;
+  font-family: "Dongle", sans-serif;
+  font-size: 150%;
 }
 
-.remember{
-    font-size: 120%;
+.remember {
+  font-size: 120%;
 }
 
-.links{
-    font-size: 150%
+.links {
+  font-size: 150%
 }
 
 /*
@@ -48,6 +48,7 @@ body {
 
 #new-wrapper {
   min-width: 5vw;
+  width: 40vw;
   max-width: 95vw;
   min-height: 10vh;
   max-height: 40vh;
@@ -99,17 +100,45 @@ form textarea.errors {
   border: none;
 }
 
-#new-wrapper form label > * {
+#new-wrapper form label label {
+  font-size: smaller;
+  color: var(--subdued);
+  margin-top: 0;
+}
+
+
+#new-wrapper form label.date {
+  min-width: 200px;
+}
+
+#new-wrapper form label.time {
+  width: min-content;
+}
+
+#new-wrapper form label .time input {
+  width: 100px;
+}
+
+
+#new-wrapper form .horizontal-align button {
+  display: block;
+}
+
+#new-wrapper form label>* {
   margin-top: 5px;
 }
 
-.horizontal-align {
+#new-wrapper .horizontal-align {
   display: flex;
-  gap: var(--section-gap);
-  width: 100%;
+  flex-direction: row;
+  column-gap: 10px;
 }
 
- /* Center of screen if .from-calendar */
+#new-wrapper .start-due-wrapper {
+  flex-wrap: wrap;
+}
+
+/* Center of screen if .from-calendar */
 #new-wrapper.from-calendar {
   display: flex;
   justify-content: center;
@@ -139,9 +168,4 @@ ul.error-list {
 .error-list li {
   list-style-type: square;
 
-}
-
-.datetime-picker {
-  display: flex;
-  column-gap: 10px;
 }
