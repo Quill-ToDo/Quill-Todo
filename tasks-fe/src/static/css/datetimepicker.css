@@ -1,7 +1,7 @@
 .tempus-dominus-widget {
-    padding: 15px;
+    /* padding: 15px; */
     border-radius: 15px;
-    box-shadow: 0px 0px 50px var(--darkest-dark);
+    /* box-shadow: 0px 10px 20px var(--darkest-dark); */
     /* background-color: var(--mid-dark); */
     background-color: var(--button);
     color: var(--lightest-font);

@@ -20,25 +20,6 @@ const errorsList = (errors) => {
 }
 
 const TimeDateLabel = (props) => {
-    useEffect(() => {
-        const options = {
-            display: {
-                components: {
-                    calendar: false,
-                    date: false, 
-                    month: false,
-                    year: false,
-                    decades: false, 
-                }
-            },
-            allowInputToggle: false
-        }
-        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), options);
-        return () => {
-            // cleanup
-        }
-    }, [])
-
     // label, date, time, dateChangeCallBack, timeChangeCallBack, requiredDate
     return <label>
         {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
@@ -71,6 +52,7 @@ const TimeDateLabel = (props) => {
                     <button 
                         id={`datetime-picker-${props.label}`} 
                         data-td-target-input={`#${props.label}-time`} 
+                        data-td-toggle={`#${props.label}-time`} 
                         className="btn no-shadow datepicker-toggle" 
                         type="button"
                         >
@@ -88,6 +70,8 @@ const TaskCreatePopup = (props) => {
     const [start, setStart] = useState({date: "", time: "", errors: []});
     const [due, setDue] = useState({date: "", time: "", errors: []});
     const tasks = useTaskStore();
+    const defaultDueTime = "11:59 PM";
+    const defaultStartTime = "12:00 AM";
     const dateFormat = "D";
     const timeFormat = "t";
     const dateTimeFormat = dateFormat + " " + timeFormat;
@@ -95,6 +79,24 @@ const TaskCreatePopup = (props) => {
     useEffect(() => {
         const firstInput = document.querySelector("input[name='title']");
         firstInput.focus();
+        const options = {
+            display: {
+                components: {
+                    calendar: false,
+                    date: false, 
+                    month: false,
+                    year: false,
+                    decades: false, 
+                }
+            },
+            allowInputToggle: false
+        }
+
+        console.log("new timepicker yay")
+        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), options);
+        return () => {
+            // cleanup
+        }
     }, [])
 
     const getSelector = (name, type) => {
@@ -135,11 +137,11 @@ const TaskCreatePopup = (props) => {
             const data = new FormData(event.target);
             // Don't input start time if there is no date
             if (start.date !== "") {
-                data.set("start", DateTime.fromFormat(`${start.date} ${start.time === "" ? "12:00 AM" : start.time}`, dateTimeFormat).toISO())
+                data.set("start", DateTime.fromFormat(`${start.date} ${start.time === "" ? defaultStartTime : start.time}`, dateTimeFormat).toISO())
             }
-            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? "11:59 PM" : due.time}`, dateTimeFormat).toISO())
+            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? defaultDueTime : due.time}`, dateTimeFormat).toISO())
             const converted = Object.fromEntries(data.entries());
-            console.log(`${due.date}  ${due.time === "" ? "11:59 PM" : due.time}`)
+            console.log(`${due.date}  ${due.time === "" ? defaultDueTime : due.time}`)
             console.log(converted)
             tasks.createTask(converted);
             props.closeFn();
@@ -150,16 +152,17 @@ const TaskCreatePopup = (props) => {
     }
 
     const validTime = (date, time, errors) => {
-        var parsedDate;
-        var parsedTime;
+        var parsedDate = DateTime.fromFormat(date, dateFormat);
+        var parsedTime = DateTime.fromFormat(time, timeFormat);
         var validTime = true;
-        parsedTime = DateTime.fromFormat(time, timeFormat);
-        parsedDate = DateTime.fromFormat(date, dateFormat);
+        
         if (parsedTime.invalid) {
             errors.push("Time is not of the format h:mm P");
+            console.log("here1")
             validTime = false;
         }
         if (parsedDate.invalid) {
+            console.log("here1")
             errors.push("Date is not of the format mm/dd/yyyy");
             validTime = false;
         }
@@ -189,7 +192,7 @@ const TaskCreatePopup = (props) => {
                 break;
             case 'start':
                 if (value1 !== "") {
-                    time = time === "" ? "12:00 AM" : time;
+                    time = time === "" ? defaultStartTime : time;
                     validTime(value1, time, errors);
                 }
                 break;
@@ -198,9 +201,10 @@ const TaskCreatePopup = (props) => {
                     errors.push("Due date is required")
                 }
                 else {
-                    time = time === "" ? "11:59 PM" : time;
+                    time = time === "" ? defaultDueTime : time;
+                    const startTime = start.time === "" ? defaultStartTime : start.time;
                     timeIsValid = validTime(value1, time, errors);
-                    if (start.value && timeIsValid && DateTime.fromFormat(start.date + " " + start.time, dateTimeFormat) >=  DateTime.fromFormat(value1 + " " + time)) {
+                    if (start.date && timeIsValid && DateTime.fromFormat(start.date + " " + startTime, dateTimeFormat) >=  DateTime.fromFormat(value1 + " " + time, dateTimeFormat)) {
                         errors.push('Due does not come after start')
                     }
                 }
@@ -253,7 +257,7 @@ const TaskCreatePopup = (props) => {
                         <TimeDateLabel 
                             label="start"
                             stateObj={start}
-                            timePlaceholder="12:00 AM"
+                            timePlaceholder={defaultStartTime}
                             requiredDate={false}
                             dateChangeCallback={e => setStart({date: e.target.value, time: start.time, errors: start.errors})}
                             timeChangeCallback={e => setStart({date: start.date, time: e.target.value, errors: start.errors})}
@@ -263,7 +267,7 @@ const TaskCreatePopup = (props) => {
                         <TimeDateLabel 
                             label="due"
                             stateObj={due}
-                            timePlaceholder="11:59 PM"
+                            timePlaceholder={defaultDueTime}
                             requiredDate={true}
                             dateChangeCallback={e => setDue({date: e.target.value, time: due.time, errors: due.errors})}
                             timeChangeCallback={e => setDue({date: due.date, time: e.target.value, errors: due.errors})}

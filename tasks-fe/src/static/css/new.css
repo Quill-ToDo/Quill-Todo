@@ -47,8 +47,8 @@ body {
 */
 
 #new-wrapper {
-  min-width: 5vw;
-  width: 40vw;
+  min-width: min-content;
+  width: 28vw;
   max-width: 95vw;
   min-height: 10vh;
   max-height: 40vh;
