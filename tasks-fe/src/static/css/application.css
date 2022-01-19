@@ -18,19 +18,20 @@
  */
 
 :root {
-  --bg: #232323;
+  --bg: #242425;
   --lightest-font: #cccbcb;
   --light-font: #9c9c9c;
-  --mid-font: #5e5e5e;
-  --subdued: #494949;
-  --dark-font: #2c2c2c;
+  --mid-font: #757575;
+  --subdued: #474747;
+  --dark-font: #3f3f3f;
   --mid-dark: #191919;
-  --darkest-dark: #111111;
+  --darkest-dark: #0f0f0f;
   --notice-bg: #7c7c7c;
+  --overdue: #d84f4f;
   --alert-bg: #990707;
   --button-primary: #273fac;
   --success: #1eac1e;
-  --light-select: rgba(146, 146, 146, 0.151);
+  --light-select: rgba(146, 146, 146, 0.089);
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
@@ -42,8 +43,8 @@
   --button-outline: #222222;
 
   --calendar-h1-size: 35px;
-  --p-size: 20px;
-  --smaller-p-size: 15px;
+  --p-size: 21px;
+  --smaller-p-size: 17px;
   --h2-size: 40px;
   --h2-padding: 15px;
   --h3-size: 30px;
@@ -119,6 +120,7 @@ body {
 section .mid-section,
 section.mid-section {
   background-color: var(--mid-dark);
+  background: radial-gradient(at 30% 10%, rgba(25, 25, 25, 1) 30%, rgb(23, 23, 23) 90%);
   border-radius: var(--box-corner-rounding);
   padding: var(--inner-box-padding);
   overflow: hidden;
@@ -164,7 +166,7 @@ form label {
 
 p {
   font-family: "Quicksand", sans-serif;
-  font-weight: 500;
+  font-weight: 600;
   font-size: var(--p-size);
   margin: 0;
   color: var(--light-font);
