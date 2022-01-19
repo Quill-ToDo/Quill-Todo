@@ -164,7 +164,7 @@ form label {
 
 p {
   font-family: "Quicksand", sans-serif;
-  font-weight: 600;
+  font-weight: 500;
   font-size: var(--p-size);
   margin: 0;
   color: var(--light-font);
@@ -226,7 +226,7 @@ button:focus {
   opacity: 1;
   font-family: "Azeret Mono", monospace;
   color: var(--light-font);
-  font-weight: 600;
+  font-weight: 00;
   font-size: var(--p-size);
   background-color: var(--button);
   box-shadow: 3px 3px var(--button-outline);
@@ -332,7 +332,7 @@ textarea {
   border: none;
   border-radius: 10px;
   font-family: "Quicksand", sans-serif;
-  font-weight: 600;
+  font-weight: 500;
   font-size: vr(--p-size);
   color: var(--lightest-font);
 }
@@ -403,7 +403,7 @@ dialog {
   font-size: 18px;
   font-family: "Quicksand", sans-serif;
   color: var(--lightest-font);
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .alert-pop-up.notice {

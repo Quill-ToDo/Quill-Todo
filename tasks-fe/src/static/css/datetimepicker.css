@@ -10,6 +10,16 @@
     font-size: 17px;
     transform: translateX(-40px);
     transition: color .1s;
+    width: 15rem;
+}
+
+.tempus-dominus-widget .time-container {
+    margin-bottom: 0;
+}
+
+.tempus-dominus-widget button {
+    background-color: var(--button-outline);
+    font-family: "Quicksand", sans-serif;
 }
 
 /* Darker dates */

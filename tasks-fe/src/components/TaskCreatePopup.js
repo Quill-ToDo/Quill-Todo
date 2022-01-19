@@ -1,10 +1,12 @@
-import { Fragment, useState, useEffect } from "react";
+import { Fragment, useState, useEffect, useReducer } from "react";
 import { DateTime } from "luxon";
 import pluralize from 'pluralize';
 import '../static/css/new.css';
 import '../static/css/datetimepicker.css';
 import { useTaskStore } from "../store/StoreContext";
-import {TempusDominus} from "@eonasdan/tempus-dominus";
+import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
+import { createPopper } from "@popperjs/core";
+// import Actions from "@eonasdan/tempus-dominus/types/actions";
 
 const errorsList = (errors) => {
     return <Fragment>
@@ -32,7 +34,7 @@ const TimeDateLabel = (props) => {
                     className={props.stateObj.errors.length ? "errors" : ""}
                     onChange={props.dateChangeCallback}
                     onBlur={props.dateBlurCallback}
-                    value={props.stateObj.value}
+                    value={props.stateObj.date}
                     required={props.requiredDate}
                     />
                 </label>
@@ -46,7 +48,7 @@ const TimeDateLabel = (props) => {
                         className={props.stateObj.errors.length ? "errors" : ""}
                         onChange={props.timeChangeCallback}
                         onBlur={props.timeBlurCallback}
-                        value={props.stateObj.value}
+                        value={props.stateObj.time}
                         placeholder={props.timePlaceholder}
                     />
                     <button 
@@ -64,11 +66,24 @@ const TimeDateLabel = (props) => {
     </label>
 }
 
+const dateReducer = (state, action) => {
+    switch (action.type) {
+        case 'setErrors':
+            return {...state, errors: action.data};
+        case 'setDate':
+            return {...state, date: action.data};
+        case 'setTime':
+            return {...state, time: action.data};
+        default:
+            throw new Error();
+    }
+}
+
 const TaskCreatePopup = (props) => {
     const [title, setTitle] = useState({value: "", errors: []});
     const [desc, setDesc] = useState({value: "", errors: []});
-    const [start, setStart] = useState({date: "", time: "", errors: []});
-    const [due, setDue] = useState({date: "", time: "", errors: []});
+    const [start, dispatchStart] = useReducer(dateReducer, {date: "", time: "", errors: []});
+    const [due, dispatchDue] = useReducer(dateReducer, {date: "", time: "", errors: []});
     const tasks = useTaskStore();
     const defaultDueTime = "11:59 PM";
     const defaultStartTime = "12:00 AM";
@@ -89,13 +104,28 @@ const TaskCreatePopup = (props) => {
                     decades: false, 
                 }
             },
-            allowInputToggle: false
+            container: document.getElementById("root")
         }
+        var startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
+        const subscriptions = startPicker.subscribe(
+            [ Namespace.events.change, Namespace.events.show],
+            [
+                (e) => {
+                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(timeFormat);
+                    dispatchStart({type:"setTime", data: time});
+                },
+                () => {
+                    const picker = document.querySelector(".tempus-dominus-widget[data-popper-placement='bottom-start']");
+                    console.log(picker)
+                    picker.setAttribute("data-popper-placement", "bottom")
+                }
+            ]
+        );
 
-        console.log("new timepicker yay")
-        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), options);
         return () => {
-            // cleanup
+            subscriptions.unsubscribe();
+            console.log("disposing")
+            startPicker.dispose();
         }
     }, [])
 
@@ -123,13 +153,13 @@ const TaskCreatePopup = (props) => {
         const startErrors = getErrors('start', start.date, start.time);
         if (startErrors.length !== 0) {
             valid = false;
-            setStart({date: start.date, time: start.time, errors: startErrors});
+            dispatchStart({type: "setErrors", data: startErrors});
             if (!focusEle) {focusEle = document.querySelector(getSelector('start date', 'input'))}
         }
         const dueErrors = getErrors('due', due.date, due.time);
         if (dueErrors.length !== 0) {
             valid = false;
-            setDue({date: due.date, time: due.time, errors: dueErrors});
+            dispatchDue({type: "setErrors", data: dueErrors});
             if (!focusEle) {focusEle = document.querySelector(getSelector('due date', 'input'))}
         }
 
@@ -158,11 +188,9 @@ const TaskCreatePopup = (props) => {
         
         if (parsedTime.invalid) {
             errors.push("Time is not of the format h:mm P");
-            console.log("here1")
             validTime = false;
         }
         if (parsedDate.invalid) {
-            console.log("here1")
             errors.push("Date is not of the format mm/dd/yyyy");
             validTime = false;
         }
@@ -216,8 +244,8 @@ const TaskCreatePopup = (props) => {
         return errors;
     }
 
-    const startBlur = () => setStart({date: start.date, time: start.time, errors: getErrors("start", start.date, start.time)});
-    const dueBlur = () => setDue({date: due.date, time: due.time, errors: getErrors("due", due.date, due.time)});
+    const startBlur = () => dispatchStart({type: "setErrors", data: getErrors("start", start.date, start.time)});
+    const dueBlur = () => dispatchDue({type: "setErrors", data: getErrors("due", due.date, due.time)});
 
     return (
         <div id="new-wrapper">
@@ -259,8 +287,8 @@ const TaskCreatePopup = (props) => {
                             stateObj={start}
                             timePlaceholder={defaultStartTime}
                             requiredDate={false}
-                            dateChangeCallback={e => setStart({date: e.target.value, time: start.time, errors: start.errors})}
-                            timeChangeCallback={e => setStart({date: start.date, time: e.target.value, errors: start.errors})}
+                            dateChangeCallback={e => dispatchStart({type: "setDate", data: e.target.value})}
+                            timeChangeCallback={e => dispatchStart({type: "setTime", data: e.target.value})}
                             dateBlurCallback={startBlur}
                             timeBlurCallback={startBlur}
                         />
@@ -269,8 +297,8 @@ const TaskCreatePopup = (props) => {
                             stateObj={due}
                             timePlaceholder={defaultDueTime}
                             requiredDate={true}
-                            dateChangeCallback={e => setDue({date: e.target.value, time: due.time, errors: due.errors})}
-                            timeChangeCallback={e => setDue({date: due.date, time: e.target.value, errors: due.errors})}
+                            dateChangeCallback={e => dispatchDue({type:"setDate", data: e.target.value})}
+                            timeChangeCallback={e => dispatchDue({type: "setTime", data: e.target.value})}
                             dateBlurCallback={dueBlur}
                             timeBlurCallback={dueBlur}
                         />
