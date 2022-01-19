@@ -5,8 +5,7 @@ import '../static/css/new.css';
 import '../static/css/datetimepicker.css';
 import { useTaskStore } from "../store/StoreContext";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
-import { createPopper } from "@popperjs/core";
-// import Actions from "@eonasdan/tempus-dominus/types/actions";
+
 
 const errorsList = (errors) => {
     return <Fragment>
@@ -106,26 +105,32 @@ const TaskCreatePopup = (props) => {
             },
             container: document.getElementById("root")
         }
-        var startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
-        const subscriptions = startPicker.subscribe(
-            [ Namespace.events.change, Namespace.events.show],
+        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
+        const startSubscriptions = startPicker.subscribe(
+            [ Namespace.events.change],
             [
                 (e) => {
                     const time = DateTime.fromMillis(e.date.getTime()).toFormat(timeFormat);
                     dispatchStart({type:"setTime", data: time});
-                },
-                () => {
-                    const picker = document.querySelector(".tempus-dominus-widget[data-popper-placement='bottom-start']");
-                    console.log(picker)
-                    picker.setAttribute("data-popper-placement", "bottom")
+                }
+            ]
+        );
+        const duePicker = new TempusDominus(document.getElementById('datetime-picker-due'), {...options, defaultDate: new Date (DateTime.now().set({hour: 23, minute: 59, second: 59}).toMillis())});
+        const dueSubscriptions = duePicker.subscribe(
+            [ Namespace.events.change],
+            [
+                (e) => {
+                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(timeFormat);
+                    dispatchDue({type:"setTime", data: time});
                 }
             ]
         );
 
         return () => {
-            subscriptions.unsubscribe();
-            console.log("disposing")
+            startSubscriptions.unsubscribe();
             startPicker.dispose();
+            dueSubscriptions.unsubscribe();
+            duePicker.dispose();
         }
     }, [])
 
@@ -169,9 +174,12 @@ const TaskCreatePopup = (props) => {
             if (start.date !== "") {
                 data.set("start", DateTime.fromFormat(`${start.date} ${start.time === "" ? defaultStartTime : start.time}`, dateTimeFormat).toISO())
             }
-            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? defaultDueTime : due.time}`, dateTimeFormat).toISO())
+            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? defaultDueTime : due.time}`, dateTimeFormat).toISO());
+            data.delete("due date");
+            data.delete("due time");
+            data.delete("start date");
+            data.delete("start time");
             const converted = Object.fromEntries(data.entries());
-            console.log(`${due.date}  ${due.time === "" ? defaultDueTime : due.time}`)
             console.log(converted)
             tasks.createTask(converted);
             props.closeFn();

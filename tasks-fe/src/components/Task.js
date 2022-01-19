@@ -79,7 +79,7 @@ const Task = observer((props) => {
                     <div className="date-wrapper">
                         <div>
                             <h3>Start</h3>
-                            {task.start !== null ? 
+                            {task.start ? 
                                 dateTimeWrapper(task, task.start, "start", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
@@ -87,7 +87,7 @@ const Task = observer((props) => {
                         </div>
                         <div> 
                             <h3>Due</h3>
-                            {task.due !== null ? 
+                            {task.due ? 
                                 dateTimeWrapper(task, task.due, "due", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
