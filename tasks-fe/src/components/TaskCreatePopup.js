@@ -56,6 +56,7 @@ const TimeDateLabel = (props) => {
                         data-td-toggle={`#${props.label}-time`} 
                         className="btn no-shadow datepicker-toggle" 
                         type="button"
+                        title="Choose time"
                         >
                         <i className="far fa-clock fa-fw"></i>
                     </button>
@@ -257,9 +258,9 @@ const TaskCreatePopup = (props) => {
 
     return (
         <div id="new-wrapper">
-            <section className="mid-section">
+            <section className="mid-section" aria-labelledby="popup-title">
                 <div className="title-button-wrapper">
-                    <h2>New Task</h2>
+                    <h2 id="popup-title">New Task</h2>
                     <div className="aligned-buttons">
                         <button className="btn btn-red" title="Close" onClick={props.closeFn}>
                             <i className="fas fa-times fa-fw fa-2x"></i>

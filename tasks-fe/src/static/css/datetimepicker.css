@@ -42,6 +42,10 @@
     color: var(--button-outline);
 }
 
+.tempus-dominus-widget .time-container-clock div {
+    transition: .3s background;
+}
+
 .tempus-dominus-widget .date-container-decades div:not(.no-highlight):hover,
 .tempus-dominus-widget .date-container-years div:not(.no-highlight):hover,
 .tempus-dominus-widget .date-container-months div:not(.no-highlight):hover,
@@ -51,7 +55,7 @@
 .tempus-dominus-widget .time-container-minute div:not(.no-highlight):hover,
 .tempus-dominus-widget .time-container-second div:not(.no-highlight):hover,
 .tempus-dominus-widget .toolbar div:hover {
-    background: var(--subdued);
+    background: var(--light-select);
 }
 
 .tempus-dominus-widget .date-container-days .dow {

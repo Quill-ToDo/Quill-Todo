@@ -13,7 +13,7 @@ const Home = observer(() => {
     const [showNewTaskPopup, setShowNewTaskPopup] = useState(false);
 
     return ( 
-        <div id="home-wrapper">
+        <div id="home-wrapper" data-testid="home">
             { showNewTaskPopup && !taskStore.focusedTask ? <TaskCreatePopup closeFn={() => setShowNewTaskPopup(!showNewTaskPopup)}/> : null }
             { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
