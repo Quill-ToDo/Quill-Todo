@@ -6,5 +6,4 @@ CREATE USER quill_user WITH ENCRYPTED PASSWORD 'PASS_IN_ENV';
 ALTER ROLE quill_user SET client_encoding TO 'utf8';
 ALTER ROLE quill_user SET default_transaction_isolation TO 'read committed';
 ALTER ROLE quill_user SET timezone TO 'UTC';
-GRANT ALL PRIVILEGES ON DATABASE quill_db TO postgres
--- Idk if this should be postgres or quill_user
+GRANT ALL PRIVILEGES ON DATABASE quill_db TO quill_user
