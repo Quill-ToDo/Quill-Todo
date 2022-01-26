@@ -8,7 +8,8 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 - [Setting up the development environment](#setting-up-the-development-environment)
   - [Back-end](#back-end)
-    - [Back-end Notes](#back-end-notes)
+    - [Manual Back-End Init](#manual-back-end-init)
+    - [Back-End Notes](#back-end-notes)
   - [Front-end](#front-end)
     - [FE Notes](#fe-notes)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
