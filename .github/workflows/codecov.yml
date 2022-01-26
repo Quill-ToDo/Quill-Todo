@@ -1,12 +1,12 @@
-name: Coverage
 on: push
+name: Coverage
 jobs:
-  genCoverage: 
+  generateCoverage:
     name: Generate coverage
-    - uses: actions/checkout@master
-    - run: cd ./tasks-fe && jest --ci --coverage && codecov
-    jobs:
-      uploadCoverage:
-        name: Upload coverage to Codecov
-        - uses: codecov/codecov-action@v2
-
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+      - run: cd ./tasks-fe && jest --ci --coverage && codecov
+  uploadCoverage:
+    name: Upload coverage to Codecov
+    - uses: codecov/codecov-action@v2
