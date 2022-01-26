@@ -7,7 +7,5 @@ jobs:
     steps:
       - uses: actions/checkout@master
       - run: cd ./tasks-fe && jest --ci --coverage && codecov
-  jobs:
-    uploadCoverage:
       name: Upload coverage to Codecov
-      - uses: codecov/codecov-action@v2
+        - uses: codecov/codecov-action@v2
