@@ -26,4 +26,5 @@ jobs:
         verbose: true
         root_dir: ./tasks-fe/
         directory: ./coverage/
+        files: ./clover.xml,./coverage-final.json
         flags: FE
