@@ -1,4 +1,11 @@
+# Secrets
 .env
+
+# Node modules
 node_modules
-tasks/__pycache__
+tasks-fe/node_modules
+
+# Caches
+todo/__pycache__
+tasks/pycache
 tasks/migrations/__pycache__

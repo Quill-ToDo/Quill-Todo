@@ -2,8 +2,19 @@
 
 If there are any issues with these instructions or if anything is unclear, please let us know in Slack!
 
-<!-- START doctoc -->
-<!-- END doctoc -->
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**
+
+- [Setting up the development environment](#setting-up-the-development-environment)
+  - [Back-end](#back-end)
+    - [Back-end Notes](#back-end-notes)
+  - [Front-end](#front-end)
+    - [FE Notes](#fe-notes)
+- [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
+  - [To work on a feature](#to-work-on-a-feature)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 ## Setting up the development environment
 
