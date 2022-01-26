@@ -19,6 +19,7 @@ jobs:
   uploadCoverage:
     name: Upload coverage to Codecov
     runs-on: ubuntu-latest
+    environment: dev
     needs: generateCoverage
     steps:
       - uses: codecov/codecov-action@v2
@@ -26,5 +27,5 @@ jobs:
           fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-          directory: tasks-fe/coverage/
+          directory: ./tasks-fe/coverage/
           flags: FE
