@@ -23,6 +23,8 @@ jobs:
     steps:
       - uses: codecov/codecov-action@v2
         with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          verbose: true
           working-directory: tasks/fe
           directory: coverage/
           flags: FE
