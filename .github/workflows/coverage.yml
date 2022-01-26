@@ -1,5 +1,5 @@
 name: Coverage
-on: pull_request
+on: push
 jobs:
   generateCoverage:
     name: Generate coverage
@@ -9,6 +9,7 @@ jobs:
       - run: cd ./tasks-fe && jest --ci --coverage && codecov
   uploadCoverage:
     name: Upload coverage to Codecov
+    runs-on: ubuntu-latest
     needs: generateCoverage
     steps:
       - uses: codecov/codecov-action@v2
