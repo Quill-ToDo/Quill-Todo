@@ -88,7 +88,7 @@ DATABASES = {
         'ENGINE' : 'django.db.backends.postgresql_psycopg2',
         'NAME' : 'quill_db',
         'USER' : 'quill_user',
-        'PASSWORD' : os.environ.get('DB_PASSWORD'),
+        'PASSWORD' : config('DB_PASSWORD'),
         'HOST' : 'localhost',
         'PORT' : '5432',
     }

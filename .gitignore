@@ -1,2 +1,5 @@
-.env
 node_modules
+tasks-fe/node_modules
+todo/__pycache__
+tasks/pycache
+.env
