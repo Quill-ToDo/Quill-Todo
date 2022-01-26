@@ -3,7 +3,8 @@
 
 name: Tests
 on:
-  [ push ]
+  push:
+    branches: [ main ]
   pull_request:
     branches: [ main ]
 jobs:
@@ -13,17 +14,14 @@ jobs:
       matrix:
         node-version: [16.13.1]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-  runTests:
-    name: Run tests
-    needs: build
     steps:
-      - uses: actions/checkout@v2
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v2
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
-          cache-dependency-path: 'tasks-fe/package-lock.json'
-      - run: cd ./tasks-fe && npm install
-      - run: cd ./tasks-fe && npm run build --if-present
-      - run: cd ./tasks-fe && npm test
+    - uses: actions/checkout@v2
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v2
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: 'tasks-fe/package-lock.json'
+    - run: cd ./tasks-fe && npm install
+    - run: cd ./tasks-fe && npm run build --if-present
+    - run: cd ./tasks-fe && npm test
