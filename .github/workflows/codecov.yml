@@ -1,11 +1,13 @@
 name: Coverage
-on: [ push ]
+on: 
+  [ push ]
 jobs:
   genCoverage: 
     name: Generate coverage
     - uses: actions/checkout@master
     - run: cd ./tasks-fe && jest --ci --coverage && codecov
-  uploadCoverage:
-    name: Upload coverage to Codecov
-    - uses: codecov/codecov-action@v2
+    jobs:
+      uploadCoverage:
+        name: Upload coverage to Codecov
+        - uses: codecov/codecov-action@v2
 
