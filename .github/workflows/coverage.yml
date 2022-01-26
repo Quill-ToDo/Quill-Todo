@@ -23,8 +23,8 @@ jobs:
     steps:
       - uses: codecov/codecov-action@v2
         with:
+          fail_ci_if_error: true
           token: ${{ secrets.CODECOV_TOKEN }}
           verbose: true
-          working-directory: ./tasks-fe/
-          directory: ./coverage/
+          directory: tasks-fe/coverage/
           flags: FE
