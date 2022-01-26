@@ -1,9 +1,10 @@
 name: Coverage
 on: push
 jobs:
-  generateCoverage:
+  run:
     name: Generate coverage
     runs-on: ubuntu-latest
+    environment: dev
     strategy:
       matrix:
         node-version: [16.13.1]
@@ -16,17 +17,13 @@ jobs:
         node-version: ${{ matrix.node-version }}
     - run: cd ./tasks-fe && npm install
     - run: cd ./tasks-fe && npm test -- --coverage --reporter=lcov
-  uploadCoverage:
-    name: Upload coverage to Codecov
-    runs-on: ubuntu-latest
-    environment: dev
-    needs: generateCoverage
-    steps:
-      - uses: codecov/codecov-action@v2
-        with:
-          fail_ci_if_error: true
-          token: ${{ secrets.CODECOV_TOKEN }}
-          verbose: true
-          root_dir: ./tasks-fe/
-          directory: ./coverage/
-          flags: FE
+    - run: cd ./tasks-fe && ls
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: true
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true
+        root_dir: ./tasks-fe/
+        directory: ./coverage/
+        flags: FE
