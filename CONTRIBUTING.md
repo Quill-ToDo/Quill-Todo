@@ -7,17 +7,17 @@ If there are any issues with these instructions or if anything is unclear, pleas
 **Table of Contents**
 
 - [Setting up the development environment](#setting-up-the-development-environment)
-  - [Back-end](#back-end)
+  - [Back-End](#back-end)
     - [Manual Back-End Init](#manual-back-end-init)
     - [Back-End Notes](#back-end-notes)
   - [Front-end](#front-end)
-    - [FE Notes](#fe-notes)
+    - [Front-End Notes](#front-end-notes)
   - [Testing](#testing)
     - [Front-end Testing](#front-end-testing)
       - [Mocking Network Calls](#mocking-network-calls)
       - [Mocking time](#mocking-time)
       - [Useful testing resources](#useful-testing-resources)
-    - [Back-end Testing](#back-end-testing)
+    - [Back-End Testing](#back-end-testing)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
   - [To work on a feature](#to-work-on-a-feature)
 
