@@ -24,6 +24,5 @@ jobs:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        directory: ./tasks-fe/coverage/
-        files: ./coverage-final.json
+        files: ./tasks-fe/coverage/coverage-final.json
         flags: FE
