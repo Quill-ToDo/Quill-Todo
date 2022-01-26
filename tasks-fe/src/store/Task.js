@@ -28,6 +28,7 @@ export class Task {
                     .catch(error => {
                         this.store.rootStore.alertStore.add("failure", 
                             "Task could not be updated - " + error.toString());
+                        // Revert changes
                         this.store.loadTasks();
                     });
                 }
@@ -37,11 +38,13 @@ export class Task {
     delete() {
         this.store.tasks.remove(this);
         this.store.API.deleteTask(this.pk)
-        .then(this.store.rootStore.alertStore.add("notice", "Task deleted"))
+        .then(() => {
+            this.store.rootStore.alertStore.add("notice", "Task deleted")
+        })
         .catch(error => {
             this.store.rootStore.alertStore.add("failure", 
                 "Task could not be deleted - " + error.toString());
-            this.store.tasks.push(this);
+            this.store.add(this);
         });
     }
 

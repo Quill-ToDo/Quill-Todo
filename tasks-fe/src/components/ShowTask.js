@@ -1,6 +1,8 @@
-import React, { Fragment } from "react";
-import bin from "../static/images/bin.png" 
-import edit from "../static/images/editing.png"
+import React, {
+    useEffect,
+    useCallback,
+    useRef
+} from "react";
 import Task from "./Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
@@ -11,26 +13,65 @@ function handleEdit (alerts) {
 }
 
 const ShowTask = observer((props) => {
+    const previouslyFocused = useRef(null);
+    const filterEle = useRef(null);
     const task = props.task;
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
+    const closeFn = useCallback(
+        () => {
+            taskStore.removeFocus();
+        },
+        [taskStore],
+    )
+    useEffect(() => {
+        previouslyFocused.current = document.activeElement;
+        filterEle.current = document.getElementsByClassName("filter")[0];
+        document.getElementById("home-wrapper").tabIndex = -1;
+        document.getElementById("show-checkbox-"+task.pk).focus();
+        window.addEventListener("keydown", (e) => {
+            switch (e.key) {
+                case "Escape":
+                    closeFn();
+                    break;
+                case "Esc":
+                    closeFn();
+                    break;
+                default:
+                    return;
+            }
+        });
 
+        return () => {
+            previouslyFocused.current.focus();
+        }
+    }, [closeFn, task.pk])
 
     const buttons = <div className="aligned-buttons">
-                        <button id="btn-delete" className="btn" onClick={() => {
+                        <button id="btn-delete" className="btn" title="Delete task" onClick={() => {
                             task.delete();
-                            taskStore.removeFocus();
+                            closeFn();
                             }}>
-                            <img src={bin} alt="Trash icon for delete"></img>
+                            {/* <img src={bin} alt="Trash icon for delete"></img> */}
+                            <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
-                        <button id="btn-edit" className="btn" onClick={()=>handleEdit(alertStore)}>
-                            <img src={edit} alt="Pencil and paper icon for edit"></img>
+                        <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit(alertStore)}>
+                            <i className="far fa-edit fa-fw fa"></i>
+                        </button>
+                        <button className="btn btn-red" title="Close" onClick={closeFn}>
+                            <i className="fas fa-times fa-fw fa-2x"></i>
                         </button>
                     </div>;
 
     return (
-        <Fragment>
-            <section className="mid-section">
+        <section id="show-wrapper" >
+            <h2 id="task-show-title">Task Details</h2>
+            <section 
+                className="mid-section" 
+                role="dialog"
+                aria-labelledby="task-show-title"
+                aria-describedby={"task-title-" + task.pk}
+            >
                 <Task 
                     data={task} 
                     basicVersion={false} 
@@ -38,9 +79,19 @@ const ShowTask = observer((props) => {
                     type="due"
                 />
             </section>
-            <div className="filter" onClick={() => {taskStore.removeFocus()}}>
+            <div 
+                className="filter" 
+                data-testid="show-filter"
+                onClick={closeFn}
+                tabIndex={0}
+                onKeyDown={(e) => {
+                    if ((e.key === " " || e.key === "Enter") && e.target === filterEle.current) {
+                        closeFn();
+                    }
+                }}
+            >
             </div>
-        </Fragment>
+        </section>
     );
 })
 

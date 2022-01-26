@@ -10,11 +10,11 @@
   
 }
 
-#list-wrapper section {
+#list-wrapper > section {
   margin: var(--section-gap) 0 0 var(--section-gap);
 }
 
-#list-wrapper section:last-child {
+#list-wrapper > section:last-child {
   margin-bottom: var(--section-gap);
 }
 
@@ -39,6 +39,10 @@
   padding: var(--inner-box-padding);
   border-radius: var(--box-corner-rounding);
   margin-top: var(--section-gap);
+}
+
+#list-wrapper .dark-section button:focus {
+  background: var(--light-select);
 }
 
 .section-collapsible {
@@ -87,20 +91,20 @@ li:not(:last-child) {
   width: 100%;
 }
 
-.title-date-wrapper button p,
-#show-wrapper .title-wrapper button p {
+.title-date-wrapper p,
+#show-wrapper .title-wrapper p {
   color: var(--light-font);
   text-align: left;
 }
 
 #list-wrapper .title-date-wrapper {
-    transition: background-color .5s, color .2s;
-    border-radius: 12px;
-    padding: 8px 8px 8px 8px;
+  transition: background-color .2s, color .2s;
+  border-radius: 12px;
+  padding: 8px 8px 8px 8px;
 }
 
 #list-wrapper .title-date-wrapper:hover {
-    background-color: rgba(146, 146, 146, 0.05);
+    background-color: var(--light-select);
 }
 
 
@@ -119,13 +123,13 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.title-date-wrapper button p.title[data-complete="true"],
-#show-wrapper .title-wrapper button p.title[data-complete="true"] {
+.title-date-wrapper p.title.complete,
+#show-wrapper .title-wrapper p.title.complete {
   color: var(--subdued);
   text-decoration: line-through 2px;
 }
 
-#show-wrapper .title-wrapper button p.title[data-complete="true"] {
+#show-wrapper .title-wrapper p.title.complete {
   text-decoration: line-through 4px;
 }
 
@@ -133,9 +137,8 @@ p.time {
   display: inline-block;
   position: relative;
   padding-left: 35px;
-  height: 21px;
+  height: 19px;
   cursor: pointer;
-  font-size: 22px;
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
@@ -150,74 +153,47 @@ p.time {
   left: 0;
   cursor: pointer;
   margin: 0;
-  height: calc(var(--check-box-size) + 3px);
-  width: calc(var(--check-box-size) + 3px);
+  height: var(--check-box-size);
+  width: var(--check-box-size);
+  border: none;
 }
 
 .checkmark {
   position: absolute;
   top: 0;
   left: 0;
-  height: var(--check-box-size);
-  width: var(--check-box-size);
-  border: 2px solid var(--subdued);
+  /* Changing line height helps adjust bga */
+  line-height: .8;
+  width: calc(var(--check-box-size)-2);
+  font-size: var(--check-box-size);
+  color: var(--subdued);
 }
+
+.check-box-wrapper input:focus ~ .checkmark {
+  background-color: var(--light-select);
+}  
 
 .checkmark.round {
   border-radius: 100%;
-  height: calc(var(--check-box-size) + 2px);
-  width: calc(var(--check-box-size) + 2px);
-}
-
-/* Create the checkmark/indicator (hidden when not checked) */
-.checkmark::after {
-  content: "";
-  position: absolute;
-  display: none;
-}
-
-/* Show the checkmark when checked */
-.check-box-wrapper input[data-complete="true"] ~ .checkmark::after {
-  display: block;
-  border-color: var(--subdued);
-}
-
-/* Style the checkmark/indicator */
-.check-box-wrapper .checkmark::after {
-  left: 5px;
-  top: 0px;
-  width: 5px;
-  height: 10px;
-  border: solid var(--subdued);
-  border-width: 0 3px 3px 0;
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-}
-
-.check-box-wrapper .checkmark.round::after {
-  top: 1px;
-  left: 6px;
+  height: calc(var(--check-box-size)-1);
+  width: calc(var(--check-box-size)-1);
 }
 
 .expandable-section-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  padding: 0;
+  border-radius: 12px;
   width: fit-content;
 }
 
-.expand-symbol {
-  height: 11px;
-  width: 11px;
-  border: 3px solid var(--mid-font);
-  border-top: none;
-  border-left: none;
-  /* rotate: 45deg; */
-  -webkit-transform: rotate(45deg);
-  -ms-transform: rotate(45deg);
-  transform: rotate(45deg);
-  /* transition: rotate 0.1s ease-in-out; */
+.expandable-section-header .btn {
+  padding: 2px;  
+}
+
+.expandable-section-header .btn i {
+  font-size: 23px;
 }
 
 .date-time-wrapper {

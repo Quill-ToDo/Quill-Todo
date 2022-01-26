@@ -1,10 +1,7 @@
-import React, { useState } from "react";
-import logout from '../static/images/logout.png';
-import add from '../static/images/add.png';
+import React from "react";
 
 import List from './List'
 import ShowTask from './ShowTask';
-import MenuButton from "./MenuButton";
 import { observer } from "mobx-react-lite";
 import { useTaskStore, useAlertStore } from "../store/StoreContext";
 
@@ -12,23 +9,27 @@ import { useTaskStore, useAlertStore } from "../store/StoreContext";
 const Home = observer(() => {
     const taskStore = useTaskStore();
     const alertStore = useAlertStore();
+    const showNewPopUp = false;
 
     return ( 
         <div id="home-wrapper">
-            <div id="new-wrapper"></div>
-            <div id="show-wrapper">{ taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }</div>
-            <div id="left-menu" className="menu">
-                <MenuButton src={add} alt="Plus icon for add new task" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented adding new tasks.")}}/>
-                <MenuButton src={logout} alt="Power off icon for log out" onClick={() => {alertStore.add("notice", "Sorry, we haven't implemented users or logging out.")}}/>
-            </div>
-            <ul>
-            </ul>
+            { showNewPopUp ? < div id="new-wrapper"></div> : null }
+            { taskStore.focusedTask ? <ShowTask task={taskStore.focusedTask} /> : null }
+            <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
+            <button role="menuitem" className="btn" title="Add task" onClick={() => alertStore.add("failure", "We haven't implemented adding new tasks.")}>
+                    <i className = "fas fa-plus fa-fw"> </i>
+                </button>
+                <button role="menuitem" className="btn" title="Log out" onClick={() => alertStore.add("notice", "We haven't implemented users or logging out.")}>
+                    <i className="fas fa-power-off fa-fw"></i>
+                </button>
+            </menu>
             <List store={taskStore} />
-            <div id="slider"></div>
-            <div id="calendar-wrapper">
+            <div>
+                <hr tabIndex={0} id="slider" aria-orientation="vertical"/>
             </div>
+            <section id="calendar-wrapper"></section>
         </div>
     );
 })
 
-export {Home};
+export default Home;

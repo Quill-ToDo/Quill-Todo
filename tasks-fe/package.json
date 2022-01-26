@@ -3,9 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-dom": "^5.16.1",
-    "@testing-library/react": "^12.1.2",
-    "@testing-library/user-event": "^13.5.0",
+    "axios": "^0.24.0",
     "luxon": "^2.3.0",
     "mobx": "^6.3.10",
     "mobx-react-lite": "^3.2.3",
@@ -14,6 +12,13 @@
     "react-scripts": "^5.0.0",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.2"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.1",
+    "@testing-library/react": "^12.1.2",
+    "@testing-library/user-event": "^14.0.0-beta.7",
+    "mini-css-extract-plugin": "2.4.5",
+    "msw": "^0.36.3"
   },
   "scripts": {
     "start": "react-scripts start",
