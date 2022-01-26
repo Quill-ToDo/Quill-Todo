@@ -1,0 +1,11 @@
+on: [ push ]
+name: Coverage
+  jobs: 
+    name: Generate coverage
+    - uses: actions/checkout@master
+    - run: cd ./tasks-fe && jest --ci --coverage && codecov
+    name: Upload coverage to Codecov
+    - uses: codecov/codecov-action@v2
+    with:
+    directory: ./tasks-fe
+

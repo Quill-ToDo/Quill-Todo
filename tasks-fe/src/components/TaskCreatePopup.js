@@ -209,7 +209,6 @@ const TaskCreatePopup = (props) => {
     const getErrors = (name, value1, time = null) => {
         // Time format until we get parsing done: 8/6/2014 1:07 PM
         // Assume time is EOD if blank
-        var time;
 
         const errors = [];
         var timeIsValid

@@ -63,7 +63,7 @@ it("should should a task-creation popup when users click the add button", async 
     await screen.findByRole("region", {name: "New Task"})
 })
 
-it.only("should allow the user to create a new task", async () => {
+it.skip("should allow the user to create a new task", async () => {
     render(<App />);
     const user = userEvent.setup();
     const addBtn = await screen.findByRole('menuitem', {name: "Add task"});
@@ -79,6 +79,7 @@ it.only("should allow the user to create a new task", async () => {
     expect(title).toHaveTextContent("Task title");
 
 })
+
 it.todo("should show error message if the user tries to create task without title")
 it.todo("should show error message if the user tries to create task without due date")
 it.todo("should show error message if the user tries to create task with start after due date")
