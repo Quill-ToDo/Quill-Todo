@@ -4,8 +4,8 @@ jobs:
   generateCoverage:
     name: Generate coverage
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - run: cd ./tasks-fe && jest --ci --coverage && codecov
-      name: Upload coverage to Codecov
-        - uses: codecov/codecov-action@v2
+      steps:
+        - uses: actions/checkout@master
+        - run: cd ./tasks-fe && jest --ci --coverage && codecov
+        - name: Upload coverage to Codecov
+          uses: codecov/codecov-action@v2
