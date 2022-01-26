@@ -36,11 +36,6 @@ export default class MockTaskApiHandler {
     // THIS IS BAD! ^^^ Should be using it without the wildcard
 
     /**
-     * Initialize a handler with an optional date or task override values. 
-     * @param {DateTime} dateOverride Optional date to make tasks relative to.
-     * @param {[object]} taskOverrides Optional tasks to add to DB relative to `dateOverride`. 
-     */
-    /**
      *  Initialize a handler with an optional date or task override values. 
      * @param {*} overrides Optional overrides. Takes properties `date` (to make tasks relative to) 
      * and `tasks` (to add to DB relative to `dateOverride`)
