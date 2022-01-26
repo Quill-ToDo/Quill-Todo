@@ -8,15 +8,15 @@ def create_data(apps, schema_editor):
     Task(title="Buy flight", 
         complete=False,
         completed_at=None,
-        start="2021-12-21T06=13=45Z",
-        due="2021-12-24T06=13=52Z",
+        start="2021-12-21T06:13:45Z",
+        due="2021-12-24T06:13:52Z",
         description="Delta is cheaper. I have a card with them too").save()
 
     Task(title='Fill out TA application',
         complete=False,
         completed_at=None,
-        start='2021-12-01T06=14=42Z',
-        due='2022-01-03T06=14=34Z',
+        start='2021-12-01T06:14:42Z',
+        due='2022-01-03T06:14:34Z',
         description='').save()
 
     Task(title='Buy Zuzu a cat carrier',

@@ -4,6 +4,8 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
 ## Getting Started
 
+If there are any issues with these instructions or if anything is unclear, please let us know in Slack!
+
 ### Starting the Development Server
 
 #### Back-end
@@ -13,22 +15,29 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment)
 
 3. Switch to virtual environment following instructions of whichever virtual environment you're using
+  
+    > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
 
-4. Install dependencies:  
+4. Add secret `.env` file to `App` dir. Ask in Slack for the file. Add `.` to the front of the file in the directory so it is invisible. (Filename should be: `.env`) **This should never be pushed to GitHub!**
+
+5. [Install PostgreSQL](https://www.postgresql.org/download/)
+
+6. Install dependencies:  
   
     ```Bash
     pip install -r requirements.txt
     ```
 
-5. Make and apply migrations if needed:
-    **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
+7. Make and apply migrations if needed:
+
+    > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
     ```Bash
     py manage.py makemigrations 
     py manage.py migrate
     ```
 
-6. Start server:
+8. Start server:
 
     ```Bash
     py manage.py runserver
@@ -36,8 +45,9 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
 ##### Back-end Notes
 
-- The homepage is currently broken for some reason, to access the API navigate to localhost:[port number]/api/tasks/
-- If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep this file updated
+- To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
+
+> **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep dependencies up to date for everyone else
 
 #### Front-end
 
@@ -45,9 +55,29 @@ Creating a better to-do app. A Python adaptation of a [ROR project](https://gith
 
 **In a second terminal (so that you can leave the server running):**
 
-1. Change to virtual environment (same as step 3)
+1. Install `nvm` (Node version manager)
 
-2. Start React FE:
+    - [Windows](https://github.com/coreybutler/nvm-windows)
+    - [MacOS/unix](https://github.com/nvm-sh/nvm)
+
+    Verify installation with
+  
+    ```Bash
+    nvm -v
+    ```
+
+2. Change to virtual environment (same as step 3 for back-end)
+
+3. Install and switch to Node v16.13.1.
+
+    > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv.)
+
+    ```Bash
+    nvm install v16.13.1
+    nvm use 16.13.1
+    ```
+
+4. Start React FE:
 
     ```Bash
     cd tasks-fe
