@@ -11,6 +11,12 @@ If there are any issues with these instructions or if anything is unclear, pleas
     - [Back-end Notes](#back-end-notes)
   - [Front-end](#front-end)
     - [FE Notes](#fe-notes)
+  - [Testing](#testing)
+    - [Front-end Testing](#front-end-testing)
+      - [Mocking Network Calls](#mocking-network-calls)
+      - [Mocking time](#mocking-time)
+      - [Useful testing resources](#useful-testing-resources)
+    - [Back-end Testing](#back-end-testing)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
   - [To work on a feature](#to-work-on-a-feature)
 
