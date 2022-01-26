@@ -6,10 +6,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@master
-      - run: cd ./tasks-fe && jest --ci --coverage && codecov
+      - run: cd ./tasks-fe && npm test -- --coverage --reporter=lcov
   uploadCoverage:
     name: Upload coverage to Codecov
     runs-on: ubuntu-latest
     needs: generateCoverage
     steps:
       - uses: codecov/codecov-action@v2
+        with:
+          working-directory: tasks/fe
+          directory: coverage/
+          flags: FE
