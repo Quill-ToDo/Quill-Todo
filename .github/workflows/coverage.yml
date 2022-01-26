@@ -24,7 +24,6 @@ jobs:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        root_dir: ./tasks-fe/
-        directory: ./coverage/
+        root_dir: ./tasks-fe/coverage/
         files: ./clover.xml,./coverage-final.json
         flags: FE
