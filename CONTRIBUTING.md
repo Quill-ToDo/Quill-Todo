@@ -12,6 +12,12 @@ If there are any issues with these instructions or if anything is unclear, pleas
     - [Back-End Notes](#back-end-notes)
   - [Front-end](#front-end)
     - [FE Notes](#fe-notes)
+  - [Testing](#testing)
+    - [Front-end Testing](#front-end-testing)
+      - [Mocking Network Calls](#mocking-network-calls)
+      - [Mocking time](#mocking-time)
+      - [Useful testing resources](#useful-testing-resources)
+    - [Back-end Testing](#back-end-testing)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
   - [To work on a feature](#to-work-on-a-feature)
 
@@ -19,7 +25,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 ## Setting up the development environment
 
-### Back-end
+### Back-End
 
 1. Clone repo wherever you'd like
 
@@ -220,57 +226,104 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
     Navigate to the url that the back-end server is running at and it should serve the built app.
 
-#### FE Notes
+#### Front-End Notes
 
 - > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`.
+
+### Testing
+
+#### Front-end Testing
+
+The test files are store near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
+
+After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`. The tests should re-run automatically every time you save.
+Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
+You can also isolate the execution of tests to a single test by adding `only` after the test.
+
+**Ex:**
+```JS
+it.only("should load tasks in the list", async () => {
+    render(<App />);
+    expect(screen.getByRole("region", {name: "Task list"}))
+    .toContainElement(await screen.findByLabelText("Overdue incomplete"));
+})
+```
+
+Additionally, you can mark a test as not yet implemented by adding `todo`.
+
+**Ex:** `it.todo("should do something cool);`
+
+##### Mocking Network Calls
+
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+
+An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
+
+##### Mocking time
+
+Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
+
+##### Useful testing resources
+
+- [Create React App testing basics](https://create-react-app.dev/docs/running-tests/)
+- Matchers
+  - [Built-in Jest expect matchers](https://jestjs.io/docs/expect)
+  - [jest-dom matchers to test the state of DOM elements](https://github.com/testing-library/jest-dom)
+- Queries / Selecting elements
+  - [Testing library about queries](https://testing-library.com/docs/queries/about)
+  - Role-based matching (helps ensure accessibility, try to use this as much as you can)
+    - [Testing library helper to display node roles](https://testing-library.com/docs/dom-testing-library/api-debugging#logroles)
+    - [Implicit ARIA role table (if the HTML tag is not used as a role and one is not specified, it may be using one of these)](https://www.w3.org/TR/html-aria/#docconformance-attr)
+- Network Calls
+  - [Mock Service Worker for mocking network calls](https://mswjs.io/docs/getting-started/mocks/rest-api)
+
+#### Back-End Testing
+
+*To-do!*
 
 ## Commits, Branches, and Pull Requests
 
 ### To work on a feature
 
-1. Assign yourself to the appropriate issue.
+1. Assign yourself to the appropriate issue
 
-2. Pull on main branch.
+2. Pull
 
     ```Bash
     git pull
     ```
 
-3. Create a branch for the feature if there is not one already.
+3. Create a branch for the feature if there is not one already
 
     ```Bash
-    git checkout -b  <feature branch name>
+    git branch  [feature branch name]
+    git checkout [feature branch name]
     ```
 
-    Otherwise, if one already exists, switch to it.
-
-    ```bash
-    git checkout <feature branch name>
-    ```
-
-4. If others will also be working on the feature, make a working branch for **your** code based off of the feature branch.
+4. Make a working branch for your code based off of the feature branch
 
     ```Bash
-    git checkout -b  <working branch name>
+    git branch  [working branch name]
+    git checkout [working branch name]
     ```
 
-5. Code on the working branch.
+5. Code on the working branch
 
-6. Commit your changes.
+6. Commit your changes
 
     ```Bash
     git add -A
-    git commit -m "<your commit message. include a # issue number to link it>"
+    git commit -m "[your commit message. include a # issue number to link it]"
     ```
 
-7. Merge your working with the feature branch.
+7. Merge your working with the feature branch
 
     ```Bash
-    git checkout <feature branch name>
-    git merge <working branch name>
+    git checkout [feature branch name]
+    git merge [working branch name]
     ```
 
-   If there are merge conflicts, manually change the files listed under "merge" and commit changes.
+   If there are merge conflicts, manually change the files listed under "merge" and commit changes
 
 8. When the feature is done, merge it with main.
 
@@ -284,22 +337,20 @@ If there are any issues with these instructions or if anything is unclear, pleas
    Merge main with your feature branch.
 
     ```Bash
-    git checkout <feature branch name>
+    git checkout [feature branch name]
     git pull
     git merge main
     ```
 
-    Resolve any merge conflicts. Make sure tests pass before submitting a PR.
+    Resolve any merge conflicts. Make sure tests pass (Once we have tests!) before submitting a PR.
 
 9. Push local feature branch to remote.
 
     ```Bash
-    git checkout <feature branch name>
-    git push origin <feature branch name>
+    git checkout [feature branch name]
+    git push origin [feature branch name]
     ```
 
 10. To merge to main, on GitHub, click pull request button on code page and submit a pull request.
 
     Link the issue to the PR so that when the PR is closed, the issue is as well.
-
-11. Monitor the PR and make any changes necessary! Thank you for helping!! ✨
