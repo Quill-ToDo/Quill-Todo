@@ -14,6 +14,7 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+    - run: cd ./tasks-fe && npm install
     - run: cd ./tasks-fe && npm test -- --coverage --reporter=lcov
   uploadCoverage:
     name: Upload coverage to Codecov
