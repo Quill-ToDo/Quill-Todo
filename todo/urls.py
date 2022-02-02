@@ -18,11 +18,14 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 from tasks import views as task_views
+from authentication import views as auth_views
 from django.views.generic import RedirectView
 
 urlpatterns = [
     path('', task_views.serve_front_end),
     path('admin/', admin.site.urls),
     path(r'api/tasks/', include('tasks.urls')),
+    path('api/', include('authentication.urls')),
+    path('login/', auth_views.serve_front_end)
     # path('tasks/', RedirectView.as_view(url='/', permanent=True)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

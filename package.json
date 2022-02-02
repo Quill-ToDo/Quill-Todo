@@ -1,0 +1,23 @@
+{
+    "name": "quill-todo",
+    "version": "1.0.0",
+    "description": "A better todo app",
+    "main": "tasks-fe\\build\\index.html",
+    "scripts": {
+      "init-be-win": "workon quill && pip install -r requirements.txt && pg_ctl start && chcp 1252 && psql -d postgres -a -f setup.sql && py manage.py makemigrations && py manage.py migrate",
+      "init-be-mac": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
+      "start-fe": "workon quill && cd tasks-fe && npm install && npm start",
+      "start-be-win": "workon quill && pip install -r requirements.txt && pg_ctl start && py manage.py makemigrations && py manage.py migrate && py manage.py runserver",
+      "start-be-mac": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver"
+    },
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/Quill-ToDo/App.git"
+    },
+    "author": "",
+    "license": "ISC",
+    "bugs": {
+      "url": "https://github.com/Quill-ToDo/App/issues"
+    },
+    "homepage": "https://github.com/Quill-ToDo/App#readme"
+  }

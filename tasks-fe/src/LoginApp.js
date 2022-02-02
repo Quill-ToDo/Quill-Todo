@@ -1,15 +1,15 @@
-import Home from './components/Home';
+import Login from './components/Login';
 import { StoreProvider } from "./store/StoreContext";
 import AlertBox from './components/AlertWrapper';
 
-function App() {
+function LoginApp() {
 
   return (
       <StoreProvider>
             <AlertBox />
-            <Home />
+            <Login />
       </StoreProvider>
   );
 }
 
-export default App;
+export default LoginApp;
