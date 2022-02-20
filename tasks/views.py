@@ -1,4 +1,5 @@
 
+from tabnanny import check
 from django.shortcuts import render
 from .models import Task
 from django.utils import timezone
@@ -34,6 +35,15 @@ def serve_front_end(request):
             status=501,
         )
 
+def check_illegal_field(fieldname, request):
+    if fieldname in request.data:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+                "errors": "cannot change " + fieldname})
+
+def check_illegal_post(fieldname, request):
+    if fieldname in request.data:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+                "errors": "cannot create task with " + fieldname})
 
 @api_view(['GET', 'POST'])
 def tasks(request):
@@ -42,6 +52,7 @@ def tasks(request):
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
+        if check_illegal_post('id', request) is not None: return check_illegal_post('id', request)
         serializer = TaskSerializer( 
             data=request.data, 
             partial=True)
@@ -68,6 +79,11 @@ def task_details(request, id):
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     elif request.method == 'PATCH':
+        
+        if check_illegal_field('updated_at', request) is not None: return check_illegal_field('updated_at', request)
+        if check_illegal_field('completed_at', request) is not None: return check_illegal_field('completed_at', request)
+        if check_illegal_field('created_at', request) is not None: return check_illegal_field('created_at', request)
+       
         # Update fields
         t_data = request.data.copy()
         t_data["updated_at"] = timezone.now()
