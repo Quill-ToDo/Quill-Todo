@@ -1,4 +1,5 @@
 
+from tabnanny import check
 from django.shortcuts import render
 from .models import Task
 from django.utils import timezone
@@ -34,22 +35,40 @@ def serve_front_end(request):
             status=501,
         )
 
+def check_illegal_field(fieldname, request):
+    if fieldname in request.data:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+                "errors": "cannot change " + fieldname})
 
-@api_view(['GET', 'PUT'])
+def check_illegal_post(fieldname, request):
+    if fieldname in request.data:
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+                "errors": "cannot create task with " + fieldname})
+
+@api_view(['GET', 'POST'])
 def tasks(request):
-    # TODO: Add post handler
     if request.method == 'GET':
         data = Task.objects.all()
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
-    elif request.method == 'PUT':
-        # TODO: Create new task
-        return Response(status=status.HTTP_501_NOT_IMPLEMENTED)
+    elif request.method == 'POST':
+        if check_illegal_post('id', request) is not None: return check_illegal_post('id', request)
+        serializer = TaskSerializer( 
+            data=request.data, 
+            partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        
+        return Response(status=status.HTTP_400_BAD_REQUEST, data={
+            "errors": serializer.errors,
+            "submittedData": serializer})
 
 @api_view(['GET', 'DELETE', 'PATCH'])
-def task_details(request, pk):
+def task_details(request, id):
     try:
-        task = Task.objects.get(pk=pk)
+        task = Task.objects.get(id=id)
     except Task.DoesNotExist:
         return Response(status=status.HTTP_404_NOT_FOUND)
 
@@ -60,6 +79,11 @@ def task_details(request, pk):
         task.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
     elif request.method == 'PATCH':
+        
+        if check_illegal_field('updated_at', request) is not None: return check_illegal_field('updated_at', request)
+        if check_illegal_field('completed_at', request) is not None: return check_illegal_field('completed_at', request)
+        if check_illegal_field('created_at', request) is not None: return check_illegal_field('created_at', request)
+       
         # Update fields
         t_data = request.data.copy()
         t_data["updated_at"] = timezone.now()
@@ -68,34 +92,6 @@ def task_details(request, pk):
             data=t_data, 
             partial=True)
 
-
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        else:
-            return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
-                "errors": serializer.errors,
-                "submittedData": serializer})
-
-@api_view(['PATCH'])
-def toggle_complete(request, pk):
-    '''
-    Toggle task complete status
-    '''
-    try:
-        task = Task.objects.get(pk=pk)
-    except Task.DoesNotExist:
-        return Response(status=status.HTTP_404_NOT_FOUND)
-    if request.method == 'PUT':
-        if not task.complete:
-            now = timezone.now()
-        else:
-            now = None
-
-        serializer = TaskSerializer(task, 
-                context={"request": request}, 
-                data={'complete': not task.complete, 'completed_at': now}, 
-                partial=True)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data)
