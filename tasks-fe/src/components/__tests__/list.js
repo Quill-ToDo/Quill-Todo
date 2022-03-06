@@ -41,8 +41,7 @@ afterAll(() => {
 
 it("should load tasks in the list", async () => {
     render(<App />);
-    expect(screen.getByRole("region", {name: "Task list"}))
-    .toContainElement(await screen.findByLabelText("Overdue incomplete"));
+    expect(screen.getByRole("region", {name: "Task list"})).toContainElement(await screen.findByLabelText("Overdue incomplete"));
 })
 
 it("should show the correct time and date in the list", async () => {

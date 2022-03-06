@@ -50,6 +50,8 @@ If there are any issues with these instructions or if anything is unclear, pleas
     nvm install v16.13.1 && nvm use 16.13.1
     ```
 
+    You may need to restart your computer for the installation to take effect.
+
 5. Add secret `.env` file to `App` dir. Ask in Slack for the file.
 
     **This file should never be pushed to GitHub!**
@@ -174,8 +176,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
     > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
     ```Bash
-    py manage.py makemigrations 
-    py manage.py migrate
+    py manage.py makemigrations && py manage.py migrate
     ```
 
 5. Start server:

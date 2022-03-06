@@ -1,54 +1,84 @@
-import { Fragment, useState, useEffect, useReducer } from "react";
+import { Fragment, useEffect } from "react";
+import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import pluralize from 'pluralize';
 import '../static/css/new.css';
 import '../static/css/datetimepicker.css';
-import { useTaskStore } from "../store/StoreContext";
+import { 
+    TIME_FORMAT,
+} from "../constants";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
 
-
-const errorsList = (errors) => {
-    return <Fragment>
-        <p className="error-list">Errors:</p> 
-        <ul className="error-list">
-            {errors.map((errorText) => {
-                return <li key={"error-"+errorText}>
-                    {errorText}
-                </li>
-            })}
-        </ul>
-    </Fragment>
+/**
+ * @param {string[]} errors List of errors to display 
+ * @returns Content of errors list. Separated from the list for performance.
+ */
+const ErrorsListContent = (errors) => {
+    return errors.map((errorText) => {
+        return <li key={"error-"+errorText}>
+            {errorText}
+        </li>
+    })
 }
 
+/**
+ * @param {string[]} errors List of errors to display 
+ * @returns List of errors
+ */
+const errorsList = (errors) => {
+    if (errors.length > 1) {
+        return <Fragment> 
+            <ul className="error-list">
+                <ErrorsListContent errors={errors} />
+            </ul>
+        </Fragment>
+    }
+    else {
+        return <p className="error-list">{errors[0]}</p>
+    }
+}
+
+/**
+ * 
+ * A wrapper for time and date form fields.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **label** : string - Label that will be used in classes and IDs. "start" or "due" probably.
+ *  - **date** : string - The date that will appear in the date form field
+ *  - **time** : string - The time that will appear in the time form field
+ *  - **errors** : object - Any errors for this field
+ *  - **dateChangeCallback** : () => any - Method that will be called when the date is changed
+ *  - **timeChangeCallback** : () => any - Method that will be called when the time is changed 
+ * 
+ * @param {*} props
+ * @returns 
+ */
 const TimeDateLabel = (props) => {
-    // label, date, time, dateChangeCallBack, timeChangeCallBack, requiredDate
     return <label>
         {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
-        { props.stateObj.errors.length ? errorsList(props.stateObj.errors) : null }
         <div className="horizontal-align">
             <label className="date">
                 Date
+                { props.errors.date.length ? errorsList(props.errors.date) : null }
                 <input
                     name={`${props.label} date`}
-                    className={props.stateObj.errors.length ? "errors" : ""}
+                    className={props.errors.date.length ? "errors" : ""}
                     onChange={props.dateChangeCallback}
-                    onBlur={props.dateBlurCallback}
-                    value={props.stateObj.date}
-                    required={props.requiredDate}
+                    value={props.date}
                     />
-                </label>
+            </label>
             <label className="time">
                 Time
+                { props.errors.time.length ? errorsList(props.errors.time) : null }
                 <div className="horizontal-align">
                     <input
-                        name={`${props.label} time`}
                         id={`${props.label}-time`}
                         data-td-target={`#datetime-picker-${props.label}`}
-                        className={props.stateObj.errors.length ? "errors" : ""}
+                        name={`${props.label} time`}
+                        className={props.errors.time.length ? "errors" : ""}
                         onChange={props.timeChangeCallback}
-                        onBlur={props.timeBlurCallback}
-                        value={props.stateObj.time}
-                        placeholder={props.timePlaceholder}
+                        value={props.time}
                     />
                     <button 
                         id={`datetime-picker-${props.label}`} 
@@ -66,30 +96,64 @@ const TimeDateLabel = (props) => {
     </label>
 }
 
-const dateReducer = (state, action) => {
-    switch (action.type) {
-        case 'setErrors':
-            return {...state, errors: action.data};
-        case 'setDate':
-            return {...state, date: action.data};
-        case 'setTime':
-            return {...state, time: action.data};
-        default:
-            throw new Error();
-    }
+/**
+ * @param {string} name Name of DOM element
+ * @param {string} type DOM element type
+ * @returns A selector string for an element with #new-wrapper with type type and name name.
+ */
+const getSelector = (name, type) => {
+    return `#new-wrapper ${type}[name='${name}']`;
 }
 
-const TaskCreatePopup = (props) => {
-    const [title, setTitle] = useState({value: "", errors: []});
-    const [desc, setDesc] = useState({value: "", errors: []});
-    const [start, dispatchStart] = useReducer(dateReducer, {date: "", time: "", errors: []});
-    const [due, dispatchDue] = useReducer(dateReducer, {date: "", time: "", errors: []});
-    const tasks = useTaskStore();
-    const defaultDueTime = "11:59 PM";
-    const defaultStartTime = "12:00 AM";
-    const dateFormat = "D";
-    const timeFormat = "t";
-    const dateTimeFormat = dateFormat + " " + timeFormat;
+
+/**
+ * Handle submission of the form. Validates that the task does not have any errors. If it does, it moves focus to the first field in the form
+ * with errors. Otherwise, the task is saved to the DB.
+ * 
+ * @param {SubmitEvent} event
+ * @param {Task} taskToCreate 
+ * @returns
+ */
+const handleSubmit = (event, taskToCreate) => {
+    event.preventDefault();
+    var focusEle = null;
+    const errors = taskToCreate.validationErrors;
+    // Get element with errors to switch focus to
+    if (errors.title.length) {
+        focusEle = document.querySelector(getSelector('title', 'input'));
+    }
+    else if (errors.description.length  && !focusEle) {
+        focusEle = document.querySelector(getSelector('description', 'textarea'))
+    }
+    else if (errors.start.date.length  && !focusEle) {
+        focusEle = document.querySelector(getSelector('start date', 'input'))
+    }
+    else if (errors.start.time.length && !focusEle) {
+        focusEle = document.querySelector(getSelector('start time', 'input'))
+    }
+    else if (errors.due.date.length  && !focusEle) {
+        focusEle = document.querySelector(getSelector('due date', 'input'))
+    }
+    else if (errors.due.time.length  && !focusEle) {
+        focusEle = document.querySelector(getSelector('due time', 'input'))
+    }
+
+    if (!focusEle) {
+        // Valid 
+        taskToCreate.finishEditing();
+        return;
+    }
+
+    focusEle.focus();
+}
+
+/**
+ * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
+ * in TaskStore.
+ */
+const TaskCreatePopup = observer((props) => {    
+    const taskStore = props.taskStore;
+    const taskToCreate = taskStore.taskBeingEdited;
 
     useEffect(() => {
         const firstInput = document.querySelector("input[name='title']");
@@ -111,8 +175,8 @@ const TaskCreatePopup = (props) => {
             [ Namespace.events.change],
             [
                 (e) => {
-                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(timeFormat);
-                    dispatchStart({type:"setTime", data: time});
+                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(TIME_FORMAT);
+                    taskToCreate.setStartTime(time);
                 }
             ]
         );
@@ -121,139 +185,28 @@ const TaskCreatePopup = (props) => {
             [ Namespace.events.change],
             [
                 (e) => {
-                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(timeFormat);
-                    dispatchDue({type:"setTime", data: time});
+                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(TIME_FORMAT);
+                    taskToCreate.setDueTime(time);
                 }
             ]
         );
 
         return () => {
+            if (taskToCreate.beingEdited) {
+                taskToCreate.abortEditing();
+            }
             startSubscriptions.unsubscribe();
             startPicker.dispose();
             dueSubscriptions.unsubscribe();
             duePicker.dispose();
         }
-    }, [])
+    }, [taskToCreate])
 
-    const getSelector = (name, type) => {
-        return `#new-wrapper ${type}[name='${name}']`;
-    }
 
-    const handleSubmit = (event) => {
-        event.preventDefault();
-        var valid = true;
-        var focusEle = null;
-
-        const titleErrors = getErrors("title", title.value);
-        if (titleErrors.length !== 0) {
-            valid = false;
-            setTitle({value: title.value, errors: titleErrors});
-            focusEle = document.querySelector(getSelector('title', 'input'));
-        }
-        const descErrors = getErrors("description", desc.value);
-        if (descErrors.length !== 0) {
-            valid = false;
-            setDesc({value: desc.value, errors: descErrors});
-            if (!focusEle) {focusEle = document.querySelector(getSelector('description', 'textarea'))}
-        }
-        const startErrors = getErrors('start', start.date, start.time);
-        if (startErrors.length !== 0) {
-            valid = false;
-            dispatchStart({type: "setErrors", data: startErrors});
-            if (!focusEle) {focusEle = document.querySelector(getSelector('start date', 'input'))}
-        }
-        const dueErrors = getErrors('due', due.date, due.time);
-        if (dueErrors.length !== 0) {
-            valid = false;
-            dispatchDue({type: "setErrors", data: dueErrors});
-            if (!focusEle) {focusEle = document.querySelector(getSelector('due date', 'input'))}
-        }
-
-        if (valid) {
-            const data = new FormData(event.target);
-            // Don't input start time if there is no date
-            if (start.date !== "") {
-                data.set("start", DateTime.fromFormat(`${start.date} ${start.time === "" ? defaultStartTime : start.time}`, dateTimeFormat).toISO())
-            }
-            data.set("due", DateTime.fromFormat(`${due.date} ${due.time === "" ? defaultDueTime : due.time}`, dateTimeFormat).toISO());
-            data.delete("due date");
-            data.delete("due time");
-            data.delete("start date");
-            data.delete("start time");
-            const converted = Object.fromEntries(data.entries());
-            console.log(converted)
-            tasks.createTask(converted);
-            props.closeFn();
-            return;
-        }
-
-        focusEle.focus();
-    }
-
-    const validTime = (date, time, errors) => {
-        var parsedDate = DateTime.fromFormat(date, dateFormat);
-        var parsedTime = DateTime.fromFormat(time, timeFormat);
-        var validTime = true;
-        
-        if (parsedTime.invalid) {
-            errors.push("Time is not of the format h:mm P");
-            validTime = false;
-        }
-        if (parsedDate.invalid) {
-            errors.push("Date is not of the format mm/dd/yyyy");
-            validTime = false;
-        }
-        return validTime;
-    }
-
-    const getErrors = (name, value1, time = null) => {
-        // Time format until we get parsing done: 8/6/2014 1:07 PM
-        // Assume time is EOD if blank
-
-        const errors = [];
-        var timeIsValid
-        switch (name) {
-            case 'title':
-                if (value1.length > 100) { 
-                    errors.push(`Title is ${pluralize("character", value1.length-100, true)} too long`);
-                }
-                else if (value1.length === 0) {
-                    errors.push(`Title is required`);
-                }
-                break;
-            case 'description':
-                if (value1.length > 1000) { 
-                    errors.push(`Description is ${pluralize("character", value1.length-1000, true)} too long`);
-                }
-                break;
-            case 'start':
-                if (value1 !== "") {
-                    time = time === "" ? defaultStartTime : time;
-                    validTime(value1, time, errors);
-                }
-                break;
-            case 'due':
-                if (value1 === "") {
-                    errors.push("Due date is required")
-                }
-                else {
-                    time = time === "" ? defaultDueTime : time;
-                    const startTime = start.time === "" ? defaultStartTime : start.time;
-                    timeIsValid = validTime(value1, time, errors);
-                    if (start.date && timeIsValid && DateTime.fromFormat(start.date + " " + startTime, dateTimeFormat) >=  DateTime.fromFormat(value1 + " " + time, dateTimeFormat)) {
-                        errors.push('Due does not come after start')
-                    }
-                }
-                break;
-            default:
-                console.error("Proper name was not supplied to getErrors()")
-                break;
-        } 
-        return errors;
-    }
-
-    const startBlur = () => dispatchStart({type: "setErrors", data: getErrors("start", start.date, start.time)});
-    const dueBlur = () => dispatchDue({type: "setErrors", data: getErrors("due", due.date, due.time)});
+    const startDate = taskToCreate.startDate;
+    const startTime = taskToCreate.startTime; 
+    const dueDate = taskToCreate.dueDate;
+    const dueTime = taskToCreate.dueTime;
 
     return (
         <div id="new-wrapper">
@@ -261,54 +214,53 @@ const TaskCreatePopup = (props) => {
                 <div className="title-button-wrapper">
                     <h2 id="popup-title">New Task</h2>
                     <div className="aligned-buttons">
-                        <button className="btn btn-red" title="Close" onClick={props.closeFn}>
+                        <button className="btn btn-red" title="Close" onClick={() => {
+                            taskToCreate.abortEditing();
+                        }}>
                             <i className="fas fa-times fa-fw fa-2x"></i>
                         </button>
                     </div>
                 </div>
-                <form id="add-task" className="form" onSubmit={handleSubmit}>
+                <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate)}>
                     <label>
                         Title
-                        { title.errors.length ? errorsList(title.errors) : null }
+                        { taskToCreate.validationErrors.title.length ? errorsList(taskToCreate.validationErrors.title) : null }
                         <input
                             name="title"
-                            className={title.errors.length ? "errors" : ""}
-                            onChange={e => setTitle({value: e.target.value, errors: getErrors(e.target.name, e.target.value)})}
-                            onBlur={e => setTitle({value: title.value, errors: getErrors(e.target.name, e.target.value)})}
-                            value={title.value}
+                            className={taskToCreate.validationErrors.title.length ? "errors" : ""}
+                            onChange={e => {
+                                taskToCreate.setTitle(e.target.value)}
+                            }
+                            value={taskToCreate.title}
                             required
                         />
                     </label>
                     <label>
                         Description
-                        { desc.errors.length ? errorsList(desc.errors) : null }
+                        { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                         <textarea
                             name="description"
-                            className={desc.errors.length ? "errors" : ""}
-                            onChange={e => setDesc({value: e.target.value, errors: getErrors(e.target.name, e.target.value)})}
-                            value={desc.value}
+                            className={taskToCreate.validationErrors.description.length ? "errors" : ""}
+                            onChange={e => taskToCreate.setDescription(e.target.value)}
+                            value={taskToCreate.description}
                         />
                     </label>
                     <div className="start-due-wrapper horizontal-align"> 
                         <TimeDateLabel 
                             label="start"
-                            stateObj={start}
-                            timePlaceholder={defaultStartTime}
-                            requiredDate={false}
-                            dateChangeCallback={e => dispatchStart({type: "setDate", data: e.target.value})}
-                            timeChangeCallback={e => dispatchStart({type: "setTime", data: e.target.value})}
-                            dateBlurCallback={startBlur}
-                            timeBlurCallback={startBlur}
+                            date={startDate}
+                            time={startTime}
+                            errors={taskToCreate.validationErrors.start}
+                            dateChangeCallback={e => taskToCreate.setStartDate(e.target.value)}
+                            timeChangeCallback={e => taskToCreate.setStartTime(e.target.value)}
                         />
                         <TimeDateLabel 
                             label="due"
-                            stateObj={due}
-                            timePlaceholder={defaultDueTime}
-                            requiredDate={true}
-                            dateChangeCallback={e => dispatchDue({type:"setDate", data: e.target.value})}
-                            timeChangeCallback={e => dispatchDue({type: "setTime", data: e.target.value})}
-                            dateBlurCallback={dueBlur}
-                            timeBlurCallback={dueBlur}
+                            date={dueDate}
+                            time={dueTime}
+                            errors={taskToCreate.validationErrors.due}
+                            dateChangeCallback={e => taskToCreate.setDueDate(e.target.value)}
+                            timeChangeCallback={e => taskToCreate.setDueTime(e.target.value)}
                         />
                     </div>
                     <div className="centered">
@@ -318,6 +270,6 @@ const TaskCreatePopup = (props) => {
             </section>
         </div>
     )
-}
+})
 
 export default TaskCreatePopup;

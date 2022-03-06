@@ -1,10 +1,20 @@
 import React, { Fragment} from "react";
 import TaskSection from './TaskSection'
-import '../static/css/tasks.css';
+import '../../static/css/tasks.css';
 import { observer } from "mobx-react-lite";
 
+
+/**
+ * A format for task list contents where tasks are separated into overdue, today, and upcoming sections.
+ * 
+ * --- 
+ * 
+ * *Required props:*
+ *  - **store** : TaskStore - The store to pull tasks from
+ * - **toggleDuration** : int - The time the sections should take to collapse in millis 
+ */ 
 const ByStatusThreeSection = observer((props) => {
-    const byStatus = props.store.byStatus();
+    const byStatus = props.store.byStatus;
     const overdue = byStatus["overdue"];
     const todayDue = byStatus["todayDue"];
     const todayWork = byStatus["todayWork"];
@@ -72,25 +82,36 @@ const ByStatusThreeSection = observer((props) => {
     );
 });
 
+/**
+ * The list view for tasks.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **store** : TaskStore - The store to display tasks from.
+ */
 const List = observer((props) => {
+    // How long sections should take to collapse in millis
     const sectionToggleDuration = 100;
-    const bindings = {
+
+    // All possible views for the list
+    const possibleListFormats = {
         "by-status": <ByStatusThreeSection toggleDuration={sectionToggleDuration} store={props.store}/>
     };
 
-    const type = "by-status";
+    const listFormat = "by-status";
     const loading = 
         <div className="loading-wrapper take-full-space">
             <div>
-                <i className="fas fa-feather-alt loading-icon fa-2x" aria-hidden="true"></i>
-                <p className="">Loading tasks...</p>
+                <i className="fas fa-list-alt loading-icon fa-4x" aria-hidden="true"></i>
+                <p className="">Loading list...</p>
             </div>
         </div>;
 
     // Before content is loaded show placeholder
     return (
         <section id="list-wrapper" aria-label="Task list">
-            {props.store.isLoaded ? bindings[type] : loading}
+            {props.store.isLoaded ? possibleListFormats[listFormat] : loading}
         </section>
     );
 })

@@ -2,7 +2,17 @@ import React, { Fragment } from "react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 
-const dateTimeWrapper = (task, time, type, dateForm) => {
+
+/**
+ * Displays the date and time of the task.
+ * 
+ * @param {Task} task The task to render the date and time for
+ * @param {string} type The type of the task ("due" or "work") 
+ * @param {*} dateForm The Luxon format of the date to display
+ * @returns 
+ */
+const dateTimeWrapper = (task, type, dateForm) => {
+    const time = type === "start" ? task.start : task.due ;
     const converted = DateTime.fromISO(time);
     
     return (
@@ -13,20 +23,28 @@ const dateTimeWrapper = (task, time, type, dateForm) => {
     );
 }
 
+/**
+ * A task. Can appear within the list (this form is rendered when basicVersion is true) or within the task details popup 
+ * (when basicVersion is false)
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **data** : Task - The data of the task to render.
+ *    Important fields:
+ *      - title
+ *      - complete
+ *      - due
+ *      - start
+ *      - description
+ *      - completed_at
+ *  - **basicVersion** : bool - Whether the version rendered should be is basic (in the list) or not (in show)
+ */
 const Task = observer((props) => {
     const task = props.data;
     const id = "task-" + task.id;
     const checkboxId = (props.basicVersion ? "list" : "show")+ "-checkbox-"+task.id;
     
-    // Props: 
-    // props.data.title
-    // props.data.complete
-    // props.data.due
-    // props.data.start
-    // props.data.description
-    // props.data.completed_at
-    // props.basicVersion
-    // ^ whether it is basic (in the list) or not (in show)
     const classAddition = task.complete ? "complete" : "";
     const title = (
             <label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
@@ -58,7 +76,7 @@ const Task = observer((props) => {
                 {checkbox}
                 <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
-                    {dateTimeWrapper(task, task.due, "due", dateForm)}
+                    {dateTimeWrapper(task, "due", dateForm)}
                 </button>
             </div>
         )
@@ -80,7 +98,7 @@ const Task = observer((props) => {
                         <div>
                             <h3>Start</h3>
                             {task.start ? 
-                                dateTimeWrapper(task, task.start, "start", dateForm)
+                                dateTimeWrapper(task, "start", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
                             }
@@ -88,7 +106,7 @@ const Task = observer((props) => {
                         <div> 
                             <h3>Due</h3>
                             {task.due ? 
-                                dateTimeWrapper(task, task.due, "due", dateForm)
+                                dateTimeWrapper(task, "due", dateForm)
                                 :
                                 <p className="subtle"> Not set </p>
                             }

@@ -54,6 +54,7 @@ def tasks(request):
             "errors": serializer.errors,
             "submittedData": serializer})
 
+
 @api_view(['GET', 'DELETE', 'PATCH'])
 def task_details(request, id):
     try:

@@ -77,6 +77,24 @@ const Alert = (props) => {
     }
 }
 
+const AlertList = observer((props) => {
+    return <ul>
+        {props.alertStore.alerts.map((alert) => {
+            const id = "alert-"+alert.id; 
+            if (alert.type !== "failure") {
+                props.animateIds.push(id)
+            }
+            return <Alert 
+                id={id}
+                key={id}
+                body={alert.body} 
+                type={alert.type}
+                removeCallback={() => props.removeCallback(id)}
+            />
+        })}
+    </ul>
+})
+
 const AlertBox = observer((props) => {
     const alertStore = useAlertStore();
     // Ids of elements currently being animated
@@ -120,21 +138,11 @@ const AlertBox = observer((props) => {
             aria-atomic="false"
             aria-label='Alerts'
         >
-            <ul>
-                {alertStore.alerts.map((alert) => {
-                    const id = "alert-"+alert.id; 
-                    if (alert.type !== "failure") {
-                        animateIds.push(id)
-                    }
-                    return <Alert 
-                        id={id}
-                        key={id}
-                        body={alert.body} 
-                        type={alert.type}
-                        removeCallback={()=>dismissAlert(id)}
-                    />
-                })}
-            </ul>
+            <AlertList 
+                alertStore={alertStore}
+                animateIds={animateIds}
+                removeCallback={(id)=>dismissAlert(id)} 
+                />
         </section>
     )
 })

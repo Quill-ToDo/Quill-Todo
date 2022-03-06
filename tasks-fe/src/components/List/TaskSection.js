@@ -1,7 +1,44 @@
 import React, { useState } from "react";
-import Task from './Task'
+import Task from './Task';
+import { observer } from "mobx-react-lite";
 
-const TaskSectionContent = (props) => {
+
+/**
+ * The list of tasks, separated for performance.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ * 
+ *  - **tasks** : Task[] - The list of tasks
+ *  - **type** : string - The type of tasks - "work" or "due"
+ */
+const TaskList = observer((props) => {
+    return <ul role="group">
+        { props.tasks.map((task) => {
+            return ( 
+                <li className="task" key={"task-li-"+task.id}>
+                    <Task
+                        data={task}
+                        basicVersion={true}
+                        type={props.type}
+                        />
+                </li>
+            )
+        })}
+    </ul>
+})
+
+/**
+ * The tasks within a subsection.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **tasks** : Task[] - A list of tasks within this subsection
+ *  - **type** : string - The type of tasks within this subsection - "work" or "due" 
+ */
+const TaskSectionContent = observer((props) => {
     const sectionTitleId = "dark-section-title-"+props.title;
     return (
         <section aria-labelledby={props.title !== undefined ? "dark-section-title-"+props.title : null}>
@@ -10,31 +47,27 @@ const TaskSectionContent = (props) => {
                 {props.tasks.length === 0 ? 
                 <p className="subtle centered">{props.emptyText}</p>
                 :
-                // Don't show in TOC
-                <ul role="group">
-                    { props.tasks.map((task) => {
-                        return ( 
-                            <li className="task" key={"task-li-"+task.id}>
-                                <Task
-                                    data={task}
-                                    basicVersion={true}
-                                    type={props.type}
-                                    />
-                            </li>
-                        )
-                    })}
-                </ul>}
+                <TaskList 
+                    tasks={props.tasks} 
+                    type={props.type}    
+                />
+                }
             </div>
         </section>
     )
-}
+})
 
 function getSectionId(sectionNum) {
     return "task-section-" + sectionNum;
 }
 
+/**
+ * Collapse/expand sections when the toggle symbol is clicked.
+ * 
+ * @param {event} event Click event
+ * @param {sectionNum} The number of the section to toggle visibility of.
+ */
 function handleSectionToggle (event, sectionNum, duration) {
-    // Collapse/expand sections on click 
     const taskSection = document.getElementById(getSectionId(sectionNum))
     const outer_section = taskSection.querySelector(".mid-section");
     const inner_section = taskSection.getElementsByClassName("section-collapsible")[0];
@@ -42,13 +75,16 @@ function handleSectionToggle (event, sectionNum, duration) {
     outer_section.style.transition = `height ${duration}ms ease-in-out 0s`;
     outer_section.style.height = "fit-content";
     toggleSection(taskSection, duration);
-    fliidarat(taskSection, duration);
+    flipkarat(taskSection, duration);
 }
 
+/**
+ * Add an inline height attribute to the passed DOM element equal to its current calculated height. Doing this because 
+ * if I don't then the height transition animation wont work the first time its collapsed.
+ * 
+ * @param {*} outerSection The DOM element to add the attribute to
+ */
 function toggleInlineHeightAttribute (outerSection) {
-    // Add an inline height attribute equal to the original height
-    // If I don't do this (add the computed inline height attribute) then the height transition animation 
-    // wont work the first time you click the section title to collapse it.
     if (outerSection.style.height === "fit-content") {
         // Set inline height attribute
         const outerHeight = parseFloat(window.getComputedStyle(outerSection).getPropertyValue('height'));
@@ -60,8 +96,12 @@ function toggleInlineHeightAttribute (outerSection) {
     }
 }
 
-function fliidarat (taskSection, duration) {
-    // Flip karat
+/**
+ * Flip the karat indicating if the section is opened or closed within a section.
+ * @param {node} taskSection The DOM element to find the karat symbol within
+ * @param {int} duration How long the toggle animation should take in millis
+ */
+function flipkarat (taskSection, duration) {
     var symbol = taskSection.querySelector(".expand-symbol");
     const start = "rotate(180deg)";
     const end = "rotate(0deg)";
@@ -79,6 +119,13 @@ function fliidarat (taskSection, duration) {
     }
 }
 
+
+/**
+ * Toggle a section opened or closed.
+ * 
+ * @param {node} taskSection The DOM section element to toggle
+ * @param {int} duration How long the toggle animation should take in millis
+ */
 function toggleSection(taskSection, duration) {
     var outerSection = taskSection.querySelector(".mid-section");
     var innerContent = taskSection.querySelector(".section-collapsible");
@@ -92,13 +139,12 @@ function toggleSection(taskSection, duration) {
         innerContent.style.display = "block";
         const sectionContentHeight = parseFloat(window.getComputedStyle(innerContent).getPropertyValue('height'));
         setTimeout(() => {
-            // For some reason it needs a timeout after switching to block display before transforming
-            // Works when theres a breakpoint after....
+            // For some reason it needs a timeout after switching to block display before transforming. Don't know why.
             outerSection.style.height = (sectionHeaderHeight + sectionContentHeight) + "px";
             innerContent.style.transform = "scaleY(1)";
         }, duration/100)
     } else {
-        // Hide
+        // Collapse
         innerContent.style.transform = "scaleY(.01)";
         var collapsedHeight = sectionHeaderHeight + "px";
         outerSection.style.height = collapsedHeight;
@@ -112,27 +158,73 @@ function toggleSection(taskSection, duration) {
     }, duration+10)
 }
 
+/**
+ * The contents of a subsection with a list section.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **sectionContent** : object - The actual content of the subsection. Structured as follows:
+ *  
+ * ```
+ *{
+ *    optional_title= "Subsection", // The title of the sub-section. Optional
+ *    tasks= [], // List of Task objects that go within this section
+ *    type= "due", // The type of tasks - due or work 
+ *    emptyText= "This section is empty :(" // Text that appears when there are no tasks in the section 
+ * }
+ * ```
+ *  
+ * @param {*} props 
+ * @returns 
+ */
+const SubSectionContents = (props) => {
+    return props.sectionContent.map((section) => {
+        return ( 
+            <TaskSectionContent 
+            key={"sec-"+props.sectionNum+"-cont-"+section.optionalTitle}
+            title={section.optionalTitle}
+            tasks={section.tasks}
+            type={section.type}
+            emptyText={section.emptyText}
+            />
+            )
+        })
+}
+
+/**
+ * A section of tasks within a list. May be divided into subsections.
+ * 
+ * ---
+ * 
+ * *Required props:*
+ *  - **title** : string - The h2 title of the section
+ *  - **sectionNum** : int - The number of the section within the list, used in its ID to make queries for the element easier.
+ *  - **toggleDuration** : int - How long the section collapse animation should take in millis
+ *  - **sectionContent** : list[object] - The actual content of the section. Structured as follows:
+ *  
+ * ```
+ * [
+ *  {
+ *      optional_title= "First subsection", // The title of the sub-section. Optional
+ *      tasks= [{}], // List of Task objects that go within this section
+ *      type= "due", // The type of tasks - due or work 
+ *      emptyText= "The first section is empty" // Text that appears when there are no tasks in the section 
+ *   },
+ *  {
+ *      optional_title= "Second subsection",
+ *      tasks= [{}],
+ *      type= "work", // The type of tasks - due or work 
+ *      emptyText= "The second section is empty"
+ *  }
+ * ]
+ * ```
+ * 
+ * @param {*} props 
+ * @returns 
+ */
 const TaskSection = (props) => {
     const [sectionOpen, setSectionOpen] = useState(true);
-    // props.title;
-    // The title of the section
-
-    // props.sectionNum;
-    // The number this section appears at in the list of sections, used in it's id. 
-    // Makes queries for this element easier
-    
-    // props.toggleDuration
-    // How long the section collapse animation should be  
-
-    // props.sectionContent;
-    // The actual content of this section. If there are several content sections (ex: "Due" and "Work"), include several 
-    // dictionaries in the list.
-    // Format as a list of dictionary elements with keys:
-    // {
-    //     optional_title= "",  // A subtitle that can appear before the content section
-    //     tasks<dict?>= [],
-        // emptyText= ""  // Text that appears in the content section if there are no tasks
-    // }
 
     var collapseToolTip = sectionOpen ? "Collapse " + props.title.toLowerCase() + " tasks" : "Expand " + props.title.toLowerCase() + " tasks";
     
@@ -156,17 +248,10 @@ const TaskSection = (props) => {
                     <h2 id={"section-"+props.sectionNum+"-title"}>{props.title}</h2>
                 </div>
                 <div className="section-collapsible">
-                    { props.sectionContent.map((section, i) => {
-                        return ( 
-                            <TaskSectionContent 
-                            key={"sec-"+props.sectionNum+"-cont-"+i}
-                            title={section.optionalTitle}
-                            tasks={section.tasks}
-                            type={section.type}
-                            emptyText={section.emptyText}
-                            />
-                            )
-                        })}
+                    <SubSectionContents 
+                        sectionContent={props.sectionContent}
+                        sectionNum={props.sectionNum}
+                    />
                 </div>
             </div>
         </section>

@@ -3,10 +3,10 @@ import React, {
     useCallback,
     useRef
 } from "react";
-import Task from "./Task";
+import Task from "./List/Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
-import { useTaskStore, useAlertStore} from "../store/StoreContext";
+import { useAlertStore} from "../store/StoreContext";
 
 function handleEdit (alerts) {
     alerts.add("notice", "Edit is not implemented")
@@ -15,8 +15,8 @@ function handleEdit (alerts) {
 const ShowTask = observer((props) => {
     const previouslyFocused = useRef(null);
     const filterEle = useRef(null);
-    const task = props.task;
-    const taskStore = useTaskStore();
+    const taskStore = props.taskStore;
+    const task = taskStore.taskBeingFocused;
     const alertStore = useAlertStore();
     const closeFn = useCallback(
         () => {
