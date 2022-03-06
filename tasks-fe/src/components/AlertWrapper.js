@@ -10,7 +10,7 @@ const Alert = (props) => {
     const colorMapping = {"success": "btn-green", "failure": "btn-red", "notice": "btn-light-grey"}
     const closeBtn = 
         <button 
-            className={"btn " + colorMapping[props.type] } 
+            className={"no-shadow btn " + colorMapping[props.type] } 
             id={btnId} 
             title="Close" 
             onClick={props.removeCallback}

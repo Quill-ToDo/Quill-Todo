@@ -7,12 +7,27 @@
   --dark-font: #3f3f3f;
   --mid-dark: #191919;
   --darkest-dark: #111111;
-  --notice-bg: #7c7c7c;
-  --overdue: #d33636;
-  --alert-bg: #990707;
-  --button-primary: #273fac;
+
   --success: #1eac1e;
+  --overdue: #d33636;
+  --button-primary: #273fac;
   --light-select: rgba(146, 146, 146, 0.089);
+
+  /* Alerts */
+  --alert-bg: #444444;
+  --notice-outline: #6d6d6d;
+  --failure-outline: #e60000;
+  --success-outline: #1abd1a;
+
+  /* Buttons */
+  --btn-green-bg: #1abd1a;
+  --btn-green-shadow: #0b5f0b;
+  --btn-red-bg: #b90707;
+  --btn-red-shadow: #680000;
+  --btn-light-grey-bg: #888888;
+  --btn-light-grey-shadow: #363636;
+  --btn-grey-bg: #2c2c2c;
+  --btn-grey-shadow: #222222;
 
   --section-gap: 15px;
   --inner-box-padding: 17px;
@@ -20,8 +35,6 @@
   --check-box-size: 23px;
   --menu-width: 50px;
   --menu-icon-size: 25px;
-  --button: #2c2c2c;
-  --button-outline: #222222;
 
   --calendar-h1-size: 35px;
   --p-size: 21px;
@@ -200,8 +213,8 @@ button:focus {
   color: var(--light-font);
   font-weight: 00;
   font-size: var(--p-size);
-  background-color: var(--button);
-  box-shadow: 3px 3px var(--button-outline);
+  background-color: var(--btn-grey-bg);
+  box-shadow: 3px 3px var(--btn-grey-shadow);
   transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
   transition: box-shadow 0.2s, background-color 0.2s, color .2s, transform 0.2s;
   border-radius: 8px;
@@ -215,12 +228,15 @@ button:focus {
 /* "invert" color if focused */
 .btn:focus {
   background-color: var(--lightest-font);
-  color: var(--button);
+  color: var(--btn-grey-bg);
   box-shadow: 3px 3px var(--light-font);
   z-index: 0;
 }
 
-.btn.no-shadow {
+.btn.no-shadow,
+.btn.btn-light-grey.no-shadow,
+.btn.btn-green.no-shadow,
+.btn.btn-red.no-shadow {
   box-shadow: none;
 }
 
@@ -237,7 +253,7 @@ button:focus {
 }
 
 .btn:hover {
-  background-color: var(--button-outline);
+  background-color: var(--btn-grey-shadow);
   box-shadow: none;
   color: var(--lightest-font);
   z-index: 0;
@@ -260,7 +276,7 @@ button:focus {
 .btn.btn-red:focus,
 .btn.btn-green:focus,
 .btn.btn-light-grey:focus {
-  background-color: var(--lightest-font);
+  background-color: var(--light-font);
 }
 
 .btn.btn-red:hover,
@@ -272,37 +288,42 @@ button:focus {
 /* Red button */
 
 .btn.btn-red {
-  background-color: rgb(105, 10, 10);
-  box-shadow: 2px 2px rgb(90, 8, 8);
+  background-color: var(--btn-red-bg);
+  box-shadow: 2px 2px var(--btn-red-shadow);
 }
 
-.btn.btn-red:focus {
-  color: rgb(105, 10, 10);
-}
-
+.btn.btn-red:focus,
 .btn.btn-red:hover {
-  background-color: rgb(90, 8, 8);
+  color: white;
+  background-color: var(--btn-red-shadow);
 }
 
 /* Green button */
 
 .btn.btn-green {
-  background-color: #075307;
-  box-shadow: 2px 2px #054105;
+  background-color: var(--btn-green-bg);
+  box-shadow: 2px 2px var(--btn-green-shadow);
 }
 
-.btn.btn-green:focus {
-  color: #054105;
-}
-
+.btn.btn-green:focus,
 .btn.btn-green:hover {
-  background-color: #054105;
+  color: white;
+  background-color: var(--btn-green-shadow);
+
 }
 
 /* Grey button */
 
-.btn.btn-light-grey:focus {
-  color: var(--button);
+.btn.btn-light-grey {
+  background-color: var(--btn-light-grey-bg);
+  box-shadow: 2px 2px var(--btn-light-grey-shadow);
+
+}
+
+.btn.btn-light-grey:focus,
+.btn.btn-light-grey:hover {
+  color: white;
+  background-color: var(--btn-light-grey-shadow);
 }
 
 /* Forms */
@@ -329,7 +350,7 @@ dialog {
 #alert-wrapper {
   position: absolute;
   bottom: var(--section-gap);
-  right: 0;
+  right: 10px;
 }
 
 #alert-wrapper ul {
@@ -341,17 +362,19 @@ dialog {
 
 .alert-pop-up {
   z-index: 5;
+  border-radius: 10px;
   max-width: 500px;
   line-break: loose;
   width: fit-content;
   overflow: hidden;
   position: relative;
   padding: 10px;
-  padding-left: 30px;
+  padding-left: 20px;
   box-shadow: 20px 10px 10px var(--mid-dark);
   display: flex;
   align-items: center;
   transition: opacity 1s;
+  background-color: var(--alert-bg);
   gap: 5px;
   margin: 0;
 }
@@ -374,7 +397,7 @@ dialog {
   font-family: "Secular One", sans-serif;
   color: var(--lightest-font);
   font-weight: 800;
-  font-size: 20px;
+  font-size: 19px;
   padding: 0;
 }
 
@@ -390,21 +413,15 @@ dialog {
 }
 
 .alert-pop-up.notice {
-  background: var(--notice-bg);
-  background: linear-gradient(90deg, rgba(124, 124, 124, 0) 3%, rgba(124, 124, 124, 1) 100%);
-  opacity: 100%;
+  border: 3px solid var(--notice-outline);
 }
 
 .alert-pop-up.failure {
-  background: var(--alert-bg);
-  background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, rgb(163, 29, 29) 100%);
-  opacity: 90%;
+  border: 3px solid var(--failure-outline);
 }
 
 .alert-pop-up.success {
-  background: var(--success);
-  background: linear-gradient(90deg, rgba(189, 19, 19, 0) 3%, #1eac1e);
-  opacity: 90%;
+  border: 3px solid var(--success-outline);
 }
 
 .slide-out {

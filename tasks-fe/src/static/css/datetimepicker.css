@@ -18,7 +18,7 @@
 }
 
 .tempus-dominus-widget button {
-    background-color: var(--button-outline);
+    background-color: var(--btn-grey-shadow));
     font-family: "Quicksand", sans-serif;
 }
 
@@ -39,7 +39,7 @@
 .tempus-dominus-widget .time-container-minute div:not(.no-highlight).new,
 .tempus-dominus-widget .time-container-second div:not(.no-highlight).old,
 .tempus-dominus-widget .time-container-second div:not(.no-highlight).new {
-    color: var(--button-outline);
+    color: var(--btn-grey-shadow);
 }
 
 .tempus-dominus-widget .time-container-clock div {
