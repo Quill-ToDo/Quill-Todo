@@ -5,7 +5,7 @@ import ShowTask from './ShowTask';
 import TaskCreatePopup from "./TaskCreatePopup";
 import { observer } from "mobx-react-lite";
 import { useTaskStore } from "../store/StoreContext";
-import { addAlert, NOTICE_ALERT } from '../static/js/alertEvent';
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '../static/js/alertEvent';
 
 
 const Home = observer(() => {
@@ -17,7 +17,8 @@ const Home = observer(() => {
             { taskStore.taskBeingFocused ? <ShowTask taskStore={taskStore}/> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
                 <button role="menuitem" className="btn no-shadow" title="Add task" type="button" onClick={() => {
-                    taskStore.createInProgressTask();
+                    // taskStore.createInProgressTask();
+                    addAlert(document.querySelector("#left-menu button[title='Add task']"), ERROR_ALERT, "Stay!")
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>

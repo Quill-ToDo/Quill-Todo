@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
 
+const animationDelay = "1s"; 
+
+
 const Alert = (props) => {
     const alert = props.alert.detail;
     const previouslyFocused = useRef(null);
@@ -14,7 +17,6 @@ const Alert = (props) => {
             id={btnId} 
             title="Close" 
             onClick={ () => {
-                console.log("clicking clos close on " + alert.id)
                 props.removeCallback();
             }}
         >
@@ -22,35 +24,48 @@ const Alert = (props) => {
         </button>
 
     useEffect(() => {
+        const alertInPage = document.getElementById(alert.id);
+        const closeBtnInPage = document.getElementById(btnId);
+
+        // alertInPage.style.animationDelay = animationDelay;
+
         // Every time the component re-renders, re-start the animation process for every alert 
         // that isn't of type "failure"
         // if (alert.type !== "failure" && !toRemove.current.has(alert) && !ongoingAnimations.current.has(alert)) {
         if (alert.type !== "failure") {
-            const alertInPage = document.getElementById(alert.id);
-            // ongoingAnimations.current.add(alert);
             alertInPage.addEventListener('animationend', () => {
                 // Hide alert
+                props.animationStop();
                 props.removeCallback();
             }, false);
+            alertInPage.addEventListener('animationstart', () => {
+                // console.log("animation start")
+                props.animationStart();
+            })
+            
+            // On focus, save previously focused element to return focus to on alert dismount. 
+            // Also, stop animation on focus.
+    
+            closeBtnInPage.addEventListener("focus", (e) => {
+                previouslyFocused.current = e.relatedTarget;
+                // const prevAnimation = alertInPage.style.animation;
+                // alertInPage.style.animation="0";
+                
+                alertInPage.classList.remove("slide-out");
+                props.animationStop();
+                
+                closeBtnInPage.addEventListener("blur", () => {
+                    alertInPage.classList.add("slide-out");
+                    // alertInPage.style.animation = prevAnimation;
+                    // console.log(alertInPage.style.animation)
+                })
+            })
         }
 
-
-        // On focus, save previously focused element to return focus to on alert dismount. 
-        // Also, stop animation on focus.
-
-        document.getElementById(btnId).addEventListener("focus", (e) => {
-            previouslyFocused.current = e.relatedTarget;
-            const alertInPage = document.getElementById(alert.id);
-            const prevAnimation = alertInPage.style.animation;
-            alertInPage.style.animation="0";
-            alertInPage.addEventListener("blur", () => {
-                alertInPage.style.animation = prevAnimation;
-            })
-        })
         
         // Focus on error message close button on render
         if (alert.type === ERROR_ALERT) {
-            document.getElementById(btnId).focus();
+            closeBtnInPage.focus();
         }
         
         return () => {
@@ -101,10 +116,11 @@ const AlertList = (props) => {
     return (
         <ul>
             {props.alerts.map((alert) => {
-                props.ongoingAnimations.current.add(alert);
                 return <Alert 
                     alert={alert}
                     key={alert.detail.id}
+                    animationStart={() => props.animationStart(alert)}
+                    animationStop={() => props.animationStop(alert)}
                     removeCallback={()=>props.removeCallback(alert)}
                 />
             })}
@@ -120,25 +136,29 @@ const AlertBox = (props) => {
     
     const removeCallback = props.removeCallback;
 
+    const animationStop = (alert) => {
+        ongoingAnimations.current.delete(alert);
+    }
+    
+    const animationStart = (alert) => {
+        ongoingAnimations.current.add(alert);
+    }
+
     const dismissAlert = useCallback(
         (alert) => {
-            // When an event finishes its animation cycle, if there are no other animations currently happening 
-            // then remove every task that has also finished its animation cycle
+            // If there are no animations currently happening then remove every task that has finished its animation cycle
 
             const alertInPage = document.getElementById(alert.detail.id);
+            if (!alertInPage) {
+                return;
+            }
             alertInPage.style.display = "none";
             toRemove.current.add(alert);
-            ongoingAnimations.current.delete(alert)
-            console.log("should remove " + toRemove.current.size + " alerts");
-            console.log("but there are " + ongoingAnimations.current.size + " alerts with ongoing animations")
+            animationStop(alert);
             if (!ongoingAnimations.current.size) {
+                console.log("removing " + toRemove.current.size + " alerts");
                 removeCallback(toRemove.current);
                 toRemove.current.clear();
-                // for (const alertToRemove of toRemove.current) {
-                //     console.log("removing alert " + alertToRemove);
-                //     toRemove.current.delete(alertToRemove);
-                //     removeCallback(alertToRemove);
-                // }
             }
         },
         [removeCallback],
@@ -155,7 +175,8 @@ const AlertBox = (props) => {
             {props.alerts.length ?
                 <AlertList 
                     alerts={props.alerts}
-                    ongoingAnimations={ongoingAnimations}
+                    animationStop={(alert) => animationStop(alert)}
+                    animationStart={(alert) => animationStart(alert)}
                     removeCallback={(alert) => dismissAlert(alert)}
                 />
                 :
@@ -183,8 +204,6 @@ const AlertWrapper = (props) => {
             <AlertBox 
                 alerts={alerts} 
                 removeCallback={(alertsToRemove) => {
-                    console.log("removing alerts")
-                    // Use a filter method to remove them all at once instead of this
                     setAlerts(alerts.filter(a => !alertsToRemove.has(a)));
                 }} 
             />
