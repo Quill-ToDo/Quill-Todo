@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
 
-const animationDelay = "1s"; 
-
 
 const Alert = (props) => {
     const alert = props.alert.detail;
@@ -10,10 +8,21 @@ const Alert = (props) => {
     const descId = alert.id + "-desc";
     const labelId = alert.id + "-label";
     const btnId = alert.id + "-close";
-    const colorMapping = {SUCCESS_ALERT: "btn-green", ERROR_ALERT: "btn-red", NOTICE_ALERT: "btn-light-grey"}
+    
+    var closeBtnClass = "no-shadow btn ";
+    if (alert.type === SUCCESS_ALERT) {
+        closeBtnClass += "btn-green";
+    }
+    else if (alert.type === ERROR_ALERT) {
+        closeBtnClass += "btn-red";
+    }
+    else if (alert.type === NOTICE_ALERT) {
+        closeBtnClass += "btn-light-grey";
+    }
+
     const closeBtn = 
         <button 
-            className={"no-shadow btn " + colorMapping[alert.type] } 
+            className={closeBtnClass} 
             id={btnId} 
             title="Close" 
             onClick={ () => {
@@ -27,38 +36,28 @@ const Alert = (props) => {
         const alertInPage = document.getElementById(alert.id);
         const closeBtnInPage = document.getElementById(btnId);
 
-        // alertInPage.style.animationDelay = animationDelay;
-
-        // Every time the component re-renders, re-start the animation process for every alert 
-        // that isn't of type "failure"
-        // if (alert.type !== "failure" && !toRemove.current.has(alert) && !ongoingAnimations.current.has(alert)) {
         if (alert.type !== "failure") {
             alertInPage.addEventListener('animationend', () => {
-                // Hide alert
                 props.animationStop();
                 props.removeCallback();
             }, false);
             alertInPage.addEventListener('animationstart', () => {
-                // console.log("animation start")
                 props.animationStart();
             })
-            
+
             // On focus, save previously focused element to return focus to on alert dismount. 
             // Also, stop animation on focus.
     
             closeBtnInPage.addEventListener("focus", (e) => {
                 previouslyFocused.current = e.relatedTarget;
-                // const prevAnimation = alertInPage.style.animation;
-                // alertInPage.style.animation="0";
-                
-                alertInPage.classList.remove("slide-out");
-                props.animationStop();
-                
-                closeBtnInPage.addEventListener("blur", () => {
-                    alertInPage.classList.add("slide-out");
-                    // alertInPage.style.animation = prevAnimation;
-                    // console.log(alertInPage.style.animation)
-                })
+
+                if (alert.type !== "failure") { 
+                    alertInPage.classList.remove("slide-out");
+                    props.animationStop();
+                    closeBtnInPage.addEventListener("blur", () => {
+                        alertInPage.classList.add("slide-out");
+                    })
+                }
             })
         }
 
@@ -156,7 +155,6 @@ const AlertBox = (props) => {
             toRemove.current.add(alert);
             animationStop(alert);
             if (!ongoingAnimations.current.size) {
-                console.log("removing " + toRemove.current.size + " alerts");
                 removeCallback(toRemove.current);
                 toRemove.current.clear();
             }

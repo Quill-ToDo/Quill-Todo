@@ -429,8 +429,6 @@ dialog {
 }
 
 .alert-pop-up:hover {
-  right: 0;
-  opacity: 100%;
   animation: 0;
 }
 
