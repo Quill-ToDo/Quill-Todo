@@ -7,9 +7,10 @@ import Task from "./List/Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
 import { useAlertStore} from "../store/StoreContext";
+import { NOTICE_ALERT } from '../static/js/alertEvent';
 
 function handleEdit (alerts) {
-    alerts.add("notice", "Edit is not implemented")
+    alerts.add(NOTICE_ALERT, "Edit is not implemented")
 }
 
 const ShowTask = observer((props) => {

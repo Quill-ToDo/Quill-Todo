@@ -154,7 +154,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 3. Ensure postgres server is running
 
-    ```Bash 
+    ```Bash
     pg_ctl status
     ```
 

@@ -11,6 +11,7 @@ import {
 } from 'msw'
 import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 import App from '../../App';
+import { ERROR_ALERT, NOTICE_ALERT } from '../static/js/alertEvent';
 import { useAlertStore } from '../../store/StoreContext';
 
 var handler;
@@ -33,7 +34,7 @@ afterAll(() => {
 it("should render failure alerts that require dismissal", async () => {
     render(<App />);
     const alertStore = useAlertStore();
-    alertStore.add("failure", "Test fail")
+    alertStore.add(ERROR_ALERT, "Test fail")
     const notice = await screen.findByRole("alertdialog", {name: "Error:"});
     await new Promise((r) => {setTimeout(r, slideOutTimeout-5000)})
     screen.getByRole("alertdialog", {name: "Error:"})
@@ -43,7 +44,7 @@ it.skip("should render notice and success alerts that slide out", async() => {
     render(<App />);
     const alertStore = useAlertStore();
     const user = userEvent.setup();
-    alertStore.add("notice", "Test notice")
+    alertStore.add(NOTICE_ALERT, "Test notice")
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
     user.unhover(notice);
     // await new Promise((r) => setTimeout(r, 20000));
@@ -60,13 +61,13 @@ it("should remove alerts from the DOM after they are exited", async () => {
     render(<App />);
     const user = userEvent.setup();
     const alertStore = useAlertStore();
-    alertStore.add("failure", "Test fail")
+    alertStore.add(ERROR_ALERT, "Test fail")
     const alert = await screen.findByRole("alertdialog", {name: "Error:"});
     const close = screen.getByRole("button", {name: "Close"})
     expect(close).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(alert).not.toBeInTheDocument();
-    alertStore.add("notice", "Test notice")
+    alertStore.add(NOTICE_ALERT, "Test notice")
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
     const nClose = within(notice).getByRole("button", {name: "Close"})
     await user.click(nClose)
