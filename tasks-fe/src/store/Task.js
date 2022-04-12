@@ -10,7 +10,7 @@ import {
     START_OF_DAY
 } from "../constants";
 
-import { ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
+import { addAlert, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from "../static/js/alertEvent";
 
 const validateDateTime = (date, time, errors) => {
     var parsedDate = DateTime.fromFormat(date, DATE_FORMAT);
@@ -84,8 +84,7 @@ export class Task {
                 if (this.autoSave) {
                     this.store.API.updateTask(this.id, json)
                     .catch(error => {
-                        this.store.rootStore.alertStore.add(ERROR_ALERT, 
-                            "Task could not be updated - " + error.toString());
+                        addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Task could not be updated - " + error.toString());
                         // Revert changes
                         this.store.loadTasks();
                     });
@@ -109,11 +108,10 @@ export class Task {
         this.removeSelfFromStore();
         this.store.API.deleteTask(this.id)
         .then(() => {
-            this.store.rootStore.alertStore.add(NOTICE_ALERT, "Task deleted")
+            addAlert(document.getElementById('home-wrapper'), NOTICE_ALERT, "Deleted " + this.title);
         })
         .catch(error => {
-            this.store.rootStore.alertStore.add(ERROR_ALERT, 
-                "Task could not be deleted - " + error.toString());
+            addAlert(document.getElementById('home-wrapper'), ERROR_ALERT, this.title + " could not be deleted - " + error.toString());
             this.store.add(this);
         });
     }
@@ -143,8 +141,9 @@ export class Task {
     finishEditing () {
         // Validate that there are no errors. If there are, raise an alert.
         if (this.hasErrors) {
-            this.store.rootStore.alertStore.add(ERROR_ALERT, 
-                "Task could not be saved, it still has errors - " + this.validationErrors);
+            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Task could not be saved, it still has errors - " + this.validationErrors);
+            console.log(this);
+            console.error(this.validationErrors);
             return;
         } 
         
@@ -152,7 +151,7 @@ export class Task {
         this.store.API.createTask(this.asJson)
         .catch(e => {
             console.error(e)
-            this.store.rootStore.alertStore.add(ERROR_ALERT, "Could not add task - " + e);
+            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
             this.removeSelfFromStore();
         });
         this.beingEdited = false;

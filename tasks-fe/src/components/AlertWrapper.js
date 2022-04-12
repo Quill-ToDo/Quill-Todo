@@ -2,6 +2,11 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
 
 
+/**
+ * One Alert.
+ * @param {*} props Should pass in the alert
+ * @returns
+ */
 const Alert = (props) => {
     const alert = props.alert.detail;
     const previouslyFocused = useRef(null);
@@ -102,7 +107,10 @@ const Alert = (props) => {
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + alert.type}>
                 <div className='alert-cont-wrapper'>
-                    <h3 id={labelId}>{alert.type === NOTICE_ALERT ? "Notice:" : "Success:"}</h3>
+                    {alert.type === SUCCESS_ALERT ? 
+                    <h3 id={labelId}>Success:</h3> 
+                    : null
+                    }
                     <p id={descId}>{alert.body}</p>
                 </div>
                 {closeBtn}
@@ -111,22 +119,40 @@ const Alert = (props) => {
     }
 }
 
+/**
+ * A list to render alerts, separated from the rest of the components for performance.
+ * Adds any alert that has not already been removed to the list.
+ * @param {*} props Should include array of alert objects.
+ * @returns 
+ */
 const AlertList = (props) => {
     return (
         <ul>
             {props.alerts.map((alert) => {
-                return <Alert 
-                    alert={alert}
-                    key={alert.detail.id}
-                    animationStart={() => props.animationStart(alert)}
-                    animationStop={() => props.animationStop(alert)}
-                    removeCallback={()=>props.removeCallback(alert)}
-                />
+                if (!alert.detail.removed) {
+                    return <Alert 
+                        alert={alert}
+                        key={alert.detail.id}
+                        animationStart={() => props.animationStart(alert)}
+                        animationStop={() => props.animationStop(alert)}
+                        removeCallback={() => props.removeCallback(alert)}
+                    />
+                }   
+                return null;
             })}
         </ul>
     );
 }
 
+/**
+ * Outermost alert box wrapper. Expects a removeCallback that removes alerts from the array passed in.
+ * 
+ * As some alerts slide out, it will hide alerts that have finished their animations so that it appears they are removed,
+ * but they are not actually removed from their list until there are no other ongoing animation cycles. This prevents interrupting 
+ * other alert animations when an alert is removed, which would start them all over. 
+ * @param {*} props 
+ * @returns 
+ */
 const AlertBox = (props) => {
     // Ids of elements currently being animated
     const ongoingAnimations = useRef(new Set());
@@ -134,8 +160,14 @@ const AlertBox = (props) => {
     const toRemove = useRef(new Set());
     
     const removeCallback = props.removeCallback;
-
+    
     const animationStop = (alert) => {
+        toRemove.current.add(alert);
+        alert.detail.removed = true;
+        const alertInPage = document.getElementById(alert.detail.id);
+        if (alertInPage) {
+            alertInPage.style.display = "none";
+        }
         ongoingAnimations.current.delete(alert);
     }
     
@@ -148,12 +180,9 @@ const AlertBox = (props) => {
             // If there are no animations currently happening then remove every task that has finished its animation cycle
 
             const alertInPage = document.getElementById(alert.detail.id);
-            if (!alertInPage) {
-                return;
+            if (alertInPage) {
+                animationStop(alert);
             }
-            alertInPage.style.display = "none";
-            toRemove.current.add(alert);
-            animationStop(alert);
             if (!ongoingAnimations.current.size) {
                 removeCallback(toRemove.current);
                 toRemove.current.clear();

@@ -6,11 +6,10 @@ import React, {
 import Task from "./List/Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
-import { useAlertStore} from "../store/StoreContext";
-import { NOTICE_ALERT } from '../static/js/alertEvent';
+import { addAlert, NOTICE_ALERT } from '../static/js/alertEvent';
 
-function handleEdit (alerts) {
-    alerts.add(NOTICE_ALERT, "Edit is not implemented")
+function handleEdit () {
+    addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
 }
 
 const ShowTask = observer((props) => {
@@ -18,7 +17,6 @@ const ShowTask = observer((props) => {
     const filterEle = useRef(null);
     const taskStore = props.taskStore;
     const task = taskStore.taskBeingFocused;
-    const alertStore = useAlertStore();
     const closeFn = useCallback(
         () => {
             taskStore.removeFocus();
@@ -56,7 +54,7 @@ const ShowTask = observer((props) => {
                             {/* <img src={bin} alt="Trash icon for delete"></img> */}
                             <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
-                        <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit(alertStore)}>
+                        <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit()}>
                             <i className="far fa-edit fa-fw fa"></i>
                         </button>
                         <button className="btn btn-red" title="Close" onClick={closeFn}>

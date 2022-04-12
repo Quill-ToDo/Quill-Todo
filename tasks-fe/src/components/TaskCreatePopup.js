@@ -27,7 +27,7 @@ const ErrorsListContent = (errors) => {
 const errorsList = (errors) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul className="error-list">
+            <ul className="error-list" aria-live="polite">
                 <ErrorsListContent errors={errors} />
             </ul>
         </Fragment>

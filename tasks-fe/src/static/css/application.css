@@ -15,15 +15,17 @@
 
   /* Alerts */
   --alert-bg: #444444;
+  --error-alert-bg: #751b1b;
+  --success-alert-bg: #245e13;
   --notice-outline: #6d6d6d;
   --failure-outline: #e60000;
   --success-outline: #1abd1a;
 
   /* Buttons */
   --btn-green-bg: #1abd1a;
-  --btn-green-shadow: #0b5f0b;
+  --btn-green-shadow: #083b08;
   --btn-red-bg: #b90707;
-  --btn-red-shadow: #680000;
+  --btn-red-shadow: #520606;
   --btn-light-grey-bg: #888888;
   --btn-light-grey-shadow: #363636;
   --btn-grey-bg: #2c2c2c;
@@ -369,7 +371,6 @@ dialog {
   overflow: hidden;
   position: relative;
   padding: 10px;
-  padding-left: 20px;
   box-shadow: 20px 10px 10px var(--mid-dark);
   display: flex;
   align-items: center;
@@ -388,6 +389,7 @@ dialog {
 
 .alert-pop-up .alert-cont-wrapper {
   display: flex;
+  padding-right: 5px;
   flex-direction: column;
   row-gap: 2px;
 }
@@ -414,14 +416,17 @@ dialog {
 
 .alert-pop-up.notice {
   border: 3px solid var(--notice-outline);
+  background-color: var(--alert-bg);
 }
 
 .alert-pop-up.failure {
   border: 3px solid var(--failure-outline);
+  background-color: var(--error-alert-bg);
 }
 
 .alert-pop-up.success {
   border: 3px solid var(--success-outline);
+  background-color: var(--success-alert-bg);
 }
 
 .slide-out {

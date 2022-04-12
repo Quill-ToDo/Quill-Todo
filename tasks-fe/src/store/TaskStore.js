@@ -2,7 +2,7 @@ import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "../constants";
-import { ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
 
 
 export class TaskStore {
@@ -52,12 +52,13 @@ export class TaskStore {
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
-                    this.rootStore.alertStore.add(SUCCESS_ALERT, "Re-established connection");
+                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Re-established connection");
                 }
             });
         }).catch(e => {
             if (retry === 0) {
-                this.rootStore.alertStore.add(ERROR_ALERT, "Could not load tasks - " + e);
+                addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, "Could not load tasks - " + e);
+
             }
             setTimeout(() => {this.loadTasks(retry + 1)}, 3000);
         })
