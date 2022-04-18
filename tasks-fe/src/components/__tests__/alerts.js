@@ -3,16 +3,17 @@ import {
     screen,
     within,
     waitForElementToBeRemoved,
-    configure
+    configure,
+    logRoles
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {
     rest
 } from 'msw'
+import { act } from 'react-dom/test-utils';
 import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 import App from '../../App';
-import { ERROR_ALERT, NOTICE_ALERT } from '../static/js/alertEvent';
-import { useAlertStore } from '../../store/StoreContext';
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '../../static/js/alertEvent';
 
 var handler;
 // logRoles(await screen.findByRole("log", {name: "Alerts"}));
@@ -29,26 +30,35 @@ afterAll(() => {
     handler.server.close();
 })
 
+beforeEach(() => {
+    jest.useFakeTimers()
+})
+
+// Running all pending timers and switching to real timers using Jest
+afterEach(() => {
+    jest.runOnlyPendingTimers()
+    jest.useRealTimers()
+})
+
 // const wrapper = await screen.findByRole("log", {name: "Alerts"});
 
 it("should render failure alerts that require dismissal", async () => {
     render(<App />);
-    const alertStore = useAlertStore();
-    alertStore.add(ERROR_ALERT, "Test fail")
-    const notice = await screen.findByRole("alertdialog", {name: "Error:"});
+    addAlert(await screen.findByRole('menubar'), ERROR_ALERT, "Test fail");
+    await screen.findByRole("alertdialog", {name: "Error:"});
     await new Promise((r) => {setTimeout(r, slideOutTimeout-5000)})
     screen.getByRole("alertdialog", {name: "Error:"})
 })
 
-it.skip("should render notice and success alerts that slide out", async() => {
+it.only("should render notice and success alerts that slide out", async() => {
     render(<App />);
-    const alertStore = useAlertStore();
     const user = userEvent.setup();
-    alertStore.add(NOTICE_ALERT, "Test notice")
+    await act(async () => addAlert(await screen.findByRole('menubar'), NOTICE_ALERT, "Test notice"));
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
-    user.unhover(notice);
-    // await new Promise((r) => setTimeout(r, 20000));
-    await waitForElementToBeRemoved(() => screen.queryByRole("listitem", {name: "Notice:"}));
+    await act(() => user.unhover(notice));
+    await new Promise((r) => setTimeout(r, 7000));
+    await waitForElementToBeRemoved(() => screen.queryByRole("listitem", {name: "Notice:"}))
+    // await waitForElementToBeRemoved(() => screen.queryByRole("listitem", {name: "Notice:"}));
     // expect(screen.queryByRole("listitem", {name: "Notice:"})).toBeNull();
     // expect(notice).not.toBeInTheDocument();
     // await waitFor(() => {
@@ -60,17 +70,25 @@ it.skip("should render notice and success alerts that slide out", async() => {
 it("should remove alerts from the DOM after they are exited", async () => {
     render(<App />);
     const user = userEvent.setup();
-    const alertStore = useAlertStore();
-    alertStore.add(ERROR_ALERT, "Test fail")
+    // Test closing error alerts
+    await act (async () => {
+        addAlert(await screen.findByRole('menubar'), ERROR_ALERT, "Test fail");   
+
+    })
     const alert = await screen.findByRole("alertdialog", {name: "Error:"});
     const close = screen.getByRole("button", {name: "Close"})
     expect(close).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(alert).not.toBeInTheDocument();
-    alertStore.add(NOTICE_ALERT, "Test notice")
+    // Test closing notice alerts
+    await act(async () => {
+        addAlert(await screen.findByRole('menubar'), NOTICE_ALERT, "Test notice")    
+    })
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
     const nClose = within(notice).getByRole("button", {name: "Close"})
-    await user.click(nClose)
+    await act (async () => {
+        await user.click(nClose)
+    })
     expect(notice).not.toBeInTheDocument();
 })
 
@@ -107,14 +125,13 @@ it("should handle failure to delete task", async () => {
     render(<App />);
     const user = userEvent.setup()
     const t = await screen.findByText("Overdue incomplete");
-    await user.click(t);
+    await act(() => user.click(t));
     const del = await screen.findByRole("button", {name: "Delete task"});
-    await user.click(del);
-    expect(screen.queryByText("Overdue incomplete")).toBeNull();
+    await act(() => user.click(del));
     await screen.findByRole("alertdialog", {name: "Error:"});
     const close = screen.getByRole("button", {name: "Close"})
     expect(close).toHaveFocus();
-    // Should add test back to list
+    // Task should still be in the list, not deleted
     await screen.findByText("Overdue incomplete");
 })
 

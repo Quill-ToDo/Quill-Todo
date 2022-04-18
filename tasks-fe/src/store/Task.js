@@ -128,9 +128,9 @@ export class Task {
             this.autoSave = false;
             // If this is a new task, set defaults
             this.setComplete(false);
-            if (!this.start && !this.due) {
-                this.setStart(START_OF_DAY);
+            if (!this.due) {
                 this.setDue(END_OF_DAY);
+                this.setStart(this.defaultStart);
             }
         }
     }
@@ -204,6 +204,22 @@ export class Task {
     // ---- GETTERS ---- 
 
     /**
+     * The Luxon DateTime representing the default start date and time. It defaults to the beginning of the day of the due date
+     */
+    get defaultStart() {
+        return this.due.set({hour:0, minute:0, second:0, millisecond: 0});
+    }
+
+    /**
+     * Returns true if the default start date is currently being used. If false, the default start is not being used.
+     */
+    get defaultStartBeingUsed () {
+        console.log(this.start.toFormat(DATE_FORMAT), this.defaultStart.toFormat(DATE_FORMAT))
+        return this.start.equals(this.defaultStart);
+    }
+
+
+    /**
      * Get the fields of this task formatted as a JSON
      */
     get asJson() {
@@ -211,7 +227,7 @@ export class Task {
             id: this.id,
             title: this.title,
             complete: this.complete,
-            start: this.start.toJSON(), 
+            start: this.start ? this.start.toJSON() : "", 
             due: this.due.toJSON(),
             description: this.description
         };
@@ -321,6 +337,7 @@ export class Task {
     setDescription (desc) { this.description = desc; }
     setComplete(complete) { this.complete = complete; }
 
+
     /**
      * Set the `this.start` DateTime as a Luxon DateTime object taking a date in ISO format **OR as a Luxon DateTime object**. 
      * dateTime must be valid to set it. 
@@ -338,7 +355,6 @@ export class Task {
             this.startDate = this.start.toFormat(DATE_FORMAT);
             this.startTime = this.start.toFormat(TIME_FORMAT);
         }
-        
     }
 
     /**
@@ -376,9 +392,13 @@ export class Task {
             console.error("Couldn't convert datetime " + dateTime + " " + date.invalid);
         }  
         else {
+            const startNeedsUpdate = this.due !== null && this.defaultStartBeingUsed;
             this.due = date;
             this.dueDate = this.due.toFormat(DATE_FORMAT);
             this.dueTime = this.due.toFormat(TIME_FORMAT);
+            if (startNeedsUpdate) {
+                this.setStart(this.defaultStart);
+            }
         }
     }
 
@@ -390,7 +410,6 @@ export class Task {
      */
     setDueDate (date) {
         this.dueDate = date;
-        console.log(this.dueDate);
         this.updateDueIfValid();
     }
 
@@ -424,7 +443,13 @@ export class Task {
     updateDueIfValid() {
         const fullDate = DateTime.fromFormat(this.dueDate + " " + this.dueTime, DATE_TIME_FORMAT);
         if (!fullDate.invalid) {
+            const startNeedsUpdate = this.defaultStartBeingUsed;
+            console.log(startNeedsUpdate)
             this.due = fullDate; 
+            if (startNeedsUpdate) {
+                console.log("updating start")
+                this.setStart(this.defaultStart);
+            }
         }  
     }
 }

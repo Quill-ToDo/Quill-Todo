@@ -57,7 +57,7 @@ const errorsList = (errors) => {
 const TimeDateLabel = (props) => {
     return <label>
         {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
-        <div className="horizontal-align">
+        <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
             <label className="date">
                 Date
                 { props.errors.date.length ? errorsList(props.errors.date) : null }
@@ -71,7 +71,7 @@ const TimeDateLabel = (props) => {
             <label className="time">
                 Time
                 { props.errors.time.length ? errorsList(props.errors.time) : null }
-                <div className="horizontal-align">
+                <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
                     <input
                         id={`${props.label}-time`}
                         data-td-target={`#datetime-picker-${props.label}`}
@@ -245,9 +245,10 @@ const TaskCreatePopup = observer((props) => {
                             value={taskToCreate.description}
                         />
                     </label>
-                    <div className="start-due-wrapper horizontal-align"> 
+                    <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
                             label="start"
+                            defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={startDate}
                             time={startTime}
                             errors={taskToCreate.validationErrors.start}
@@ -256,6 +257,7 @@ const TaskCreatePopup = observer((props) => {
                         />
                         <TimeDateLabel 
                             label="due"
+                            defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={dueDate}
                             time={dueTime}
                             errors={taskToCreate.validationErrors.due}

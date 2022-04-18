@@ -58,6 +58,7 @@ export class TaskStore {
         }).catch(e => {
             if (retry === 0) {
                 addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, "Could not load tasks - " + e);
+                console.error(e);
 
             }
             setTimeout(() => {this.loadTasks(retry + 1)}, 3000);

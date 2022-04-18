@@ -82,7 +82,7 @@ form textarea:focus {
 
 form input.errors,
 form textarea.errors {
-  outline: 3px solid var(--alert-bg);
+  outline: 3px solid var(--failure-outline);
 }
 
 #new-wrapper .mid-section {
@@ -106,6 +106,10 @@ form textarea.errors {
   margin-top: 0;
 }
 
+
+#new-wrapper form .default label input {
+  color: var(--subdued);
+}
 
 #new-wrapper form label.date {
   min-width: 200px;
@@ -156,7 +160,7 @@ form textarea.errors {
 }
 
 .error-list {
-  color: var(--alert-bg);
+  color: var(--failure-outline);
   font-size: 17px;
 }
 

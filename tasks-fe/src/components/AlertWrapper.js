@@ -109,7 +109,7 @@ const Alert = (props) => {
                 <div className='alert-cont-wrapper'>
                     {alert.type === SUCCESS_ALERT ? 
                     <h3 id={labelId}>Success:</h3> 
-                    : null
+                    :  <h3 id={labelId}>Notice:</h3> 
                     }
                     <p id={descId}>{alert.body}</p>
                 </div>

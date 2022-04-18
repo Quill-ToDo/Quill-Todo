@@ -1,6 +1,5 @@
 import { DateTime } from "luxon";
 
-export const START_OF_DAY = DateTime.now().set({hour:0, minute:0, second:0, millisecond: 0})
 export const END_OF_DAY = DateTime.now().set({hour:23, minute:59, second:59, millisecond: 999})
 
 export const DATE_FORMAT = "D";
