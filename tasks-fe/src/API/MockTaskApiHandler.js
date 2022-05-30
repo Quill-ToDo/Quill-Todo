@@ -62,6 +62,7 @@ export default class MockTaskApiHandler {
 
         initTasks() {
             this.handler.tasks = [];
+            const defaultStart = this.handler.date.set({hour:0, minute: 0, second:0,  millisecond:0});
             const tasks = [{
                     title: "Overdue incomplete",
                     complete: false,
@@ -92,6 +93,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "No start",
                     complete: false,
+                    start: defaultStart,
                     due: this.handler.date.minus({
                         weeks: 3
                     }),
@@ -121,6 +123,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "Upcoming",
                     complete: false,
+                    start: defaultStart,
                     due: this.handler.date.plus({
                         months: 2
                     }),
@@ -157,6 +160,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "Due today",
                     complete: true,
+                    start: this.handler.date,
                     due: this.handler.date.plus({
                         hours: 2
                     }),
