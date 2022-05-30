@@ -41,7 +41,7 @@ const Alert = (props) => {
         const alertInPage = document.getElementById(alert.id);
         const closeBtnInPage = document.getElementById(btnId);
 
-        if (alert.type !== "failure") {
+        if (alert.type !== ERROR_ALERT) {
             alertInPage.addEventListener('animationend', () => {
                 props.animationStop();
                 props.removeCallback();
@@ -55,20 +55,16 @@ const Alert = (props) => {
     
             closeBtnInPage.addEventListener("focus", (e) => {
                 previouslyFocused.current = e.relatedTarget;
-
-                if (alert.type !== "failure") { 
-                    alertInPage.classList.remove("slide-out");
-                    props.animationStop();
-                    closeBtnInPage.addEventListener("blur", () => {
-                        alertInPage.classList.add("slide-out");
-                    })
-                }
+                alertInPage.classList.remove("slide-out");
+                props.animationStop();
+                closeBtnInPage.addEventListener("blur", () => {
+                    alertInPage.classList.add("slide-out");
+                })
             })
         }
-
-        
         // Focus on error message close button on render
-        if (alert.type === ERROR_ALERT) {
+        else if (alert.type === ERROR_ALERT) {
+            // console.log(closeBtnInPage)
             closeBtnInPage.focus();
         }
         
@@ -78,7 +74,6 @@ const Alert = (props) => {
                 previouslyFocused.current.focus();
             }
         }
-        // Adding alert to ongoing every time it reloads but ongoing stays. Add if it isn't already in it
     })
 
     if (alert.type === ERROR_ALERT) {
