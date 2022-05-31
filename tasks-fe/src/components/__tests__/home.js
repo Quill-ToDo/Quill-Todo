@@ -63,14 +63,14 @@ it("should should a task-creation popup when users click the add button", async 
     await screen.findByRole("region", {name: "New Task"})
 })
 
-it.skip("should allow the user to create a new task", async () => {
+it.only("should allow the user to create a new task", async () => {
     render(<App />);
     const user = userEvent.setup();
     const addBtn = await screen.findByRole('menuitem', {name: "Add task"});
     await user.click(addBtn);
     const popup = await screen.findByRole("region", {name: "New Task"});
     await screen.findByText("Overdue incomplete");
-    // logRoles(popup);
+    logRoles(popup);
     const title = await within(popup).findByRole("textbox", {name: "Title", exact: false});
     // const desc = await within(popup).findByLabelText("Description", {exact: false});
     // // await user.click(title);
