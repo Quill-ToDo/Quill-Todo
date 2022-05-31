@@ -6,11 +6,10 @@ import {
     DATE_FORMAT, 
     TIME_FORMAT, 
     DATE_TIME_FORMAT,
-    END_OF_DAY,
-    START_OF_DAY
+    END_OF_DAY
 } from "../constants";
 
-import { addAlert, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from "../static/js/alertEvent";
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
 
 const validateDateTime = (date, time, errors) => {
     var parsedDate = DateTime.fromFormat(date, DATE_FORMAT);

@@ -5,7 +5,7 @@ import ShowTask from './ShowTask';
 import TaskCreatePopup from "./TaskCreatePopup";
 import { observer } from "mobx-react-lite";
 import { useTaskStore } from "../store/StoreContext";
-import { addAlert, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
+import { addAlert, SUCCESS_ALERT } from '../static/js/alertEvent';
 
 
 const Home = observer(() => {
