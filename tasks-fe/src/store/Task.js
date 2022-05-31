@@ -142,8 +142,8 @@ export class Task {
         // Validate that there are no errors. If there are, raise an alert.
         if (this.hasErrors) {
             addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Task could not be saved, it still has errors - " + this.validationErrors);
-            console.log(this);
             console.error(this.validationErrors);
+            console.error(this);
             return;
         } 
         
@@ -214,7 +214,6 @@ export class Task {
      * Returns true if the default start date is currently being used. If false, the default start is not being used.
      */
     get defaultStartBeingUsed () {
-        console.log(this.start.toFormat(DATE_FORMAT), this.defaultStart.toFormat(DATE_FORMAT))
         return this.start.equals(this.defaultStart);
     }
 
@@ -346,6 +345,7 @@ export class Task {
      * @param {String} dateTime 
      */
     setStart(dateTime) {
+        // Datetime is sometimes null here
         const date = DateTime.fromISO(dateTime);
         if (date.invalid) {
             console.error("Couldn't convert datetime " + dateTime + " " + date.invalid);
@@ -431,6 +431,7 @@ export class Task {
      */
     updateStartIfValid() {
         const fullDate = DateTime.fromFormat(this.startDate + " " + this.startTime, DATE_TIME_FORMAT);
+        // Errpr here, fullDAte is null
         if (!fullDate.invalid) {
             this.start = fullDate; 
         } 
@@ -444,10 +445,8 @@ export class Task {
         const fullDate = DateTime.fromFormat(this.dueDate + " " + this.dueTime, DATE_TIME_FORMAT);
         if (!fullDate.invalid) {
             const startNeedsUpdate = this.defaultStartBeingUsed;
-            console.log(startNeedsUpdate)
             this.due = fullDate; 
             if (startNeedsUpdate) {
-                console.log("updating start")
                 this.setStart(this.defaultStart);
             }
         }  

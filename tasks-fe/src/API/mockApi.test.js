@@ -6,49 +6,52 @@ import { TaskApi } from "./TaskApi"
 
 describe("should init with", () => {
     const defaultBaseDate = DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
+    const defaultStart = defaultBaseDate.set({hour:0, minute: 0, second:0,  millisecond:0});
     const newDateOverride = DateTime.utc(2022, 5, 22, 10, 30);
+    const defaultStartOverride = newDateOverride.set({hour:0, minute: 0, second:0,  millisecond:0});
+
 
     describe.each([
-        ["Overdue incomplete", false, defaultBaseDate.minus({months: 1}), defaultBaseDate.minus({days: 7}), "Task description"],
-        ["Overdue complete", true, defaultBaseDate.minus({months: 1}), defaultBaseDate.minus({weeks: 3}), ""],
-        ["No start", false, null, defaultBaseDate.minus({weeks: 3}), ""],
-        ["Work on today", false, defaultBaseDate.minus({months: 2}), defaultBaseDate.plus({months: 2}), "A long project"],
-        ["Upcoming", false, null, defaultBaseDate.plus({months: 2}), ""],
-        ["Upcoming span", true, defaultBaseDate.plus({weeks: 2}), defaultBaseDate.plus({weeks: 4}), ""],
-        ["Due today", true, null, defaultBaseDate.plus({hours: 2}), "Omg!"],
-        ["Due today span", false, defaultBaseDate.minus({weeks: 1}), defaultBaseDate.plus({hours: 3}), ""],
-        ["Due tomorrow", true, defaultBaseDate.minus({days: 3}), defaultBaseDate.plus({days: 1}), ""],
-    ])('task "%"\'s', (tName, complete, start, due, description) => {
+        {title: "Overdue incomplete", complete: false, start: defaultBaseDate.minus({months: 1}), due: defaultBaseDate.minus({days: 7}), description: "Task description"},
+        {title: "Overdue complete", complete: true, start: defaultBaseDate.minus({months: 1}), due: defaultBaseDate.minus({weeks: 3}), description: ""},
+        {title: "No start", complete: false, start: defaultStart, due: defaultBaseDate.minus({weeks: 3}), description: ""},
+        {title: "Work on today", complete: false, start: defaultBaseDate.minus({months: 2}), due: defaultBaseDate.plus({months: 2}), description: "A long project"},
+        {title: "Upcoming", complete: false, start: defaultBaseDate.plus({months: 2}), due: defaultBaseDate.plus({months: 2}), description: ""},
+        {title: "Upcoming span", complete: true, start: defaultBaseDate.plus({weeks: 2}), due: defaultBaseDate.plus({weeks: 4}), description: ""},
+        {title: "Due today", complete: true, start: defaultBaseDate, due: defaultBaseDate.plus({hours: 2}), description: "Omg!"},
+        {title: "Due today span", complete: false, start: defaultBaseDate.minus({weeks: 1}), due: defaultBaseDate.plus({hours: 3}), description: ""},
+        {title: "Due tomorrow", complete: true, start: defaultBaseDate.minus({days: 3}), due: defaultBaseDate.plus({days: 1}), description: ""},
+    ])('task "$title"\'s', (t) => {
         it("details populated", ()=>{
             const handler = new MockTaskApiHandler();
-            const task = handler.tasks.find((task) => task.title === tName);
-            expect(task).toBeDefined();
-            expect(task.complete).toEqual(complete);
-            expect(task.start).toEqual(start);
-            expect(task.due).toEqual(due);
-            expect(task.description).toEqual(description);
+            const dbTask = handler.tasks.find((task) => t.title === task.title);
+            expect(dbTask).toBeDefined();
+            expect(dbTask.complete).toEqual(t.complete);
+            expect(dbTask.start).toEqual(t.start);
+            expect(dbTask.due).toEqual(t.due);
+            expect(dbTask.description).toEqual(t.description);
         });
     });
 
     describe.each([
-        ["Overdue incomplete", false, newDateOverride.minus({months: 1}), newDateOverride.minus({days: 7}), "Task description"],
-        ["Overdue complete", true, newDateOverride.minus({months: 1}), newDateOverride.minus({weeks: 3}), ""],
-        ["No start", false, null, newDateOverride.minus({weeks: 3}), ""],
-        ["Work on today", false, newDateOverride.minus({months: 2}), newDateOverride.plus({months: 2}), "A long project"],
-        ["Upcoming", false, null, newDateOverride.plus({months: 2}), ""],
-        ["Upcoming span", true, newDateOverride.plus({weeks: 2}), newDateOverride.plus({weeks: 4}), ""],
-        ["Due today", true, null, newDateOverride.plus({hours: 2}), "Omg!"],
-        ["Due today span", false, newDateOverride.minus({weeks: 1}), newDateOverride.plus({hours: 3}), ""],
-        ["Due tomorrow", true, newDateOverride.minus({days: 3}), newDateOverride.plus({days: 1}), ""],
-    ])('task "%"\'s', (tName, complete, start, due, description) => {
+        {title: "Overdue incomplete", complete: false, start: newDateOverride.minus({months: 1}), due: newDateOverride.minus({days: 7}), description: "Task description"},
+        {title: "Overdue complete", complete: true, start: newDateOverride.minus({months: 1}), due: newDateOverride.minus({weeks: 3}), description: ""},
+        {title: "No start", complete: false, start: defaultStartOverride, due: newDateOverride.minus({weeks: 3}), description: ""},
+        {title: "Work on today", complete: false, start: newDateOverride.minus({months: 2}), due: newDateOverride.plus({months: 2}), description: "A long project"},
+        {title: "Upcoming", complete: false, start: newDateOverride.plus({months: 2}), due: newDateOverride.plus({months: 2}), description: ""},
+        {title: "Upcoming span", complete: true, start: newDateOverride.plus({weeks: 2}), due: newDateOverride.plus({weeks: 4}), description: ""},
+        {title: "Due today", complete: true, start: newDateOverride, due: newDateOverride.plus({hours: 2}), description: "Omg!"},
+        {title: "Due today span", complete: false, start: newDateOverride.minus({weeks: 1}), due: newDateOverride.plus({hours: 3}), description: ""},
+        {title: "Due tomorrow", complete: true, start: newDateOverride.minus({days: 3}), due: newDateOverride.plus({days: 1}), description: ""},
+    ])('task "$title"\'s', (t) => {
         it("details populated with a date override", ()=>{
             const handler = new MockTaskApiHandler({date: newDateOverride});
-            const task = handler.tasks.find((task) => task.title === tName);
-            expect(task).toBeDefined();
-            expect(task.complete).toEqual(complete);
-            expect(task.start).toEqual(start);
-            expect(task.due).toEqual(due);
-            expect(task.description).toEqual(description);
+            const dbTask = handler.tasks.find((task) => task.title === t.title);
+            expect(dbTask).toBeDefined();
+            expect(dbTask.complete).toEqual(t.complete);
+            expect(dbTask.start).toEqual(t.start);
+            expect(dbTask.due).toEqual(t.due);
+            expect(dbTask.description).toEqual(t.description);
         });
     });
 

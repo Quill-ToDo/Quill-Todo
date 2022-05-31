@@ -29,6 +29,7 @@ export default class MockTaskApiHandler {
     tasks = [];
     // This base "current" date to base computations of off
     date = "";
+    defaultStart = null;
     // The MSW server
     server = null;
     // API_URL = "/api/tasks/";
@@ -42,6 +43,8 @@ export default class MockTaskApiHandler {
      */
     constructor({date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), tasks=null}={}) {
         this.date = date;
+        this.defaultStart = date.set({hour:0, minute: 0, second:0,  millisecond:0});
+
         // If you change these hard-coded tasks, please just add to them or make sure you don't break a lot of
         // tests by removing any.
         if (tasks) {
@@ -55,14 +58,13 @@ export default class MockTaskApiHandler {
 
     /**
      * **NOT NETWORK CALLS:** Set up/change this DB however you'd like after 
-     * initialization. 
+     * instantiation. 
      */
     setup = {
         handler: this,
 
         initTasks() {
             this.handler.tasks = [];
-            const defaultStart = this.handler.date.set({hour:0, minute: 0, second:0,  millisecond:0});
             const tasks = [{
                     title: "Overdue incomplete",
                     complete: false,
@@ -93,7 +95,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "No start",
                     complete: false,
-                    start: defaultStart,
+                    start: this.handler.defaultStart,
                     due: this.handler.date.minus({
                         weeks: 3
                     }),
@@ -123,7 +125,9 @@ export default class MockTaskApiHandler {
                 {
                     title: "Upcoming",
                     complete: false,
-                    start: defaultStart,
+                    start: this.handler.date.plus({
+                        months: 2
+                    }),
                     due: this.handler.date.plus({
                         months: 2
                     }),
@@ -288,7 +292,7 @@ export default class MockTaskApiHandler {
             else {
                 newTask.completed_at = newTask.complete ? DateTime.fromISO(newTask.due).minus({days: 3}) :  null;
             }
-            newTask.start = task.start ? task.start : null;
+            newTask.start = task.start ? task.start : this.handler.defaultStart;
             newTask.created_at = task.created_at ? task.created_at : DateTime.fromISO(newTask.due).minus({weeks: 1});
             newTask.updated_at = task.updated_at ? task.updated_at : DateTime.fromISO(newTask.due).minus({days: 2}); 
             this.handler.tasks.push(newTask);

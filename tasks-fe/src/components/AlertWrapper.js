@@ -64,7 +64,6 @@ const Alert = (props) => {
         }
         // Focus on error message close button on render
         else if (alert.type === ERROR_ALERT) {
-            // console.log(closeBtnInPage)
             closeBtnInPage.focus();
         }
         

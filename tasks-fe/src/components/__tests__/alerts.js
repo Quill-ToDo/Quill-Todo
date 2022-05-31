@@ -33,16 +33,12 @@ afterAll(() => {
 })
 
 beforeEach(() => {
-    jest.useFakeTimers();
 })
 
 // Running all pending timers and switching to real timers using Jest
 afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+    handler.server.resetHandlers();
 })
-
-// const wrapper = await screen.findByRole("log", {name: "Alerts"});
 
 it("should render failure alerts that require dismissal", async () => {
     jest.useFakeTimers();
@@ -59,21 +55,25 @@ it("should render failure alerts that require dismissal", async () => {
 })
 
 it.skip("should render notice and success alerts that slide out", async() => {
-    jest.useFakeTimers();
     render(<App />);
     const user = userEvent.setup();
     await act(async () => addAlert(await screen.findByRole('menubar'), NOTICE_ALERT, "Test notice"));
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
     await act(() => user.unhover(notice));
-    let t = act(async () => {new Promise((r) => setTimeout(r, slideOutTimeout-5000))});
+    
+    jest.useFakeTimers();
+    jest.setTimeout(slideOutTimeout*2); 
+    let t = act(async () => {new Promise((r) => setTimeout(r, slideOutTimeout*10))});
     jest.runAllTimers();
     await t;
-    // let r = waitForElementToBeRemoved(() => screen.queryByRole("listitem", {name: "Notice:"}))
+    jest.advanceTimersByTime( slideOutTimeout*10);
+    // let r = waitForElementToBeRemoved(() => screen.queryByRole("listitem", {name: "Notice:"}));
     // jest.runAllTimers();
     // await r;
-    expect(notice).not.toBeInTheDocument();
-    jest.runOnlyPendingTimers();
     jest.useRealTimers();
+    jest.setTimeout(slideOutTimeout); 
+    
+    expect(notice).not.toBeInTheDocument();
 })
 
 it("should remove error alerts from the DOM after they are exited", async () => {
@@ -100,7 +100,7 @@ it("should remove notice alerts from the DOM after they are exited", async () =>
     const notice = await screen.findByRole("listitem", {name: "Notice:"});
     const nClose = within(notice).getByRole("button", {name: "Close"});
     // User.click did not work, had to use base pointer method
-    user.pointer({keys: '[MouseLeft]', target: nClose})
+    await user.pointer({keys: '[MouseLeft]', target: nClose});
     expect(notice).not.toBeInTheDocument();
 })
 
@@ -126,6 +126,7 @@ it("should handle failure to update task", async () => {
 })
 
 it("should handle failure to delete task", async () => {
+    // Won't work with fake timers :(
     handler.server.use(
         rest.delete(handler.API_URL+":id", (req, res, ctx) => {
             return res.once(
@@ -134,20 +135,24 @@ it("should handle failure to delete task", async () => {
             )
         })
     );
+
     render(<App />);
-    const user = userEvent.setup()
-    const t = await screen.findByText("Overdue incomplete");
-    await act(() => user.click(t));
+    const user = userEvent.setup();
+    // jest.runAllTimers();
+    const list = await screen.findByRole("region", {name: "Task list"});
+    const listTask = await within(list).findByText("Overdue incomplete");
+    await user.pointer({keys: '[MouseLeft]', target: listTask});
     const del = await screen.findByRole("button", {name: "Delete task"});
-    await act(() => user.click(del));
+    await user.pointer({keys: '[MouseLeft]', target: del});
+    // Should render an alert
     await screen.findByRole("alertdialog", {name: "Error:"});
-    const close = screen.getByRole("button", {name: "Close"})
+    const close = screen.getByRole("button", {name: "Close"});
     expect(close).toHaveFocus();
-    // Task should still be in the list, not deleted
     await screen.findByText("Overdue incomplete");
+    // Task should still appear among other in the list, not deleted
 })
 
-it.skip("should handle failure to load tasks", async () => {
+it("should handle failure to load tasks", async () => {
     handler.server.use(
         rest.get(handler.API_URL, (req, res, ctx) => {
             return res.once(
@@ -157,12 +162,6 @@ it.skip("should handle failure to load tasks", async () => {
         })
     );
     render(<App />);
-    await act(async () => {
-        // Runs when you use real timers. When you switch to fake it crashes, wonder if it's getting stuck when you continaully call loadtasks
-        // jest.useRealTimers();
-        await new Promise((r) => setTimeout(r, 3000));
-        await jest.runOnlyPendingTimers();
-    })
     await screen.findByRole("alertdialog", {name: "Error:"});
     const close = screen.getByRole("button", {name: "Close"})
     expect(close).toHaveFocus();

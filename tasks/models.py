@@ -1,5 +1,4 @@
 from django.db import models
-import pytz
 import uuid
 from django.utils import timezone
 
@@ -12,9 +11,10 @@ class Task(models.Model):
     updated_at = models.DateTimeField(editable=False, auto_now=True)
     title = models.CharField(max_length=100, help_text="Enter task title")
     description = models.TextField(blank=True, null=True, help_text="Enter task description", max_length=1000)
-    start = models.DateTimeField(blank=True, null=True, help_text="Enter the date to start working on the task")
+    # Default  time is today at 11:59 pm
+    start = models.DateTimeField(help_text="Enter the date to start working on the task", default=timezone.now().replace(hour=0, minute=0, second=0, microsecond=0))
     # Default due time is today at 11:59 pm
-    due = models.DateTimeField(help_text="Enter the date the task is due")
+    due = models.DateTimeField(help_text="Enter the date the task is due", default=timezone.now().replace(hour=23, minute=59, second=59, microsecond=999999))
     complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(editable=True, blank=True, null=True)
 
