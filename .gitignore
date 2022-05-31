@@ -1,5 +1,6 @@
 node_modules
 tasks-fe/node_modules
 todo/__pycache__
-tasks/pycache
+tasks/__pycache__
+tasks/migrations
 .env
