@@ -7,6 +7,6 @@ tasks-fe/node_modules
 
 # Caches
 todo/__pycache__
-tasks/pycache
+tasks/__pycache__
 tasks/migrations/__pycache__
 .vscode/settings.json
