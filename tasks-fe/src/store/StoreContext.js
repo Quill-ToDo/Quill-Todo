@@ -1,13 +1,11 @@
 import React from "react";
 import { TaskApi } from "../API/TaskApi.js";
 import { TaskStore } from "../store/TaskStore";
-import { AlertStore } from "./AlertStore.js";
 
 class RootStore {
     constructor () {
         // this.userStore
         this.taskStore = new TaskStore(this, new TaskApi());
-        this.alertStore = new AlertStore(this);
     }
 }
 
@@ -24,6 +22,5 @@ const StoreProvider = function ({children}) {
 }
 
 const useTaskStore = () => rootStore.taskStore;
-const useAlertStore = () => rootStore.alertStore;
 
-export {useStoreContext, StoreProvider, useTaskStore, useAlertStore }
+export {useStoreContext, StoreProvider, useTaskStore }

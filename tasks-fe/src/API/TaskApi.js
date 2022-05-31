@@ -1,25 +1,30 @@
 import axios from "axios";
+import { API_URL } from "../constants";
 
 export class TaskApi {
     url;
     
     constructor (url=null) {
-        this.url = url ? url : "http://localhost:8000/api/tasks/";
+        this.url = url ? url : API_URL;
     }
 
     async fetchTasks() {
         return axios.get(this.url);
     }
 
-    async detail(pk) {
-        return axios.get(this.url + pk);
+    async detail(id) {
+        return axios.get(this.url + id);
     }
 
-    async updateTask(pk, data) {
-        return axios.patch(this.url + pk, data);
+    async updateTask(id, data) {
+        return axios.patch(this.url + id, data);
     }
     
-    async deleteTask(pk) {
-        return axios.delete(this.url + pk);
+    async deleteTask(id) {
+        return axios.delete(this.url + id);
+    }
+
+    async createTask(taskData) {
+        return axios.post(this.url, taskData);
     }
 }

@@ -9,9 +9,9 @@ import {
 } from 'msw/node'
 import { v4 as uuidv4 } from 'uuid';
 
-function DuplicatePkException (pk) {
-    this.message = `pk ${pk} already exists as a fake task`;
-    this.name = "DuplicatePkException"; 
+function DuplicateIdException (id) {
+    this.message = `id ${id} already exists as a fake task`;
+    this.name = "DuplicateIdException"; 
 }
 
 /**
@@ -29,6 +29,7 @@ export default class MockTaskApiHandler {
     tasks = [];
     // This base "current" date to base computations of off
     date = "";
+    defaultStart = null;
     // The MSW server
     server = null;
     // API_URL = "/api/tasks/";
@@ -42,6 +43,8 @@ export default class MockTaskApiHandler {
      */
     constructor({date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), tasks=null}={}) {
         this.date = date;
+        this.defaultStart = date.set({hour:0, minute: 0, second:0,  millisecond:0});
+
         // If you change these hard-coded tasks, please just add to them or make sure you don't break a lot of
         // tests by removing any.
         if (tasks) {
@@ -55,7 +58,7 @@ export default class MockTaskApiHandler {
 
     /**
      * **NOT NETWORK CALLS:** Set up/change this DB however you'd like after 
-     * initialization. 
+     * instantiation. 
      */
     setup = {
         handler: this,
@@ -92,6 +95,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "No start",
                     complete: false,
+                    start: this.handler.defaultStart,
                     due: this.handler.date.minus({
                         weeks: 3
                     }),
@@ -121,6 +125,9 @@ export default class MockTaskApiHandler {
                 {
                     title: "Upcoming",
                     complete: false,
+                    start: this.handler.date.plus({
+                        months: 2
+                    }),
                     due: this.handler.date.plus({
                         months: 2
                     }),
@@ -157,6 +164,7 @@ export default class MockTaskApiHandler {
                 {
                     title: "Due today",
                     complete: true,
+                    start: this.handler.date,
                     due: this.handler.date.plus({
                         hours: 2
                     }),
@@ -220,7 +228,7 @@ export default class MockTaskApiHandler {
          *   
          * {
          * 
-         *       "pk": {int/omit field to be auto assigned},
+         *       "id": {int/omit field to be auto assigned},
          *       "title": {str},
          *       "complete": {bool},
          *       "completed_at": {null/DateTime depending on the value of complete},
@@ -248,7 +256,7 @@ export default class MockTaskApiHandler {
          * 
          *       title: {str},
          *       due: {DateTime},
-         *       pk: {int/omit field to be auto assigned},
+         *       id: {int/omit field to be auto assigned},
          *       start: {DateTime/omit field for null},
          *       complete: {bool/omitted for false},
          *       completed_at: {null/DateTime depending on the value of complete or omitted to be auto assigned},
@@ -265,15 +273,15 @@ export default class MockTaskApiHandler {
             newTask.title = task.title;
             newTask.due = task.due;
             // Optional
-            if (task.pk === undefined) {
-                newTask.pk = uuidv4();    
+            if (task.id === undefined) {
+                newTask.id = uuidv4();    
             } 
             else {
-                if (this.handler.tasks.find(t => t.pk === task.pk)) {
-                    throw new DuplicatePkException(task.pk);
+                if (this.handler.tasks.find(t => t.id === task.id)) {
+                    throw new DuplicateIdException(task.id);
                 }
                 else {
-                    newTask.pk = task.pk;
+                    newTask.id = task.id;
                 }
             }
             newTask.description = task.description ? task.description : "";
@@ -284,7 +292,7 @@ export default class MockTaskApiHandler {
             else {
                 newTask.completed_at = newTask.complete ? DateTime.fromISO(newTask.due).minus({days: 3}) :  null;
             }
-            newTask.start = task.start ? task.start : null;
+            newTask.start = task.start ? task.start : this.handler.defaultStart;
             newTask.created_at = task.created_at ? task.created_at : DateTime.fromISO(newTask.due).minus({weeks: 1});
             newTask.updated_at = task.updated_at ? task.updated_at : DateTime.fromISO(newTask.due).minus({days: 2}); 
             this.handler.tasks.push(newTask);
@@ -312,14 +320,14 @@ export default class MockTaskApiHandler {
                 ctx.json(this.tasks)
                 );
         }),
-        rest.patch(this.API_URL + ":pk", (req, res, ctx) => {
+        rest.patch(this.API_URL + ":id", (req, res, ctx) => {
             // I'm not going to bother with validations. If there is a
             // test that requires an error that test should write a handler
             // for that particular situation and make it a one-time thing
             // https://mswjs.io/docs/api/response/once
             // I don't even know that I need to do this but It's simple so I will
             this.tasks.forEach((task, i) => {
-                if (task.pk === req.params.pk) {
+                if (task.id === req.params.id) {
                     this.tasks.splice(i, 1, req.body);
                 }
             }) 
@@ -328,16 +336,16 @@ export default class MockTaskApiHandler {
                 ctx.json(req)
             )
         }),
-        rest.get(this.API_URL + ":pk", (req, res, ctx) => {
-            const task = this.tasks.find((t) => t.pk === req.params.pk);
+        rest.get(this.API_URL + ":id", (req, res, ctx) => {
+            const task = this.tasks.find((t) => t.id === req.params.id);
             return res(
                 ctx.status(200),
                 ctx.json(task)
             )
         }),
-        rest.delete(this.API_URL + ":pk", (req, res, ctx) => {
+        rest.delete(this.API_URL + ":id", (req, res, ctx) => {
             this.tasks.forEach((task, i) => {
-                if (task.pk === req.params.pk) {
+                if (task.id === req.params.id) {
                     this.tasks.splice(i, 1);
                 }
             }) 

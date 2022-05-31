@@ -1,6 +1,13 @@
+# Secrets
+.env
+
+# Node modules
 node_modules
 tasks-fe/node_modules
+
+# Caches
 todo/__pycache__
 tasks/__pycache__
-tasks/migrations
 .env
+tasks/migrations/__pycache__
+.vscode/settings.json

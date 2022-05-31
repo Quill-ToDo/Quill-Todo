@@ -18,18 +18,6 @@
   margin-bottom: var(--section-gap);
 }
 
-#list-wrapper h3,
-#show-wrapper h3 {
-  color: var(--mid-font);
-  font-family: "Quicksand", sans-serif;
-  font-weight: 700;
-  font-size: var(--h3-size);
-  margin: var(--section-gap) 0 0 0;
-  justify-self: center;
-  align-self: center;
-  text-align: center;
-}
-
 #show-wrapper h3 {
   font-size: var(--h4-size);
 }
@@ -98,7 +86,7 @@ li:not(:last-child) {
 }
 
 #list-wrapper .title-date-wrapper {
-  transition: background-color .2s, color .2s;
+  transition: background-color .4s, color .4s;
   border-radius: 12px;
   padding: 8px 8px 8px 8px;
 }
@@ -116,7 +104,7 @@ p.time {
 }
 
 .overdue p {
-  color: #691313;
+  color: var(--overdue);
 }
 
 p.time {

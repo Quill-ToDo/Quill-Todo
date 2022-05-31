@@ -1,12 +1,13 @@
 import Home from './components/Home';
 import { StoreProvider } from "./store/StoreContext";
-import AlertBox from './components/AlertWrapper';
+import AlertWrapper from './components/AlertWrapper';
 
 function App() {
   return (
       <StoreProvider>
-            <AlertBox />
-            <Home />
+            <AlertWrapper>
+                <Home />
+            </AlertWrapper>
       </StoreProvider>
   );
 }

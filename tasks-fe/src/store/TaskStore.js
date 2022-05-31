@@ -1,6 +1,9 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
+import { END_OF_DAY } from "../constants";
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
+
 
 export class TaskStore {
     API;
@@ -9,9 +12,17 @@ export class TaskStore {
     // These must have a default value here to be observable
     tasks = [];
     // Task to show details for
-    focusedTask = null;
+    taskBeingFocused = null;
+    taskBeingEdited = null;
     isLoaded = false;
 
+
+    /**
+     * The store which holds object representations of tasks currently in the DB, or that will be added.
+     * 
+     * @param {*} rootStore The store that holds this instance.
+     * @param {*} API The API module used to make network calls to the task API.
+     */
     constructor (rootStore, API) {
         makeAutoObservable(this, {
             API: false,
@@ -23,10 +34,15 @@ export class TaskStore {
         this.API = API;
         this.tasks = [];
         this.loadTasks();
-        this.focusedTask = null;
+        this.taskBeingFocused = null;
     }
 
-    // Fetch all tasks from server
+    /**
+     * Fetch all tasks from the server and add them to the store. If the request fails, generate an alert and repeatedly retry.
+     * 
+     * @param {*} retry The number of times this call has been retried.
+     * @returns 
+     */
     async loadTasks (retry=0) {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
@@ -34,73 +50,111 @@ export class TaskStore {
                 fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
                 this.isLoaded = true;
                 if (retry !== 0) {
-                    Array.from(document.getElementsByClassName("failure")).forEach(ele => {
+                    Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
-                    this.rootStore.alertStore.add("success", "Re-established connection");
+                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Re-established connection");
                 }
             });
         }).catch(e => {
             if (retry === 0) {
-                this.rootStore.alertStore.add("failure", "Could not load tasks - " + e);
+                addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, "Could not load tasks - " + e);
+                console.error(e);
             }
             setTimeout(() => {this.loadTasks(retry + 1)}, 3000);
         })
     }
 
-    // Update a todo with into from a server and guarantee it only exists once
+    /**
+     * Update one task with info and fields from the DB and guarantee that it only exists in the store once.
+     * @param {object} taskJson Info about this task in JSON format.
+     */
     updateTaskFromServer (taskJson) {
-        let task = this.tasks.find(t => t.pk === taskJson.pk)
+        let task = this.tasks.find(t => t.id === taskJson.id)
         if (!task) {
             // Does not yet exist in store
-            task = new Task(this, taskJson.pk);
+            task = new Task(this, taskJson.id);
             this.tasks.push(task);
         }
         task.updateFromJson(taskJson);
     } 
 
-
-    timeOccursBeforeEOD (time, currentTime) {
-        return (DateTime.fromISO(time) <= currentTime.set({hour: 23, minute: 59, second: 59}))
+    /**
+     * @param {DateTime} time The DT to check.
+     * @returns true if the time occurs before the end of the current day, false otherwise.
+     */
+    timeOccursBeforeEOD (time) {
+        return (time <= END_OF_DAY)
     }
 
+    /**
+     * 
+     * @param {DateTime} time The DT to check.
+     * @param {*} currentTime The current time. (now)
+     * @returns true if time occurs between now and the end of the current day, false otherwise.
+     */
     timeOccursBetweenNowAndEOD (time, currentTime) {
-        return (this.timeOccursBeforeEOD(time, currentTime) && (currentTime < DateTime.fromISO(time)))
+        return (this.timeOccursBeforeEOD(time) && (currentTime < time))
     }
 
-    byStatus() {
+
+    /**
+     * Get tasks grouped by statuses: overdue, todayDue, todayWork, and upcoming. These are disjoint sets.
+     */
+    get byStatus() {
         const now = DateTime.now();
+
         return {
-            "overdue": this.tasks.filter(task => DateTime.fromISO(task.due) <= now),
-            "todayDue": this.tasks.filter(task => (this.timeOccursBetweenNowAndEOD(task.due, now))),
+            "overdue": this.tasks.filter(task => task.due <= now),
+            "todayDue": this.tasks.filter(task => this.timeOccursBetweenNowAndEOD(task.due, now)),
             "todayWork": this.tasks.filter(task => 
-                (task.start && DateTime.fromISO(task.start) <= now) 
-                && (now < DateTime.fromISO(task.due))
+                (task.start && task.start <= now) 
+                && (now < task.due)
                 && !(this.timeOccursBetweenNowAndEOD(task.due, now))
                 ),
             "upcoming": this.tasks.filter(task => 
-                (!task.start || now <= DateTime.fromISO(task.start)) && !(this.timeOccursBeforeEOD(task.due, now))
+                (!task.start || now <= task.start) && !(this.timeOccursBeforeEOD(task.due, now))
                 )
         }
     }
 
-    // Specify which task is selected to show the details of
+    /**
+     * Specify the task that details should be shown for (show task popup).
+     * @param {Task} task Task that details should be shown for
+     */
     setFocus (task) {
-        this.focusedTask = task;
+        this.taskBeingFocused = task;
     }
     
-    // Specify that no task is being shown
+    /**
+     * Specify that no task should have its details shown in a popup.
+     */
     removeFocus () {
-        this.focusedTask = null;
+        this.taskBeingFocused = null;
     }
 
+    /**
+     * @param {Task} taskObj Task that should be added to the store. 
+     */
     add(taskObj) {
         this.tasks.push(taskObj);
     } 
 
-    // createTask (taskData) {
-    //     // Create on server, get pk
-    //     // let task = new Task(this, pk);
-    //     // task.updateFromJson(json);
-    //     // this.tasks[pk] = task;
-    // }
+    /**
+     * Create a new task marked as currently being edited. It will need to have
+     * `finishEditing()` called on it to save it to the DB.
+     * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
+     * a Luxon DateTime or string in ISO format.
+     */
+    createInProgressTask ({dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
+        const task = new Task(this);
+        if (dueDate) {
+            task.setDue(dueDate);
+        }
+        if (startDate) {
+            task.setStart(startDate);
+        }
+        task.startEditing(); 
+        this.add(task);
+        return task;
+    }
 }

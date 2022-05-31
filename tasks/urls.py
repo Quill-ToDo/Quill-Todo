@@ -6,6 +6,5 @@ from rest_framework import routers, serializers, viewsets
 # reverse('task-detail')
 urlpatterns = [
     path('', views.tasks, name='tasks'),
-    path('<int:pk>', views.task_details, name='task-detail'),
-    path('<int:pk>/toggle-complete', views.toggle_complete, name='toggle-complete'),
+    path('<uuid:id>', views.task_details, name='task-detail')
 ]

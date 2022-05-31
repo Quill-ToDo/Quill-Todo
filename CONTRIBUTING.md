@@ -7,16 +7,17 @@ If there are any issues with these instructions or if anything is unclear, pleas
 **Table of Contents**
 
 - [Setting up the development environment](#setting-up-the-development-environment)
-  - [Back-end](#back-end)
-    - [Back-end Notes](#back-end-notes)
+  - [Back-End](#back-end)
+    - [Manual Back-End Init](#manual-back-end-init)
+    - [Back-End Notes](#back-end-notes)
   - [Front-end](#front-end)
-    - [FE Notes](#fe-notes)
+    - [Front-End Notes](#front-end-notes)
   - [Testing](#testing)
     - [Front-end Testing](#front-end-testing)
       - [Mocking Network Calls](#mocking-network-calls)
       - [Mocking time](#mocking-time)
       - [Useful testing resources](#useful-testing-resources)
-    - [Back-end Testing](#back-end-testing)
+    - [Back-End Testing](#back-end-testing)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
   - [To work on a feature](#to-work-on-a-feature)
 
@@ -24,78 +25,13 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 ## Setting up the development environment
 
-### Back-end
+### Back-End
 
 1. Clone repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment)
+2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill".
 
-3. Switch to virtual environment following instructions of whichever virtual environment you're using
-  
-    > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
-
-4. Add secret `.env` file to `App` dir. Ask in Slack for the file. Add `.` to the front of the file in the directory so it is invisible. (Filename should be: `.env`) **This should never be pushed to GitHub!**
-
-5. Set up the database:
-    - [Install PostgreSQL](https://www.postgresql.org/download/)
-    - (Windows) Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
-    - Start the server:
-
-        Run `pg_ctl status` to see if the server is already running. If not, run `pg_ctl start`
-
-        > **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `pg_ctl status`.
-
-    - Start psql
-
-        ```bash
-        psql postgres
-        ```
-
-        > Useful psql commands:
-        >
-        > - `\q` Quit
-        > - `\l` List databases
-        > - `\du` List roles
-
-    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
-
-        ❗**Make sure you don't commit setup.sql with the password in it in git.**
-
-6. Install dependencies:  
-  
-    ```Bash
-    pip install -r requirements.txt
-    ```
-
-7. Make and apply migrations:
-
-    > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
-
-    ```Bash
-    py manage.py makemigrations 
-    py manage.py migrate
-    ```
-
-8. Start server:
-
-    ```Bash
-    py manage.py runserver
-    ```
-
-#### Back-end Notes
-
-- If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end.
-- To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
-
-> **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep dependencies up to date for everyone else
-
-### Front-end
-
-0. Follow steps for back-end to get server running
-
-**In a second terminal (so that you can leave the server running):**
-
-1. Install `nvm` (Node version manager)
+3. Install `nvm` (Node version manager)
 
     - [Windows](https://github.com/coreybutler/nvm-windows)
     - [MacOS/unix](https://github.com/nvm-sh/nvm)
@@ -106,22 +42,173 @@ If there are any issues with these instructions or if anything is unclear, pleas
     nvm -v
     ```
 
-2. Change to virtual environment (same as step 3 for back-end)
-
-3. Install and switch to Node v16.13.1.
+4. Install and switch to Node v16.13.1.
 
     > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv.)
 
     ```Bash
-    nvm install v16.13.1
-    nvm use 16.13.1
+    nvm install v16.13.1 && nvm use 16.13.1
     ```
+
+    You may need to restart your computer for the installation to take effect.
+
+5. Add secret `.env` file to `App` dir. Ask in Slack for the file.
+
+    **This file should never be pushed to GitHub!**
+
+    - Add `.` if needed to the front of the file in the directory so it is invisible. (Filename should be: `.env`)
+    - In [setup.sql](./setup.sql), change PASS_IN_ENV to the value of DB_PASSWORD in [.env](./.env). **❗Do not push this change, reset it after you init the database.**
+
+6. Set up the database
+    - Windows:
+        - [Install PostgreSQL](https://www.postgresql.org/download/windows/) using installer. Leave configuration defaults as they are.
+        - Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
+    - Mac/Unix:
+        - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
+        - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`.
+
+7. Init back-end using npm scripts
+
+    ---
+
+    > 🐛 **Read if the scripts fail**:
+    >
+    > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on a Mac so I might have missed something.
+    > 2. Look in [./package.json](./package.json) under "scripts". The script you ran is a bunch of commands separated by `&&`. You can try running each of these commands individually in a terminal and modifying them as needed (ex: if the python command I'm using is different for you).
+    > 3. If all else fails, continue with [Manual Back-End Init](#manual-back-end-init) to set it up manually with more detailed instructions.
+
+    ---
+
+    - **Windows:**
+        - **📝 Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
+        - Create database and user for Quill
+
+            ```Bash
+            npm run init-be-win
+            ```
+
+    - **Mac/Unix:**
+        - Start database server for the first time
+
+            ```Bash
+            brew services start postgresql
+            ```
+
+        - Create database and user for Quill
+
+            ```Bash
+            npm run init-be-mac
+            ```
+
+8. Verify success
+    - Start psql (used to view and manipulate PostgreSQL databases and data)
+
+        ```Bash
+        psql quill_db
+        ```
+
+    - In psql (indicated by `$ quill_db=# `), list users under quill_db database
+
+        ```psql
+        \du
+        ```
+
+    - Make sure that you see quill_user
+    - Enter `\q` to quit psql
+
+        > **Useful psql commands:**
+        >
+        > - `\q` Quit
+        > - `\l` List databases
+        > - `\du` List roles
+
+    - ✅ If everything looks good:
+        - **Windows:** run `npm run start-be-win` to start the database and server.
+        - **Mac:** run `npm run start-be-mac` to start the database and server.
+        - **❗Remove the db password you added from [setup.sql](./setup.sql).**
+        - You're done! Read [Back-End Notes](#back-end-notes)
+    - ❌ If it says the database doesn't exist or you don't see quill_user:
+        - If your computer did not recognize py for Python, try copying the script from package.json and replacing py with python3.
+        - Read note at the top of step 7.
+
+#### Manual Back-End Init
+
+1. switch to virtual environment following instructions of whichever virtual environment you're using
+  
+    > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
+    - Start psql
+
+        ```bash
+        psql postgres
+        ```
+
+    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
+
+    ❗**Make sure you don't commit setup.sql with the password in it in git.**
+
+2. Install dependencies:  
+  
+    ```Bash
+    pip install -r requirements.txt
+    ```
+
+3. Ensure postgres server is running
+
+    ```Bash
+    pg_ctl status
+    ```
+
+    If it says no server is running:
+    - Windows:
+
+        ```Bash
+        pg_ctl start
+        ```
+
+    - Mac:
+
+        ```Bash
+        brew services start postgresql
+        ```
+
+4. Make and apply migrations:
+
+    > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
+
+    ```Bash
+    py manage.py makemigrations && py manage.py migrate
+    ```
+
+5. Start server:
+
+    ```Bash
+    py manage.py runserver
+    ```
+
+#### Back-End Notes
+
+- After this initial setup, you can use the appropriate start-be npm script located in [package.json](./package.json)
+  - `npm run start-be-win`
+  - `npm run start-be-mac`
+
+  to start the back-end server and database.
+- If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
+- To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
+- > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep dependencies up to date for everyone else
+
+### Front-end
+
+1. Follow steps for back-end to get database and Django server running
+
+2. **In a second terminal (so that you can leave the server running):**
+    Start dev server with `npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
+
+3. Change to virtual environment (same as step 7 for back-end)
 
 4. Install dependencies:
 
     ```Bash
-    cd tasks-fe
-    npm install
+    cd tasks-fe && npm install
     ```
 
 - To launch in development mode:
@@ -140,9 +227,9 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
     Navigate to the url that the back-end server is running at and it should serve the built app.
 
-#### FE Notes
+#### Front-End Notes
 
-> **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`.
+- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`.
 
 ### Testing
 
@@ -191,7 +278,7 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 - Network Calls
   - [Mock Service Worker for mocking network calls](https://mswjs.io/docs/getting-started/mocks/rest-api)
 
-#### Back-end Testing
+#### Back-End Testing
 
 *To-do!*
 

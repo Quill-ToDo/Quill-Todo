@@ -21,8 +21,8 @@ from tasks import views as task_views
 from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('', task_views.serve_front_end),
-    path('admin/', admin.site.urls),
+    path('', task_views.serve_front_end, name='home'),
+    path('admin/', admin.site.urls, name='admin'),
     path(r'api/tasks/', include('tasks.urls')),
     # path('tasks/', RedirectView.as_view(url='/', permanent=True)),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

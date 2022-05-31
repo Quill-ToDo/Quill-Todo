@@ -3,21 +3,20 @@ import React, {
     useCallback,
     useRef
 } from "react";
-import Task from "./Task";
+import Task from "./List/Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
-import { useTaskStore, useAlertStore} from "../store/StoreContext";
+import { addAlert, NOTICE_ALERT } from '../static/js/alertEvent';
 
-function handleEdit (alerts) {
-    alerts.add("notice", "Edit is not implemented")
+function handleEdit () {
+    addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
 }
 
 const ShowTask = observer((props) => {
     const previouslyFocused = useRef(null);
     const filterEle = useRef(null);
-    const task = props.task;
-    const taskStore = useTaskStore();
-    const alertStore = useAlertStore();
+    const taskStore = props.taskStore;
+    const task = taskStore.taskBeingFocused;
     const closeFn = useCallback(
         () => {
             taskStore.removeFocus();
@@ -28,7 +27,7 @@ const ShowTask = observer((props) => {
         previouslyFocused.current = document.activeElement;
         filterEle.current = document.getElementsByClassName("filter")[0];
         document.getElementById("home-wrapper").tabIndex = -1;
-        document.getElementById("show-checkbox-"+task.pk).focus();
+        document.getElementById("show-checkbox-"+task.id).focus();
         window.addEventListener("keydown", (e) => {
             switch (e.key) {
                 case "Escape":
@@ -45,7 +44,7 @@ const ShowTask = observer((props) => {
         return () => {
             previouslyFocused.current.focus();
         }
-    }, [closeFn, task.pk])
+    }, [closeFn, task.id])
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" title="Delete task" onClick={() => {
@@ -55,7 +54,7 @@ const ShowTask = observer((props) => {
                             {/* <img src={bin} alt="Trash icon for delete"></img> */}
                             <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
-                        <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit(alertStore)}>
+                        <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit()}>
                             <i className="far fa-edit fa-fw fa"></i>
                         </button>
                         <button className="btn btn-red" title="Close" onClick={closeFn}>
@@ -70,7 +69,7 @@ const ShowTask = observer((props) => {
                 className="mid-section" 
                 role="dialog"
                 aria-labelledby="task-show-title"
-                aria-describedby={"task-title-" + task.pk}
+                aria-describedby={"task-title-" + task.id}
             >
                 <Task 
                     data={task} 
