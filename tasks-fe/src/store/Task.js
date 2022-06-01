@@ -25,7 +25,7 @@ const validateDateTime = (date, time, errors) => {
 
 export class Task {
     id = null;
-    title = "";
+    title = null;
     complete = null;
     // Luxon DateTime object
     start = null;
@@ -38,7 +38,7 @@ export class Task {
     dueDate = null;
     dueTime = null;
     // Due separated into date and time, useful for when the task is being edited
-    description = "";
+    description = null;
     store = null;
     createdDate = null;
     beingEdited = null;
