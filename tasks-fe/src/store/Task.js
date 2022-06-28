@@ -25,7 +25,7 @@ const validateDateTime = (date, time, errors) => {
 
 export class Task {
     id = null;
-    title = "";
+    title = null;
     complete = null;
     // Luxon DateTime object
     start = null;
@@ -38,7 +38,7 @@ export class Task {
     dueDate = null;
     dueTime = null;
     // Due separated into date and time, useful for when the task is being edited
-    description = "";
+    description = null;
     store = null;
     createdDate = null;
     beingEdited = null;
@@ -270,7 +270,7 @@ export class Task {
             errors.title.push(`Title is ${pluralize("character", this.title.length-100, true)} too long`);
         }
         else if (this.title.length === 0) {
-            errors.title.push(`Title is required`);
+            errors.title.push(`Please enter a title`);
         }
     
         // Description

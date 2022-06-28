@@ -52,7 +52,6 @@ def tasks(request):
         serializer = TaskSerializer(data, context={'request': request}, many=True)
         return Response(serializer.data)
     elif request.method == 'POST':
-        if check_illegal_post('id', request) is not None: return check_illegal_post('id', request)
         serializer = TaskSerializer( 
             data=request.data, 
             partial=True)
