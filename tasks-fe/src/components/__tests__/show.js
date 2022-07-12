@@ -94,7 +94,7 @@ describe("should be able to close show", () => {
 })
 
 
-it.skip("should be able to close show via escape button", async () => {
+it("should be able to close show via escape button", async () => {
     // Cannot figure out how to make this work when ran with other tests. It works alone
     const taskName = "Overdue incomplete";
     const user = userEvent.setup();
@@ -102,13 +102,13 @@ it.skip("should be able to close show via escape button", async () => {
     const list = await screen.findByRole("region", {name: "Task list"});
     const listTask = await within(list).findByText(taskName);
     await user.click(listTask);
-    const show = await screen.findByRole("dialog", {name: "Task Details"});
+    await screen.findByRole("dialog", {name: "Task Details"});
     await user.keyboard('[Escape]');
-    // expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
-    await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
+    expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
+    // await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
 }); 
 
-it.skip("should not close show via any other buttons", async () => {
+it("should not close show via any other buttons", async () => {
     // Cant be sure this is working before the one above i working
     render(<App />);
     const user = userEvent.setup()

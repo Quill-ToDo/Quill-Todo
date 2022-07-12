@@ -49,39 +49,63 @@ it.todo("Should render the calendar component")
 
 
 it("should render the list component", () => {
-    render(<Home />);
+    render(<App />);
+    // render(<Home />);
     expect(screen.getByRole("region", {name:"Task list"})).toBeInTheDocument();
 })
 
 //  Task addition
 
-it("should should a task-creation popup when users click the add button", async () => {
-    render(<App />);
+it.only("should show a task-creation popup when users click the add button", async () => {
+    await render(<App />);
+    expect(screen.getByRole("region", {name:"Task list"})).toBeInTheDocument();
     const user = userEvent.setup();
     const addBtn = await screen.findByRole('menuitem', {name: "Add task"});
     await user.click(addBtn);
-    await screen.findByRole("region", {name: "New Task"})
+    // logRoles(screen.getByTestId("home"))
+    // await screen.findByRole("region", {name: "New Task"})
 })
 
-it.only("should allow the user to create a new task", async () => {
-    render(<App />);
-    const user = userEvent.setup();
-    const addBtn = await screen.findByRole('menuitem', {name: "Add task"});
-    await user.click(addBtn);
-    const popup = await screen.findByRole("region", {name: "New Task"});
-    await screen.findByText("Overdue incomplete");
-    logRoles(popup);
-    const title = await within(popup).findByRole("textbox", {name: "Title", exact: false});
-    // const desc = await within(popup).findByLabelText("Description", {exact: false});
-    // // await user.click(title);
-    // expect(title).toHaveFocus();
-    await user.type(title, "Task title");
-    expect(title).toHaveTextContent("Task title");
+describe("should allow the user to create a new task", () => {
+    const getNewTaskPopup = async (user) => {
+        render(<App />);
+        const addBtn = await screen.findByRole('menuitem', {name: "Add task"});
+        await user.click(addBtn);
+        const popup =  await screen.findByRole("region", {name: "New Task"});
+        return popup;
+    }
 
+    const typeInPopup = async (user, popup, {title=null}) => {
+        if (title) {
+            // logRoles(popup)
+            const title = await within(popup).findByRole("textbox", {name: "Title", exact: false});
+            // const desc = await within(popup).findByLabelText("Description", {exact: false});
+            await user.type(title, "Task title");
+            expect(title).toHaveValue("Task title");
+        }
+    }
+
+    const submitPopup = async (user, popup) => {
+        const submit = await within(popup).findByRole("button", {name:"Add task"});
+        // await user.click(submit);
+        await user.pointer({keys: '[MouseLeft]', target: submit});
+        expect(popup).not.toBeInTheDocument();
+        mockServerHandler.server.printHandlers()
+        expect(screen.queryByRole("alertdialog", {name:"Error:"})).toBeNull();
+    }
+
+    it("with a title", async () => {
+        const user = userEvent.setup();
+        const popup = await getNewTaskPopup(user);
+        await typeInPopup(user, popup, {title: "Task title"});
+        await submitPopup(user, popup);
+        // const list = await screen.findByRole("region", {name: "Task list"});
+        await screen.findByText("Task title");
+    })
+    
+    it.todo("without a title")
+    it.todo("without a due date")
+    it.todo("start after due date")
+    it.todo("with a ill-formed start date")
+    it.todo("with a ill-formed due date")
 })
-
-it.todo("should show error message if the user tries to create task without title")
-it.todo("should show error message if the user tries to create task without due date")
-it.todo("should show error message if the user tries to create task with start after due date")
-it.todo("should show error message if the user tries to create task with a ill-formed start date")
-it.todo("should show error message if the user tries to create task with a ill-formed due date")
