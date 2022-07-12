@@ -127,7 +127,7 @@ const handleSubmit = (event, taskToCreate, possibleInputs) => {
     for (const name in possibleInputs) {
         const field = possibleInputs[name];
         const elem = document.querySelector(field.selector);
-        if (field.hasErrors) {
+        if (field.errors.length) {
             if (!focusEle) {
                 focusEle = elem;
             }
@@ -147,11 +147,11 @@ const handleSubmit = (event, taskToCreate, possibleInputs) => {
     focusEle.focus();
 }
 
-const checkRemoveErrorOutline = (fieldInfo, task) => {
+const checkRemoveErrorOutline = (fieldInfo) => {
     // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
     // Validation errors after they are set.
     const elem = document.querySelector(fieldInfo.selector);
-    if (elem.hasAttribute("aria-invalid") && !fieldInfo.hasErrors) {
+    if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
         elem.setAttribute("aria-invalid", "false");
     }
 }
@@ -166,27 +166,27 @@ const TaskCreatePopup = observer((props) => {
 
     const possibleInputs = {
         "title": {
-            hasErrors: taskToCreate.validationErrors.title.length,
+            errors: taskToCreate.validationErrors.title,
             selector: getSelector('title', 'input') 
         },
         "description": {
-            hasErrors: taskToCreate.validationErrors.description.length,
+            errors: taskToCreate.validationErrors.description,
             selector: getSelector('description', 'textarea') 
         },
         "start date": {
-            hasErrors: taskToCreate.validationErrors.start.date.length,
+            errors: taskToCreate.validationErrors.start.date,
             selector: getSelector('start date', 'input')
         },
         "start time": {
-            hasErrors: taskToCreate.validationErrors.start.time.length,
+            errors: taskToCreate.validationErrors.start.time,
             selector: getSelector('start time', 'input')
         },
         "due date": {
-            hasErrors: taskToCreate.validationErrors.due.date.length,
+            errors: taskToCreate.validationErrors.due.date,
             selector: getSelector('due date', 'input')
         },
         "due time": {
-            hasErrors: taskToCreate.validationErrors.due.time.length,
+            errors: taskToCreate.validationErrors.due.time,
             selector: getSelector('due time', 'input')
         },
     }

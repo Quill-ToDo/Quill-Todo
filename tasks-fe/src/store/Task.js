@@ -25,7 +25,7 @@ const validateDateTime = (date, time, errors) => {
 
 export class Task {
     id = null;
-    title = "";
+    title = null;
     complete = null;
     // Luxon DateTime object
     start = null;
@@ -38,7 +38,7 @@ export class Task {
     dueDate = null;
     dueTime = null;
     // Due separated into date and time, useful for when the task is being edited
-    description = "";
+    description = null;
     store = null;
     createdDate = null;
     beingEdited = null;
@@ -150,7 +150,7 @@ export class Task {
         this.store.API.createTask(this.asJson)
         .catch(e => {
             console.error(e)
-            addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
+            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
             this.removeSelfFromStore();
         });
         this.beingEdited = false;
