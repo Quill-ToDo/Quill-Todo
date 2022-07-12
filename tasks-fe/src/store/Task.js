@@ -150,7 +150,7 @@ export class Task {
         this.store.API.createTask(this.asJson)
         .catch(e => {
             console.error(e)
-            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
+            addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
             this.removeSelfFromStore();
         });
         this.beingEdited = false;
