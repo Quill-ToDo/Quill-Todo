@@ -80,8 +80,8 @@ form textarea:focus {
   /* background: var(--light-select); */
 }
 
-form input.errors,
-form textarea.errors {
+form input[aria-invalid="true"],
+form textarea[aria-invalid="true"] {
   outline: 3px solid var(--failure-outline);
 }
 
@@ -162,6 +162,8 @@ form textarea.errors {
 .error-list {
   color: var(--failure-outline);
   font-size: 17px;
+  padding: 7px 0 7px 0;
+  height: 100%;
 }
 
 ul.error-list {

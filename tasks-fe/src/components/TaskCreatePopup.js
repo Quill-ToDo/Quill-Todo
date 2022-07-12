@@ -8,6 +8,8 @@ import {
 } from "../constants";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
 
+const errorIdEnd = "-error-list";
+
 /**
  * @param {string[]} errors List of errors to display 
  * @returns Content of errors list. Separated from the list for performance.
@@ -24,10 +26,10 @@ const ErrorsListContent = (errors) => {
  * @param {string[]} errors List of errors to display 
  * @returns List of errors
  */
-const errorsList = (errors) => {
+const errorsList = (errors, idPrefix) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul className="error-list" aria-live="polite">
+            <ul id={idPrefix+errorIdEnd} className="error-list" aria-live="polite">
                 <ErrorsListContent errors={errors} />
             </ul>
         </Fragment>
@@ -60,24 +62,22 @@ const TimeDateLabel = (props) => {
         <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
             <label className="date">
                 Date
-                { props.errors.date.length ? errorsList(props.errors.date) : null }
                 <input
                     name={`${props.label} date`}
-                    className={props.errors.date.length ? "errors" : ""}
                     onChange={props.dateChangeCallback}
                     value={props.date}
+                    aria-describedby={props.label+"-date"+errorIdEnd}
                     />
             </label>
             <label className="time">
                 Time
-                { props.errors.time.length ? errorsList(props.errors.time) : null }
                 <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
                     <input
                         id={`${props.label}-time`}
                         data-td-target={`#datetime-picker-${props.label}`}
                         name={`${props.label} time`}
-                        className={props.errors.time.length ? "errors" : ""}
                         onChange={props.timeChangeCallback}
+                        aria-describedby={props.label+"-time"+errorIdEnd}
                         value={props.time}
                     />
                     <button 
@@ -93,6 +93,11 @@ const TimeDateLabel = (props) => {
                 </div>
             </label>
         </div>
+        <div className="horizontal-align">
+        { props.errors.date.length ? errorsList(props.errors.date, props.label+"-date"+errorIdEnd) : null }
+        { props.errors.time.length ? errorsList(props.errors.time, props.label+"-time"+errorIdEnd) : null }
+        </div>
+
     </label>
 }
 
@@ -114,28 +119,23 @@ const getSelector = (name, type) => {
  * @param {Task} taskToCreate 
  * @returns
  */
-const handleSubmit = (event, taskToCreate) => {
+const handleSubmit = (event, taskToCreate, possibleInputs) => {
     event.preventDefault();
     var focusEle = null;
-    const errors = taskToCreate.validationErrors;
+
     // Get element with errors to switch focus to
-    if (errors.title.length) {
-        focusEle = document.querySelector(getSelector('title', 'input'));
-    }
-    else if (errors.description.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('description', 'textarea'))
-    }
-    else if (errors.start.date.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('start date', 'input'))
-    }
-    else if (errors.start.time.length && !focusEle) {
-        focusEle = document.querySelector(getSelector('start time', 'input'))
-    }
-    else if (errors.due.date.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('due date', 'input'))
-    }
-    else if (errors.due.time.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('due time', 'input'))
+    for (const name in possibleInputs) {
+        const field = possibleInputs[name];
+        const elem = document.querySelector(field.selector);
+        if (field.errors.length) {
+            if (!focusEle) {
+                focusEle = elem;
+            }
+            elem.setAttribute("aria-invalid", "true");
+        }
+        else {
+            elem.setAttribute("aria-invalid", "false");
+        }
     }
 
     if (!focusEle) {
@@ -147,6 +147,15 @@ const handleSubmit = (event, taskToCreate) => {
     focusEle.focus();
 }
 
+const checkRemoveErrorOutline = (fieldInfo) => {
+    // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
+    // Validation errors after they are set.
+    const elem = document.querySelector(fieldInfo.selector);
+    if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
+        elem.setAttribute("aria-invalid", "false");
+    }
+}
+
 /**
  * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
  * in TaskStore.
@@ -154,6 +163,33 @@ const handleSubmit = (event, taskToCreate) => {
 const TaskCreatePopup = observer((props) => {    
     const taskStore = props.taskStore;
     const taskToCreate = taskStore.taskBeingEdited;
+
+    const possibleInputs = {
+        "title": {
+            errors: taskToCreate.validationErrors.title,
+            selector: getSelector('title', 'input') 
+        },
+        "description": {
+            errors: taskToCreate.validationErrors.description,
+            selector: getSelector('description', 'textarea') 
+        },
+        "start date": {
+            errors: taskToCreate.validationErrors.start.date,
+            selector: getSelector('start date', 'input')
+        },
+        "start time": {
+            errors: taskToCreate.validationErrors.start.time,
+            selector: getSelector('start time', 'input')
+        },
+        "due date": {
+            errors: taskToCreate.validationErrors.due.date,
+            selector: getSelector('due date', 'input')
+        },
+        "due time": {
+            errors: taskToCreate.validationErrors.due.time,
+            selector: getSelector('due time', 'input')
+        },
+    }
 
     useEffect(() => {
         const firstInput = document.querySelector("input[name='title']");
@@ -221,30 +257,34 @@ const TaskCreatePopup = observer((props) => {
                         </button>
                     </div>
                 </div>
-                <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate)}>
+                <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate, possibleInputs)}>
                     <label>
                         Title
-                        { taskToCreate.validationErrors.title.length ? errorsList(taskToCreate.validationErrors.title) : null }
                         <input
                             name="title"
-                            className={taskToCreate.validationErrors.title.length ? "errors" : ""}
-                            onChange={e => {
-                                taskToCreate.setTitle(e.target.value)}
-                            }
+                            onChange={(e) => {
+                                taskToCreate.setTitle(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["title"], taskToCreate);
+                            }}
                             value={taskToCreate.title}
+                            aria-describedby={"title"+errorIdEnd}
                             required
-                        />
+                            />
                     </label>
+                    { taskToCreate.validationErrors.title.length ? errorsList(taskToCreate.validationErrors.title, "title") : null }
                     <label>
                         Description
-                        { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                         <textarea
                             name="description"
-                            className={taskToCreate.validationErrors.description.length ? "errors" : ""}
-                            onChange={e => taskToCreate.setDescription(e.target.value)}
+                            onChange={(e) => {
+                                taskToCreate.setDescription(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["description"], taskToCreate);
+                            }}
                             value={taskToCreate.description}
+                            aria-describedby={"description"+errorIdEnd}
                         />
                     </label>
+                    { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
                             label="start"
@@ -252,17 +292,30 @@ const TaskCreatePopup = observer((props) => {
                             date={startDate}
                             time={startTime}
                             errors={taskToCreate.validationErrors.start}
-                            dateChangeCallback={e => taskToCreate.setStartDate(e.target.value)}
-                            timeChangeCallback={e => taskToCreate.setStartTime(e.target.value)}
+                            dateChangeCallback={(e) => {
+                                taskToCreate.setStartDate(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["start date"], taskToCreate);
+                            }}
+                            timeChangeCallback={(e) => {
+                                taskToCreate.setStartTime(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["start time"], taskToCreate);
+                            }}
                         />
                         <TimeDateLabel 
                             label="due"
                             defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={dueDate}
                             time={dueTime}
+                            fieldInfo={possibleInputs}
                             errors={taskToCreate.validationErrors.due}
-                            dateChangeCallback={e => taskToCreate.setDueDate(e.target.value)}
-                            timeChangeCallback={e => taskToCreate.setDueTime(e.target.value)}
+                            dateChangeCallback={(e) => {
+                                taskToCreate.setDueDate(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["due date"], taskToCreate);
+                            }}
+                            timeChangeCallback={(e) => {
+                                taskToCreate.setDueTime(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs["due time"], taskToCreate);
+                            }}
                         />
                     </div>
                     <div className="centered">

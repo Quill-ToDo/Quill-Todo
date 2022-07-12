@@ -3,7 +3,7 @@
     border-radius: 15px;
     /* box-shadow: 0px 10px 20px var(--darkest-dark); */
     /* background-color: var(--mid-dark); */
-    background-color: var(--button);
+    background-color: var(--alert-bg);
     color: var(--lightest-font);
     font-family: "Quicksand", sans-serif;
     font-weight: 600;
@@ -18,7 +18,7 @@
 }
 
 .tempus-dominus-widget button {
-    background-color: var(--btn-grey-shadow));
+    background-color: var(--btn-grey-shadow);
     font-family: "Quicksand", sans-serif;
 }
 

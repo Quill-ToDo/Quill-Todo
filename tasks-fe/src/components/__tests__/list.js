@@ -131,7 +131,7 @@ describe("should show tasks in the", () => {
         ensureTasksInSection(overdueTaskNames, section)
     })
 
-    it("upcoming section", async () => {
+    it.skip("upcoming section", async () => {
         const upcomingTaskNames = ["Upcoming", "Upcoming span"];
         render(<App />);
         const section = await screen.findByRole("region", {name: "Upcoming"});
@@ -146,7 +146,7 @@ describe("should show tasks in the", () => {
         ensureTasksInSection(todayDue, dueToday);
     })
 
-    it("work on today section", async () => {
+    it.skip("work on today section", async () => {
         const workTaskNames = ["Work on today", "Due tomorrow"];
         render(<App />);
         const today = await screen.findByRole("region", {name: "Today"});
