@@ -270,7 +270,7 @@ export class Task {
             errors.title.push(`Title is ${pluralize("character", this.title.length-100, true)} too long`);
         }
         else if (this.title.length === 0) {
-            errors.title.push(`Title is required`);
+            errors.title.push(`Please enter a title`);
         }
     
         // Description
