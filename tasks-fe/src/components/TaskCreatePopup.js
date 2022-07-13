@@ -68,8 +68,8 @@ const errorsList = (errors, idPrefix) => {
  * @returns 
  */
 const TimeDateLabel = (props) => {
-    return <label>
-        {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
+    return <div>
+        <h3>{props.label}</h3>
         <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === startName ? " default" : "")}>
             <label className="date">
                 {`${props.label} ${dateName}`}
@@ -108,8 +108,7 @@ const TimeDateLabel = (props) => {
         { props.errors.date.length ? errorsList(props.errors.date, props.label+"-date"+errorIdEnd) : null }
         { props.errors.time.length ? errorsList(props.errors.time, props.label+"-time"+errorIdEnd) : null }
         </div>
-
-    </label>
+    </div>
 }
 
 /**
@@ -275,7 +274,7 @@ const TaskCreatePopup = observer((props) => {
                             name={titleName}
                             onChange={(e) => {
                                 taskToCreate.setTitle(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs[titleName], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.titleName);
                             }}
                             value={taskToCreate.title}
                             aria-describedby={titleName+errorIdEnd}
@@ -289,7 +288,7 @@ const TaskCreatePopup = observer((props) => {
                             name={descName}
                             onChange={(e) => {
                                 taskToCreate.setDescription(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs[descName], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.descName);
                             }}
                             value={taskToCreate.description}
                             aria-describedby={descName+errorIdEnd}
@@ -305,11 +304,11 @@ const TaskCreatePopup = observer((props) => {
                             errors={taskToCreate.validationErrors.start}
                             dateChangeCallback={(e) => {
                                 taskToCreate.setStartDate(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs[startDateName], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.startDateName);
                             }}
                             timeChangeCallback={(e) => {
                                 taskToCreate.setStartTime(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs[startTimeName], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.startTimeName);
                             }}
                         />
                         <TimeDateLabel 
@@ -321,11 +320,11 @@ const TaskCreatePopup = observer((props) => {
                             errors={taskToCreate.validationErrors.due}
                             dateChangeCallback={(e) => {
                                 taskToCreate.setDueDate(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["due date"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.dueDateName);
                             }}
                             timeChangeCallback={(e) => {
                                 taskToCreate.setDueTime(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["due time"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs.dueTimeName);
                             }}
                         />
                     </div>

@@ -91,7 +91,8 @@ form textarea[aria-invalid="true"] {
 
 #new-wrapper form input:not(.btn),
 #new-wrapper form label,
-#new-wrapper form textarea {
+#new-wrapper form textarea,
+#new-wrapper form h3 {
   display: block;
   box-sizing: border-box;
   width: 100%;
@@ -100,14 +101,14 @@ form textarea[aria-invalid="true"] {
   border: none;
 }
 
-#new-wrapper form label label {
-  font-size: smaller;
+#new-wrapper form .start-due-wrapper label {
+  font-size: var(--h5-size);
   color: var(--subdued);
   margin-top: 0;
 }
 
 
-#new-wrapper form .default label input {
+#new-wrapper form .start-due-wrapper .default input {
   color: var(--subdued);
 }
 
@@ -119,7 +120,7 @@ form textarea[aria-invalid="true"] {
   width: min-content;
 }
 
-#new-wrapper form label .time input {
+#new-wrapper form .start-due-wrapper .time input {
   width: 100px;
 }
 

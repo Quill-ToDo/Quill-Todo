@@ -320,6 +320,13 @@ export default class MockTaskApiHandler {
                 ctx.json(this.tasks)
                 );
         }),
+        rest.post(this.API_URL, (req, res, ctx) => {
+            this.setup.addTask(req.body);
+            return res(
+                ctx.status(201),
+                ctx.json(req)
+            )
+        }),
         rest.patch(this.API_URL + ":id", (req, res, ctx) => {
             // I'm not going to bother with validations. If there is a
             // test that requires an error that test should write a handler
