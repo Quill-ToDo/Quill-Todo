@@ -9,6 +9,17 @@ import {
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
 
 const errorIdEnd = "-error-list";
+const titleName = "Title";
+const descName = "Description";
+const startName = "Start";
+const dueName = "Due";
+const timeName = "Time";
+const dateName = "Date";
+const startTimeName = startName + " " + timeName;
+const startDateName = startName + " " + dateName;
+const dueTimeName = dueName + " " + timeName;
+const dueDateName = dueName + " " + dateName;
+
 
 /**
  * @param {string[]} errors List of errors to display 
@@ -59,23 +70,23 @@ const errorsList = (errors, idPrefix) => {
 const TimeDateLabel = (props) => {
     return <label>
         {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
-        <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
+        <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === startName ? " default" : "")}>
             <label className="date">
-                Date
+                {`${props.label} ${dateName}`}
                 <input
-                    name={`${props.label} date`}
+                    name={`${props.label} ${dateName}`}
                     onChange={props.dateChangeCallback}
                     value={props.date}
                     aria-describedby={props.label+"-date"+errorIdEnd}
                     />
             </label>
             <label className="time">
-                Time
-                <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
+                {`${props.label} ${timeName}`}
+                <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === startName ? " default" : "")}>
                     <input
                         id={`${props.label}-time`}
                         data-td-target={`#datetime-picker-${props.label}`}
-                        name={`${props.label} time`}
+                        name={`${props.label} ${timeName}`}
                         onChange={props.timeChangeCallback}
                         aria-describedby={props.label+"-time"+errorIdEnd}
                         value={props.time}
@@ -165,34 +176,34 @@ const TaskCreatePopup = observer((props) => {
     const taskToCreate = taskStore.taskBeingEdited;
 
     const possibleInputs = {
-        "title": {
+        titleName: {
             errors: taskToCreate.validationErrors.title,
-            selector: getSelector('title', 'input') 
+            selector: getSelector(titleName, 'input') 
         },
-        "description": {
+        descName: {
             errors: taskToCreate.validationErrors.description,
-            selector: getSelector('description', 'textarea') 
+            selector: getSelector(descName, 'textarea') 
         },
-        "start date": {
+        startDateName: {
             errors: taskToCreate.validationErrors.start.date,
-            selector: getSelector('start date', 'input')
+            selector: getSelector(startDateName, 'input')
         },
-        "start time": {
+        startTimeName: {
             errors: taskToCreate.validationErrors.start.time,
-            selector: getSelector('start time', 'input')
+            selector: getSelector(startTimeName, 'input')
         },
-        "due date": {
+        dueDateName: {
             errors: taskToCreate.validationErrors.due.date,
-            selector: getSelector('due date', 'input')
+            selector: getSelector(dueDateName, 'input')
         },
-        "due time": {
+        dueTimeName: {
             errors: taskToCreate.validationErrors.due.time,
-            selector: getSelector('due time', 'input')
+            selector: getSelector(dueTimeName, 'input')
         },
     }
 
     useEffect(() => {
-        const firstInput = document.querySelector("input[name='title']");
+        const firstInput = document.querySelector(`input[name='${titleName}']`);
         firstInput.focus();
         const options = {
             display: {
@@ -206,7 +217,7 @@ const TaskCreatePopup = observer((props) => {
             },
             container: document.getElementById("root")
         }
-        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
+        const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
         const startSubscriptions = startPicker.subscribe(
             [ Namespace.events.change],
             [
@@ -216,7 +227,7 @@ const TaskCreatePopup = observer((props) => {
                 }
             ]
         );
-        const duePicker = new TempusDominus(document.getElementById('datetime-picker-due'), {...options, defaultDate: new Date (DateTime.now().set({hour: 23, minute: 59, second: 59}).toMillis())});
+        const duePicker = new TempusDominus(document.getElementById(`datetime-picker-${dueName}`), {...options, defaultDate: new Date (DateTime.now().set({hour: 23, minute: 59, second: 59}).toMillis())});
         const dueSubscriptions = duePicker.subscribe(
             [ Namespace.events.change],
             [
@@ -261,13 +272,13 @@ const TaskCreatePopup = observer((props) => {
                     <label>
                         Title
                         <input
-                            name="title"
+                            name={titleName}
                             onChange={(e) => {
                                 taskToCreate.setTitle(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["title"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs[titleName], taskToCreate);
                             }}
                             value={taskToCreate.title}
-                            aria-describedby={"title"+errorIdEnd}
+                            aria-describedby={titleName+errorIdEnd}
                             required
                             />
                     </label>
@@ -275,34 +286,34 @@ const TaskCreatePopup = observer((props) => {
                     <label>
                         Description
                         <textarea
-                            name="description"
+                            name={descName}
                             onChange={(e) => {
                                 taskToCreate.setDescription(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["description"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs[descName], taskToCreate);
                             }}
                             value={taskToCreate.description}
-                            aria-describedby={"description"+errorIdEnd}
+                            aria-describedby={descName+errorIdEnd}
                         />
                     </label>
                     { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
-                            label="start"
+                            label={startName}
                             defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={startDate}
                             time={startTime}
                             errors={taskToCreate.validationErrors.start}
                             dateChangeCallback={(e) => {
                                 taskToCreate.setStartDate(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["start date"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs[startDateName], taskToCreate);
                             }}
                             timeChangeCallback={(e) => {
                                 taskToCreate.setStartTime(e.target.value);
-                                checkRemoveErrorOutline(possibleInputs["start time"], taskToCreate);
+                                checkRemoveErrorOutline(possibleInputs[startTimeName], taskToCreate);
                             }}
                         />
                         <TimeDateLabel 
-                            label="due"
+                            label={dueName}
                             defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={dueDate}
                             time={dueTime}
