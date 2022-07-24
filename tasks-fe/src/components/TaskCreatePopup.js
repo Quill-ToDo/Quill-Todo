@@ -97,7 +97,8 @@ const TimeDateLabel = (props) => {
                         data-td-toggle={`#${props.label}-time`} 
                         className="btn no-shadow datepicker-toggle" 
                         type="button"
-                        title="Choose time"
+                        name={`${props.label} time picker`}
+                        title={`Choose ${props.label} time`}
                         >
                         <i className="far fa-clock fa-fw"></i>
                     </button>

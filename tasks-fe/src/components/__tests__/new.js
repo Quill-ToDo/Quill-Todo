@@ -12,8 +12,7 @@ import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 // logRoles(screen.getByTestId("home"));
 
 import App from "../../App";
-import { DATE_FORMAT } from '../../constants';
-// import { keyboard } from '@testing-library/user-event/dist/types/setup/directApi';
+import { DATE_FORMAT, TIME_FORMAT } from '../../constants';
 
 const baseDate = DateTime.utc(2021, 6, 6, 6);
 const mockServerHandler = new MockTaskApiHandler({date: baseDate});
@@ -55,19 +54,14 @@ const getNewTaskPopup = async (user) => {
     return popup;
 }
 
-const title = "title";
-const desc = "description";
-const startDate = "start date";
-const startTime = "start date";
-const dueDate = "start date";
-const dueTime = "start date";
 const selectors = {
     title: (popup) => within(popup).getByRole("textbox", {name: "Title", exact: false}),
     desc: (popup) => within(popup).getByLabelText("Description", {name: "Start Date", exact: false}),
     startDate: (popup) => within(popup).getByRole("textbox", {name: "Start Date", exact: false}),
-    startTime: (popup) => within(popup).getByRole("textbox", {name: "Start Tate", exact: false}),
+    startTime: (popup) => within(popup).getByRole("textbox", {name: "Start Time", exact: false}),
     dueDate: (popup) => within(popup).getByRole("textbox", {name: "Due Date", exact: false}),
-    dueTime: (popup) => within(popup).getByRole("textbox", {name: "Due Time", exact: false})
+    dueTime: (popup) => within(popup).getByRole("textbox", {name: "Due Time", exact: false}),
+    dueTimepicker: (popup) => within(popup).getByRole("button", {name: "Choose Due time", exact: false})
 }
 
 const submitPopup = async (user, popup) => {
@@ -83,48 +77,82 @@ describe("should allow the user to create a new task", () => {
     it("with only a title specified", async () => {
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        await user.type(selectors[title](popup), "Task title");
+        const t = "My task";
+        await user.type(selectors.title(popup), t);
         await submitPopup(user, popup);
-        await within(await screen.findByRole("region", {name: "Task list"})).findByText("Task title");
+        await within(await screen.findByRole("region", {name: "Task list"})).findByText(t);
+    })
+
+    it("with a valid description", async () => {
+        const user = userEvent.setup();
+        const popup = await getNewTaskPopup(user);
+        const t = "desc";
+        const d = "This is my task! Hopefully it has a description."
+        await user.type(selectors.title(popup), t);
+        await user.type(selectors.desc(popup), d);
+        await submitPopup(user, popup); 
+        const task = await within(await screen.findByRole("region", {name: "Task list"})).findByText(t);
+        user.click(task);
+        await screen.findByText(d);
     })
     
-    it.skip("with a valid due date specified", async () => {
+    it("with a valid due date specified", async () => {
         const t = "due date!!";
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        await user.type(selectors[title](popup), t);
-        const ddInput = selectors[dueDate](popup);
-        user.click(ddInput);
-        // clear and keyboard user-event methods arent working
-        // keyboard("{Shift>}A{/Shift}");
+        await user.type(selectors.title(popup), t);
+        const ddInput = selectors.dueDate(popup);
+        user.clear(ddInput);
         await user.type(ddInput, `${baseDate.plus({days: 1}).toFormat(DATE_FORMAT)}`);
         await submitPopup(user, popup);
         await within(await screen.findByRole("region", {name: "Task list"})).findByText(t);
     })
 
-    it.skip("with a valid due time typed in", async () => {
+    it("with a valid due time typed in", async () => {
         const user = userEvent.setup();
+        const t = "due time!!";
         const popup = await getNewTaskPopup(user);
-        await typeInPopup(user, popup, {title: "Task title"});
+        await user.type(selectors.title(popup), t);
+        const timeBox = selectors.dueTime(popup);
+        user.clear(timeBox);
+        await user.type(timeBox, `${baseDate.plus({hours: 1}).toFormat(TIME_FORMAT)}`);
         await submitPopup(user, popup);
-        await screen.findByText("Task title");
+        await screen.findByText(t);
     })
 
-    it.skip("with a valid due time chosen from the timepicker", async () => {
+    it.only("with a valid due time chosen from the timepicker", async () => {
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        await typeInPopup(user, popup, {title: "Task title"});
-        await submitPopup(user, popup);
-        await screen.findByText("Task title");
+        user.click(selectors.dueTimepicker(popup));
     })
 
-    it.skip("with a valid start and date specified", async () => {
+    it("with a valid start date specified", async () => {
+        const t = "start date!!";
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        await typeInPopup(user, popup, {title: "Task title"});
+        await user.type(selectors.title(popup), t);
+        const input = selectors.startDate(popup);
+        user.clear(input);
+        await user.type(input, `${baseDate.minus({weeks: 1}).toFormat(DATE_FORMAT)}`);
         await submitPopup(user, popup);
-        // const list = await screen.findByRole("region", {name: "Task list"});
-        await screen.findByText("Task title");
+        await within(await screen.findByRole("region", {name: "Task list"})).findByText(t);
+    })
+
+    it("with a valid start time specified", async () => {
+        const user = userEvent.setup();
+        const t = "start time!!";
+        const popup = await getNewTaskPopup(user);
+        await user.type(selectors.title(popup), t);
+        const timeBox = selectors.startTime(popup);
+        user.clear(timeBox);
+        await user.type(timeBox, `${baseDate.minus({hours: 1}).toFormat(TIME_FORMAT)}`);
+        await submitPopup(user, popup);
+        await screen.findByText(t);
+    })
+
+    it.skip("with a valid start time chosen from the timepicker", async () => {
+        const user = userEvent.setup();
+        const popup = await getNewTaskPopup(user);
     })
 })
 
