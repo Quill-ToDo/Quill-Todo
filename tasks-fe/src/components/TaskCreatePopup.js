@@ -4,6 +4,8 @@ import { DateTime } from "luxon";
 import '../static/css/new.css';
 import '../static/css/datetimepicker.css';
 import { 
+    END_OF_DAY,
+    START_OF_DAY,
     TIME_FORMAT,
 } from "../constants";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
@@ -215,10 +217,10 @@ const TaskCreatePopup = observer((props) => {
                     decades: false, 
                 }
             },
-            container: document.getElementById("root")
+            container: document.getElementById("new-wrapper")
         }
 
-        const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
+        const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: START_OF_DAY().toJSDate()});
         const startSubscriptions = startPicker.subscribe(
             [ Namespace.events.change],
             [
@@ -228,7 +230,7 @@ const TaskCreatePopup = observer((props) => {
                 }
             ]
         );
-        const duePicker = new TempusDominus(document.getElementById(`datetime-picker-${dueName}`), {...options, defaultDate: new Date (DateTime.now().set({hour: 23, minute: 59, second: 59}).toMillis())});
+        const duePicker = new TempusDominus(document.getElementById(`datetime-picker-${dueName}`), {...options, defaultDate: END_OF_DAY().toJSDate()});
         const dueSubscriptions = duePicker.subscribe(
             [ Namespace.events.change],
             [

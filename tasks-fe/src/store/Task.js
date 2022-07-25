@@ -128,7 +128,7 @@ export class Task {
             // If this is a new task, set defaults
             this.setComplete(false);
             if (!this.due) {
-                this.setDue(END_OF_DAY);
+                this.setDue(END_OF_DAY());
                 this.setStart(this.defaultStart);
             }
         }

@@ -83,7 +83,7 @@ export class TaskStore {
      * @returns true if the time occurs before the end of the current day, false otherwise.
      */
     timeOccursBeforeEOD (time) {
-        return (time <= END_OF_DAY)
+        return (time <= END_OF_DAY())
     }
 
     /**

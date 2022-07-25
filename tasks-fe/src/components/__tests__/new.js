@@ -123,8 +123,8 @@ describe("should allow the user to create a new task", () => {
     it.only("with a valid due time chosen from the timepicker", async () => {
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        user.click(selectors.dueTimepicker(popup));
-        user.click(await screen.findByRole("section", {name: "Increment Hour"}));
+        // user.click(selectors.dueTimepicker(popup));
+        // user.click(await screen.findByRole("section", {name: "Increment Hour"}));
     })
 
     it("with a valid start date specified", async () => {
