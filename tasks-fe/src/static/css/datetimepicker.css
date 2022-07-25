@@ -17,9 +17,12 @@
     margin-bottom: 0;
 }
 
-.tempus-dominus-widget button {
-    background-color: var(--btn-grey-shadow);
-    font-family: "Quicksand", sans-serif;
+.tempus-dominus-widget button,
+.tempus-dominus-widget button.toggleMeridiem     {
+    background-color: var(--btn-grey-bg);
+    color: var(--light-font);
+    font-family: "Azeret Mono",
+    monospace;
 }
 
 /* Darker dates */

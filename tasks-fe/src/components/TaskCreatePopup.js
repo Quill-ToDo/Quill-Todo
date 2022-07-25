@@ -132,7 +132,7 @@ const getSelector = (name, type) => {
  */
 const handleSubmit = (event, taskToCreate, possibleInputs) => {
     event.preventDefault();
-    var focusEle = null;
+    let focusEle = null;
 
     // Get element with errors to switch focus to
     for (const name in possibleInputs) {
@@ -217,6 +217,7 @@ const TaskCreatePopup = observer((props) => {
             },
             container: document.getElementById("root")
         }
+
         const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
         const startSubscriptions = startPicker.subscribe(
             [ Namespace.events.change],
