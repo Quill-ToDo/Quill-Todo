@@ -2,7 +2,6 @@ import {
     render,
     screen,
     within,
-    waitForElementToBeRemoved
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
 import { DateTime, Settings } from 'luxon';
@@ -93,7 +92,6 @@ describe("should be able to close show", () => {
     });
 })
 
-
 it("should be able to close show via escape button", async () => {
     // Cannot figure out how to make this work when ran with other tests. It works alone
     const taskName = "Overdue incomplete";
@@ -106,7 +104,7 @@ it("should be able to close show via escape button", async () => {
     await user.keyboard('[Escape]');
     expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
     // await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
-}); 
+});
 
 it("should not close show via any other buttons", async () => {
     // Cant be sure this is working before the one above i working

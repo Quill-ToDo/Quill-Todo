@@ -123,10 +123,21 @@ If there are any issues with these instructions or if anything is unclear, pleas
         > - `\du` List roles
 
     - ✅ If everything looks good:
-        - **Windows:** run `npm run start-be-win` to start the database and server.
-        - **Mac:** run `npm run start-be-mac` to start the database and server.
-        - **❗Remove the db password you added from [setup.sql](./setup.sql).**
+        - **Windows:** run `$ npm run start-be-win` to start the database and server.
+        - **Mac:** run `$ npm run start-be-mac` to start the database and server.
+        - **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
         - You're done! Read [Back-End Notes](#back-end-notes)
+
+    #### Debugging Tips
+
+    - ❌ Read note at the top of step 7.
+    - ❌ If it says the server could not start:
+        - Try starting and stoppung the server manually and the re-run the command to start the database and server from the last step.
+            - Run `$ pg_ctl status`. 
+            - If it says a server is running, run `$ pg_ctl stop & pg_ctl start & pg_ctl stop`
+            - If no server is running, run `$ pg_ctl start & pg_ctl stop`
+            - Rerun the command to start the database and server from the last step.
+        - If that does not work, continue with debugging steps below
     - ❌ If it says the database doesn't exist or you don't see quill_user:
         - If your computer did not recognize py for Python, try copying the script from package.json and replacing py with python3.
         - Read note at the top of step 7.
@@ -193,7 +204,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
   to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
-- To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
+- To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser.
 - > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
@@ -239,7 +250,7 @@ The test files are stored near the code they test, for most components, in [task
 
 ##### Running Tests
 
-To run existing tests, from the main directory run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
 
 The tests should re-run automatically every time you save.
 Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
