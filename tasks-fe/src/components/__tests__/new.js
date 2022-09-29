@@ -1,7 +1,6 @@
 import {
     render,
     screen,
-    logRoles,
     within
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event'
@@ -12,7 +11,7 @@ import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 // logRoles(screen.getByTestId("home"));
 
 import App from "../../App";
-import { DATE_FORMAT, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH, NO_TITLE, taskCreationErrors, TIME_FORMAT } from '../../constants';
+import { DATE_FORMAT, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH, taskCreationErrors, TIME_FORMAT } from '../../constants';
 import { act } from 'react-dom/test-utils';
 
 const baseDate = DateTime.utc(2021, 6, 6, 6);
@@ -163,7 +162,6 @@ describe("should not allow the user to create a new task", () => {
     it("without a title", async () => {
         const user = userEvent.setup();
         const popup = await getNewTaskPopup(user);
-        const sdInput = selectors.startDate(popup);
         await submitPopup(user, popup);
         expect(popup).toBeInTheDocument();
         await within(popup).findByText(taskCreationErrors.NO_TITLE);
