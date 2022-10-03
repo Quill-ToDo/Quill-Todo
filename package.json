@@ -8,7 +8,8 @@
     "init-be-mac": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
     "start-fe": "workon quill && cd tasks-fe && npm install && npm start",
     "start-be-win": "workon quill && pip install -r requirements.txt && pg_ctl start && py manage.py makemigrations && py manage.py migrate && py manage.py runserver",
-    "start-be-mac": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver"
+    "start-be-mac": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
+    "fe-tests": "workon quill && cd tasks-fe && npm run test"
   },
   "repository": {
     "type": "git",

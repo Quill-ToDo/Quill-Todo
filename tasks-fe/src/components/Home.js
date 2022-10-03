@@ -5,7 +5,7 @@ import ShowTask from './ShowTask';
 import TaskCreatePopup from "./TaskCreatePopup";
 import { observer } from "mobx-react-lite";
 import { useTaskStore } from "../store/StoreContext";
-import { addAlert, SUCCESS_ALERT } from '../static/js/alertEvent';
+import { addAlert, ERROR_ALERT } from '../static/js/alertEvent';
 
 
 const Home = observer(() => {
@@ -21,7 +21,7 @@ const Home = observer(() => {
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>
-                <button role="menuitem" className="btn btn no-shadow" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), SUCCESS_ALERT, "We haven't implemented users or logging out.")}>
+                <button role="menuitem" className="btn btn no-shadow" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
                     <i className="fas fa-power-off fa-fw"></i>
                 </button>
             </menu>

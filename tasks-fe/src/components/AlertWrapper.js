@@ -41,6 +41,19 @@ const Alert = (props) => {
         const alertInPage = document.getElementById(alert.id);
         const closeBtnInPage = document.getElementById(btnId);
 
+        // On close button focus, save previously focused element to return focus to on alert dismount. 
+        closeBtnInPage.addEventListener("focus", (e) => {
+            previouslyFocused.current = e.relatedTarget;
+            // Also, stop animation on focus.
+            if (alert.type === NOTICE_ALERT || alert.type === SUCCESS_ALERT) {
+                alertInPage.classList.remove("slide-out");
+                props.animationStop();
+                closeBtnInPage.addEventListener("blur", () => {
+                    alertInPage.classList.add("slide-out");
+                })
+            }
+        })
+        
         if (alert.type !== ERROR_ALERT) {
             alertInPage.addEventListener('animationend', () => {
                 props.animationStop();
@@ -48,18 +61,6 @@ const Alert = (props) => {
             }, false);
             alertInPage.addEventListener('animationstart', () => {
                 props.animationStart();
-            })
-
-            // On focus, save previously focused element to return focus to on alert dismount. 
-            // Also, stop animation on focus.
-    
-            closeBtnInPage.addEventListener("focus", (e) => {
-                previouslyFocused.current = e.relatedTarget;
-                alertInPage.classList.remove("slide-out");
-                props.animationStop();
-                closeBtnInPage.addEventListener("blur", () => {
-                    alertInPage.classList.add("slide-out");
-                })
             })
         }
         // Focus on error message close button on render

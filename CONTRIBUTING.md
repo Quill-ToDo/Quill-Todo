@@ -14,9 +14,11 @@ If there are any issues with these instructions or if anything is unclear, pleas
     - [Front-End Notes](#front-end-notes)
   - [Testing](#testing)
     - [Front-end Testing](#front-end-testing)
-      - [Mocking Network Calls](#mocking-network-calls)
-      - [Mocking time](#mocking-time)
-      - [Useful testing resources](#useful-testing-resources)
+      - [Running Tests](#running-tests)
+      - [Writing Tests](#writing-tests)
+        - [Mocking Network Calls](#mocking-network-calls)
+        - [Mocking time](#mocking-time)
+        - [Useful testing resources](#useful-testing-resources)
     - [Back-End Testing](#back-end-testing)
 - [Commits, Branches, and Pull Requests](#commits-branches-and-pull-requests)
   - [To work on a feature](#to-work-on-a-feature)
@@ -29,7 +31,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 1. Clone repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill".
+2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut scripts we have.
 
 3. Install `nvm` (Node version manager)
 
@@ -44,7 +46,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 4. Install and switch to Node v16.13.1.
 
-    > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv.)
+    > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
 
     ```Bash
     nvm install v16.13.1 && nvm use 16.13.1
@@ -65,7 +67,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
         - Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
     - Mac/Unix:
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
-        - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`.
+        - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
 7. Init back-end using npm scripts
 
@@ -74,7 +76,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
     > 🐛 **Read if the scripts fail**:
     >
     > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on a Mac so I might have missed something.
-    > 2. Look in [./package.json](./package.json) under "scripts". The script you ran is a bunch of commands separated by `&&`. You can try running each of these commands individually in a terminal and modifying them as needed (ex: if the python command I'm using is different for you).
+    > 2. Look in [./package.json](./package.json) under "scripts". The script you ran is a bunch of commands separated by `&&`. You can try running each of these commands individually in a terminal and modifying them as needed (ex: if the Python command I'm using is different for you).
     > 3. If all else fails, continue with [Manual Back-End Init](#manual-back-end-init) to set it up manually with more detailed instructions.
 
     ---
@@ -123,17 +125,28 @@ If there are any issues with these instructions or if anything is unclear, pleas
         > - `\du` List roles
 
     - ✅ If everything looks good:
-        - **Windows:** run `npm run start-be-win` to start the database and server.
-        - **Mac:** run `npm run start-be-mac` to start the database and server.
-        - **❗Remove the db password you added from [setup.sql](./setup.sql).**
+        - **Windows:** run `$ npm run start-be-win` to start the database and server.
+        - **Mac:** run `$ npm run start-be-mac` to start the database and server.
+        - **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
         - You're done! Read [Back-End Notes](#back-end-notes)
+
+    #### Debugging Tips
+
+    - ❌ Read note at the top of step 7.
+    - ❌ If it says the server could not start:
+        - Try starting and stoppung the server manually and the re-run the command to start the database and server from the last step.
+            - Run `$ pg_ctl status`. 
+            - If it says a server is running, run `$ pg_ctl stop & pg_ctl start & pg_ctl stop`
+            - If no server is running, run `$ pg_ctl start & pg_ctl stop`
+            - Rerun the command to start the database and server from the last step.
+        - If that does not work, continue with debugging steps below
     - ❌ If it says the database doesn't exist or you don't see quill_user:
         - If your computer did not recognize py for Python, try copying the script from package.json and replacing py with python3.
         - Read note at the top of step 7.
 
 #### Manual Back-End Init
 
-1. switch to virtual environment following instructions of whichever virtual environment you're using
+1. Switch to virtual environment following instructions of whichever virtual environment you're using
   
     > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
     - Start psql
@@ -187,14 +200,14 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 #### Back-End Notes
 
-- After this initial setup, you can use the appropriate start-be npm script located in [package.json](./package.json)
+- After this initial setup, you can use the appropriate start-be npm script for your OS located in [package.json](./package.json)
   - `npm run start-be-win`
   - `npm run start-be-mac`
 
   to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
-- To access the API navigate to localhost:[port number]/api/tasks/ in a browser.
-- > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` to keep dependencies up to date for everyone else
+- To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser.
+- > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
 
@@ -229,15 +242,19 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 #### Front-End Notes
 
-- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json`.
+- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json` and commit any changes to this file.
 
 ### Testing
 
 #### Front-end Testing
 
-The test files are store near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
+The test files are stored near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
 
-After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`. The tests should re-run automatically every time you save.
+##### Running Tests
+
+To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+
+The tests should re-run automatically every time you save.
 Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
 You can also isolate the execution of tests to a single test by adding `only` after the test.
 
@@ -254,17 +271,18 @@ Additionally, you can mark a test as not yet implemented by adding `todo`.
 
 **Ex:** `it.todo("should do something cool);`
 
-##### Mocking Network Calls
+##### Writing Tests
+###### Mocking Network Calls
 
 We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
 
 An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
 
-##### Mocking time
+###### Mocking time
 
 Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
 
-##### Useful testing resources
+###### Useful testing resources
 
 - [Create React App testing basics](https://create-react-app.dev/docs/running-tests/)
 - Matchers
@@ -343,7 +361,7 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
     git merge main
     ```
 
-    Resolve any merge conflicts. Make sure tests pass (Once we have tests!) before submitting a PR.
+    Resolve any merge conflicts. Make sure tests pass before submitting a PR.
 
 9. Push local feature branch to remote.
 

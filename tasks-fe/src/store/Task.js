@@ -1,31 +1,33 @@
 import { makeAutoObservable, reaction } from "mobx"
 import { v4 } from "uuid";
 import { DateTime } from "luxon";
-import pluralize from 'pluralize';
 import { 
     DATE_FORMAT, 
     TIME_FORMAT, 
     DATE_TIME_FORMAT,
-    END_OF_DAY
+    END_OF_DAY,
+    MAX_TITLE_LENGTH,
+    MAX_DESCRIPTION_LENGTH,
+    taskCreationErrors
 } from "../constants";
 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
 
 const validateDateTime = (date, time, errors) => {
-    var parsedDate = DateTime.fromFormat(date, DATE_FORMAT);
-    var parsedTime = DateTime.fromFormat(time, TIME_FORMAT);
+    const parsedDate = DateTime.fromFormat(date, DATE_FORMAT);
+    const parsedTime = DateTime.fromFormat(time, TIME_FORMAT);
     
     if (parsedTime.invalid) {
-        errors.time.push("Time is not of the format h:mm P");
+        errors.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
     }
     if (parsedDate.invalid) {
-        errors.date.push("Date is not of the format mm/dd/yyyy");
+        errors.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
     }
 }
 
 export class Task {
     id = null;
-    title = "";
+    title = null;
     complete = null;
     // Luxon DateTime object
     start = null;
@@ -38,7 +40,7 @@ export class Task {
     dueDate = null;
     dueTime = null;
     // Due separated into date and time, useful for when the task is being edited
-    description = "";
+    description = null;
     store = null;
     createdDate = null;
     beingEdited = null;
@@ -128,7 +130,7 @@ export class Task {
             // If this is a new task, set defaults
             this.setComplete(false);
             if (!this.due) {
-                this.setDue(END_OF_DAY);
+                this.setDue(END_OF_DAY());
                 this.setStart(this.defaultStart);
             }
         }
@@ -150,7 +152,7 @@ export class Task {
         this.store.API.createTask(this.asJson)
         .catch(e => {
             console.error(e)
-            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
+            addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
             this.removeSelfFromStore();
         });
         this.beingEdited = false;
@@ -266,16 +268,16 @@ export class Task {
         }
 
         // Title
-        if (this.title.length > 100) { 
-            errors.title.push(`Title is ${pluralize("character", this.title.length-100, true)} too long`);
+        if (this.title.length > MAX_TITLE_LENGTH) { 
+            errors.title.push(taskCreationErrors.TITLE_TOO_LONG(this.title));
         }
         else if (this.title.length === 0) {
-            errors.title.push(`Title is required`);
+            errors.title.push(taskCreationErrors.NO_TITLE);
         }
     
         // Description
-        if (this.description.length > 1000) { 
-            errors.description.push(`Description is ${pluralize("character", this.description.length-1000, true)} too long`);
+        if (this.description.length > MAX_DESCRIPTION_LENGTH) { 
+            errors.description.push(taskCreationErrors.DESCRIPTION_TOO_LONG(this.description));
         }
 
         //  Start 
@@ -302,10 +304,10 @@ export class Task {
             const start = this.start;
             const due = this.due;
             if ( start.hasSame(due, 'day') && start >= due) {
-                errors.due.time.push('Due time must be after start time');
+                errors.due.time.push(taskCreationErrors.START_TIME_AFTER_DUE);
             }
             else if ( !start.hasSame(due, 'day') && start > due) {
-                errors.due.date.push('Start date cannot be after due date');
+                errors.due.date.push(taskCreationErrors.START_DATE_AFTER_DUE);
             }
         }
         return errors;

@@ -17,6 +17,9 @@ export const ERROR_ALERT = "failure";
  * @param {String} body The content of the alert.
  */
 export const addAlert = (target, type, body) => {
+    if (target === null) {
+        throw new TypeError("Target element for alert bubble cannot be null.");
+    }
     const alert = new CustomEvent("alert", {
         detail: {"id": "alert-"+uuidv4(), "type": type, "body": body},
         bubbles: true,

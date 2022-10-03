@@ -4,9 +4,24 @@ import { DateTime } from "luxon";
 import '../static/css/new.css';
 import '../static/css/datetimepicker.css';
 import { 
+    END_OF_DAY,
+    START_OF_DAY,
     TIME_FORMAT,
 } from "../constants";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
+
+const errorIdEnd = "-error-list";
+const titleName = "Title";
+const descName = "Description";
+const startName = "Start";
+const dueName = "Due";
+const timeName = "Time";
+const dateName = "Date";
+const startTimeName = startName + " " + timeName;
+const startDateName = startName + " " + dateName;
+const dueTimeName = dueName + " " + timeName;
+const dueDateName = dueName + " " + dateName;
+
 
 /**
  * @param {string[]} errors List of errors to display 
@@ -24,10 +39,10 @@ const ErrorsListContent = (errors) => {
  * @param {string[]} errors List of errors to display 
  * @returns List of errors
  */
-const errorsList = (errors) => {
+const errorsList = (errors, idPrefix) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul className="error-list" aria-live="polite">
+            <ul id={idPrefix+errorIdEnd} className="error-list" aria-live="polite">
                 <ErrorsListContent errors={errors} />
             </ul>
         </Fragment>
@@ -55,29 +70,27 @@ const errorsList = (errors) => {
  * @returns 
  */
 const TimeDateLabel = (props) => {
-    return <label>
-        {props.label.charAt(0).toUpperCase() + props.label.slice(1)}
-        <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
+    return <div>
+        <h3>{props.label}</h3>
+        <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === startName ? " default" : "")}>
             <label className="date">
-                Date
-                { props.errors.date.length ? errorsList(props.errors.date) : null }
+                {`${props.label} ${dateName}`}
                 <input
-                    name={`${props.label} date`}
-                    className={props.errors.date.length ? "errors" : ""}
+                    name={`${props.label} ${dateName}`}
                     onChange={props.dateChangeCallback}
                     value={props.date}
+                    aria-describedby={props.label+"-date"+errorIdEnd}
                     />
             </label>
             <label className="time">
-                Time
-                { props.errors.time.length ? errorsList(props.errors.time) : null }
-                <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === "start" ? " default" : "")}>
+                {`${props.label} ${timeName}`}
+                <div className={"horizontal-align" + (props.defaultStartBeingUsed && props.label === startName ? " default" : "")}>
                     <input
                         id={`${props.label}-time`}
                         data-td-target={`#datetime-picker-${props.label}`}
-                        name={`${props.label} time`}
-                        className={props.errors.time.length ? "errors" : ""}
+                        name={`${props.label} ${timeName}`}
                         onChange={props.timeChangeCallback}
+                        aria-describedby={props.label+"-time"+errorIdEnd}
                         value={props.time}
                     />
                     <button 
@@ -86,14 +99,19 @@ const TimeDateLabel = (props) => {
                         data-td-toggle={`#${props.label}-time`} 
                         className="btn no-shadow datepicker-toggle" 
                         type="button"
-                        title="Choose time"
+                        name={`${props.label} time picker`}
+                        title={`Choose ${props.label} time`}
                         >
                         <i className="far fa-clock fa-fw"></i>
                     </button>
                 </div>
             </label>
         </div>
-    </label>
+        <div className="horizontal-align">
+        { props.errors.date.length ? errorsList(props.errors.date, props.label+"-date"+errorIdEnd) : null }
+        { props.errors.time.length ? errorsList(props.errors.time, props.label+"-time"+errorIdEnd) : null }
+        </div>
+    </div>
 }
 
 /**
@@ -114,28 +132,23 @@ const getSelector = (name, type) => {
  * @param {Task} taskToCreate 
  * @returns
  */
-const handleSubmit = (event, taskToCreate) => {
+const handleSubmit = (event, taskToCreate, possibleInputs) => {
     event.preventDefault();
-    var focusEle = null;
-    const errors = taskToCreate.validationErrors;
+    let focusEle = null;
+
     // Get element with errors to switch focus to
-    if (errors.title.length) {
-        focusEle = document.querySelector(getSelector('title', 'input'));
-    }
-    else if (errors.description.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('description', 'textarea'))
-    }
-    else if (errors.start.date.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('start date', 'input'))
-    }
-    else if (errors.start.time.length && !focusEle) {
-        focusEle = document.querySelector(getSelector('start time', 'input'))
-    }
-    else if (errors.due.date.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('due date', 'input'))
-    }
-    else if (errors.due.time.length  && !focusEle) {
-        focusEle = document.querySelector(getSelector('due time', 'input'))
+    for (const name in possibleInputs) {
+        const field = possibleInputs[name];
+        const elem = document.querySelector(field.selector);
+        if (field.errors.length) {
+            if (!focusEle) {
+                focusEle = elem;
+            }
+            elem.setAttribute("aria-invalid", "true");
+        }
+        else {
+            elem.setAttribute("aria-invalid", "false");
+        }
     }
 
     if (!focusEle) {
@@ -147,6 +160,15 @@ const handleSubmit = (event, taskToCreate) => {
     focusEle.focus();
 }
 
+const checkRemoveErrorOutline = (fieldInfo) => {
+    // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
+    // Validation errors after they are set.
+    const elem = document.querySelector(fieldInfo.selector);
+    if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
+        elem.setAttribute("aria-invalid", "false");
+    }
+}
+
 /**
  * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
  * in TaskStore.
@@ -155,8 +177,35 @@ const TaskCreatePopup = observer((props) => {
     const taskStore = props.taskStore;
     const taskToCreate = taskStore.taskBeingEdited;
 
+    const possibleInputs = {
+        titleName: {
+            errors: taskToCreate.validationErrors.title,
+            selector: getSelector(titleName, 'input') 
+        },
+        descName: {
+            errors: taskToCreate.validationErrors.description,
+            selector: getSelector(descName, 'textarea') 
+        },
+        startDateName: {
+            errors: taskToCreate.validationErrors.start.date,
+            selector: getSelector(startDateName, 'input')
+        },
+        startTimeName: {
+            errors: taskToCreate.validationErrors.start.time,
+            selector: getSelector(startTimeName, 'input')
+        },
+        dueDateName: {
+            errors: taskToCreate.validationErrors.due.date,
+            selector: getSelector(dueDateName, 'input')
+        },
+        dueTimeName: {
+            errors: taskToCreate.validationErrors.due.time,
+            selector: getSelector(dueTimeName, 'input')
+        },
+    }
+
     useEffect(() => {
-        const firstInput = document.querySelector("input[name='title']");
+        const firstInput = document.querySelector(`input[name='${titleName}']`);
         firstInput.focus();
         const options = {
             display: {
@@ -168,9 +217,10 @@ const TaskCreatePopup = observer((props) => {
                     decades: false, 
                 }
             },
-            container: document.getElementById("root")
+            container: document.getElementById("new-wrapper")
         }
-        const startPicker = new TempusDominus(document.getElementById('datetime-picker-start'), {...options, defaultDate: new Date (DateTime.now().set({hour: 0, minute: 0, second: 0}).toMillis())});
+
+        const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: START_OF_DAY().toJSDate()});
         const startSubscriptions = startPicker.subscribe(
             [ Namespace.events.change],
             [
@@ -180,7 +230,7 @@ const TaskCreatePopup = observer((props) => {
                 }
             ]
         );
-        const duePicker = new TempusDominus(document.getElementById('datetime-picker-due'), {...options, defaultDate: new Date (DateTime.now().set({hour: 23, minute: 59, second: 59}).toMillis())});
+        const duePicker = new TempusDominus(document.getElementById(`datetime-picker-${dueName}`), {...options, defaultDate: END_OF_DAY().toJSDate()});
         const dueSubscriptions = duePicker.subscribe(
             [ Namespace.events.change],
             [
@@ -221,48 +271,65 @@ const TaskCreatePopup = observer((props) => {
                         </button>
                     </div>
                 </div>
-                <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate)}>
+                <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate, possibleInputs)}>
                     <label>
                         Title
-                        { taskToCreate.validationErrors.title.length ? errorsList(taskToCreate.validationErrors.title) : null }
                         <input
-                            name="title"
-                            className={taskToCreate.validationErrors.title.length ? "errors" : ""}
-                            onChange={e => {
-                                taskToCreate.setTitle(e.target.value)}
-                            }
+                            name={titleName}
+                            onChange={(e) => {
+                                taskToCreate.setTitle(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.titleName);
+                            }}
                             value={taskToCreate.title}
+                            aria-describedby={titleName+errorIdEnd}
                             required
-                        />
+                            />
                     </label>
+                    { taskToCreate.validationErrors.title.length ? errorsList(taskToCreate.validationErrors.title, "title") : null }
                     <label>
                         Description
-                        { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                         <textarea
-                            name="description"
-                            className={taskToCreate.validationErrors.description.length ? "errors" : ""}
-                            onChange={e => taskToCreate.setDescription(e.target.value)}
+                            name={descName}
+                            onChange={(e) => {
+                                taskToCreate.setDescription(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.descName);
+                            }}
                             value={taskToCreate.description}
+                            aria-describedby={descName+errorIdEnd}
                         />
                     </label>
+                    { taskToCreate.validationErrors.description.length ? errorsList(taskToCreate.validationErrors.description) : null }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
-                            label="start"
+                            label={startName}
                             defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={startDate}
                             time={startTime}
                             errors={taskToCreate.validationErrors.start}
-                            dateChangeCallback={e => taskToCreate.setStartDate(e.target.value)}
-                            timeChangeCallback={e => taskToCreate.setStartTime(e.target.value)}
+                            dateChangeCallback={(e) => {
+                                taskToCreate.setStartDate(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.startDateName);
+                            }}
+                            timeChangeCallback={(e) => {
+                                taskToCreate.setStartTime(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.startTimeName);
+                            }}
                         />
                         <TimeDateLabel 
-                            label="due"
+                            label={dueName}
                             defaultStartBeingUsed={taskToCreate.defaultStartBeingUsed}
                             date={dueDate}
                             time={dueTime}
+                            fieldInfo={possibleInputs}
                             errors={taskToCreate.validationErrors.due}
-                            dateChangeCallback={e => taskToCreate.setDueDate(e.target.value)}
-                            timeChangeCallback={e => taskToCreate.setDueTime(e.target.value)}
+                            dateChangeCallback={(e) => {
+                                taskToCreate.setDueDate(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.dueDateName);
+                            }}
+                            timeChangeCallback={(e) => {
+                                taskToCreate.setDueTime(e.target.value);
+                                checkRemoveErrorOutline(possibleInputs.dueTimeName);
+                            }}
                         />
                     </div>
                     <div className="centered">

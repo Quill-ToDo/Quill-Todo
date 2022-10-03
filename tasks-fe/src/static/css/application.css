@@ -131,7 +131,8 @@ section h2 {
 
 #list-wrapper h3,
 #show-wrapper h3,
-form label {
+form label,
+#new-wrapper form h3 {
   color: var(--mid-font);
   font-family: "Quicksand", sans-serif;
   font-weight: 700;
