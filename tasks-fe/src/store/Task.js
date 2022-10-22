@@ -1,6 +1,6 @@
 import { makeAutoObservable, reaction } from "mobx"
 import { v4 } from "uuid";
-import { DateTime } from "luxon";
+import { DateTime, Interval } from "luxon";
 import { 
     DATE_FORMAT, 
     TIME_FORMAT, 
@@ -31,11 +31,12 @@ export class Task {
     complete = null;
     // Luxon DateTime object
     start = null;
+    due = null;
+    // Luxon interval between start and due
+    workingInterval = null;
     // Strings
     startDate = null
     startTime = null
-    // Luxon DateTime object
-    due = null;
     // Strings
     dueDate = null;
     dueTime = null;
@@ -73,7 +74,8 @@ export class Task {
         this.due = null;
         this.dueDate = null;
         this.dueTime = null;
-        this.createdDate=null;
+        this.createdDate = null;
+        this.workingInterval = Interval.invalid("Unset", "The start and end values for this interval have not been set.");
 
         /**
          * If autosave is on, update this task in the DB when any field used in this tasks JSON format is changed.
@@ -352,9 +354,11 @@ export class Task {
             console.error("Couldn't convert datetime " + dateTime + " " + date.invalid);
         }
         else {
+            const oldStart = this.start;
             this.start = date;
             this.startDate = this.start.toFormat(DATE_FORMAT);
             this.startTime = this.start.toFormat(TIME_FORMAT);
+            this.updateIntervalMappings({startOld: oldStart, startNew: this.start});
         }
     }
 
@@ -394,12 +398,14 @@ export class Task {
         }  
         else {
             const startNeedsUpdate = this.due !== null && this.defaultStartBeingUsed;
+            const oldDue = this.due;
             this.due = date;
             this.dueDate = this.due.toFormat(DATE_FORMAT);
             this.dueTime = this.due.toFormat(TIME_FORMAT);
             if (startNeedsUpdate) {
                 this.setStart(this.defaultStart);
             }
+            this.updateIntervalMappings({dueOld: oldDue, dueNew: this.due});
         }
     }
 
@@ -451,5 +457,72 @@ export class Task {
                 this.setStart(this.defaultStart);
             }
         }  
+    }
+
+    /**
+     * Update the mapping of days : tasks for that day when the start or due is changed. 
+     * Pass EITHER startOld (previous start date) and startNew (date start is being changed to) as DateTime or dueOld and dueNew as DateTime.
+     * @param {DateTime} dates 
+     * @returns 
+     */
+    updateIntervalMappings({startOld=null, startNew=null, dueOld=null, dueNew=null}={}) {
+        const removeTaskFromDate = (date) => {
+            const key = date.DATE_SHORT;
+            this.store.tasksByDate.get(key).remove(this);
+            if (this.store.tasksByDate.get(key).size === 0) {
+                this.store.tasksByDate.delete(key);
+            }
+        }
+        const addTaskToDate = (date) => {
+            const key = date.DATE_SHORT;
+            if (!this.store.tasksByDate.has(key)) {
+                this.store.tasksByDate.set(key, new Set());
+            }
+            this.store.tasksByDate.get(key).add(this);
+        }
+
+        let action = null;
+        let iterationStart = null;
+        let iterationEnd = null;
+
+        if (startOld != null && startNew != null) {
+            if (startNew.equals(startOld)) {
+                return;
+            }
+            iterationStart = DateTime.min(startOld, startNew);
+            iterationEnd = DateTime.max(startOld, startNew);
+            if (startOld < startNew) {
+                action = removeTaskFromDate; 
+            }
+            else {
+                action = addTaskToDate;
+            }
+        }
+        else if (dueOld != null && dueNew != null) {
+            if (dueNew.equals(dueOld)) {
+                return;
+            }
+            iterationStart = DateTime.min(dueNew, dueOld);
+            iterationEnd = DateTime.max(dueNew, dueOld);
+            if (dueOld > dueNew) {
+                action = removeTaskFromDate; 
+            }
+            else {
+                action = addTaskToDate;
+            }
+        }
+        else {
+            return;
+            //throw new TypeError("Both oldDue and due or oldStart and start must be provided.")
+        }
+
+        // Iterate through difference of days and either add or remove the task from being mapped to that date
+        iterationEnd = iterationEnd.endOf("day");
+        iterationStart = iterationStart.startOf("day");
+        let current = iterationStart;
+        while (current < iterationEnd) {
+            action(current);
+            current = current.plus({days: 1});
+        }
     }
 }

@@ -8,6 +8,8 @@ tasks-fe/node_modules
 # Caches
 todo/__pycache__
 tasks/__pycache__
-.env
 tasks/migrations/__pycache__
+
+# Dev 
 .vscode/settings.json
+devNotes.md

@@ -2,6 +2,7 @@ import React from "react";
 
 import List from './List/List'
 import ShowTask from './ShowTask';
+import Calendar from "./Calendar/Calendar";
 import TaskCreatePopup from "./TaskCreatePopup";
 import { observer } from "mobx-react-lite";
 import { useTaskStore } from "../store/StoreContext";
@@ -29,6 +30,7 @@ const Home = observer(() => {
             <div>
                 <hr tabIndex={0} id="slider" aria-orientation="vertical"/>
             </div>
+            <Calendar />
         </div>
     );
 })
