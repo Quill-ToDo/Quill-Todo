@@ -27,6 +27,23 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 ## Setting up the development environment
 
+After these initial instructions are followed to set everyting up, on Windows you can start the development environment with 
+
+**Windows:**
+```cmd
+$ scripts\startQuilDevEnv.cmd
+```
+
+**Mac/Unix:**
+In one terminal:
+```cmd
+$ npm run start-fe 
+```
+In another terminal:
+```cmd
+$ npm run start-be-unix
+```
+
 ### Back-End
 
 1. Clone repo wherever you'd like
@@ -62,10 +79,10 @@ If there are any issues with these instructions or if anything is unclear, pleas
     - In [setup.sql](./setup.sql), change PASS_IN_ENV to the value of DB_PASSWORD in [.env](./.env). **❗Do not push this change, reset it after you init the database.**
 
 6. Set up the database
-    - Windows:
+    - **Windows:**
         - [Install PostgreSQL](https://www.postgresql.org/download/windows/) using installer. Leave configuration defaults as they are.
         - Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
-    - Mac/Unix:
+    - **Mac/Unix:**
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
         - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
@@ -75,44 +92,44 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
     > 🐛 **Read if the scripts fail**:
     >
-    > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on a Mac so I might have missed something.
-    > 2. Look in [./package.json](./package.json) under "scripts". The script you ran is a bunch of commands separated by `&&`. You can try running each of these commands individually in a terminal and modifying them as needed (ex: if the Python command I'm using is different for you).
+    > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on Unix so I might have missed something.
     > 3. If all else fails, continue with [Manual Back-End Init](#manual-back-end-init) to set it up manually with more detailed instructions.
 
     ---
 
     - **Windows:**
-        - **📝 Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
+        > **📝 Important note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
+        - Open a terminal
         - Create database and user for Quill
 
-            ```Bash
-            npm run init-be-win
+            ```cmd
+            $ scripts\initBEWin.cmd
             ```
 
     - **Mac/Unix:**
         - Start database server for the first time
 
-            ```Bash
-            brew services start postgresql
+            ```cmd
+            $ brew services start postgresql
             ```
 
         - Create database and user for Quill
 
-            ```Bash
-            npm run init-be-mac
+            ```cmd
+            $ npm run init-unix
             ```
 
 8. Verify success
     - Start psql (used to view and manipulate PostgreSQL databases and data)
 
-        ```Bash
-        psql quill_db
+        ```cmd
+        $ psql quill_db
         ```
 
     - In psql (indicated by `$ quill_db=# `), list users under quill_db database
 
         ```psql
-        \du
+        $ quill_db=# \du
         ```
 
     - Make sure that you see quill_user
@@ -125,34 +142,30 @@ If there are any issues with these instructions or if anything is unclear, pleas
         > - `\du` List roles
 
     - ✅ If everything looks good:
-        - **Windows:** run `$ npm run start-be-win` to start the database and server.
-        - **Mac:** run `$ npm run start-be-mac` to start the database and server.
-        - **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
+        > **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
+        - **Mac/Unix:** run `$ npm run start-be-unix` to start the database and server.
         - You're done! Read [Back-End Notes](#back-end-notes)
 
     #### Debugging Tips
 
     - ❌ Read note at the top of step 7.
     - ❌ If it says the server could not start:
-        - Try starting and stoppung the server manually and the re-run the command to start the database and server from the last step.
+        - Try starting and stopping the server manually and the re-run the command to start the database and server from the last step.
             - Run `$ pg_ctl status`. 
             - If it says a server is running, run `$ pg_ctl stop & pg_ctl start & pg_ctl stop`
             - If no server is running, run `$ pg_ctl start & pg_ctl stop`
             - Rerun the command to start the database and server from the last step.
         - If that does not work, continue with debugging steps below
-    - ❌ If it says the database doesn't exist or you don't see quill_user:
-        - If your computer did not recognize py for Python, try copying the script from package.json and replacing py with python3.
-        - Read note at the top of step 7.
 
 #### Manual Back-End Init
 
-1. Switch to virtual environment following instructions of whichever virtual environment you're using
+1. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
   
     > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
     - Start psql
 
-        ```bash
-        psql postgres
+        ```cmd
+        $ psql postgres
         ```
 
     - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
@@ -161,27 +174,27 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 2. Install dependencies:  
   
-    ```Bash
-    pip install -r requirements.txt
+    ```cmd
+    $ pip install -r requirements.txt
     ```
 
 3. Ensure postgres server is running
 
-    ```Bash
-    pg_ctl status
+    ```cmd
+    $ pg_ctl status
     ```
 
     If it says no server is running:
-    - Windows:
+    - **Windows:**
 
-        ```Bash
-        pg_ctl start
+        ```cmd
+        $ pg_ctl start
         ```
 
-    - Mac:
+    - **Mac/Unix:**
 
-        ```Bash
-        brew services start postgresql
+        ```cmd
+        $ brew services start postgresql
         ```
 
 4. Make and apply migrations:
@@ -189,24 +202,24 @@ If there are any issues with these instructions or if anything is unclear, pleas
     > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
 
     ```Bash
-    py manage.py makemigrations && py manage.py migrate
+    $ py manage.py makemigrations && py manage.py migrate
     ```
 
 5. Start server:
 
     ```Bash
-    py manage.py runserver
+    $ py manage.py runserver
     ```
 
 #### Back-End Notes
 
-- After this initial setup, you can use the appropriate start-be npm script for your OS located in [package.json](./package.json)
-  - `npm run start-be-win`
-  - `npm run start-be-mac`
+- After this initial setup, you can use the appropriate script for your OS to start the API
+  - **Windows:** You can use `$ scripts\startBEWin.cmd` to just start the API, or `$ scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
+  - **Mac/Unix**: `$ npm run start-be-unix`
 
   to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
-- To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser.
+- To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
 - > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
@@ -214,28 +227,28 @@ If there are any issues with these instructions or if anything is unclear, pleas
 1. Follow steps for back-end to get database and Django server running
 
 2. **In a second terminal (so that you can leave the server running):**
-    Start dev server with `npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
+    Start dev server with `$ npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
 
-3. Change to virtual environment (same as step 7 for back-end)
+3. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
 
 4. Install dependencies:
 
-    ```Bash
-    cd tasks-fe && npm install
+    ```cmd
+    $ cd tasks-fe && npm install
     ```
 
 - To launch in development mode:
 
-    ```Bash
-    npm start
+    ```cmd
+    $ npm start
     ```
 
     It will open the browser window for you.
 
 - To build for production:
 
-    ```bash
-    npm build
+    ```cmd
+    $ npm build
     ```
 
     Navigate to the url that the back-end server is running at and it should serve the built app.
@@ -269,7 +282,7 @@ it.only("should load tasks in the list", async () => {
 
 Additionally, you can mark a test as not yet implemented by adding `todo`.
 
-**Ex:** `it.todo("should do something cool);`
+**Ex:** `it.todo("should do something cool");`
 
 ##### Writing Tests
 ###### Mocking Network Calls
@@ -308,38 +321,38 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 
 2. Pull
 
-    ```Bash
-    git pull
+    ```cmd
+    $ git pull
     ```
 
 3. Create a branch for the feature if there is not one already
 
-    ```Bash
-    git branch  [feature branch name]
-    git checkout [feature branch name]
+    ```cmd
+    $ git branch  [feature branch name]
+    $ git checkout [feature branch name]
     ```
 
 4. Make a working branch for your code based off of the feature branch
 
-    ```Bash
-    git branch  [working branch name]
-    git checkout [working branch name]
+    ```cmd
+    $ git branch  [working branch name]
+    $ git checkout [working branch name]
     ```
 
 5. Code on the working branch
 
 6. Commit your changes
 
-    ```Bash
-    git add -A
-    git commit -m "[your commit message. include a # issue number to link it]"
+    ```cmd
+    $ git add -A
+    $ git commit -m "[your commit message. include a # issue $ number to link it]"
     ```
 
 7. Merge your working with the feature branch
 
-    ```Bash
-    git checkout [feature branch name]
-    git merge [working branch name]
+    ```cmd
+    $ git checkout [feature branch name]
+    $ git merge [working branch name]
     ```
 
    If there are merge conflicts, manually change the files listed under "merge" and commit changes
@@ -348,26 +361,26 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 
    Make sure main is up to date.
 
-    ```Bash
-    git checkout main
-    git pull
+    ```cmd
+    $ git checkout main
+    $ git pull
     ```
 
    Merge main with your feature branch.
 
-    ```Bash
-    git checkout [feature branch name]
-    git pull
-    git merge main
+    ```cmd
+    $ git checkout [feature branch name]
+    $ git pull
+    $ git merge main
     ```
 
     Resolve any merge conflicts. Make sure tests pass before submitting a PR.
 
 9. Push local feature branch to remote.
 
-    ```Bash
-    git checkout [feature branch name]
-    git push origin [feature branch name]
+    ```cmd
+    $ git checkout [feature branch name]
+    $ git push origin [feature branch name]
     ```
 
 10. To merge to main, on GitHub, click pull request button on code page and submit a pull request.
