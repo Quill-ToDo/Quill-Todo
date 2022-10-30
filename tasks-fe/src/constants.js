@@ -3,8 +3,8 @@ import pluralize from 'pluralize';
 
 
 // Date and Time Constants
-export const END_OF_DAY = () => DateTime.now().set({hour:23, minute:59, second:59, millisecond: 999});
-export const START_OF_DAY = () => DateTime.now().set({hour:0, minute:0, second:0, millisecond: 0});
+export const END_OF_DAY = () => DateTime.now().endOf("day");
+export const START_OF_DAY = () => DateTime.now().startOf("day");
 export const DATE_FORMAT = "D";
 export const HUMAN_READABLE_DATE_FORMAT = "mm/dd/yyyy";
 export const TIME_FORMAT = "t";

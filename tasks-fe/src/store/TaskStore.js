@@ -15,7 +15,7 @@ export class TaskStore {
     taskBeingFocused = null;
     taskBeingEdited = null;
     isLoaded = false;
-
+    tasksByDate = null;
 
     /**
      * The store which holds object representations of tasks currently in the DB, or that will be added.
@@ -33,6 +33,7 @@ export class TaskStore {
         this.rootStore = rootStore;
         this.API = API;
         this.tasks = [];
+        this.tasksByDate = new Map();
         this.loadTasks();
         this.taskBeingFocused = null;
     }
