@@ -1,0 +1,2 @@
+- [ ] Added function to keep all days mapped to the tasks that are in that day
+- Need to iterate through days in the month on cal creation and populate tasks based on the day and this map 
