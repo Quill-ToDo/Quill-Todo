@@ -172,3 +172,13 @@ We also have a store for alerts but that is less important than the task store. 
 Steps:
 1.  Poke through [issues on Github](https://github.com/Quill-ToDo/App/projects/1). They are labeled by what they are expected to involve. Some of them have more detailed descriptions than others. If there are any questions at all, reach out and I’ll explain more and can give guidance on where to look for things, how to get started, etc.
 2.  If you find an issue you want to take, read CONTRIBUTING.md for how to get started. I’ve tried to make it as detailed as I can but if anything doesn’t work or isn’t clear, please reach out, I may have forgotten to include something or there may be an OS difference. I’ve made changes that make it easier to get up and running but we need PRs to get the changes into main.
+
+# Ideas
+
+## Increasing Usability for Neurodivergency 
+- Removing free-will from all users ;)
+	- Do the planning part for you
+	- Don't make the user have to look at a task in the future and have to decide on days to work on it
+	- Appeal to the widest audience first by applying automation, etc. by default
+		- Maybe on first occurence, pop-up asking if you want this, sliding scale of automation maybe? Or choose which things to automate?
+		- Current task and task on deck

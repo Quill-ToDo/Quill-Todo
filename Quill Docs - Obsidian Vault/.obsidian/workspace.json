@@ -22,7 +22,7 @@
             }
           },
           {
-            "id": "7ecdd2a4d79204c2",
+            "id": "4d72c78fd70686d1",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -32,9 +32,44 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "9692b601db3b4007",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentation/Components/Habit Tracker/Habit Tracker.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "7ecdd2a4d79204c2",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Quill.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "b8e4288a10fd2215",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Quill.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -63,7 +98,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "quill core",
+                "query": "ideas",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -100,7 +135,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Current Plan and Status.md"
+                "file": "Quill.md"
               }
             }
           },
@@ -110,7 +145,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Current Plan and Status.md",
+                "file": "Quill.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +162,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Current Plan and Status.md",
+                "file": "Quill.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -148,19 +183,20 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
-  "active": "7ecdd2a4d79204c2",
+  "active": "74a9f0d2e52111cb",
   "lastOpenFiles": [
-    "Documentation/Components/Calendar.md",
-    "Quill.md",
-    "Presentations/Presentations.md",
-    "Presentations/Migration Progress 01.30.2022.pdf",
     "Current Plan and Status.md",
-    "Pasted image 20221030135959.png",
-    "Architecture Diagrams.md",
+    "Documentation/Grid Dashboard.md",
+    "Documentation/Components/Habit Tracker/Habit Tracker.md",
+    "Quill.md",
+    "Documentation/Work Distribution.md",
+    "Documentation/Components/Clock.md",
+    "Presentations/Migration Progress 01.30.2022.pdf",
+    "Documentation/Components/List.md",
     "README.md",
-    "Documentation/Reward System.md",
-    "Documentation/Components/Components.md"
+    "Architecture Diagrams.md"
   ]
 }

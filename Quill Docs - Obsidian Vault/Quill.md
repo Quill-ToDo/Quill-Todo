@@ -13,7 +13,7 @@ Quill is a productivity and task management app that allows users to create, vis
 
 *Concept*
 ![[ListAndCalendarConcept.png]]
-*V.1 in Rails App*
+*V.1 in Rails App![[QuillV1.png]]*
 ![[QuillV1.png]]
 
 # Other Features
@@ -29,6 +29,7 @@ Quill is a productivity and task management app that allows users to create, vis
 - [[Reward System]]s to encourage users to use the app and complete tasks and goals
 - Optional [[Local Mode]] where tasks are saved as text notes in markdown and do not have to be connected to cloud 
 - [[Modding System]] so users can create components
+- 
 
 ## Table of Contents
 

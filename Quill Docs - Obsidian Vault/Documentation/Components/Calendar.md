@@ -29,3 +29,10 @@ Or Subtasks or Subtasks? Shoul dnot timeblock for tasks bc they just have start 
 
 - Will need a way to drop onto a day and have it change something about that task
 - Start with month view and displaying tasks
+- Do I want to build the calenadr as an object in local cache? Or save in Mobx and then save in local storage?
+- As an object in cache:
+	- Will need to re-load data every open anyways so this wouldn't be as helpful Idt
+- Object just haved in component
+	- Maybe save as dictionary values? 
+		- Date : data about that date
+			- Ids of tasks on that date
