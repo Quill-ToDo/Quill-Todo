@@ -1,5 +1,5 @@
 import Home from './components/Home';
-import { StoreProvider } from "./store/StoreContext";
+import { StoreProvider } from "./globalStore/StoreContext";
 import AlertWrapper from './components/AlertWrapper';
 
 function App() {

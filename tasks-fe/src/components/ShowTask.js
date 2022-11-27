@@ -3,7 +3,7 @@ import React, {
     useCallback,
     useRef
 } from "react";
-import Task from "./List/Task";
+import Task from "./Widgets/List/Task";
 import '../static/css/show.css';
 import { observer } from "mobx-react-lite";
 import { addAlert, NOTICE_ALERT } from '../static/js/alertEvent';

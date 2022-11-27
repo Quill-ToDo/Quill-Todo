@@ -467,18 +467,14 @@ export class Task {
      */
     updateIntervalMappings({startOld=null, startNew=null, dueOld=null, dueNew=null}={}) {
         const removeTaskFromDate = (date) => {
-            const key = date.DATE_SHORT;
-            this.store.tasksByDate.get(key).remove(this);
-            if (this.store.tasksByDate.get(key).size === 0) {
-                this.store.tasksByDate.delete(key);
-            }
+ 
         }
         const addTaskToDate = (date) => {
             const key = date.DATE_SHORT;
-            if (!this.store.tasksByDate.has(key)) {
-                this.store.tasksByDate.set(key, new Set());
+            if (!this.store.timeline.daysAsMap.has(key)) {
+                this.store.timeline.daysAsMap.set(key, new Set());
             }
-            this.store.tasksByDate.get(key).add(this);
+            this.store.timeline.daysAsMap.get(key).add(this);
         }
 
         let action = null;

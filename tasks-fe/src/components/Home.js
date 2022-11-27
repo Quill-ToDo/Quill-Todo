@@ -1,11 +1,11 @@
 import React from "react";
 
-import List from './List/List'
+import List from './Widgets/List/List'
 import ShowTask from './ShowTask';
-import Calendar from "./Calendar/Calendar";
-import TaskCreatePopup from "./TaskCreatePopup";
+import Calendar from "./Widgets/Calendar/Calendar";
+import TaskCreatePopup from "./Widgets/TaskCreationPopup/TaskCreationPopup.js";
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../store/StoreContext";
+import { useTaskStore } from "../globalStore/StoreContext";
 import { addAlert, ERROR_ALERT } from '../static/js/alertEvent';
 
 

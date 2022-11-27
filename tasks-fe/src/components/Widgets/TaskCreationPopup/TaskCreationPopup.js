@@ -1,13 +1,13 @@
 import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import '../static/css/new.css';
-import '../static/css/datetimepicker.css';
+import '../../../static/css/new.css';
+import '../../../static/css/datetimepicker.css';
 import { 
     END_OF_DAY,
     START_OF_DAY,
     TIME_FORMAT,
-} from "../constants";
+} from "../../../constants";
 import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
 
 const errorIdEnd = "-error-list";
@@ -173,7 +173,7 @@ const checkRemoveErrorOutline = (fieldInfo) => {
  * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
  * in TaskStore.
  */
-const TaskCreatePopup = observer((props) => {    
+const TaskCreationPopup = observer((props) => {    
     const taskStore = props.taskStore;
     const taskToCreate = taskStore.taskBeingEdited;
 
@@ -341,4 +341,4 @@ const TaskCreatePopup = observer((props) => {
     )
 })
 
-export default TaskCreatePopup;
+export default TaskCreationPopup;

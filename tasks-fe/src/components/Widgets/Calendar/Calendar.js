@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../../store/StoreContext";
+import { useTaskStore } from "../../../globalStore/StoreContext";
 import { DateTime } from "luxon";
 
 const Calendar = observer(() => {
@@ -35,10 +35,14 @@ const Calendar = observer(() => {
             <div className="mid-section">
                 <h2>{dateToday.monthLong}</h2>
                 <table>
-                    {}
+                    {/* {
+                    let dayItr = dateToday;
+                    while (dayItr <= endOfMonth) {
+                    
+                    }}
                     <tr>
                         <CalDay date={day}/>
-                    </tr>
+                    </tr> */}
                 </table>
             </div>
         </section>

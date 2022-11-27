@@ -8,6 +8,7 @@ import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
 export class TaskStore {
     API;
     rootStore;
+    timeline;
     // userStore
     // These must have a default value here to be observable
     tasks = [];
@@ -15,7 +16,6 @@ export class TaskStore {
     taskBeingFocused = null;
     taskBeingEdited = null;
     isLoaded = false;
-    tasksByDate = null;
 
     /**
      * The store which holds object representations of tasks currently in the DB, or that will be added.
@@ -31,9 +31,9 @@ export class TaskStore {
         }, {proxy: false})
 
         this.rootStore = rootStore;
+        this.timeline = this.rootStore.timeline;
         this.API = API;
         this.tasks = [];
-        this.tasksByDate = new Map();
         this.loadTasks();
         this.taskBeingFocused = null;
     }

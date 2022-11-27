@@ -1,11 +1,13 @@
 import React from "react";
 import { TaskApi } from "../API/TaskApi.js";
-import { TaskStore } from "../store/TaskStore";
+import { TaskStore } from "../globalStore/TaskStore";
+import { Timeline } from "../globalStore/Timeline";
 
 class RootStore {
     constructor () {
         // this.userStore
         this.taskStore = new TaskStore(this, new TaskApi());
+        this.timeline = new Timeline(this);
     }
 }
 
@@ -22,5 +24,7 @@ const StoreProvider = function ({children}) {
 }
 
 const useTaskStore = () => rootStore.taskStore;
+
+// TODO: Method to add stores to this dynamically.
 
 export {useStoreContext, StoreProvider, useTaskStore }

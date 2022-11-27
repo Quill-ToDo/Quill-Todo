@@ -6,7 +6,7 @@ Click the link to the right of each embed to see its full page.
 ![[Clock#Clock]]
 
 
-## Component Interactions
+## Widget Interactions
 
 How does a component being next to another component affect it? How does dragging a task to somewhere on another component affect it? 
 

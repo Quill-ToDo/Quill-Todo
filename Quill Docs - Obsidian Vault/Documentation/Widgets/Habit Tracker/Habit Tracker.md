@@ -14,6 +14,8 @@ A habit tracker where you specify the habits you'd like to build, set a reward, 
 
 ## Features
 - Leveling up system which leads to rewards
+	- Maybe temp access to premium features
 - Instances of completing habits become standalone tasks, not with start, only end
 
 ## Ideas
+

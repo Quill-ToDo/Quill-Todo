@@ -22,19 +22,69 @@
             }
           },
           {
+            "id": "4d72c78fd70686d1",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentation/Task Creation.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "4272be2ba2659192",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentation/Widgets/Calendar.md",
+                "mode": "source",
+                "source": false
+              },
+              "pinned": true
+            }
+          },
+          {
+            "id": "9692b601db3b4007",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Documentation/Widgets/Habit Tracker/Habit Tracker.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
             "id": "7ecdd2a4d79204c2",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Current Plan and Status.md",
+                "file": "Quill.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "b8e4288a10fd2215",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "Quill.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -63,7 +113,7 @@
             "state": {
               "type": "search",
               "state": {
-                "query": "quill core",
+                "query": "",
                 "matchingCase": false,
                 "explainSearch": false,
                 "collapseAll": false,
@@ -84,7 +134,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "f8df76894e39634c",
@@ -100,7 +151,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Current Plan and Status.md"
+                "file": "Documentation/Widgets/Calendar.md"
               }
             }
           },
@@ -110,7 +161,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Current Plan and Status.md",
+                "file": "Documentation/Widgets/Calendar.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -127,7 +178,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Current Plan and Status.md",
+                "file": "Documentation/Widgets/Calendar.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -148,19 +199,20 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
-  "active": "7ecdd2a4d79204c2",
+  "active": "4272be2ba2659192",
   "lastOpenFiles": [
-    "Documentation/Components/Calendar.md",
     "Quill.md",
-    "Presentations/Presentations.md",
-    "Presentations/Migration Progress 01.30.2022.pdf",
+    "Documentation/Widgets/New Task by Text Pop-Up.md",
+    "Documentation/Widgets/Habit Tracker/Habit Tracker.md",
+    "Documentation/Task Creation.md",
+    "Documentation/Widgets/Widget List.md",
+    "Documentation/Widgets/Calendar.md",
     "Current Plan and Status.md",
-    "Pasted image 20221030135959.png",
-    "Architecture Diagrams.md",
-    "README.md",
-    "Documentation/Reward System.md",
-    "Documentation/Components/Components.md"
+    "Documentation/Calendar Sync.md",
+    "Documentation/Grid Dashboard.md",
+    "Documentation/Work Distribution.md"
   ]
 }
