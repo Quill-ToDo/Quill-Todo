@@ -8,9 +8,8 @@
         "type": "tabs",
         "children": [
           {
-            "id": "ff9fca74d016d6f1",
+            "id": "a1f5a96888a1accc",
             "type": "leaf",
-            "pinned": true,
             "state": {
               "type": "markdown",
               "state": {
@@ -112,6 +111,14 @@
             "type": "leaf",
             "state": {
               "type": "starred",
+              "state": {}
+            }
+          },
+          {
+            "id": "b885710190e29b28",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
               "state": {}
             }
           }
