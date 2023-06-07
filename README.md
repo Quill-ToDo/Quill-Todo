@@ -3,6 +3,7 @@
 **Table of Contents**
 
 - [Quill-ToDo](#quill-todo)
+  - [📚 Obsidian Docs](#-obsidian-docs)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
