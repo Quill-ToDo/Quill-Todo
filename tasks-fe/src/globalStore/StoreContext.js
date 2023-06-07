@@ -4,6 +4,8 @@ import { TaskStore } from "../globalStore/TaskStore";
 import { Timeline } from "../globalStore/Timeline";
 
 class RootStore {
+    timeline;
+    taskStore;
     constructor () {
         // this.userStore
         this.taskStore = new TaskStore(this, new TaskApi());
@@ -27,4 +29,4 @@ const useTaskStore = () => rootStore.taskStore;
 
 // TODO: Method to add stores to this dynamically.
 
-export {useStoreContext, StoreProvider, useTaskStore }
+export { useStoreContext, StoreProvider, useTaskStore, RootStore}

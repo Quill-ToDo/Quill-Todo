@@ -8,83 +8,18 @@
         "type": "tabs",
         "children": [
           {
-            "id": "ff9fca74d016d6f1",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Quill.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true
-            }
-          },
-          {
-            "id": "4d72c78fd70686d1",
+            "id": "a1f5a96888a1accc",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Documentation/Task Creation.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "4272be2ba2659192",
-            "type": "leaf",
-            "pinned": true,
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Documentation/Widgets/Calendar.md",
-                "mode": "source",
-                "source": false
-              },
-              "pinned": true
-            }
-          },
-          {
-            "id": "9692b601db3b4007",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Documentation/Widgets/Habit Tracker/Habit Tracker.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "7ecdd2a4d79204c2",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Quill.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "b8e4288a10fd2215",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Quill.md",
+                "file": "Start Here 🎯 About Quill.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -129,13 +64,20 @@
               "type": "starred",
               "state": {}
             }
+          },
+          {
+            "id": "b885710190e29b28",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {}
+            }
           }
         ]
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
   "right": {
     "id": "f8df76894e39634c",
@@ -151,7 +93,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Documentation/Widgets/Calendar.md"
+                "file": "Start Here 🎯 About Quill.md"
               }
             }
           },
@@ -161,7 +103,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Documentation/Widgets/Calendar.md",
+                "file": "Start Here 🎯 About Quill.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -178,7 +120,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Documentation/Widgets/Calendar.md",
+                "file": "Start Here 🎯 About Quill.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -199,20 +141,65 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300,
-    "collapsed": true
+    "width": 300
   },
-  "active": "4272be2ba2659192",
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "a1f5a96888a1accc",
   "lastOpenFiles": [
+    "README.md",
+    "Start Here 🎯 About Quill.md",
+    "Documentation/Ideas/Widgets/Calendar.md",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept5.jpg",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept4.jpg",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept3.jpg",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept1.jpg",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept2.jpg",
+    "Documentation/Ideas/Widgets/Widget x Widget Interactions/List x Clock.md",
+    "Documentation/Ideas/Widgets/Widget x Widget Interactions/Habit x Habit.md",
+    "Documentation/Ideas/Widgets/Widget x Widget Interactions/Calendar x Clock.md",
+    "Documentation/Ideas/Widgets/Widget x Widget Interactions/Calendar x Calendar.md",
+    "Documentation/Ideas/Widgets/Habit Tracker/Habit Tracker.md",
+    "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos",
+    "Documentation/Ideas/Widgets/Widget x Widget Interactions",
+    "Documentation/Ideas/Widgets/Widget List.md",
+    "Documentation/Ideas/Widgets/Note.md",
+    "Documentation/Ideas/Widgets/List.md",
+    "Documentation/Ideas/Widgets/Habit Tracker",
+    "Documentation/Ideas/Widgets/Create New Task by Pop-Up Button.md",
+    "Documentation/Ideas/Widgets/Clock.md",
+    "Documentation/Ideas/📥Unorganized Ideas (dump stuff here).md",
+    "Documentation/Ideas/Widgets",
+    "Documentation/Ideas/Work Distribution.md",
+    "Documentation/Ideas/Task Creation.md",
+    "Documentation/Ideas/Settings.md",
+    "Documentation/Ideas/Grid Dashboard.md",
+    "Documentation/Ideas/Reward System.md",
+    "Documentation/Ideas/Calendar Sync.md",
+    "Documentation/Ideas",
+    "Documentation/Front-End Concepts We Use.md",
+    "Documentation/Back-End Concepts.md",
+    "Documentation/Architecture Diagrams.md",
+    "Settings.md",
     "Quill.md",
-    "Documentation/Widgets/New Task by Text Pop-Up.md",
-    "Documentation/Widgets/Habit Tracker/Habit Tracker.md",
-    "Documentation/Task Creation.md",
-    "Documentation/Widgets/Widget List.md",
-    "Documentation/Widgets/Calendar.md",
-    "Current Plan and Status.md",
-    "Documentation/Calendar Sync.md",
-    "Documentation/Grid Dashboard.md",
-    "Documentation/Work Distribution.md"
+    "Presentations/Migration Progress 01.30.2022.pdf",
+    "Presentations/Presentations.md",
+    "Presentations",
+    "Documentation/Widgets/Habit Tracker/Photos/ProcessConcept5.jpg",
+    "Documentation/Widgets/Habit Tracker/Photos/ProcessConcept4.jpg",
+    "Documentation/Widgets/Habit Tracker/Photos/ProcessConcept3.jpg",
+    "Documentation/Widgets/Habit Tracker/Photos/ProcessConcept2.jpg",
+    "Documentation/Widgets/Habit Tracker/Photos/ProcessConcept1.jpg",
+    "Documentation/Widgets/Habit Tracker/Photos",
+    "Documentation/Widgets/Habit Tracker",
+    "Documentation/Widgets/Component Interactions"
   ]
 }

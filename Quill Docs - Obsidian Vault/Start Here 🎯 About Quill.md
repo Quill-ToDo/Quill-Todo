@@ -1,8 +1,17 @@
-# Quill
 #needsEdit 
-- [GitHub](https://github.com/Quill-ToDo/App)
+*Updated 6/7/2023*
 
-Quill is a productivity and task management app that allows users to create, visualize, organize, plan, distribute, and complete tasks throughout use of different components. 
+![[QuillV1.png]]
+*OLD, outdated, V.1 in Rails App* 
+
+## Links
+- [GitHub](https://github.com/Quill-ToDo/App)
+- [Project View](https://github.com/orgs/Quill-ToDo/projects)
+- [Open Issues](https://github.com/Quill-ToDo/App/issues)
+
+## About
+
+Quill is a productivity and task management app that allows users to create, visualize, organize, plan, distribute, and complete tasks through use of different widgets arranged on an overall board. Each widget allows the user to interact with or view tasks in a different way, and widgets may interact with eachother. Ex: Dragging a task from its place in the list widget to a day in the calendar changes its due date to the date you dragged it to. 
 
 **Core [[Widget List]]:**
 - [[List]]
@@ -11,12 +20,10 @@ Quill is a productivity and task management app that allows users to create, vis
 - [[Clock]]
 - [[Note]]
 
-*Concept*
 ![[ListAndCalendarConcept.png]]
-*V.1 in Rails App![[QuillV1.png]]*
-![[QuillV1.png]]
+*OLD, outdated, Concept sketch*
 
-# Other Features
+## Committed Features
 
 - [[Tasks|Task]] features
 	- Different [[Groups]]/projects/categories for tasks
@@ -27,37 +34,20 @@ Quill is a productivity and task management app that allows users to create, vis
 - [[Work Distribution]] system to encourage users to not overwhelm themselves with work and plan work well
 - [[Calendar Sync]]hronization with other calendar apps so that you can see how many events you have for each day and add tasks accordingly
 - [[Reward System]]s to encourage users to use the app and complete tasks and goals
-- Optional [[Local Mode]] where tasks are saved as text notes in markdown and do not have to be connected to cloud 
-- [[Modding System]] so users can create components
-- 
 
-## Table of Contents
-
-- [[Quill|Quill (here)]] 
-- [[Grid Dashboard]]
-- [[Tasks]]
-- [[Widget List]]
-	- [[List]]
-	- [[Calendar]]
-	- [[Habit Tracker]]
-	- [[Clock]]
-	- [[Note]]
-- Features
-	- [[Calendar Sync]]
-	- [[Reward System]]
-	- [[Work Distribution]]
-	- [[Task Creation]]
-		- [[NLP Task Creation Alg]]
+See other ideas here: [[📥Unorganized Ideas (dump stuff here)]]
 
 ## Core Values
 
-- Sliding payment scale
-- Open-source
-- Privacy-minded
-- Accessibility consdered first
-- Collaboration tools will not be paywalled
+- Accessibility above all else
+	- Economic: Core functionality will never be paywalled
+	- Neurodivergency: Widgets designed specifically for different types of brains/processing types, as well as highly customizable settings
+	- Accessibility is prioritized and considered the first time around
+	- Open-source
+- Private, reliable
+	- Can be used completely offline 
 
-## How it works
+## How Quill Works in Practice
 
 - You make tasks, entering fields, clicking on dates on a calendar, list, or by using natural language processing.
 	- NLP Ex: "walk the dog every thursday eve" becomes a task called 
@@ -67,8 +57,8 @@ Quill is a productivity and task management app that allows users to create, vis
 - These two features allow you to vizualize when you get the task, when it's due, and plan and distribute days you want to work on it appropriately, among your other tasks.
 	- Surprisingly, this is a hard to come by feature in most to-do apps.
 - The apps dashboard is a grid.
-- You can add components to the grid and change their dimensions.
-- Tasks are synced across the components and can be visualized and interacted with in different ways in different components, and different components will interact with eachother in different ways.
+- You can add widgets to the grid and change their dimensions.
+- Tasks are synced across the widgets and can be visualized and interacted with in different ways in different widgets, and different widgets will interact with eachother in different ways.
 	- For example, dragging a task from the list to the calendar will change it's due date.
 - Configurable system will encourage you to distribute work on tasks across the span you are working on it more evenly if you are doing too many tasks for one or more days 
 

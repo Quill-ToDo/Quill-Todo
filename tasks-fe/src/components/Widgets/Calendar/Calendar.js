@@ -1,23 +1,22 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, Fragment } from "react";
 import { observer } from "mobx-react-lite";
 import { useTaskStore } from "../../../globalStore/StoreContext";
-import { DateTime } from "luxon";
+import { DateTime, Interval } from "luxon";
 
-const Calendar = observer(() => {
+const MonthlyCalendar = observer((props) => {
+    const data = props.data;
+    const today = props.today;
     const startDayOfWeek = 1; // 1 = monday
-    const taskStore = useTaskStore();
-    const [dateToday, setDateToday] = useState(DateTime.now());
-    const endOfMonth = dateToday.endOf('month');
-    const daysInMonth = dateToday.daysInMonth;
-
+    
     const CalDay = observer((props) => {
         const day = props.date;
         return (
-        <td>
+            <td>
             <p>{day.day}</p>
+            <p>{day.tasks.size} tasks</p>
         </td>)
     })
-
+    
     const getFirstMonday = ((dateInMonth) => {
         let day = dateInMonth.startOf('month');
         while (day.weekday !== startDayOfWeek) {
@@ -26,24 +25,34 @@ const Calendar = observer(() => {
         return day;
     })
     
-    // Make this monday-based eventually. Or configurable day of the week based
+    const firstDateOnCalendar = getFirstMonday(today);
 
-    const firstDateOnCalendar = getFirstMonday(dateToday);
+    
+    // Load surrounding 3 months or something
+    // Populate this data in calendar
+    let dayNum = 0;
+
+    return (
+        <Fragment>
+            <h2>{today.monthLong}</h2>
+            <table>
+                {data.forEach(() => console.log("hello"))}
+            </table>
+        </Fragment>
+    )
+}) 
+
+const Calendar = observer(() => {
+    const taskStore = useTaskStore();
+    const timeline = taskStore.rootStore.timeline;
+    const [dateToday, setDateToday] = useState(DateTime.now());
+    // Get three month interval
+    const [shownRange, setShownRange] = useState(Interval.fromDateTimes(dateToday.startOf("day").minus({ months: 1}), dateToday.endOf("day").plus({ months: 2})));
 
     return ( 
         <section id="calendar-wrapper">
             <div className="mid-section">
-                <h2>{dateToday.monthLong}</h2>
-                <table>
-                    {/* {
-                    let dayItr = dateToday;
-                    while (dayItr <= endOfMonth) {
-                    
-                    }}
-                    <tr>
-                        <CalDay date={day}/>
-                    </tr> */}
-                </table>
+                <MonthlyCalendar data={timeline.getDaysInInterval(shownRange)} today={dateToday}/>
             </div>
         </section>
     );

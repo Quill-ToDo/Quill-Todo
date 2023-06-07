@@ -1,3 +1,5 @@
+[[📥Unorganized Ideas (dump stuff here)#Widget]]
+
 Click the link to the right of each embed to see its full page.
 
 ![[List#List]]
@@ -17,10 +19,3 @@ How does a component being next to another component affect it? How does draggin
 | Habit | %% %% | %% %%  | [[Habit x Habit]] | [[Habit x Clock]] |
 | Clock | %% %% | %% %%  | %% %% | [[Clock x Clock]] |
 
-## Ideas
-
-- Kanban 
-- Text
-- Line (Just a plain line)
-- IFrame or embed
-- Picture

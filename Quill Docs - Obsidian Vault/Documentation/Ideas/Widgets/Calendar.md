@@ -47,14 +47,13 @@ Or Subtasks or Subtasks? Shoul dnot timeblock for tasks bc they just have start 
 - Can JS objects be extendable? - Yes!
 	- Idea: Have some base Calendar class with Date classes and the Date classes are extendable for each component. So might just have datetime and methods to get tasks out of the date or remote a task from a date sor something. 
 		- But then calendar might add cusotm ordering fields. Can that be done in JS? 
-		- Should also make tasks extendable per component if this is the case.
-		- If this is not, could hoenstly look into making my own system to make things extendable. Like dict of task IDs in habit component that maps to additional fields for that components tasks and then use wrappers for each task that apply the additional fields
+		- #todo Should also make tasks extendable per component if this is the case.
 	- Will extend tasks on an as-needed basis by putting needed tasks through a pipeline to generate new fields and data for them
 		- Ex: All tasks in task store start with basic fields. You add a clock component. No task data updates yet(?). If you drag a task to the clock component, clock pipeline will be run on it and add the fields for clock.
 		- Ex 2: Add a caendar component, at first it just shows the tasks for the current month, so tasks in the first month have the caldnar pipeline run on them. Once the fields are added, be very sparing about getting rid of them. These added fields will now show in the task description box. Whuch should also be eidtiable
 - Calendar object. This will store info about dates and which tasks are associated with them. Should be able to grab info about each day from components and access them.
-```
 
+```
 Calendar: {
 	Dict<DateTime : Day>
 	GetByMonth () 

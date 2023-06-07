@@ -1,5 +1,5 @@
 import { makeAutoObservable } from "mobx"
-import { DateTime, Interval } from "luxon";
+import { Interval } from "luxon";
 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
 
@@ -17,12 +17,12 @@ export class Day {
      * @param {rootStore} calendar The store which holds other stores.
      * @param {uuid} id V4 UUID id of the task. If one is not passed in, one is generated upon init.
      */
-    constructor (calendar, dateInterval) {
+    constructor (calendar, date) {
         makeAutoObservable(this, {proxy: false});
         // Assign this.var to values here
         this.calendar = calendar;
-        this.dateInterval = dateInterval;
-        this.tasks = new Set();
+        this.dateInterval = Day.getKeyFromDateTime(date);
+        this._taskSet = new Set();
         this.setTasks();
     }
 
@@ -30,8 +30,21 @@ export class Day {
         return this._taskSet;
     };
 
-    setTasks() {
+    get key() {
+        return this.dateInterval;
+    };
 
+    /**
+     * Get the interval used as a key for this day given a Luxon DateTime object during that day
+     * @param {*} date 
+     * @returns 
+     */
+    static getKeyFromDateTime (date) {
+        return Interval.fromDateTimes(date.startOf("day"), date.endOf("day"));
+    };
+
+    setTasks() {
+        // TODO
     };
 
     // get orderedTasks() {

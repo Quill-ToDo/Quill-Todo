@@ -48,9 +48,7 @@ $ npm run start-be-unix
 
 1. Clone repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut scripts we have.
-
-3. Install `nvm` (Node version manager)
+2. Install `nvm` (Node version manager)
 
     - [Windows](https://github.com/coreybutler/nvm-windows)
     - [MacOS/unix](https://github.com/nvm-sh/nvm)
@@ -61,7 +59,7 @@ $ npm run start-be-unix
     nvm -v
     ```
 
-4. Install and switch to Node v16.13.1.
+3. Install and switch to Node v16.13.1.
 
     > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
 
@@ -71,14 +69,14 @@ $ npm run start-be-unix
 
     You may need to restart your computer for the installation to take effect.
 
-5. Add secret `.env` file to `App` dir. Ask in Slack for the file.
+4. Add secret `.env` file to `App` dir. Ask in Slack for the file.
 
     **This file should never be pushed to GitHub!**
 
     - Add `.` if needed to the front of the file in the directory so it is invisible. (Filename should be: `.env`)
     - In [setup.sql](./setup.sql), change PASS_IN_ENV to the value of DB_PASSWORD in [.env](./.env). **❗Do not push this change, reset it after you init the database.**
 
-6. Set up the database
+5. Set up the database
     - **Windows:**
         - [Install PostgreSQL](https://www.postgresql.org/download/windows/) using installer. Leave configuration defaults as they are.
         - Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
@@ -86,7 +84,7 @@ $ npm run start-be-unix
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
         - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
-7. Init back-end using npm scripts
+6. Init back-end using npm scripts
 
     ---
 
@@ -98,7 +96,6 @@ $ npm run start-be-unix
     ---
 
     - **Windows:**
-        > **📝 Important note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
         - Open a terminal
         - Create database and user for Quill
 
@@ -119,7 +116,7 @@ $ npm run start-be-unix
             $ npm run init-unix
             ```
 
-8. Verify success
+7. Verify success
     - Start psql (used to view and manipulate PostgreSQL databases and data)
 
         ```cmd
@@ -159,9 +156,8 @@ $ npm run start-be-unix
 
 #### Manual Back-End Init
 
-1. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
+1. Activate virtual environment `$ venv\Scripts\activate.bat`)
   
-    > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
     - Start psql
 
         ```cmd
@@ -227,11 +223,9 @@ $ npm run start-be-unix
 1. Follow steps for back-end to get database and Django server running
 
 2. **In a second terminal (so that you can leave the server running):**
-    Start dev server with `$ npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
+    Start dev server with `$ npm run start-fe`. If that fails or does not launch a new window, proceed manually with step 3.
 
-3. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
-
-4. Install dependencies:
+3. Install dependencies:
 
     ```cmd
     $ cd tasks-fe && npm install
@@ -342,6 +336,7 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 5. Code on the working branch
 
 6. Commit your changes
+    - Remember to run `pip3 freeze > requirements.txt` and update the requirements file if you added any python packages or 
 
     ```cmd
     $ git add -A
