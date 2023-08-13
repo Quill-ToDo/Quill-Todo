@@ -7,53 +7,42 @@ import { Day } from "./Day";
 export class Timeline {
     // Fields go here **Important:** Use setter methods to change any values, even internally. They may have side-effects.
     rootStore;
-    // Currently loaded in days in different formats.
-    _daysAsMap;
-    _daysAsList;
-    _loadedInIntervals;
+    taskStore;
 
     /**
      * An object to represent the timeline of tasks across Quill. Might try and store this in the browser cache, who knows. Don't feel like it needs to be DB.
+     * Current intention is to use this single class across all widgets. 
      * 
      * **Important:** Use setter methods to change any values, even internally. They may have side-effects.
      * 
      * @param {rootStore} rootStore The store which holds other stores.
      */
-    constructor (rootStore) {
+    constructor (rootStore, taskStore) {
         makeAutoObservable(this, {proxy: false});
         // Assign this.var to values here
         // Should populate the days in the timeline based on the tasks in taskstore. This should be caches if possible.
         this.rootStore = rootStore;
-        // this.daysAsMap = new Map();
+        this.taskStore = taskStore;
+        this.loadTaskDays(taskStore.tasks);
         this.daysAsList = [];
         this._loadedInIntervals = []; 
     };
 
     /**
-     * Load in days to this calendar based on start and end dates. 
+     * Load in days elements to this calendar based on start and end dates. 
      * @param {*} startDate 
      * @param {*} endDate 
      */
-    loadTaskDays = (startDate, endDate) => {
-        const intervalToAdd = new Interval.fromDateTimes(startDate.startOf("day"), endDate.endOf("day"));
-        if (this._loadedInIntervals.some((loadedInInterval) => loadedInInterval.engulfs(intervalToAdd) )) {
-            return;
-        }
-
-        const needToLoad = intervalToAdd.difference(...this._loadedInIntervals);
-
+    loadTaskDays = (tasks) => {
         // Load tasks in
-        let currentDayStart = startDate.startOf("day");
-        while (currentDayStart < needToLoad.end) {
+        if (!tasks.at(0)) { return } 
+        let minDay = tasks.at(0).start.startOf("day");
+        let maxDay = tasks.at(0).end.endOf("day");
+        for (let task in tasks) {
             // Load in one day from 12:00:00 am - 11:59:59 pm. Store as an interval.
-            this.daysAsList.add(new Day(this,  new Interval.fromDateTimes(currentDayStart, currentDayStart.endOf("day"))))
-            currentDayStart.plus({ days: 1 });
+            // this.daysAsList.add(new Day(this,  new Interval.fromDateTimes(currentDayStart, currentDayStart.endOf("day"))))
+            // currentDayStart.plus({ days: 1 });
         }
-
-        // Add this interval
-        this._loadedInIntervals.push(intervalToAdd);
-        this._loadedInIntervals = Interval.merge(this._loadedInIntervals);
-        this._loadedInIntervals.sort();
     };
 
     

@@ -42,8 +42,6 @@ INSTALLED_APPS = [
     'tasks.apps.TasksConfig',
     'rest_framework',
     'corsheaders',
-
-    #'tasks',
 ]
 
 MIDDLEWARE = [
@@ -138,8 +136,9 @@ STATICFILES_DIRS = [
 ]
 
 # CORS
-
+# turn this bink off in prod
 CORS_ORIGIN_ALLOW_ALL = True
+CORS_ALLOW_ALL_ORIGINS  = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.0/ref/settings/#default-auto-field
