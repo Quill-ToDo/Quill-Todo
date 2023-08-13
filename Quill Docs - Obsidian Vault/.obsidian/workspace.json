@@ -16,8 +16,7 @@
                 "file": "Quill.md",
                 "mode": "source",
                 "source": false
-              },
-              "pinned": true
+              }
             }
           },
           {
@@ -67,8 +66,19 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "0561e144ebec5bfb",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.3.7"
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 5
       }
     ],
     "direction": "vertical"
@@ -126,7 +136,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "right": {
     "id": "f8df76894e39634c",
@@ -193,7 +204,17 @@
     "width": 300,
     "collapsed": true
   },
-  "active": "74a9f0d2e52111cb",
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false
+    }
+  },
+  "active": "0561e144ebec5bfb",
   "lastOpenFiles": [
     "Current Plan and Status.md",
     "Documentation/Grid Dashboard.md",
