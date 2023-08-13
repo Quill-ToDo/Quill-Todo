@@ -9,18 +9,19 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "bundler",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
+    "plugins": [{
+      "name": "next"
+    }],
+    "baseUrl": "./src/app/",
     "paths": {
-      "@/*": ["./src/*"]
+      "@/home/*": ["./home/*"],
+      "@/store": ["./home/_globalStore/RootStore.tsx"],
+      "@/alerts": ["./home/alerts/alertEvent.js"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -6,6 +6,7 @@
   "scripts": {
     "init-be-unix": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
     "start-fe": "workon quill && cd quill-fe && npm install && npm dev",
+    "start-be": "cd ./scripts && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
     "start-be-unix": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
     "fe-tests": "workon quill && cd quill-fe && npm run test"
   },
