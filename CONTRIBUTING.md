@@ -31,7 +31,7 @@ After these initial instructions are followed to set everyting up, on Windows yo
 
 **Windows:**
 ```cmd
-$ scripts\startQuilDevEnv.cmd
+$ dev-startup-scripts\startQuilDevEnv.cmd
 ```
 
 **Mac/Unix:**
@@ -48,7 +48,7 @@ $ npm run start-be-unix
 
 1. Clone repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut scripts we have.
+2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut dev-startup-scripts we have.
 
 3. Install `nvm` (Node version manager)
 
@@ -86,7 +86,7 @@ $ npm run start-be-unix
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
         - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
-7. Init back-end using npm scripts
+7. Init back-end using npm dev-startup-scripts
 
     ---
 
@@ -103,7 +103,7 @@ $ npm run start-be-unix
         - Create database and user for Quill
 
             ```cmd
-            $ scripts\initBEWin.cmd
+            $ dev-startup-scripts\initBEWin.cmd
             ```
 
     - **Mac/Unix:**
@@ -214,7 +214,7 @@ $ npm run start-be-unix
 #### Back-End Notes
 
 - After this initial setup, you can use the appropriate script for your OS to start the API
-  - **Windows:** You can use `$ scripts\startBEWin.cmd` to just start the API, or `$ scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
+  - **Windows:** You can use `$ dev-startup-scripts\startBEWin.cmd` to just start the API, or `$ dev-startup-scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
   - **Mac/Unix**: `$ npm run start-be-unix`
 
   to start the back-end server and database.
