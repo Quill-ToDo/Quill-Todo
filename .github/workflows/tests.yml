@@ -22,7 +22,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
-        cache-dependency-path: 'tasks-fe/package-lock.json'
-    - run: cd ./tasks-fe && npm install
-    - run: cd ./tasks-fe && npm run build --if-present
-    - run: cd ./tasks-fe && npm test
+        cache-dependency-path: 'quill-fe/package-lock.json'
+    - run: cd ./quill-fe && npm install
+    - run: cd ./quill-fe && npm run build --if-present
+    - run: cd ./quill-fe && npm test

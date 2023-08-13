@@ -235,7 +235,7 @@ You may consider install PgAdmin to make working with databases easier.
 4. Install dependencies:
 
     ```cmd
-    $ cd tasks-fe && npm install
+    $ cd quill-fe && npm install
     ```
 
 - To launch in development mode:
@@ -262,11 +262,11 @@ You may consider install PgAdmin to make working with databases easier.
 
 #### Front-end Testing
 
-The test files are stored near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
+The test files are stored near the code they test, for most components, in [quill-fe/src/components/__tests__/](./quill-fe/src/components/__tests__/).
 
 ##### Running Tests
 
-To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `quill-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
 
 The tests should re-run automatically every time you save.
 Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
@@ -283,18 +283,18 @@ it.only("should load tasks in the list", async () => {
 
 Additionally, you can mark a test as not yet implemented by adding `todo`.
 
-**Ex:** `it.todo("should do something cool");`
+**Ex:** `it.quill-be-proj("should do something cool");`
 
 ##### Writing Tests
 ###### Mocking Network Calls
 
-We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./quill-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
 
-An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
+An example of the default server being used can be seen in [the tests for the list feature](./quill-fe/src/components/__tests__/list.js#L18).
 
 ###### Mocking time
 
-Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
+Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./quill-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
 
 ###### Useful testing resources
 

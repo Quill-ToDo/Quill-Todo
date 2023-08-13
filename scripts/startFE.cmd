@@ -1,3 +1,3 @@
-cd .\tasks-fe
-workon quill&&cd ../tasks-fe&&npm install&&npm start
+cd .\quill-fe
+workon quill&&cd ../quill-fe&&npm install&&npm start
 cmd /k

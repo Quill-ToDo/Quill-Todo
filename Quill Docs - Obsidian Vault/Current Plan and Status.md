@@ -27,7 +27,7 @@ Overall, the back-end is doing a lot less work.
 - ./tasks - For task module
 - Start the back-end and manage a lot of Django stuff using ./manage.py
 - Settings are in ./todo/settings
-- Project endpoints are in ./todo/urls
+- Project endpoints are in ./quill-be-proj/urls
 - API endpoints are in ./tasks/urls
 - Task model is in ./tasks/models
 - View methods are in ./tasks/views
@@ -81,12 +81,12 @@ The front-end is a lot more complicated now. A lot of conditional rendering logi
 FE [[Architecture Diagrams#Front End Components with MobX|UML Diagram]]
 
 ### Getting around: Important Files and Dirs
-- ./tasks-fe/ - Front-end app
-- ./tasks-fe/package.json - FE dependencies
-- ./tasks-fe/src/App.js - Component at the tippy top of the component tree
-- ./tasks-fe/src/components/ - Where other components are
-- ./tasks-fe/src/store/ - Where the stores are
-- ./tasks-fe/src/API/ - Where the API to query the BE is as well as the mock API for tests
+- ./quill-fe/ - Front-end app
+- ./quill-fe/package.json - FE dependencies
+- ./quill-fe/src/App.js - Component at the tippy top of the component tree
+- ./quill-fe/src/components/ - Where other components are
+- ./quill-fe/src/store/ - Where the stores are
+- ./quill-fe/src/API/ - Where the API to query the BE is as well as the mock API for tests
 
 ### React
 React is Javascript but much, much better. It’s much more ideal for a single-page app. The toolchain I’m using is [Create React App.](https://create-react-app.dev/) React uses composition (bigger pieces/components are made up of smaller components). It’s mostly a top-down hierarchy where data is passed from the bigger components to the smaller components which compose them, but the task store can be accessed at any level. 
@@ -96,7 +96,7 @@ React components can have their own methods and state and have one return method
 ### MobX State Management
 - [More details here](https://mobx.js.org/defining-data-stores.html)
 
-*Located in ./tasks-fe/src/store*
+*Located in ./quill-fe/src/store*
 
 MobX provides state management beyond what React can. Our MobX store is basically a replica of the data we have in the database. The stores are made up of vanilla JS objects with some special MobX methods that listen for and changes and determine when to update other listening components.
 
@@ -112,7 +112,7 @@ We don’t have to use a complex series of callbacks to access state way higher 
 
 #### Responsibilities of a Store
 ##### Handle all network requests
-For simplicity, the only place the API to access the back-end (./tasks-fe/src/API/TaskApi.js) should be called is in the MobX stores. 
+For simplicity, the only place the API to access the back-end (./quill-fe/src/API/TaskApi.js) should be called is in the MobX stores. 
 
 - **Ex process:**
 	- A user completes a task. 

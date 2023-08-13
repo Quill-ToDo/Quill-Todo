@@ -7,7 +7,7 @@ React components can have their own methods and state and have one return method
 ### MobX State Management
 - [More details here](https://mobx.js.org/defining-data-stores.html)
 
-*Located in ./tasks-fe/src/store*
+*Located in ./quill-fe/src/store*
 
 MobX provides state management beyond what React can. Our MobX store is basically a replica of the data we have in the database. The stores are made up of vanilla JS objects with some special MobX methods that listen for and changes and determine when to update other listening components.
 
@@ -23,7 +23,7 @@ We don’t have to use a complex series of callbacks to access state way higher 
 
 #### Responsibilities of a Store
 ##### Handle all network requests
-For simplicity, the only place the API to access the back-end (`./tasks-fe/src/API/TaskApi.js`) should be called is in the MobX stores. 
+For simplicity, the only place the API to access the back-end (`./quill-fe/src/API/TaskApi.js`) should be called is in the MobX stores. 
 
 - **Ex process:**
 	- A user completes a task. 

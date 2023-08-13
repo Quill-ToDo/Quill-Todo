@@ -3,10 +3,10 @@
 
 # Node modules
 node_modules
-tasks-fe/node_modules
+quill-fe/node_modules
 
 # Caches
-todo/__pycache__
+quill-be-proj/__pycache__
 tasks/__pycache__
 tasks/migrations/__pycache__
 
