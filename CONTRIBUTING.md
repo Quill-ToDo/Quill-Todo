@@ -220,6 +220,7 @@ $ npm run start-be-unix
   to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
 - To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
+You may consider install PgAdmin to make working with databases easier.
 - > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
