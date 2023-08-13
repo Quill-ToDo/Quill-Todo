@@ -20,11 +20,34 @@ export const addAlert = (target, type, body) => {
     if (target === null) {
         throw new TypeError("Target element for alert bubble cannot be null.");
     }
+    const id = "alert-"+uuidv4();
     const alert = new CustomEvent("alert", {
-        detail: {"id": "alert-"+uuidv4(), "type": type, "body": body},
+        detail: {"id": id, "type": type, "body": body},
         bubbles: true,
         cancelable: true,
         composed: false
     });
     target.dispatchEvent(alert);
+    return id;
+}
+
+// These could be refactored lol
+export const updateAlertTitle = (alertId, title) => {
+    try {
+        const success = document.querySelector(`#${alertId}-label`).textContent = title;
+        return success;
+    }
+    catch (e) {
+        console.error(`Oops, could't update alert title. ${e}`);
+    }
+}
+
+export const updateAlertText = (alertId, body) => {
+        try {
+        const success = document.querySelector(`#${alertId}-desc`).textContent = body;
+        return success;
+    }
+    catch (e) {
+        console.error(`Oops, could't update alert body. ${e}`);
+    }
 }

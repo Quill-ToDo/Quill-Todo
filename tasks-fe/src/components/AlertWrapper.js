@@ -87,7 +87,7 @@ const Alert = (props) => {
                 aria-labelledby={labelId}
                 className={"alert-pop-up " + alert.type}>
                 <div className='alert-cont-wrapper'>
-                    <h3 id={labelId}>Error:</h3>
+                    <h3 id={labelId}>Aw snap :(</h3>
                     <p id={descId}>{alert.body}</p>
                 </div>
                 {closeBtn}
@@ -101,11 +101,7 @@ const Alert = (props) => {
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + alert.type}>
-                <div className='alert-cont-wrapper'>
-                    {alert.type === SUCCESS_ALERT ? 
-                    <h3 id={labelId}>Success:</h3> 
-                    :  <h3 id={labelId}>Notice:</h3> 
-                    }
+                <div className='alert-cont-wrapper'>z
                     <p id={descId}>{alert.body}</p>
                 </div>
                 {closeBtn}

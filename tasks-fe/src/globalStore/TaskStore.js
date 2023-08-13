@@ -2,8 +2,7 @@ import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "../constants";
-import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
-
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '../static/js/alertEvent';
 
 export class TaskStore {
     API;
@@ -44,7 +43,7 @@ export class TaskStore {
      * @param {*} retry The number of times this call has been retried.
      * @returns 
      */
-    async loadTasks (retry=0) {
+    async loadTasks (retry=0, connectionAlertId="") {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
@@ -58,10 +57,13 @@ export class TaskStore {
             });
         }).catch(e => {
             if (retry === 0) {
-                addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, "Could not load tasks - " + e);
+                connectionAlertId = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
                 console.error(e);
             }
-            setTimeout(() => {this.loadTasks(retry + 1)}, 3000);
+            else if (connectionAlertId) {
+                updateAlertText(connectionAlertId, `Could not load tasks - ${e} - Retry #${retry+1}`)
+            }
+            setTimeout(() => {this.loadTasks(retry + 1, connectionAlertId)}, 3000);
         })
     }
 
