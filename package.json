@@ -5,10 +5,9 @@
   "main": "quill-fe\\build\\index.html",
   "scripts": {
     "init-be-unix": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
-    "start-fe": "workon quill && cd quill-fe && npm install && npm start",
+    "start-fe": "workon quill && cd quill-fe && npm install && npm dev",
     "start-be-unix": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
-    "fe-tests": "workon quill && cd quill-fe && npm run test",
-    "migrate-next": "npm uninstall react-scripts && npm install next"
+    "fe-tests": "workon quill && cd quill-fe && npm run test"
   },
   "repository": {
     "type": "git",
