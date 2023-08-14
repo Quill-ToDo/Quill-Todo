@@ -3,14 +3,16 @@ import { Task } from "./Task";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "constants.js";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '@/alerts';
+import { TaskApi } from "@/home/API/TaskApi";
+import  RootStore from '@/store';
 
 export class TaskStore {
-    API;
-    rootStore;
+    API : TaskApi;
+    rootStore : RootStore;
     timeline;
     // userStore
     // These must have a default value here to be observable
-    tasks = [];
+    tasks : Task[] = [];
     // Task to show details for
     taskBeingFocused = null;
     taskBeingEdited = null;
@@ -22,7 +24,7 @@ export class TaskStore {
      * @param {*} rootStore The store that holds this instance.
      * @param {*} API The API module used to make network calls to the task API.
      */
-    constructor (rootStore, API) {
+    constructor (rootStore : RootStore, API : TaskApi) {
         makeAutoObservable(this, {
             API: false,
             rootStore: false,
@@ -30,7 +32,7 @@ export class TaskStore {
         }, {proxy: false})
 
         this.rootStore = rootStore;
-        this.timeline = this.rootStore.timeline;
+        this.timeline = this.rootStore.eventStore;
         this.API = API;
         this.tasks = [];
         this.loadTasks();
@@ -138,7 +140,7 @@ export class TaskStore {
     /**
      * @param {Task} taskObj Task that should be added to the store. 
      */
-    add(taskObj) {
+    add(taskObj : Task) {
         this.tasks.push(taskObj);
     } 
 
