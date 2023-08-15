@@ -19,9 +19,11 @@
     }],
     "baseUrl": "./src/app/",
     "paths": {
+      "@/app/*": ["./*"],
       "@/home/*": ["./home/*"],
+      "@/dash/*": ["./home/dashboard/*"],
       "@/store/*": ["./home/_globalStore/*"],
-      "@/alerts": ["./home/alerts/alertEvent.js"],
+      "@/alerts/*": ["./home/alerts/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

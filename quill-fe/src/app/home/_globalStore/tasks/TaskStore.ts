@@ -2,9 +2,9 @@ import { makeAutoObservable, runInAction} from "mobx";
 import { Task } from "./Task";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "constants.js";
-import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '@/alerts';
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/home/API/TaskApi";
-import  RootStore from '@/store';
+import  RootStore from '@/store/RootStore';
 
 export class TaskStore {
     API : TaskApi;

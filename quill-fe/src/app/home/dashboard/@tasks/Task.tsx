@@ -1,6 +1,8 @@
 import React, { Fragment } from "react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
+import './tasks.css';
+import './taskDetail.css';
 
 
 /**

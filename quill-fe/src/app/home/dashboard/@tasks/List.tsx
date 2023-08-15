@@ -1,6 +1,5 @@
 import React, { Fragment} from "react";
 import TaskSection from './TaskSection'
-// import '../../../static/css/tasks.css';
 import { observer } from "mobx-react-lite";
 
 
