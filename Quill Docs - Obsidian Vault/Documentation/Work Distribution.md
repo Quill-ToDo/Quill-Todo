@@ -1,1 +1,0 @@
-System to detect if a user has “too many” (threshold defined by the user) things to work on in any one day. This could be accomplished through changing the color of that day to a more alarming hue as more tasks are assigned, or just showing counters by each day of the number of tasks that are due and need to be worked on.

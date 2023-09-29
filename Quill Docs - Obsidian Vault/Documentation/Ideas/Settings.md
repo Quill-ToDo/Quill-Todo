@@ -1,1 +1,0 @@
-make a LOT of things about the appearance configurable in settings like in Sims 3. Pull bars and whatnot and on the right there is a portrait which will change based on the sliders and values etc. 
