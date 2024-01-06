@@ -8,7 +8,6 @@ pg_ctl stop
 goto startDb
 
 :fin
-cd ..
 pip install -r requirements.txt
 py manage.py makemigrations 
 py manage.py migrate 

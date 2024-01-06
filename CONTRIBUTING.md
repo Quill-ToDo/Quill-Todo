@@ -27,28 +27,50 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 ## Setting up the development environment
 
-After these initial instructions are followed to set everyting up, on Windows you can start the development environment with 
-
-**Windows:**
-```cmd
-$ scripts\startQuilDevEnv.cmd
-```
-
-**Mac/Unix:**
-In one terminal:
-```cmd
-$ npm run start-fe 
-```
-In another terminal:
-```cmd
-$ npm run start-be-unix
-```
+> **Note:** After these initial instructions are followed to set everyting up, on Windows you can start the development environment with
+>
+> **Windows:**
+> ```cmd
+> $ dev-startup-scripts\startQuilDevEnv.cmd
+> ```
+>
+>**Mac/Unix:**
+>In one terminal:
+>```cmd
+>$ npm run start-fe 
+>```
+>In another terminal:
+>```cmd
+>$ npm run start-be-unix
+>```
 
 ### Back-End
 
-1. Clone repo wherever you'd like
+1. Clone the repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut scripts we have.
+2. [Set up Python a virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment#using_django_inside_a_python_virtual_environment) named "quill". 
+
+    > It MUST be named quill if you want to use any of the shortcut dev-startup-scripts we have. If you do not have Python installed, follow the instructions earlier in the guide to do so.
+    
+    > **📝 Important note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
+    
+    After your virtual environment wrapper is installed, your `mkdir` command should look something like this: 
+
+    ```Bash 
+    $ mkvirtualenv quill 
+    ```                                                                                                                          
+    After your virtual environment wrapper is created, if the environment name does not appear one the terminal line, switch to it with
+
+    ```Bash 
+    $ workon quill 
+    ```                                                                                        
+
+    > Othger useful virtual environment commands:
+    >
+    >- `deactivate` — Exit out of the current Python virtual environment
+    >- `workon` — List available virtual environments
+    >- `workon name_of_environment` — Activate the specified Python virtual environment
+    >- `rmvirtualenv name_of_environment` — Remove the specified environment.
 
 3. Install `nvm` (Node version manager)
 
@@ -58,7 +80,7 @@ $ npm run start-be-unix
     Verify installation with
   
     ```Bash
-    nvm -v
+    $ nvm -v
     ```
 
 4. Install and switch to Node v16.13.1.
@@ -71,7 +93,7 @@ $ npm run start-be-unix
 
     You may need to restart your computer for the installation to take effect.
 
-5. Add secret `.env` file to `App` dir. Ask in Slack for the file.
+5. Add secret `.env` file to the top level repository directory, `./`. Ask in Slack for the file.
 
     **This file should never be pushed to GitHub!**
 
@@ -86,19 +108,14 @@ $ npm run start-be-unix
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
         - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
-7. Init back-end using npm scripts
-
-    ---
+7. Init back-end using npm dev-startup-scripts
 
     > 🐛 **Read if the scripts fail**:
     >
     > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on Unix so I might have missed something.
     > 3. If all else fails, continue with [Manual Back-End Init](#manual-back-end-init) to set it up manually with more detailed instructions.
 
-    ---
-
     - **Windows:**
-        > **📝 Important note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/) for your virtual environment, it will not work with powershell.
         - Open a terminal
         - Create database and user for Quill
 
@@ -137,9 +154,9 @@ $ npm run start-be-unix
 
         > **Useful psql commands:**
         >
-        > - `\q` Quit
-        > - `\l` List databases
-        > - `\du` List roles
+        > - `\q` - Quit
+        > - `\l` - List databases
+        > - `\du` - List roles
 
     - ✅ If everything looks good:
         > **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
@@ -251,7 +268,7 @@ $ npm run start-be-unix
     $ npm build
     ```
 
-    Navigate to the url that the back-end server is running at and it should serve the built app.
+    Navigate to the url that the npm development server is running at and it should serve the built app.
 
 #### Front-End Notes
 
