@@ -2,13 +2,11 @@ import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import '../static/css/new.css';
-import '../static/css/datetimepicker.css';
 import { 
     END_OF_DAY,
     START_OF_DAY,
     TIME_FORMAT,
 } from "../constants";
-import { TempusDominus, Namespace } from "@eonasdan/tempus-dominus";
 
 const errorIdEnd = "-error-list";
 const titleName = "Title";
@@ -220,35 +218,10 @@ const TaskCreatePopup = observer((props) => {
             container: document.getElementById("new-wrapper")
         }
 
-        const startPicker = new TempusDominus(document.getElementById(`datetime-picker-${startName}`), {...options, defaultDate: START_OF_DAY().toJSDate()});
-        const startSubscriptions = startPicker.subscribe(
-            [ Namespace.events.change],
-            [
-                (e) => {
-                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(TIME_FORMAT);
-                    taskToCreate.setStartTime(time);
-                }
-            ]
-        );
-        const duePicker = new TempusDominus(document.getElementById(`datetime-picker-${dueName}`), {...options, defaultDate: END_OF_DAY().toJSDate()});
-        const dueSubscriptions = duePicker.subscribe(
-            [ Namespace.events.change],
-            [
-                (e) => {
-                    const time = DateTime.fromMillis(e.date.getTime()).toFormat(TIME_FORMAT);
-                    taskToCreate.setDueTime(time);
-                }
-            ]
-        );
-
         return () => {
             if (taskToCreate.beingEdited) {
                 taskToCreate.abortEditing();
             }
-            startSubscriptions.unsubscribe();
-            startPicker.dispose();
-            dueSubscriptions.unsubscribe();
-            duePicker.dispose();
         }
     }, [taskToCreate])
 
