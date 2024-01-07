@@ -15,11 +15,10 @@ const startName = "Start";
 const dueName = "Due";
 const timeName = "Time";
 const dateName = "Date";
-const startTimeName = startName + " " + timeName;
-const startDateName = startName + " " + dateName;
-const dueTimeName = dueName + " " + timeName;
-const dueDateName = dueName + " " + dateName;
-
+const startTimeName = `${startName} ${timeName}`;
+const startDateName = `${startName} ${dateName}`;
+const dueTimeName = `${dueName} ${timeName}`;
+const dueDateName = `${dueName} ${dateName}`;
 
 /**
  * @param {string[]} errors List of errors to display 
@@ -205,18 +204,6 @@ const TaskCreatePopup = observer((props) => {
     useEffect(() => {
         const firstInput = document.querySelector(`input[name='${titleName}']`);
         firstInput.focus();
-        const options = {
-            display: {
-                components: {
-                    calendar: false,
-                    date: false, 
-                    month: false,
-                    year: false,
-                    decades: false, 
-                }
-            },
-            container: document.getElementById("new-wrapper")
-        }
 
         return () => {
             if (taskToCreate.beingEdited) {
@@ -226,10 +213,10 @@ const TaskCreatePopup = observer((props) => {
     }, [taskToCreate])
 
 
-    const startDate = taskToCreate.startDate;
-    const startTime = taskToCreate.startTime; 
-    const dueDate = taskToCreate.dueDate;
-    const dueTime = taskToCreate.dueTime;
+    const startDate = taskToCreate.startDateString;
+    const startTime = taskToCreate.startTimeString; 
+    const dueDate = taskToCreate.dueDateString;
+    const dueTime = taskToCreate.dueTimeString;
 
     return (
         <div id="new-wrapper">
@@ -280,11 +267,11 @@ const TaskCreatePopup = observer((props) => {
                             time={startTime}
                             errors={taskToCreate.validationErrors.start}
                             dateChangeCallback={(e) => {
-                                taskToCreate.setStartDate(e.target.value);
+                                taskToCreate.setStartDateFromString(e.target.value);
                                 checkRemoveErrorOutline(possibleInputs.startDateName);
                             }}
                             timeChangeCallback={(e) => {
-                                taskToCreate.setStartTime(e.target.value);
+                                taskToCreate.setStartTimeFromString(e.target.value);
                                 checkRemoveErrorOutline(possibleInputs.startTimeName);
                             }}
                         />
@@ -296,11 +283,11 @@ const TaskCreatePopup = observer((props) => {
                             fieldInfo={possibleInputs}
                             errors={taskToCreate.validationErrors.due}
                             dateChangeCallback={(e) => {
-                                taskToCreate.setDueDate(e.target.value);
+                                taskToCreate.setDueDateFromString(e.target.value);
                                 checkRemoveErrorOutline(possibleInputs.dueDateName);
                             }}
                             timeChangeCallback={(e) => {
-                                taskToCreate.setDueTime(e.target.value);
+                                taskToCreate.setDueTimeFromString(e.target.value);
                                 checkRemoveErrorOutline(possibleInputs.dueTimeName);
                             }}
                         />

@@ -16,7 +16,6 @@ export class TaskStore {
     taskBeingEdited = null;
     isLoaded = false;
 
-
     /**
      * The store which holds object representations of tasks currently in the DB, or that will be added.
      * 
@@ -154,10 +153,10 @@ export class TaskStore {
     createInProgressTask ({dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
         const task = new Task(this);
         if (dueDate) {
-            task.setDueDateTime(dueDate);
+            task.setDue(dueDate);
         }
         if (startDate) {
-            task.setStartDateTime(startDate);
+            task.setStart(startDate);
         }
         task.startEditing(); 
         this.add(task);

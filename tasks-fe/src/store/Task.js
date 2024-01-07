@@ -1,51 +1,30 @@
 import { makeAutoObservable, reaction } from "mobx"
 import { v4 } from "uuid";
-import { DateTime } from "luxon";
-import { 
-    DATE_FORMAT, 
-    TIME_FORMAT, 
-    DATE_TIME_FORMAT,
-    END_OF_DAY,
+import { DateTime, Interval } from "luxon";
+import {  
     MAX_TITLE_LENGTH,
     MAX_DESCRIPTION_LENGTH,
-    taskCreationErrors
+    taskCreationErrors,
+    stringToDateTimeHelper,
+    DEFAULT_DUE_DATETIME,
+    DATE_TIME_FORMATS,
 } from "../constants";
 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
-
-const validateDateTime = (date, time, errors) => {
-    const parsedDate = DateTime.fromFormat(date, DATE_FORMAT);
-    const parsedTime = DateTime.fromFormat(time, TIME_FORMAT);
-    
-    if (parsedTime.invalid) {
-        errors.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
-    }
-    if (parsedDate.invalid) {
-        errors.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
-    }
-}
 
 export class Task {
     id = null;
     title = null;
     complete = null;
-    // Luxon DateTime object
-    start = null;
-    // Strings
-    startDate = null
-    startTime = null
-    // Luxon DateTime object
-    due = null;
-    // Strings
-    dueDate = null;
-    dueTime = null;
+    // Luxon Interval
+    workRange = null;
     // Due separated into date and time, useful for when the task is being edited
     description = null;
     store = null;
     createdDate = null;
     beingEdited = null;
 
-// USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
+// !!! USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
 
     /**
      * An object to represent one task in the database. It has the same fields as the task in the database and handles updating the task in the DB
@@ -67,13 +46,8 @@ export class Task {
         this.title = "";
         this.description = "";
         this.beingEdited = false;
-        this.start = null;
-        this.startDate = null;
-        this.startTime = null;
-        this.due = null;
-        this.dueDate = null;
-        this.dueTime = null;
-        this.createdDate=null;
+        this.workRange = Interval.fromDateTimes(this.defaultStart, this.defaultDue);
+        this.createdDate = null;
 
         /**
          * If autosave is on, update this task in the DB when any field used in this tasks JSON format is changed.
@@ -130,7 +104,7 @@ export class Task {
             // If this is a new task, set defaults
             this.setComplete(false);
             if (!this.due) {
-                this.setDue(END_OF_DAY());
+                this.setDue(this.defaultDue);
                 this.setStart(this.defaultStart);
             }
         }
@@ -187,8 +161,8 @@ export class Task {
         this.autoSave = false;
         this.setTitle(json.title);
         this.setDescription(json.description);
-        this.setStart(json.start);
         this.setDue(json.due);
+        this.setStart(json.start);
         this.setComplete(json.complete)
         this.createdDate = json.created_at;
         this.autoSave = true;
@@ -204,20 +178,46 @@ export class Task {
 
     // ---- GETTERS ---- 
 
-    /**
-     * The Luxon DateTime representing the default start date and time. It defaults to the beginning of the day of the due date
-     */
-    get defaultStart() {
-        return this.due.set({hour:0, minute:0, second:0, millisecond: 0});
+    get start () {
+        return this.workRange.start;
     }
+
+    get defaultStart () {
+        return DEFAULT_DUE_DATETIME.startOf("day");
+    }
+
+    get due () {
+        return this.workRange.end;
+    }
+
+    get defaultDue () {
+        return DEFAULT_DUE_DATETIME;
+    }
+
 
     /**
      * Returns true if the default start date is currently being used. If false, the default start is not being used.
      */
+
     get defaultStartBeingUsed () {
         return this.start.equals(this.defaultStart);
     }
 
+    get startDateString () {
+        return DATE_TIME_FORMATS.D.serializer(this.start);
+    }
+
+    get startTimeString () {
+        return DATE_TIME_FORMATS.t.serializer(this.start);
+    }
+
+    get dueDateString () {
+        return DATE_TIME_FORMATS.D.serializer(this.due);
+    }
+
+    get dueTimeString () {
+        return DATE_TIME_FORMATS.t.serializer(this.due);
+    }
 
     /**
      * Get the fields of this task formatted as a JSON
@@ -233,6 +233,7 @@ export class Task {
         };
     }
 
+    // TODO: Move this method out of here
     /**
      * Get any validation errors as strings for this task in an object with the symbols and values:
      * 
@@ -250,6 +251,18 @@ export class Task {
      *   }
      */
     get validationErrors() {
+        const validateDateAndTimeFormatStrings = (dateString, timeString, errors) => {
+            const parsedDate = DATE_TIME_FORMATS.D.deserializer(dateString);
+            const parsedTime = DATE_TIME_FORMATS.t.deserializer(timeString);
+            
+            if (parsedTime.invalid) {
+                errors.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
+            }
+            if (parsedDate.invalid) {
+                errors.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
+            }
+        }
+
         if (!this.beingEdited) {
             return null;
         }
@@ -281,16 +294,16 @@ export class Task {
         }
 
         //  Start 
-        validateDateTime(
-            this.startDate, 
-            this.startTime, 
+        validateDateAndTimeFormatStrings(  
+            this.startDateString, 
+            this.startTimeString, 
             errors.start
         );
 
         // Due
-        validateDateTime(
-            this.dueDate, 
-            this.dueTime, 
+        validateDateAndTimeFormatStrings(
+            this.dueDateString, 
+            this.dueTimeString, 
             errors.due
         );
 
@@ -329,127 +342,104 @@ export class Task {
     }
 
     // ---- SETTERS ---- 
-    //  Use these to set values even internally bc they may have side effects
+    // ! Important ! Use these to set values even internally because they may have side effects
     
-    setTitle (title) { 
-        this.title = title;
-    }
+    setTitle (title) { this.title = title; }
     setDescription (desc) { this.description = desc; }
     setComplete(complete) { this.complete = complete; }
 
-
     /**
-     * Set the `this.start` DateTime as a Luxon DateTime object taking a date in ISO format **OR as a Luxon DateTime object**. 
+     * Set the start of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
+     * **OR as a Luxon DateTime object**. 
      * dateTime must be valid to set it. 
      * 
-     * Will also update `this.startDate` and `this.startTime` if the input was valid.
      * @param {String} dateTime 
      */
     setStart(dateTime) {
-        // Datetime is sometimes null here
-        const date = DateTime.fromISO(dateTime);
-        if (date.invalid) {
-            console.error("Couldn't convert datetime " + dateTime + " " + date.invalid);
-        }
-        else {
-            this.start = date;
-            this.startDate = this.start.toFormat(DATE_FORMAT);
-            this.startTime = this.start.toFormat(TIME_FORMAT);
-        }
+        this.setMarkerFromStringOrDt(dateTime, dateTime => Interval.fromDateTimes(dateTime, this.due !== null ? this.due : this.defaultDue));
     }
-
+ 
     /**
-     * Set `this.startDate` to be the date string passed in. 
-     * 
-     * If it is valid it also updates `this.start`.
-     * @param {string} date 
+     * Change the start of the work interval based on the date string passed in. 
+     * @param {string} dateString 
      */
-    setStartDate(date) { 
-        this.startDate = date;
-        this.updateStartIfValid();
+    setStartDateFromString (dateString) { 
+        this.setDateFromString(this.start, this.setStart, dateString);
     }
 
     /**
-     * Set `this.startTime` to be the date string passed in. 
-     * 
-     * If it is valid it also updates `this.start`.
-     * @param {string} time 
+     * Change the start of the work interval based on the time string passed in. 
+     * @param {string} timeString 
      */
-    setStartTime (time) { 
-        this.startTime = time; 
-        this.updateStartIfValid();
+    setStartTimeFromString (timeString) { 
+        this.setTimeFromString(this.start, this.setStart, timeString);
     }
 
     /**
-     * Set the `this.due` DateTime as a Luxon DateTime object taking a date in ISO format **OR as a Luxon DateTime object**. 
+     * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
+     * **OR as a Luxon DateTime object**. 
      * dateTime must be valid to set it. 
-     * 
-     * Will also update `this.dueDate` and `this.dueTime` if the input was valid.
-     * @param {string} dateTime 
+     * @param {string} dateTimeString 
      */
-    setDue (dateTime) {
-        const date = DateTime.fromISO(dateTime);
-        if (date.invalid) {
-            console.error("Couldn't convert datetime " + dateTime + " " + date.invalid);
-        }  
-        else {
-            const startNeedsUpdate = this.due !== null && this.defaultStartBeingUsed;
-            this.due = date;
-            this.dueDate = this.due.toFormat(DATE_FORMAT);
-            this.dueTime = this.due.toFormat(TIME_FORMAT);
-            if (startNeedsUpdate) {
-                this.setStart(this.defaultStart);
-            }
+    setDue (dateTimeString) {
+        this.setMarkerFromStringOrDt(dateTimeString, dateTime => Interval.fromDateTimes(this.start !== null ? this.start : this.defaultStart, dateTime));
+    }
+
+    /**
+     * Change the end of the work interval / due date based on the date string passed in. 
+     * @param {string} dateString 
+     */
+    setDueDateFromString (dateString) {
+        this.setDateFromString(this.due, this.setDue, dateString);
+    }
+
+    /**
+     * Change the end of the work interval / due date based on the time string passed in. 
+     * @param {string} timeString 
+     */
+    setDueTimeFromString (timeString) { 
+        this.setTimeFromString(this.due, this.setDue, timeString);
+    }
+
+    // --- Helpers ---
+    setMarkerFromStringOrDt (dateTime, callback) {
+        var validatedDate = null;
+        switch (typeof(dateTime)) {
+            case "string":
+                validatedDate = stringToDateTimeHelper(dateTime);
+                break;
+            case "datetime":
+                validatedDate = new DateTime(dateTime);
+                break;
+        }
+        if (validatedDate !== null) {
+            callback(validatedDate);
         }
     }
 
     /**
-     * Set `this.dueDate` to be the date string passed in. 
-     * 
-     * If it is valid it also updates `this.due`.
-     * @param {string} date 
+     * Private helper to set the start or due time from a string passed in a custom format. The date is assumed to be the current date set for the field.
+     * @param {DateTime} startOrDue this.Start or this.Due 
+     * @param {function} setterCallback callback to set this.Start or this.Due given a DateTime object 
+     * @param {String} timeString string in TIME_FORMAT representing the time to change to. 
      */
-    setDueDate (date) {
-        this.dueDate = date;
-        this.updateDueIfValid();
-    }
-
-    /**
-     * Set `this.dueTime` to be the date string passed in. 
-     * 
-     * If it is valid it also updates `this.due`.
-     * @param {string} date 
-     */
-    setDueTime (time) { 
-        this.dueTime = time;
-        this.updateDueIfValid();
-    }
-    // --- SETTER HELPERS ---
-
-    /**
-     * Update `this.start` based on the values of `this.startDate` and `this.startTime` if they are both valid strings in the
-     * correct format.
-     */
-    updateStartIfValid() {
-        const fullDate = DateTime.fromFormat(this.startDate + " " + this.startTime, DATE_TIME_FORMAT);
-        // Errpr here, fullDAte is null
+    setTimeFromString (startOrDue, setterCallback, timeString) { 
+        const fullDate = stringToDateTimeHelper(DATE_TIME_FORMATS.D.serializer(startOrDue),  timeString);
         if (!fullDate.invalid) {
-            this.start = fullDate; 
+            setterCallback(fullDate); 
         } 
     }
 
     /**
-     * Update `this.due` based on the values of `this.dueDate` and `this.dueTime` if they are both valid strings in the
-     * correct format.
+     * Private helper to set the start or due date from a string passed. The time is assumed to be the current time set for the field.
+     * @param {DateTime} startOrDue this.Start or this.Due 
+     * @param {function} setterCallback callback to set this.Start or this.Due given a DateTime object 
+     * @param {String} dateString string in DATE_FORMAT representing the date to change to 
      */
-    updateDueIfValid() {
-        const fullDate = DateTime.fromFormat(this.dueDate + " " + this.dueTime, DATE_TIME_FORMAT);
+    setDateFromString (startOrDue, setterCallback, dateString) {
+        const fullDate = stringToDateTimeHelper(dateString, DATE_TIME_FORMATS.t.serializer(startOrDue));
         if (!fullDate.invalid) {
-            const startNeedsUpdate = this.defaultStartBeingUsed;
-            this.due = fullDate; 
-            if (startNeedsUpdate) {
-                this.setStart(this.defaultStart);
-            }
-        }  
+            setterCallback(fullDate); 
+        } 
     }
 }
