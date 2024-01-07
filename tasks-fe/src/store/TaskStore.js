@@ -96,7 +96,6 @@ export class TaskStore {
         return (this.timeOccursBeforeEOD(time) && (currentTime < time))
     }
 
-
     /**
      * Get tasks grouped by statuses: overdue, todayDue, todayWork, and upcoming. These are disjoint sets.
      */
@@ -116,6 +115,13 @@ export class TaskStore {
                 )
         }
     }
+
+    /**
+     * Get tasks ordered by due date
+     */
+    // get allTasks() {
+        // return this.tasks.sort();
+    // }
 
     /**
      * Specify the task that details should be shown for (show task popup).
@@ -148,10 +154,10 @@ export class TaskStore {
     createInProgressTask ({dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
         const task = new Task(this);
         if (dueDate) {
-            task.setDue(dueDate);
+            task.setDueDateTime(dueDate);
         }
         if (startDate) {
-            task.setStart(startDate);
+            task.setStartDateTime(startDate);
         }
         task.startEditing(); 
         this.add(task);
