@@ -10,21 +10,23 @@ export const DATE_TIME_FORMATS = {
         token: "D",
         readable: "mm/dd/yyyy",
         serializer: (dateTime) => dateTime.DATE_SHORT,
-        deserializer: (string) => DateTime.fromFormat(string, this.D.token),
+        deserializer: (string) => DateTime.fromFormat(string, this.token),
      },
     t: {
         token: "t",
         readable: "h:mm P",
         serializer: (dateTime) => dateTime.TIME_SIMPLE,
-        deserializer: (string) => DateTime.fromFormat(string, this.t.token),
+        deserializer: (string) => DateTime.fromFormat(string, this.token),
 
      },
      // Whole DateTime
      DateAndTime: {
          D_t: {
-             token: `${this.D.token} ${this.t.token}`,
-             serializer: (dateTime) => dateTime.toLocaleString(this.D_t.token),
-             deserializer: (string1, s2=null) => DateTime.fromFormat(`${string1}${s2 === null ? "" : ` ${s2}`}`, this.D_t.token),
+             token: `D t`,
+             serializer: (dateTime) => dateTime.toLocaleString(this.token),
+             deserializer: function (string1, s2=null) { 
+                return DateTime.fromFormat(`${string1}${s2 === null ? "" : ` ${s2}`}`, this.token);
+            },
          },
          ISO: {
              token: undefined,
@@ -40,15 +42,35 @@ export const DATE_TIME_FORMATS = {
  */
 export const stringToDateTimeHelper = (dtString) => 
     {
-        var date = DateTime.invalid();
-        for (var formatKey in DATE_TIME_FORMATS.DateAndTime) {
-            date = DATE_TIME_FORMATS.DateAndTime[formatKey].deserializer(dtString);
-            if (date.isValid()) {
+        var date = DateTime.invalid("Invalid string", "Please provide a valid string");
+
+        var formatter;
+        for (let formatKey in DATE_TIME_FORMATS.DateAndTime) {
+            console.log(formatKey);
+            formatter = DATE_TIME_FORMATS.DateAndTime[formatKey];
+            date = formatter.deserializer(dtString);
+            if (!date.invalid) {
                 break;
             }
         };
         return date;
     };
+
+export const dateTimeHelper = (maybeDateTime) => {
+    var validatedDate;
+    switch (typeof(maybeDateTime)) {
+        case "string":
+            validatedDate = stringToDateTimeHelper(maybeDateTime);
+            break;
+        case "datetime":
+            validatedDate = new DateTime(maybeDateTime);
+            break;
+        default:
+            validatedDate = DateTime.invalid("Invalid string or DateTime", "Please provide a valid string or DateTime");
+    }
+    return validatedDate;
+}
+
 export const DEFAULT_DUE_DATETIME = END_OF_DAY();
 export const DEFAULT_DUE_DATE_STRING = DATE_TIME_FORMATS.D.serializer(DEFAULT_DUE_DATETIME);
 export const DEFAULT_DUE_TIME_SRING =  DATE_TIME_FORMATS.t.serializer(DEFAULT_DUE_DATETIME);
