@@ -4,7 +4,7 @@
   "private": true,
   "dependencies": {
     "@popperjs/core": "^2.11.2",
-    "axios": "^0.24.0",
+    "axios": "^1.6.5",
     "luxon": "^2.3.0",
     "mobx": "^6.3.10",
     "mobx-react-lite": "^3.2.3",
@@ -12,7 +12,7 @@
     "react": "^18.0.0",
     "react-dom": "^18.0.0",
     "react-dragula": "^1.1.17",
-    "react-scripts": "^5.0.0",
+    "react-scripts": "^5.0.1",
     "uuid": "^8.3.2",
     "web-vitals": "^2.1.2"
   },
