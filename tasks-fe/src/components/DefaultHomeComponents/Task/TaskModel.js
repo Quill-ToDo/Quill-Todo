@@ -10,9 +10,9 @@ import {
     DATE_TIME_FORMATS,
 } from "../constants.js";
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../Alerts/alertEvent.js";
-import TaskStore from "./TaskStore";
+import TaskStore from "./TaskStore.js";
 
-export default class Task {
+export default class TaskModel {
     id = null;
     title = null;
     complete = null;
@@ -229,18 +229,6 @@ export default class Task {
      *   }
      */
     get validationErrors() {
-        const validateDateAndTimeFormatStrings = (dateString, timeString, errors) => {
-            const parsedDate = DATE_TIME_FORMATS.D.deserializer(dateString);
-            const parsedTime = DATE_TIME_FORMATS.t.deserializer(timeString);
-            
-            if (parsedTime.invalid) {
-                errors.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
-            }
-            if (parsedDate.invalid) {
-                errors.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
-            }
-        }
-
         const errors = {
             title: [],
             description: [],
@@ -254,7 +242,9 @@ export default class Task {
             }
         }
 
-        // Title
+        /// --------------------
+        /// --- Title Errors ---
+        /// --------------------
         if (this.title.length > MAX_TITLE_LENGTH) { 
             errors.title.push(taskCreationErrors.TITLE_TOO_LONG(this.title));
         }
@@ -262,25 +252,18 @@ export default class Task {
             errors.title.push(taskCreationErrors.NO_TITLE);
         }
     
-        // Description
+        /// --------------------------
+        /// --- Description Errors ---
+        /// --------------------------
         if (this.description.length > MAX_DESCRIPTION_LENGTH) { 
             errors.description.push(taskCreationErrors.DESCRIPTION_TOO_LONG(this.description));
         }
 
-        //  Start 
-        validateDateAndTimeFormatStrings(  
-            this.startDateString, 
-            this.startTimeString, 
-            errors.start
-        );
-
-        // Due
-        validateDateAndTimeFormatStrings(
-            this.dueDateString, 
-            this.dueTimeString, 
-            errors.due
-        );
-
+        /// -----------------------------------
+        /// --- Start vs. Due String Errors ---
+        /// -----------------------------------
+        // If some dates and times has been changed and start and due can both be converted to DateTimes,
+        // compare their values
         // If some dates and times has been changed and everything is valid, compare values
         if (
             (!errors.start.date.length && !errors.start.time.length) &&

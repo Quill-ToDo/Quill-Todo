@@ -3,7 +3,7 @@ import React, {
     useCallback,
     useRef
 } from "react";
-import Task from "./Task";
+import TaskModel from "./TaskModel";
 import './show.css';
 import { observer } from "mobx-react-lite";
 import { addAlert, NOTICE_ALERT } from '../Alerts/alertEvent';
@@ -71,7 +71,7 @@ const ShowTask = observer((props) => {
                 aria-labelledby="task-show-title"
                 aria-describedby={"task-title-" + task.id}
             >
-                <Task 
+                <TaskModel 
                     data={task} 
                     basicVersion={false} 
                     buttons={buttons}

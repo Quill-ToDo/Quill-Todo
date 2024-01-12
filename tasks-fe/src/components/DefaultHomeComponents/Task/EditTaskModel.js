@@ -6,16 +6,16 @@ import {
     stringToDateTimeHelper,
     DATE_TIME_FORMATS,
 } from "../constants.js";
-import Task from "./Task";
+import TaskModel from "./TaskModel.js";
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../Alerts/alertEvent.js";
 
 export default class EditTaskModel {
     task;
-    beingEdited;
-    startTimeString;
-    dueTimeString;
-    startDateString;
-    dueDateString;
+    beingEdited = true;
+    startTimeStringBeingEdited = "";
+    dueTimeStringBeingEdited = "";
+    startDateStringBeingEdited = "";
+    dueDateStringBeingEdited = "";
     validationErrors;
 
     
@@ -27,18 +27,23 @@ export default class EditTaskModel {
      * 
      * **Important:** Use setter methods to change any values, even internally. They may have side-effects.
      * 
-     * @param {Task} task The store this task resides in.
+     * @param {TaskModel} task The store this task resides in.
      */
-    init(task) {
+    constructor(task) {
         makeAutoObservable(this, {
-            task: false,
+            task: true,
+            beingEdited: true,
+            startTimeString: true,
+            startDateString: true,
+            dueTimeString: true, 
+            dueDateString: true,
         }, {proxy: false});
         this.task = task;
         this.beingEdited = true;
-        this.startTimeString = DATE_TIME_FORMATS.t.serializer(this.task.start);
-        this.dueTimeString = DATE_TIME_FORMATS.t.serializer(this.task.due);
-        this.startDateString = DATE_TIME_FORMATS.D.serializer(this.task.start);
-        this.dueDateString = DATE_TIME_FORMATS.D.serializer(this.task.due);
+        this.setStartTimeString(DATE_TIME_FORMATS.t.serializer(this.task.start));
+        this.setDueTime(DATE_TIME_FORMATS.t.serializer(this.task.due));
+        this.setStartDate(DATE_TIME_FORMATS.D.serializer(this.task.start));
+        this.setDueDate(DATE_TIME_FORMATS.D.serializer(this.task.due));
     }
 
     // ---- GETTERS ----
@@ -50,19 +55,19 @@ export default class EditTaskModel {
     }
 
     get startDateString () {
-        return this.startDateString;
+        return this.startDateStringBeingEdited;
     }
 
     get startTimeString () {
-        return this.startTimeString;
+        return this.startTimeStringBeingEdited;
     }
 
     get dueDateString () {
-        return this.dueDateString;
+        return this.dueDateStringBeingEdited;
     }
 
     get dueTimeString () {
-        return this.dueTimeString;
+        return this.dueTimeStringBeingEdited;
     }
 
     /**
@@ -97,34 +102,17 @@ export default class EditTaskModel {
         }
 
         /// --------------------
-        /// --- Title Errors ---
-        /// --------------------
-        if (this.title.length > MAX_TITLE_LENGTH) { 
-            errors.title.push(taskCreationErrors.TITLE_TOO_LONG(this.title));
-        }
-        else if (this.title.length === 0) {
-            errors.title.push(taskCreationErrors.NO_TITLE);
-        }
-    
-        /// --------------------------
-        /// --- Description Errors ---
-        /// --------------------------
-        if (this.description.length > MAX_DESCRIPTION_LENGTH) { 
-            errors.description.push(taskCreationErrors.DESCRIPTION_TOO_LONG(this.description));
-        }
-
-        /// --------------------
         /// --- Start Errors ---
         /// --------------------
         // Make sure date and time tokens are parseable separately
-        if (!DATE_TIME_FORMATS.t.deserializer(this.startTimeString).isValid()) {
+        if (!DATE_TIME_FORMATS.t.deserializer(this.startTimeStringBeingEdited).isValid()) {
             errors.start.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
         }
-        if (!DATE_TIME_FORMATS.D.deserializer(this.startDateString).isValid()) {
+        if (!DATE_TIME_FORMATS.D.deserializer(this.startDateStringBeingEdited).isValid()) {
             errors.start.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
         }
         // Make sure date and time tokens are parseable together
-        if (!stringToDateTimeHelper(`${this.startDateString}  ${this.startTimeString}`).isValid()) {
+        if (!stringToDateTimeHelper(`${this.startDateStringBeingEdited}  ${this.startTimeStringBeingEdited}`).isValid()) {
             // TODO Add new message for this
             errors.start.date.push(taskCreationErrors.INVALID_DATETIME_FORMAT);
         }
@@ -133,46 +121,27 @@ export default class EditTaskModel {
         /// --- Due Errors -----
         /// --------------------
         // Make sure date and time tokens are parseable separately
-        if (!DATE_TIME_FORMATS.t.deserializer(this.dueTimeString).isValid()) {
+        if (!DATE_TIME_FORMATS.t.deserializer(this.dueTimeStringBeingEdited).isValid()) {
             errors.due.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
         }
-        if (!DATE_TIME_FORMATS.D.deserializer(this.dueDateString).isValid()) {
+        if (!DATE_TIME_FORMATS.D.deserializer(this.dueDateStringBeingEdited).isValid()) {
             errors.due.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
         }
         // Make sure date and time tokens are parseable together
-        if (!stringToDateTimeHelper(`${this.dueDateString}  ${this.dueTimeString}`).isValid()) {
+        if (!stringToDateTimeHelper(`${this.dueDateStringBeingEdited}  ${this.dueTimeStringBeingEdited}`).isValid()) {
             // TODO Add new message for this
             errors.due.date.push(taskCreationErrors.INVALID_DATETIME_FORMAT);
         }
 
-        /// -----------------------------------
-        /// --- Start vs. Due String Errors ---
-        /// -----------------------------------
-        // If some dates and times has been changed and start and due can both be converted to DateTimes,
-        // compare their values
-        if (
-            (!errors.start.date.length && !errors.start.time.length) &&
-            (!errors.due.date.length && !errors.due.time.length)
-            ) {
-                // If start day is after due day, invalid
-                const start = stringToDateTimeHelper(`${this.startDateString}  ${this.startTimeString}`);
-                const due = stringToDateTimeHelper(`${this.dueDateString}  ${this.dueTimeString}`);
-                if ( start.hasSame(due, 'day') && start >= due) {
-                    errors.due.time.push(taskCreationErrors.START_TIME_AFTER_DUE);
-                }
-                else if ( !start.hasSame(due, 'day') && start > due) {
-                    errors.due.date.push(taskCreationErrors.START_DATE_AFTER_DUE);
-                }
-        }
         return errors;
     }
 
-    // get dateTimeStringPartsAreValid () {
-    //     return !(this.validationErrors.start.date.length ||
-    //         this.validationErrors.start.time.length ||
-    //         this.validationErrors.due.date.length ||
-    //         this.validationErrors.due.time.length);
-    // }
+    get dateTimeStringPartsAreValid () {
+        return !(this.validationErrors.start.date.length ||
+            this.validationErrors.start.time.length ||
+            this.validationErrors.due.date.length ||
+            this.validationErrors.due.time.length);
+    }
         
     /**
      * Return true if this task has no validation errors, false if it does.
@@ -182,7 +151,7 @@ export default class EditTaskModel {
             !(this.validationErrors.title.length || 
             this.validationErrors.description.length)
             && this.dateTimeStringPartsAreValid
-        )
+        );
     }
 
     // ---- SETTERS ---- 
@@ -190,30 +159,33 @@ export default class EditTaskModel {
 
     setStartDate (dateString) { 
         // Set string to whatever the user typed
-        this.startDateString = dateString;
+        this.startDateStringBeingEdited = dateString;
         // Only if this is can be converted to valid DateTime, update the overall start of the task.
         if (this.dateTimeStringPartsAreValid) {
             this.task.setStart();
         }
     }
 
-    setStartTime (timeString) { 
-        // Set string to whatever the user typed
-        this.startTimeString = timeString;
+    /**
+     * Set time as displayed to input string. If valid, also update the start time of the task.
+     * @param {String} timeString 
+     */
+    setStartTimeString = (timeString)  =>  { 
+        this.startTimeStringBeingEdited = timeString;
         if (this.dateTimeStringPartsAreValid) {
             this.task.setStart();
         }
     }
 
     setDueDate (dateString) {
-        this.dueDateString = dateString;
+        this.dueDateStringBeingEdited = dateString;
         if (this.dateTimeStringPartsAreValid) {
             this.task.setStart();
         }
     }
 
     setDueTime (timeString) { 
-        this.dueTimeString = timeString;
+        this.dueTimeStringBeingEdited = timeString;
         if (this.dateTimeStringPartsAreValid) {
             this.task.setStart();
         }
@@ -283,7 +255,7 @@ export default class EditTaskModel {
     * a Luxon DateTime or string in ISO format.
     */
     static createInProgressTask (TaskStore, {dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
-        const task = new EditTaskModel((new Task(TaskStore)));
+        const task = new EditTaskModel((new TaskModel(TaskStore)));
         if (dueDate) {
             task.setDueDate(dueDate);
         }

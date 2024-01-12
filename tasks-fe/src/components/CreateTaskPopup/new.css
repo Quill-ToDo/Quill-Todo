@@ -86,7 +86,9 @@ form textarea[aria-invalid="true"] {
 }
 
 #new-wrapper .mid-section {
-  box-shadow: 0px 0px 50px var(--darkest-dark);
+  /* box-shadow: 0px 0px 50px var(--darkest-dark); */
+  box-shadow: 7px 7px var(--mid-font);
+  outline: solid var(--mid-font) 4px;
 }
 
 #new-wrapper form input:not(.btn),

@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction} from "mobx";
-import  Task  from "./Task";
+import  TaskModel  from "./TaskModel.js";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "../constants.js";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../Alerts/alertEvent.js';
@@ -70,7 +70,7 @@ export default class TaskStore {
         let task = this.tasks.find(t => t.id === taskJson.id)
         if (!task) {
             // Does not yet exist in store
-            task = new Task(this, taskJson.id);
+            task = new TaskModel(this, taskJson.id);
             this.tasks.push(task);
         }
         task.updateFromJson(taskJson);
@@ -123,7 +123,7 @@ export default class TaskStore {
 
     /**
      * Specify the task that details should be shown for (show task popup).
-     * @param {Task} task Task that details should be shown for
+     * @param {TaskModel} task Task that details should be shown for
      */
     setFocus (task) {
         this.taskBeingFocused = task;
@@ -137,9 +137,22 @@ export default class TaskStore {
     }
 
     /**
-     * @param {Task} taskObj Task that should be added to the store. 
+     * @param {TaskModel} taskObj Task that should be added to the store. 
      */
     add(taskObj) {
         this.tasks.push(taskObj);
     } 
+
+        /**
+     * Create a new task marked as currently being edited. It will need to have
+     * `finishEditing()` called on it to save it to the DB.
+     * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
+     * a Luxon DateTime or string in ISO format.
+     */
+        createInProgressTask () {
+            const task = new TaskModel(this);
+            task.startEditing(); 
+            this.add(task);
+            return task;
+        }
 }
