@@ -1,6 +1,6 @@
 import React from "react";
-import { TaskApi } from "../API/TaskApi.js";
-import { TaskStore } from "../store/TaskStore";
+import { TaskApi } from "../../API/TaskApi.js";
+import TaskStore from "./Task/TaskStore";
 
 class RootStore {
     constructor () {

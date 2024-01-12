@@ -1,12 +1,12 @@
 import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import '../static/css/new.css';
+import './new.css';
 import { 
     END_OF_DAY,
     START_OF_DAY,
     TIME_FORMAT,
-} from "../constants";
+} from "../DefaultHomeComponents/constants";
 
 const errorIdEnd = "-error-list";
 const titleName = "Title";

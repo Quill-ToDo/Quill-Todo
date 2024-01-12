@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
+import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from './alertEvent';
 
 
 /**

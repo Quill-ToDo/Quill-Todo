@@ -8,11 +8,11 @@ import {
     stringToDateTimeHelper,
     DEFAULT_DUE_DATETIME,
     DATE_TIME_FORMATS,
-} from "../constants";
+} from "../constants.js";
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../Alerts/alertEvent.js";
+import TaskStore from "./TaskStore";
 
-import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../static/js/alertEvent";
-
-export class Task {
+export default class Task {
     id = null;
     title = null;
     complete = null;
@@ -23,6 +23,7 @@ export class Task {
     store = null;
     createdDate = null;
     beingEdited = null;
+    validationErrors;
 
 // !!! USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
 
@@ -67,7 +68,20 @@ export class Task {
             }
         );
     }
-
+    /**
+     * If autosave is on, update this task with info pulled from the DB.
+     * @param {object} json 
+     */
+        updateFromJson(json) {
+            this.autoSave = false;
+            this.setTitle(json.title);
+            this.setDescription(json.description);
+            this.setDue(json.due);
+            this.setStart(json.start);
+            this.setComplete(json.complete)
+            this.createdDate = json.created_at;
+            this.autoSave = true;
+        }
     /**
      * Remove this task from the taskStore. Does NOT remove it form the DB.
      */
@@ -75,7 +89,6 @@ export class Task {
         this.saveHandlerDisposer();
         this.store.tasks.remove(this);
     }
-
     /**
      * Delete this task from the task store and server.
      */
@@ -89,9 +102,7 @@ export class Task {
             addAlert(document.getElementById('home-wrapper'), ERROR_ALERT, this.title + " could not be deleted - " + error.toString());
             this.store.add(this);
         });
-    }
-
-        
+    } 
     /**
      * Mark a task as being edited. This turns off autosave so changes made are not saved to the DB until `this.finishEditing` is called, or 
      * changes are aborted with `this.abortEditing`.
@@ -109,7 +120,6 @@ export class Task {
             }
         }
     }
-
     /**
      * Mark a task being edited as finished and save the task to the DB.
      */
@@ -133,7 +143,6 @@ export class Task {
         this.store.taskBeingEdited = null;
         this.autoSave = true;
     }
-
     /**
      * Abort any edits and delete task from the taskStore.
      */
@@ -145,7 +154,6 @@ export class Task {
             this.removeSelfFromStore();
         }
     }
-
     /**
      * Toggle this tasks completion status between true and false.
      */
@@ -154,71 +162,42 @@ export class Task {
     }
 
     /**
-     * If autosave is on, update this task with info pulled from the DB.
-     * @param {object} json 
-     */
-    updateFromJson(json) {
-        this.autoSave = false;
-        this.setTitle(json.title);
-        this.setDescription(json.description);
-        this.setDue(json.due);
-        this.setStart(json.start);
-        this.setComplete(json.complete)
-        this.createdDate = json.created_at;
-        this.autoSave = true;
-    }
-
-    
-    /**
      * Mark this task as the one that details should be rendered for
      */
     setFocus() {
         this.store.setFocus(this);
     }
-
     // ---- GETTERS ---- 
-
     get start () {
         return this.workRange.start;
     }
-
     get defaultStart () {
         return DEFAULT_DUE_DATETIME.startOf("day");
     }
-
     get due () {
         return this.workRange.end;
     }
-
     get defaultDue () {
         return DEFAULT_DUE_DATETIME;
     }
-
-
     /**
      * Returns true if the default start date is currently being used. If false, the default start is not being used.
      */
-
     get defaultStartBeingUsed () {
         return this.start.equals(this.defaultStart);
     }
-
     get startDateString () {
         return DATE_TIME_FORMATS.D.serializer(this.start);
     }
-
     get startTimeString () {
         return DATE_TIME_FORMATS.t.serializer(this.start);
     }
-
     get dueDateString () {
         return DATE_TIME_FORMATS.D.serializer(this.due);
     }
-
     get dueTimeString () {
         return DATE_TIME_FORMATS.t.serializer(this.due);
     }
-
     /**
      * Get the fields of this task formatted as a JSON
      */
@@ -232,7 +211,6 @@ export class Task {
             description: this.description
         };
     }
-
     // TODO: Move this method out of here
     /**
      * Get any validation errors as strings for this task in an object with the symbols and values:
@@ -261,10 +239,6 @@ export class Task {
             if (parsedDate.invalid) {
                 errors.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
             }
-        }
-
-        if (!this.beingEdited) {
-            return null;
         }
 
         const errors = {
@@ -325,8 +299,6 @@ export class Task {
         }
         return errors;
     }
-        
-
     /**
      * Return true is this task has any errors, false if not.
      */
@@ -340,14 +312,11 @@ export class Task {
             this.validationErrors.due.time.length
         )
     }
-
     // ---- SETTERS ---- 
     // ! Important ! Use these to set values even internally because they may have side effects
-    
     setTitle (title) { this.title = title; }
     setDescription (desc) { this.description = desc; }
     setComplete(complete) { this.complete = complete; }
-
     /**
      * Set the start of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
@@ -358,7 +327,6 @@ export class Task {
     setStart(dateTime) {
         this.setMarkerFromStringOrDt(dateTime, dateTime => Interval.fromDateTimes(dateTime, this.due !== null ? this.due : this.defaultDue));
     }
- 
     /**
      * Change the start of the work interval based on the date string passed in. 
      * @param {string} dateString 
@@ -366,7 +334,6 @@ export class Task {
     setStartDateFromString (dateString) { 
         this.setDateFromString(this.start, this.setStart, dateString);
     }
-
     /**
      * Change the start of the work interval based on the time string passed in. 
      * @param {string} timeString 
@@ -374,7 +341,6 @@ export class Task {
     setStartTimeFromString (timeString) { 
         this.setTimeFromString(this.start, this.setStart, timeString);
     }
-
     /**
      * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
@@ -384,7 +350,6 @@ export class Task {
     setDue (dateTimeString) {
         this.setMarkerFromStringOrDt(dateTimeString, dateTime => Interval.fromDateTimes(this.start !== null ? this.start : this.defaultStart, dateTime));
     }
-
     /**
      * Change the end of the work interval / due date based on the date string passed in. 
      * @param {string} dateString 
@@ -392,7 +357,6 @@ export class Task {
     setDueDateFromString (dateString) {
         this.setDateFromString(this.due, this.setDue, dateString);
     }
-
     /**
      * Change the end of the work interval / due date based on the time string passed in. 
      * @param {string} timeString 
@@ -400,7 +364,6 @@ export class Task {
     setDueTimeFromString (timeString) { 
         this.setTimeFromString(this.due, this.setDue, timeString);
     }
-
     // --- Helpers ---
     setMarkerFromStringOrDt (dateTime, callback) {
         var validatedDate = null;
@@ -416,7 +379,6 @@ export class Task {
             callback(validatedDate);
         }
     }
-
     /**
      * Private helper to set the start or due time from a string passed in a custom format. The date is assumed to be the current date set for the field.
      * @param {DateTime} startOrDue this.Start or this.Due 
@@ -429,7 +391,6 @@ export class Task {
             setterCallback(fullDate); 
         } 
     }
-
     /**
      * Private helper to set the start or due date from a string passed. The time is assumed to be the current time set for the field.
      * @param {DateTime} startOrDue this.Start or this.Due 

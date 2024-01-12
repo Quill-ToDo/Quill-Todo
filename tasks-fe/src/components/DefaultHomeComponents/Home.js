@@ -1,11 +1,12 @@
 import React from "react";
 
-import List from './List/List'
-import ShowTask from './ShowTask';
-import TaskCreatePopup from "./TaskCreatePopup";
+import List from '../List/List.js';
+import ShowTask from "./Task/ShowTask";
+import TaskCreatePopup from "../CreateTaskPopup/TaskCreatePopup";
 import { observer } from "mobx-react-lite";
-import { useTaskStore } from "../store/StoreContext";
-import { addAlert, ERROR_ALERT } from '../static/js/alertEvent';
+import { useTaskStore } from "./StoreContext";
+import { addAlert, ERROR_ALERT } from './Alerts/alertEvent';
+import EditTaskModel from "./Task/EditTaskModel";
 
 
 const Home = observer(() => {
@@ -17,7 +18,7 @@ const Home = observer(() => {
             { taskStore.taskBeingFocused ? <ShowTask taskStore={taskStore}/> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
                 <button role="menuitem" className="btn no-shadow" title="Add task" type="button" onClick={() => {
-                    taskStore.createInProgressTask();
+                    EditTaskModel.createInProgressTask();
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>

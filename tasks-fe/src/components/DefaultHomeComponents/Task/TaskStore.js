@@ -1,11 +1,10 @@
 import { makeAutoObservable, runInAction} from "mobx";
-import { Task } from "./Task";
+import  Task  from "./Task";
 import { DateTime } from "luxon";
-import { END_OF_DAY } from "../constants";
-import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../static/js/alertEvent';
+import { END_OF_DAY } from "../constants.js";
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../Alerts/alertEvent.js';
 
-
-export class TaskStore {
+export default class TaskStore {
     API;
     rootStore;
     // userStore
@@ -143,23 +142,4 @@ export class TaskStore {
     add(taskObj) {
         this.tasks.push(taskObj);
     } 
-
-    /**
-     * Create a new task marked as currently being edited. It will need to have
-     * `finishEditing()` called on it to save it to the DB.
-     * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
-     * a Luxon DateTime or string in ISO format.
-     */
-    createInProgressTask ({dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
-        const task = new Task(this);
-        if (dueDate) {
-            task.setDue(dueDate);
-        }
-        if (startDate) {
-            task.setStart(startDate);
-        }
-        task.startEditing(); 
-        this.add(task);
-        return task;
-    }
 }

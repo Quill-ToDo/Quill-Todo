@@ -3,10 +3,10 @@ import React, {
     useCallback,
     useRef
 } from "react";
-import Task from "./List/Task";
-import '../static/css/show.css';
+import Task from "./Task";
+import './show.css';
 import { observer } from "mobx-react-lite";
-import { addAlert, NOTICE_ALERT } from '../static/js/alertEvent';
+import { addAlert, NOTICE_ALERT } from '../Alerts/alertEvent';
 
 function handleEdit () {
     addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
