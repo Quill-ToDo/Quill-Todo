@@ -5,14 +5,17 @@ import { END_OF_DAY } from "../constants.js";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../Alerts/alertEvent.js';
 
 export default class TaskStore {
+// !!! Fields must have defaults set here to be observable. 
     API;
+    // RootStore
     rootStore;
-    // userStore
-    // These must have a default value here to be observable
+    // Array<Tasks>
     tasks = [];
-    // Task to show details for
+    // Task : Task to show details for
     taskBeingFocused = null;
+    // Task : TODO: Move this to static EditTaskModel
     taskBeingEdited = null;
+    // Boolean : Whether the store has synced with server
     isLoaded = false;
 
     /**
@@ -71,7 +74,6 @@ export default class TaskStore {
         if (!task) {
             // Does not yet exist in store
             task = new TaskModel(this, taskJson.id);
-            this.tasks.push(task);
         }
         task.updateFromJson(taskJson);
     } 
@@ -129,6 +131,10 @@ export default class TaskStore {
         this.taskBeingFocused = task;
     }
     
+    setEditing(task) {
+        this.taskBeingEdited = task;
+    }
+
     /**
      * Specify that no task should have its details shown in a popup.
      */
@@ -143,16 +149,4 @@ export default class TaskStore {
         this.tasks.push(taskObj);
     } 
 
-        /**
-     * Create a new task marked as currently being edited. It will need to have
-     * `finishEditing()` called on it to save it to the DB.
-     * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
-     * a Luxon DateTime or string in ISO format.
-     */
-        createInProgressTask () {
-            const task = new TaskModel(this);
-            task.startEditing(); 
-            this.add(task);
-            return task;
-        }
 }

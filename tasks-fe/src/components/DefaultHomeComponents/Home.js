@@ -18,7 +18,7 @@ const Home = observer(() => {
             { taskStore.taskBeingFocused ? <ShowTask taskStore={taskStore}/> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="menu">
                 <button role="menuitem" className="btn no-shadow" title="Add task" type="button" onClick={() => {
-                    taskStore.createInProgressTask();
+                    new EditTaskModel(null, taskStore);
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>

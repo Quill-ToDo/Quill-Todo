@@ -1,75 +1,133 @@
 import { makeAutoObservable } from "mobx"
 import {  
-    MAX_TITLE_LENGTH,
-    MAX_DESCRIPTION_LENGTH,
     taskCreationErrors,
     stringToDateTimeHelper,
     DATE_TIME_FORMATS,
 } from "../constants.js";
 import TaskModel from "./TaskModel.js";
-import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../Alerts/alertEvent.js";
+import { addAlert, ERROR_ALERT } from "../Alerts/alertEvent.js";
 
 export default class EditTaskModel {
-    task;
+// !!! Fields must have defaults set here to be observable. 
+    task = null;
     beingEdited = true;
     startTimeStringBeingEdited = "";
     dueTimeStringBeingEdited = "";
     startDateStringBeingEdited = "";
     dueDateStringBeingEdited = "";
-    validationErrors;
+    // static taskBeingEdited = null;
 
     
 // !!! USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
 
     /**
-     * An object to represent one task in the database. It has the same fields as the task in the database and handles updating the task in the DB
+     * An object to represent one task in the database. It has the same fields as 
+     * the task in the database and handles updating the task in the DB
      * when any relevant fields change. 
      * 
-     * **Important:** Use setter methods to change any values, even internally. They may have side-effects.
+     * **Important:** Use setter methods to change any values, even internally. 
+     * They may have side-effects.
      * 
      * @param {TaskModel} task The store this task resides in.
      */
-    constructor(task) {
+    constructor(task=null, taskStore=null) {
         makeAutoObservable(this, {
             task: true,
-            beingEdited: true,
             startTimeString: true,
             startDateString: true,
             dueTimeString: true, 
             dueDateString: true,
         }, {proxy: false});
-        this.task = task;
-        this.beingEdited = true;
+        var newTask;
+        if (task !== null) {
+            newTask = task;
+        }
+        else if (taskStore !== null) {
+            newTask = new TaskModel(taskStore);
+        }
+        this.task = newTask;
         this.setStartTimeString(DATE_TIME_FORMATS.t.serializer(this.task.start));
-        this.setDueTime(DATE_TIME_FORMATS.t.serializer(this.task.due));
-        this.setStartDate(DATE_TIME_FORMATS.D.serializer(this.task.start));
-        this.setDueDate(DATE_TIME_FORMATS.D.serializer(this.task.due));
+        this.setDueTimeString(DATE_TIME_FORMATS.t.serializer(this.task.due));
+        this.setStartDateString(DATE_TIME_FORMATS.D.serializer(this.task.start));
+        this.setDueDateString(DATE_TIME_FORMATS.D.serializer(this.task.due));
+        this.startEditing(); 
     }
 
-    // ---- GETTERS ----
+// --------------------------------------------------------------------
+// ------------------------ LOGICAL METHODS ---------------------------
+// --------------------------------------------------------------------
+
     /**
-     * Returns true if the default start date is currently being used.
+     * Set the task passed as "being edited". Only one task can be 
+     * in this state at a time. Updates to the trask model will not 
+     * be saved to the DB, but changes will be synchronized in the UI 
+     * through the TaskStore. 
+     * To sync changes to DB, call `this.finishEditing` or abort 
+     * changes with `this.abortEditing`.
      */
-    get defaultStartBeingUsed () {
-        return this.task.start.equals(this.defaultStart);
+    startEditing() {
+        // EditTaskModel.setTaskBeingEdited(this);
+        this.task.dontSaveToServer();
+        this.setTaskBeingEdited(this.task);
     }
+    /**
+     * Mark a task being edited as "done" and save the task to the DB
+     * if changes are valid.
+     */
+    finishEditing () {
+        // Validate that there are no errors. If there are, raise an alert.
+        if (this.isValid) {
+            addAlert(document.querySelector('#new-wrapper'), 
+            ERROR_ALERT, 
+            `Task could not be saved, it still has errors - ${this.validationErrors}`);
+            console.error(this.validationErrors);
+            console.error(this);
+            return;
+        } 
+        
+        // Post to server
+        this.store.API.createTask(this.asJson)
+        .catch(e => {
+            console.error(e)
+            addAlert(document.querySelector('#home-wrapper'), 
+            ERROR_ALERT, 
+            `Could not add task - ${e}`);            
+            this.removeSelfFromStore();
+        });
+
+        EditTaskModel.setTaskBeingEdited(null);
+        this.task.saveToServer();
+    }
+    /**
+     * Abort any edit changes and delete task from the TaskStore.
+     */
+    abortEditing () {
+        EditTaskModel.setTaskBeingEdited(null);
+        if (!this.createdDate) {
+            // TODO make sure this is removing
+            this.removeSelfFromStore();
+        }
+        else {
+            // TODO
+        }
+    }
+
+// -----------------------------------------------------------------------
+// ------------------------------- GETTERS ------------------------------- 
+// -----------------------------------------------------------------------
 
     get startDateString () {
         return this.startDateStringBeingEdited;
     }
-
     get startTimeString () {
         return this.startTimeStringBeingEdited;
     }
-
     get dueDateString () {
         return this.dueDateStringBeingEdited;
     }
-
     get dueTimeString () {
         return this.dueTimeStringBeingEdited;
     }
-
     /**
      * Get any validation errors as strings for this task in an object with the symbols and values:
      * 
@@ -135,14 +193,12 @@ export default class EditTaskModel {
 
         return errors;
     }
-
     get dateTimeStringPartsAreValid () {
         return !(this.validationErrors.start.date.length ||
             this.validationErrors.start.time.length ||
             this.validationErrors.due.date.length ||
             this.validationErrors.due.time.length);
     }
-        
     /**
      * Return true if this task has no validation errors, false if it does.
      */
@@ -151,119 +207,62 @@ export default class EditTaskModel {
             !(this.validationErrors.title.length || 
             this.validationErrors.description.length)
             && this.dateTimeStringPartsAreValid
+            && this.task.isValid()
         );
     }
 
-    // ---- SETTERS ---- 
-    // ! Important ! Use these to set values even internally because they may have side effects
-
-    setStartDate (dateString) { 
-        // Set string to whatever the user typed
-        this.startDateStringBeingEdited = dateString;
-        // Only if this is can be converted to valid DateTime, update the overall start of the task.
-        if (this.dateTimeStringPartsAreValid) {
-            this.task.setStart();
-        }
-    }
+// -----------------------------------------------------------------------
+// ------------------------------- SETTERS ------------------------------- 
+// -----------------------------------------------------------------------
+//
+// !!! Important !!! Use these methods to set values, even internally, because 
+// they may have side effects...
 
     /**
-     * Set time as displayed to input string. If valid, also update the start time of the task.
+     * Set start date portion as displayed in text box to input string. 
+     * Doesn't have to be valid. If valid, also update the start time of the task.
+     * @param {String} dateString 
+     */
+    setStartDateString (dateString) { 
+        // Set string to whatever the user typed
+        this.startDateStringBeingEdited = dateString;
+        this.task.setStartDateFromString(dateString);
+    }
+    /**
+     * Set start time portion as displayed in text box to input string. 
+     * Doesn't have to be valid. If valid, also update the start time of the task.
      * @param {String} timeString 
      */
     setStartTimeString = (timeString)  =>  { 
         this.startTimeStringBeingEdited = timeString;
-        if (this.dateTimeStringPartsAreValid) {
-            this.task.setStart();
-        }
+        this.task.setStartTimeFromString(timeString);
     }
-
-    setDueDate (dateString) {
+    /**
+     * Set due date portion as displayed in text box to input string. 
+     * Doesn't have to be valid. If valid, also update the start time of the task.
+     * @param {String} dateString 
+     */
+    setDueDateString (dateString) {
         this.dueDateStringBeingEdited = dateString;
-        if (this.dateTimeStringPartsAreValid) {
-            this.task.setStart();
-        }
+        this.task.setDueDateFromString(dateString);
     }
-
-    setDueTime (timeString) { 
+    /**
+     * Set due time portion as displayed in text box to input string. 
+     * Doesn't have to be valid. If valid, also update the start time of the task.
+     * @param {String} dateString 
+     */
+    setDueTimeString (timeString) { 
         this.dueTimeStringBeingEdited = timeString;
-        if (this.dateTimeStringPartsAreValid) {
-            this.task.setStart();
-        }
+        this.task.setDueTimeFromString(timeString);
     }
-        
     /**
-     * Mark a task as being edited. This turns off autosave so changes made are not saved to the DB until `this.finishEditing` is called, or 
-     * changes are aborted with `this.abortEditing`.
+     * Set the task passed as "being edited". Only one task can be in this state at a time. 
+     * Updates to the trask model will not be saved to the DB, but changes will be synchronized 
+     * in the UI through the TaskStore.
+     * @param {TaskModel} task 
      */
-    startEditing() {
-        this.beingEdited = true;
-        this.store.taskBeingEdited = this;
-        if (!this.createdDate) {
-            this.autoSave = false;
-            // If this is a new task, set defaults
-            this.setComplete(false);
-            if (!this.due) {
-                this.setDue(this.defaultDue);
-                this.setStart(this.defaultStart);
-            }
-        }
-    }
-
-    /**
-     * Mark a task being edited as finished and save the task to the DB.
-     */
-    finishEditing () {
-        // Validate that there are no errors. If there are, raise an alert.
-        if (this.isValid) {
-            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Task could not be saved, it still has errors - " + this.validationErrors);
-            console.error(this.validationErrors);
-            console.error(this);
-            return;
-        } 
-        
-        // Post to server
-        this.store.API.createTask(this.asJson)
-        .catch(e => {
-            console.error(e)
-            addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
-            this.removeSelfFromStore();
-        });
-        this.beingEdited = false;
-        this.store.taskBeingEdited = null;
-        this.autoSave = true;
-    }
-
-    /**
-     * Abort any edits and delete task from the taskStore.
-     */
-    abortEditing () {
-        this.beingEdited = false;
-        this.store.taskBeingEdited = null;
-        if (!this.createdDate) {
-            // TODO make sure this is removing
-            this.removeSelfFromStore();
-        }
-        else {
-            // TODO
-        }
-    }
-
-    /**
-    * Create a new task marked as currently being edited. It will need to have
-    * `finishEditing()` called on it to save it to the DB.
-    * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
-    * a Luxon DateTime or string in ISO format.
-    */
-    static createInProgressTask (TaskStore, {dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
-        const task = new EditTaskModel((new TaskModel(TaskStore)));
-        if (dueDate) {
-            task.setDueDate(dueDate);
-        }
-        if (startDate) {
-            task.setStartDate(startDate);
-        }
-        task.startEditing(); 
-        TaskStore.add(task);
-        return task;
+    setTaskBeingEdited(task=null) {
+        // EditTaskModel.taskBeingEdited = task;
+        this.task.store.setEditing(task);
     }
 }

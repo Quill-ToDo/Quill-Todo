@@ -10,31 +10,38 @@ import {
     DATE_TIME_FORMATS,
 } from "../constants.js";
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "../Alerts/alertEvent.js";
-import TaskStore from "./TaskStore.js";
 
 export default class TaskModel {
+// !!! Fields must have defaults set here to be observable. 
+    // UUID
     id = null;
+    // String
     title = null;
-    complete = null;
+    // Boolean 
+    autoSave = true;
+    // Boolean
+    complete = false;
     // Luxon Interval
     workRange = null;
-    // Due separated into date and time, useful for when the task is being edited
     description = null;
+    // TaskStore
     store = null;
+    // DateTime
     createdDate = null;
-    beingEdited = null;
-    validationErrors;
 
 // !!! USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
 
     /**
-     * An object to represent one task in the database. It has the same fields as the task in the database and handles updating the task in the DB
+     * An object to represent one task in the database. It has the same 
+     * fields as the task in the database and handles updating the task in the DB
      * when any relevant fields change. 
      * 
-     * **Important:** Use setter methods to change any values, even internally. They may have side-effects.
+     * **Important:** Use setter methods to change any values, even internally. 
+     * They may have side-effects.
      * 
-     * @param {TaskStore} store The store this task resides in.
-     * @param {uuid} id V4 UUID id of the task. If one is not passed in, one is generated upon init.
+     * @param {TaskStore} store The store this task will be added to.
+     * @param {uuid} id V4 UUID id of the task. If one is not passed in, one 
+     * is generated upon init.
      */
     constructor (store, id = v4()) {
         makeAutoObservable(this, {
@@ -43,15 +50,16 @@ export default class TaskModel {
             saveHandlerDisposer: false,
         }, {proxy: false});
         this.store = store;
+        this.store.add(this);
         this.id = id;
         this.title = "";
         this.description = "";
-        this.beingEdited = false;
-        this.workRange = Interval.fromDateTimes(this.defaultStart, this.defaultDue);
+        this.setWorkRange(this.defaultStart, this.defaultDue);
         this.createdDate = null;
 
         /**
-         * If autosave is on, update this task in the DB when any field used in this tasks JSON format is changed.
+         * If autosave is on, update this task in the DB when any field used in this 
+         * tasks JSON format is changed.
          */
         this.saveHandlerDisposer = reaction(
             () => this.asJson,
@@ -60,7 +68,8 @@ export default class TaskModel {
                 if (this.autoSave) {
                     this.store.API.updateTask(this.id, json)
                     .catch(error => {
-                        addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Task could not be updated - " + error.toString());
+                        addAlert(document.querySelector('#home-wrapper'), 
+                        ERROR_ALERT, "Task could not be updated - " + error.toString());
                         // Revert changes
                         this.store.loadTasks();
                     });
@@ -73,15 +82,21 @@ export default class TaskModel {
      * @param {object} json 
      */
         updateFromJson(json) {
-            this.autoSave = false;
+            this.dontSaveToServer();
             this.setTitle(json.title);
             this.setDescription(json.description);
             this.setDue(json.due);
             this.setStart(json.start);
             this.setComplete(json.complete)
             this.createdDate = json.created_at;
-            this.autoSave = true;
+            this.saveToServer();
         }
+
+        
+// --------------------------------------------------------------------
+// ------------------------ LOGICAL METHODS ---------------------------
+// --------------------------------------------------------------------
+
     /**
      * Remove this task from the taskStore. Does NOT remove it form the DB.
      */
@@ -96,105 +111,98 @@ export default class TaskModel {
         this.removeSelfFromStore();
         this.store.API.deleteTask(this.id)
         .then(() => {
-            addAlert(document.getElementById('home-wrapper'), NOTICE_ALERT, "Deleted " + this.title);
+            addAlert(document.getElementById('home-wrapper'), 
+            NOTICE_ALERT, "Deleted " + this.title);
         })
         .catch(error => {
-            addAlert(document.getElementById('home-wrapper'), ERROR_ALERT, this.title + " could not be deleted - " + error.toString());
+            addAlert(document.getElementById('home-wrapper'), 
+            ERROR_ALERT, this.title + " could not be deleted - " + error.toString());
             this.store.add(this);
         });
     } 
-    /**
-     * Mark a task as being edited. This turns off autosave so changes made are not saved to the DB until `this.finishEditing` is called, or 
-     * changes are aborted with `this.abortEditing`.
-     */
-    startEditing() {
-        this.beingEdited = true;
-        this.store.taskBeingEdited = this;
-        if (!this.createdDate) {
-            this.autoSave = false;
-            // If this is a new task, set defaults
-            this.setComplete(false);
-            if (!this.due) {
-                this.setDue(this.defaultDue);
-                this.setStart(this.defaultStart);
-            }
-        }
-    }
-    /**
-     * Mark a task being edited as finished and save the task to the DB.
-     */
-    finishEditing () {
-        // Validate that there are no errors. If there are, raise an alert.
-        if (this.hasErrors) {
-            addAlert(document.querySelector('#new-wrapper'), ERROR_ALERT, "Task could not be saved, it still has errors - " + this.validationErrors);
-            console.error(this.validationErrors);
-            console.error(this);
-            return;
-        } 
-        
-        // Post to server
-        this.store.API.createTask(this.asJson)
-        .catch(e => {
-            console.error(e)
-            addAlert(document.querySelector('#home-wrapper'), ERROR_ALERT, "Could not add task - " + e);            
-            this.removeSelfFromStore();
-        });
-        this.beingEdited = false;
-        this.store.taskBeingEdited = null;
-        this.autoSave = true;
-    }
-    /**
-     * Abort any edits and delete task from the taskStore.
-     */
-    abortEditing () {
-        this.beingEdited = false;
-        this.store.taskBeingEdited = null;
-        if (!this.createdDate) {
-            // TODO make sure this is removing
-            this.removeSelfFromStore();
-        }
-    }
     /**
      * Toggle this tasks completion status between true and false.
      */
     toggleComplete () {
         this.setComplete(!this.complete);
     }
-
     /**
-     * Mark this task as the one that details should be rendered for
+     * Mark this task as the one that detail pop-up should be rendered for
      */
     setFocus() {
         this.store.setFocus(this);
     }
-    // ---- GETTERS ---- 
+    /**
+     * Turn on autosave for this task, so that changes to this TaskModel's fields will be 
+     * synced with the DB model
+     */
+    saveToServer () {
+        this.autoSave = true;
+    }
+    /**
+     * Turn off autosave for this task, so that changes to this TaskModel's fields will be 
+     * synced with the DB model
+     */
+    dontSaveToServer () {
+        this.autoSave = false;
+    }
+
+// -----------------------------------------------------------------------
+// ------------------------------- GETTERS ------------------------------- 
+// -----------------------------------------------------------------------
+
+    /**
+     * Get the start DateTime
+     */
     get start () {
         return this.workRange.start;
     }
+    /**
+     * Get the default start DateTime
+     */
     get defaultStart () {
         return DEFAULT_DUE_DATETIME.startOf("day");
     }
+    /**
+     * Get the due DateTime
+     */
     get due () {
         return this.workRange.end;
     }
+    /**
+     * Get the default due DateTime
+     */
     get defaultDue () {
         return DEFAULT_DUE_DATETIME;
     }
     /**
-     * Returns true if the default start date is currently being used. If false, the default start is not being used.
+     * Returns true if the default start date is currently being used. 
+     * If false, the default start is not being used.
      */
     get defaultStartBeingUsed () {
         return this.start.equals(this.defaultStart);
     }
+    /**
+     * Get the date portion as a string of the validated start DateTime
+     */
     get startDateString () {
         return DATE_TIME_FORMATS.D.serializer(this.start);
     }
+    /**
+     * Get the time portion as a string of the validated start DateTime
+     */
     get startTimeString () {
         return DATE_TIME_FORMATS.t.serializer(this.start);
     }
+    /**
+     * Get the date portion as a string of the validated due DateTime
+     */
     get dueDateString () {
         return DATE_TIME_FORMATS.D.serializer(this.due);
     }
+    /**
+     * Get the time portion as a string of the validated due DateTime
+     */
     get dueTimeString () {
         return DATE_TIME_FORMATS.t.serializer(this.due);
     }
@@ -256,15 +264,18 @@ export default class TaskModel {
         /// --- Description Errors ---
         /// --------------------------
         if (this.description.length > MAX_DESCRIPTION_LENGTH) { 
-            errors.description.push(taskCreationErrors.DESCRIPTION_TOO_LONG(this.description));
+            errors.description.push(
+                taskCreationErrors.DESCRIPTION_TOO_LONG(this.description));
         }
 
         /// -----------------------------------
         /// --- Start vs. Due String Errors ---
         /// -----------------------------------
-        // If some dates and times has been changed and start and due can both be converted to DateTimes,
+        // If some dates and times has been changed and start and due can 
+        // both be converted to DateTimes,
         // compare their values
-        // If some dates and times has been changed and everything is valid, compare values
+        // If some dates and times has been changed and everything is valid, 
+        // compare values
         if (
             (!errors.start.date.length && !errors.start.time.length) &&
             (!errors.due.date.length && !errors.due.time.length)
@@ -285,8 +296,8 @@ export default class TaskModel {
     /**
      * Return true is this task has any errors, false if not.
      */
-    get hasErrors () {
-        return (
+    get isValid () {
+        return !(
             this.validationErrors.title.length || 
             this.validationErrors.description.length ||
             this.validationErrors.start.date.length ||
@@ -295,11 +306,18 @@ export default class TaskModel {
             this.validationErrors.due.time.length
         )
     }
-    // ---- SETTERS ---- 
-    // ! Important ! Use these to set values even internally because they may have side effects
+    
+// -----------------------------------------------------------------------
+// ------------------------------- SETTERS ------------------------------- 
+// -----------------------------------------------------------------------
+//
+// !!! Important !!! Use these methods to set values, even internally, because 
+// they may have side effects...
+
     setTitle (title) { this.title = title; }
     setDescription (desc) { this.description = desc; }
     setComplete(complete) { this.complete = complete; }
+    setWorkRange(start, end) { this.workRange = Interval.fromDateTimes(start, end)}
     /**
      * Set the start of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
@@ -347,7 +365,7 @@ export default class TaskModel {
     setDueTimeFromString (timeString) { 
         this.setTimeFromString(this.due, this.setDue, timeString);
     }
-    // --- Helpers ---
+// -------------------------------------- Helpers -------------------------------------------
     setMarkerFromStringOrDt (dateTime, callback) {
         var validatedDate = null;
         switch (typeof(dateTime)) {
@@ -357,6 +375,8 @@ export default class TaskModel {
             case "datetime":
                 validatedDate = new DateTime(dateTime);
                 break;
+            default:
+                return;
         }
         if (validatedDate !== null) {
             callback(validatedDate);
