@@ -1,8 +1,8 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import  TaskModel  from "./TaskModel.js";
 import { DateTime } from "luxon";
-import { END_OF_DAY } from "../constants.js";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '../Alerts/alertEvent.js';
+import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "./DateTimeHelper.js";
 
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
@@ -30,7 +30,6 @@ export default class TaskStore {
             rootStore: false,
             isLoaded: true
         }, {proxy: false})
-
         this.rootStore = rootStore;
         this.API = API;
         this.tasks = [];
@@ -48,7 +47,7 @@ export default class TaskStore {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
-                fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
+                fetchedTasks.data.forEach(json => new TaskModel(this, json));
                 this.isLoaded = true;
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
@@ -66,37 +65,6 @@ export default class TaskStore {
     }
 
     /**
-     * Update one task with info and fields from the DB and guarantee that it only exists in the store once.
-     * @param {object} taskJson Info about this task in JSON format.
-     */
-    updateTaskFromServer (taskJson) {
-        let task = this.tasks.find(t => t.id === taskJson.id)
-        if (!task) {
-            // Does not yet exist in store
-            task = new TaskModel(this, taskJson.id);
-        }
-        task.updateFromJson(taskJson);
-    } 
-
-    /**
-     * @param {DateTime} time The DT to check.
-     * @returns true if the time occurs before the end of the current day, false otherwise.
-     */
-    timeOccursBeforeEOD (time) {
-        return (time <= END_OF_DAY())
-    }
-
-    /**
-     * 
-     * @param {DateTime} time The DT to check.
-     * @param {*} currentTime The current time. (now)
-     * @returns true if time occurs between now and the end of the current day, false otherwise.
-     */
-    timeOccursBetweenNowAndEOD (time, currentTime) {
-        return (this.timeOccursBeforeEOD(time) && (currentTime < time))
-    }
-
-    /**
      * Get tasks grouped by statuses: overdue, todayDue, todayWork, and upcoming. These are disjoint sets.
      */
     get byStatus() {
@@ -104,14 +72,14 @@ export default class TaskStore {
 
         return {
             "overdue": this.tasks.filter(task => task.due <= now),
-            "todayDue": this.tasks.filter(task => this.timeOccursBetweenNowAndEOD(task.due, now)),
+            "todayDue": this.tasks.filter(task => timeOccursBetweenNowAndEOD(task.due)),
             "todayWork": this.tasks.filter(task => 
                 (task.start && task.start <= now) 
                 && (now < task.due)
-                && !(this.timeOccursBetweenNowAndEOD(task.due, now))
+                && !(timeOccursBetweenNowAndEOD(task.due))
                 ),
             "upcoming": this.tasks.filter(task => 
-                (!task.start || now <= task.start) && !(this.timeOccursBeforeEOD(task.due, now))
+                (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
                 )
         }
     }

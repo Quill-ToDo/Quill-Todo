@@ -1,25 +1,63 @@
 import { makeAutoObservable } from "mobx"
 import {  
-    taskCreationErrors,
     stringToDateTimeHelper,
     DATE_TIME_FORMATS,
-} from "../constants.js";
+} from "./DateTimeHelper.js";
 import TaskModel from "./TaskModel.js";
 import { addAlert, ERROR_ALERT } from "../Alerts/alertEvent.js";
 
+const VALIDATION_ERROR_MESSAGES = {
+    INVALID_TIME_FORMAT: `Time is not of the format ${DATE_TIME_FORMATS().t.readable}. Ex: 10:30 am`,
+    INVALID_DATE_FORMAT: `Date is not of the format ${DATE_TIME_FORMATS().D.readable}. Ex: 7/26/2022`,
+    INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
+}
+
+/**
+ * A Model to add fields and methods needed to edit a task. 
+ *  - Use setters to change values, even internally. 
+ *  - Fields must have defaults set in CLASS FIELDS region to be observable. 
+ *  - Use setter methods as defined in CLASS FIELD GETTERS AND SETTERS region
+ *    to change fields, even internally in this file. They may have side-effects... 
+ *  - Define Getters, setters, and validation errors for each class field in 
+ *    the appropriate region or method.
+ *      - Getters and setters in CLASS FIELD GETTERS AND SETTERS region
+ *      - Validation errors in `get ValidationErrors()`. Name the class field key
+ *        for each array of errors after its field name as defined here.
+ *  - Must implement `get isValid()` which returns True if no fields defined in this class
+ *    ?? Or its parent class?? have any validation errors and this task may be saved 
+ *    to the database.  
+ */
 export default class EditTaskModel {
-// !!! Fields must have defaults set here to be observable. 
-    task = null;
-    beingEdited = true;
-    startTimeStringBeingEdited = "";
-    dueTimeStringBeingEdited = "";
-    startDateStringBeingEdited = "";
-    dueDateStringBeingEdited = "";
-    // static taskBeingEdited = null;
+//#region CLASS FIELDS AND CONSTRUCTOR
+    // "name" : Type : Description
+    // ----------------------------------------------------
+    // ---- Public ----
+        // get "task" : TaskModel : The task this inherits from.
+            task = null;
+        // get / set "startTimeString" : String : The text of the start time string 
+            // as the user edits this task. Does not need to be a valid time string to be
+            // set as this task is "in-progress" 
+            startTimeStringBeingEdited = "";
+        // get / set "startDateString" : String : The text of the start date string 
+            // as the user edits this task. Does not need to be a valid date string to be
+            // set as this task is "in-progress" 
+            startDateStringBeingEdited = "";
+        // get / set "dueTimeString" : String : The text of the due time string 
+            // as the user edits this task. Does not need to be a valid time string to be
+            // set as this task is "in-progress" 
+            dueTimeStringBeingEdited = "";
+        // get / set "dueDateString" : String : The text of the due date string 
+            // as the user edits this task. Does not need to be a valid date string to be
+            // set as this task is "in-progress" 
+            dueDateStringBeingEdited = "";
+        // get "validationErrors" : List<Objects> : A list of validation errors of this edited task.
+        // get "isValid" : Boolean : The fields in this task are parseable and it is safe to 
+            // update the parent TaskModel
+        // "" : EditTaskModel : 
+        // static taskBeingEdited = null;
 
-    
-// !!! USE SETTERS TO CHANGE VALUES, EVEN IN THIS FILE. 
-
+    // ---- Private ----
+    // ----------------------------------------------------
     /**
      * An object to represent one task in the database. It has the same fields as 
      * the task in the database and handles updating the task in the DB
@@ -45,18 +83,16 @@ export default class EditTaskModel {
         else if (taskStore !== null) {
             newTask = new TaskModel(taskStore);
         }
+        // Initialize all class fields not using setters
         this.task = newTask;
-        this.setStartTimeString(DATE_TIME_FORMATS.t.serializer(this.task.start));
-        this.setDueTimeString(DATE_TIME_FORMATS.t.serializer(this.task.due));
-        this.setStartDateString(DATE_TIME_FORMATS.D.serializer(this.task.start));
-        this.setDueDateString(DATE_TIME_FORMATS.D.serializer(this.task.due));
+        this.startDateStringBeingEdited = this.task.startDateString;
+        this.startTimeStringBeingEdited = this.task.startTimeString;
+        this.dueDateStringBeingEdited = this.task.dueDateString;
+        this.dueTimeStringBeingEdited = this.task.dueTimeString;
         this.startEditing(); 
     }
-
-// --------------------------------------------------------------------
-// ------------------------ LOGICAL METHODS ---------------------------
-// --------------------------------------------------------------------
-
+//#endregion
+//#region LOGICAL METHODS
     /**
      * Set the task passed as "being edited". Only one task can be 
      * in this state at a time. Updates to the trask model will not 
@@ -68,7 +104,17 @@ export default class EditTaskModel {
     startEditing() {
         // EditTaskModel.setTaskBeingEdited(this);
         this.task.dontSaveToServer();
-        this.setTaskBeingEdited(this.task);
+        this.setTaskBeingEdited(this);
+    }
+    /**
+     * Set the task passed as "being edited". Only one task can be in this state at a time. 
+     * Updates to the trask model will not be saved to the DB, but changes will be synchronized 
+     * in the UI through the TaskStore.
+     * @param {TaskModel} task 
+     */
+    setTaskBeingEdited(task=null) {
+        // EditTaskModel.taskBeingEdited = task;
+        this.task.store.setEditing(task);
     }
     /**
      * Mark a task being edited as "done" and save the task to the DB
@@ -111,131 +157,38 @@ export default class EditTaskModel {
             // TODO
         }
     }
-
-// -----------------------------------------------------------------------
-// ------------------------------- GETTERS ------------------------------- 
-// -----------------------------------------------------------------------
-
+//#endregion
+//#region CLASS FIELD GETTERS AND SETTERS
+//#region startDateString
     get startDateString () {
         return this.startDateStringBeingEdited;
     }
-    get startTimeString () {
-        return this.startTimeStringBeingEdited;
-    }
-    get dueDateString () {
-        return this.dueDateStringBeingEdited;
-    }
-    get dueTimeString () {
-        return this.dueTimeStringBeingEdited;
-    }
-    /**
-     * Get any validation errors as strings for this task in an object with the symbols and values:
-     * 
-     * {
-     *      title: [],
-     *      description: [],
-     *       start: {
-     *           date: [],
-     *           time: []
-     *       },
-     *       due: 
-     *          date: [],
-     *          time: []
-     *       }
-     *   }
-     */
-    get validationErrors() {
-        // Object to save error messages in
-        const errors = {
-            title: [],
-            description: [],
-            start: {
-                date: [],
-                time: []
-            },
-            due: {
-                date: [],
-                time: []
-            }
-        }
-
-        /// --------------------
-        /// --- Start Errors ---
-        /// --------------------
-        // Make sure date and time tokens are parseable separately
-        if (!DATE_TIME_FORMATS.t.deserializer(this.startTimeStringBeingEdited).isValid()) {
-            errors.start.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
-        }
-        if (!DATE_TIME_FORMATS.D.deserializer(this.startDateStringBeingEdited).isValid()) {
-            errors.start.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
-        }
-        // Make sure date and time tokens are parseable together
-        if (!stringToDateTimeHelper(`${this.startDateStringBeingEdited}  ${this.startTimeStringBeingEdited}`).isValid()) {
-            // TODO Add new message for this
-            errors.start.date.push(taskCreationErrors.INVALID_DATETIME_FORMAT);
-        }
-
-        /// --------------------
-        /// --- Due Errors -----
-        /// --------------------
-        // Make sure date and time tokens are parseable separately
-        if (!DATE_TIME_FORMATS.t.deserializer(this.dueTimeStringBeingEdited).isValid()) {
-            errors.due.time.push(taskCreationErrors.INVALID_TIME_FORMAT);
-        }
-        if (!DATE_TIME_FORMATS.D.deserializer(this.dueDateStringBeingEdited).isValid()) {
-            errors.due.date.push(taskCreationErrors.INVALID_DATE_FORMAT);
-        }
-        // Make sure date and time tokens are parseable together
-        if (!stringToDateTimeHelper(`${this.dueDateStringBeingEdited}  ${this.dueTimeStringBeingEdited}`).isValid()) {
-            // TODO Add new message for this
-            errors.due.date.push(taskCreationErrors.INVALID_DATETIME_FORMAT);
-        }
-
-        return errors;
-    }
-    get dateTimeStringPartsAreValid () {
-        return !(this.validationErrors.start.date.length ||
-            this.validationErrors.start.time.length ||
-            this.validationErrors.due.date.length ||
-            this.validationErrors.due.time.length);
-    }
-    /**
-     * Return true if this task has no validation errors, false if it does.
-     */
-    get isValid () {
-        return (
-            !(this.validationErrors.title.length || 
-            this.validationErrors.description.length)
-            && this.dateTimeStringPartsAreValid
-            && this.task.isValid()
-        );
-    }
-
-// -----------------------------------------------------------------------
-// ------------------------------- SETTERS ------------------------------- 
-// -----------------------------------------------------------------------
-//
-// !!! Important !!! Use these methods to set values, even internally, because 
-// they may have side effects...
-
-    /**
-     * Set start date portion as displayed in text box to input string. 
-     * Doesn't have to be valid. If valid, also update the start time of the task.
-     * @param {String} dateString 
-     */
-    setStartDateString (dateString) { 
-        // Set string to whatever the user typed
+    setStartDateString = (dateString)  =>  { 
         this.startDateStringBeingEdited = dateString;
-        this.task.setStartDateFromString(dateString);
+        if (this.validationErrors.startDateString.length === 0) {
+            this.task.setStart(`${dateString} ${this.startTimeString}`);
+        }
+    }
+//#endregion
+//#region startTimeString
+    get startTimeString () {
+        return this.startDateStringBeingEdited;
     }
     /**
      * Set start time portion as displayed in text box to input string. 
-     * Doesn't have to be valid. If valid, also update the start time of the task.
+     * Doesn't have to be valid. If it is parseable, also update the start time of the task.
      * @param {String} timeString 
      */
     setStartTimeString = (timeString)  =>  { 
         this.startTimeStringBeingEdited = timeString;
-        this.task.setStartTimeFromString(timeString);
+        if (this.validationErrors.startTimeString.length === 0) {
+            this.task.setStart(`${this.startDateString} ${timeString}`);
+        }
+    }
+//#endregion
+//#region dueDateString
+    get dueDateString () {
+        return this.dueDateStringBeingEdited;
     }
     /**
      * Set due date portion as displayed in text box to input string. 
@@ -244,7 +197,14 @@ export default class EditTaskModel {
      */
     setDueDateString (dateString) {
         this.dueDateStringBeingEdited = dateString;
-        this.task.setDueDateFromString(dateString);
+        if (this.validationErrors.dueDateString.length === 0) {
+            this.task.setDue(`${dateString} ${this.dueTimeString}`);
+        }
+    }
+//#endregion
+//#region dueTimeString
+    get dueTimeString () {
+        return this.dueTimeStringBeingEdited;
     }
     /**
      * Set due time portion as displayed in text box to input string. 
@@ -253,16 +213,71 @@ export default class EditTaskModel {
      */
     setDueTimeString (timeString) { 
         this.dueTimeStringBeingEdited = timeString;
-        this.task.setDueTimeFromString(timeString);
+        if (this.validationErrors.dueTimeString.length === 0) {
+            this.task.setDue(`${this.dueDateString} ${timeString}`);
+        }
+    }
+//#endregion
+//#endregion CLASS FIELD GETTERS AND SETTERS
+//#region VALIDATION
+    /**
+     * Get any validation errors as strings for this task in an object with the symbols and values:
+     * 
+     */
+    get validationErrors() {
+        // Object to save error messages in
+        const errors = {
+            title: this.task.validationErrors.title,
+            description: this.task.validationErrors.description, 
+            start: this.task.validationErrors.start,
+            startTimeString: [],
+            startDateString: [],
+            due: this.task.validationErrors.due,
+            dueTimeString: [],
+            dueDateString: [],
+        }
+        // startTimeString : Make sure time string is parseable
+        //TODO: Fix, it's breaking here.
+        if (!DATE_TIME_FORMATS().t.deserializer(this.startTimeString).isValid) {
+            errors.startTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
+        }
+        // startDateString : Make sure date string is parseable
+        if (!DATE_TIME_FORMATS().D.deserializer(this.startDateString).isValid) {
+            errors.startDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
+        }
+        // start : Make sure date and time strings are parseable when combined
+        if (!stringToDateTimeHelper(`${this.startDateStringBeingEdited}  ${this.startDateStringBeingEdited}`).isValid) {
+            // TODO Add new message for this
+            errors.start.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
+        }
+        // dueTimeString : Make sure time string is parseable
+        if (!DATE_TIME_FORMATS().t.deserializer(this.dueTimeStringBeingEdited).isValid) {
+            errors.dueTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
+        }
+        // dueDateString : Make sure date string is parseable
+        if (!DATE_TIME_FORMATS().D.deserializer(this.dueDateStringBeingEdited).isValid) {
+            errors.dueDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
+        }
+        // due : Make sure date and time strings are parseable when combined
+        if (!stringToDateTimeHelper(`${this.dueDateStringBeingEdited}  ${this.dueTimeStringBeingEdited}`).isValid) {
+            // TODO Add new message for this
+            errors.due.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
+        }
+        // TODO: Figure out how to add TaskModel Validation Errors here
+        return errors;
     }
     /**
-     * Set the task passed as "being edited". Only one task can be in this state at a time. 
-     * Updates to the trask model will not be saved to the DB, but changes will be synchronized 
-     * in the UI through the TaskStore.
-     * @param {TaskModel} task 
+     * Return true if fields in EditTaskModel are valid
      */
-    setTaskBeingEdited(task=null) {
-        // EditTaskModel.taskBeingEdited = task;
-        this.task.store.setEditing(task);
+    get isValid () {
+        let allWatchedFieldsValidated = true;
+        for (let key in this.validationErrors) {
+            if (this.validationErrors[key].length !== 0) {
+                allWatchedFieldsValidated = false;
+                break; 
+            }
+        }
+        return allWatchedFieldsValidated;
     }
+//#endregion
 }
