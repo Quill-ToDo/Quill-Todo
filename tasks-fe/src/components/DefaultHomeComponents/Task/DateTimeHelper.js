@@ -56,7 +56,6 @@ export const stringToDateTimeHelper = (dtString) =>
         }
         var formatter;
         for (let formatKey in DATE_TIME_FORMATS().DateAndTime) {
-            console.log(formatKey);
             formatter = DATE_TIME_FORMATS().DateAndTime[formatKey];
             date = formatter.deserializer(dtString);
             if (!date.invalid) {

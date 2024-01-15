@@ -89,7 +89,15 @@ export default class EditTaskModel {
         this.startTimeStringBeingEdited = this.task.startTimeString;
         this.dueDateStringBeingEdited = this.task.dueDateString;
         this.dueTimeStringBeingEdited = this.task.dueTimeString;
-        this.startEditing(); 
+        // Set inherited methods
+        this.setTitle = this.task.setTitle;
+        this.setDescription = this.task.setDescription;
+        this.setComplete = this.task.setComplete;
+        this.setStart = this.task.setStart;
+        this.setDue = this.task.setDue;
+        this.saveToServer = this.task.saveToServer;
+        this.dontSaveToServer = this.task.dontSaveToServer;
+        this.startEditing();
     }
 //#endregion
 //#region LOGICAL METHODS
@@ -141,14 +149,14 @@ export default class EditTaskModel {
             this.removeSelfFromStore();
         });
 
-        EditTaskModel.setTaskBeingEdited(null);
+        this.setTaskBeingEdited(null);
         this.task.saveToServer();
     }
     /**
      * Abort any edit changes and delete task from the TaskStore.
      */
     abortEditing () {
-        EditTaskModel.setTaskBeingEdited(null);
+        this.setTaskBeingEdited(null);
         if (!this.createdDate) {
             // TODO make sure this is removing
             this.removeSelfFromStore();
@@ -218,6 +226,14 @@ export default class EditTaskModel {
         }
     }
 //#endregion
+//#region Methods inherited from TaskModel
+    get title () { return this.task.title; };
+    get description () { return this.task.description; };
+    get complete () { return this.task.complete; }
+    get start () { return this.task.start; }
+    get due () { return this.task.due; }
+
+//endregion
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
     /**
@@ -237,7 +253,6 @@ export default class EditTaskModel {
             dueDateString: [],
         }
         // startTimeString : Make sure time string is parseable
-        //TODO: Fix, it's breaking here.
         if (!DATE_TIME_FORMATS().t.deserializer(this.startTimeString).isValid) {
             errors.startTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
         }

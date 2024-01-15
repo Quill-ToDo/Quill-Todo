@@ -324,7 +324,7 @@ export default class TaskModel {
         }
 
         const errorMessages = {
-            NO_TITLE: `This task must have a name`,
+            NO_TITLE: `Give this task a name`,
             TITLE_TOO_LONG: (title) => `Title is ${pluralize(`character`, title.length-MAX_TITLE_LENGTH, true)} too long`,
             DESCRIPTION_TOO_LONG: (description) => `Description is ${pluralize(`character`, description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
             START_TIME_AFTER_DUE: `Due time must be after start time`,
