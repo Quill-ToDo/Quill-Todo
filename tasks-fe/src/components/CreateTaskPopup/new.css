@@ -71,6 +71,8 @@ body {
   margin-top: 15px;
   width: 40%;
   height: 40px;
+  font-weight: bold;
+  font-size: 35px;
 }
 
 form input:focus,

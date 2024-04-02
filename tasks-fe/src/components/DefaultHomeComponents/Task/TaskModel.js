@@ -61,6 +61,8 @@ export default class TaskModel {
         //    user will be working on the task. Access start and end points with 
         //    `start` and `due` setters and getters.
             workRange = null;
+            invalidStart = null;
+            invalidDue = null;
         // get "defaultStart" : Luxon DateTime : Default start date of any task
         // get "defaultDue" : Luxon DateTime : Default due date of any task
     // ----------------------------------------------------
@@ -87,6 +89,8 @@ export default class TaskModel {
         this.title = "";
         this.description = "";
         this.workRange = Interval.fromDateTimes(this.defaultStart, this.defaultDue);
+        this.invalidStart = null;
+        this.invalidDue = null;
         this.createdDate = null;
         // If there was Task data passed in as JSON, update this object give
         // passed data
@@ -163,12 +167,12 @@ export default class TaskModel {
 //#endregion
 //#region workRange
     setWorkRange(start, end) { 
-        try {
-            this.workRange = Interval.fromDateTimes(start, end);
+        this.workRange = Interval.fromDateTimes(start, end);
+        if (!this.workRange.isValid) {
         }
-        catch (e) {
-            throw new Error(`Could not set workRange: ${e}`);
-        }
+            this.invalidStart = start;
+            this.invalidDue = end;
+
     }
 //#endregion
 //#region start
@@ -176,7 +180,7 @@ export default class TaskModel {
      * Get the start DateTime
      */
     get start () {
-        return this.workRange.start;
+        return this.workRange.start ? this.workRange.start : this.invalidStart;
     }
     /**
      * Set the start of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
@@ -199,13 +203,13 @@ export default class TaskModel {
      * Get the date portion as a string of the validated start DateTime
     */
     get startDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.workRange.start);
+        return DATE_TIME_FORMATS().D.serializer(this.start);
     }
     /**
      * Get the time portion as a string of the validated start DateTime
     */
     get startTimeString () {
-        return DATE_TIME_FORMATS().t.serializer(this.workRange.start);
+        return DATE_TIME_FORMATS().t.serializer(this.start);
     }
     /**
      * Get the default start DateTime
@@ -226,7 +230,7 @@ export default class TaskModel {
      * Get the due DateTime
      */
     get due () {
-        return this.workRange.end;
+        return this.workRange.end ? this.workRange.end : this.invalidDue;
     }
     /**
      * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
@@ -247,13 +251,13 @@ export default class TaskModel {
      * Get the date portion as a string of the validated due DateTime
      */
     get dueDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.workRange.end);
+        return DATE_TIME_FORMATS().D.serializer(this.due);
     }
     /**
      * Get the time portion as a string of the validated due DateTime
      */
     get dueTimeString () {
-        return DATE_TIME_FORMATS().t.serializer(this.workRange.end);
+        return DATE_TIME_FORMATS().t.serializer(this.due);
     }
     /**
      * Get the default due DateTime

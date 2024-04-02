@@ -250,7 +250,9 @@ export default class EditTaskModel {
             due: this.task.validationErrors.due,
             dueTimeString: [],
             dueDateString: [],
+            workInterval: this.task.validationErrors.workInterval,
         }
+
         // startTimeString : Make sure time string is parseable
         if (!DATE_TIME_FORMATS().t.deserializer(this.startTimeString).isValid) {
             errors.startTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
@@ -277,7 +279,7 @@ export default class EditTaskModel {
             // TODO Add new message for this
             errors.due.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
         }
-        // TODO: Figure out how to add TaskModel Validation Errors here
+
         return errors;
     }
     /**

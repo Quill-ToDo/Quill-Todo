@@ -19,7 +19,6 @@ const TaskCreatePopup = observer((props) => {
             </li>
         })
     }
-
     /**
      * @param {string[]} errors List of errors to display 
      * @returns List of errors
@@ -36,7 +35,6 @@ const TaskCreatePopup = observer((props) => {
             return <p className="error-list">{errors[0]}</p>
         }
     }
-
     /**
      * 
      * A wrapper for time and date form fields.
@@ -95,7 +93,6 @@ const TaskCreatePopup = observer((props) => {
             </div>
         </div>
     }
-
     /**
      * @param {string} name Name of DOM element
      * @param {string} type DOM element type
@@ -104,7 +101,6 @@ const TaskCreatePopup = observer((props) => {
     const getSelector = (name, type) => {
         return `#new-wrapper ${type}[name='${name}']`;
     }
-
     /**
      * Handle submission of the form. Validates that the task does not have any errors. If it does, it moves focus to the first field in the form
      * with errors. Otherwise, the task is saved to the DB.
@@ -140,7 +136,6 @@ const TaskCreatePopup = observer((props) => {
 
         focusEle.focus();
     }
-
     const checkRemoveErrorOutline = (fieldInfo) => {
         // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
         // Validation errors after they are set.
@@ -149,13 +144,12 @@ const TaskCreatePopup = observer((props) => {
             elem.setAttribute("aria-invalid", "false");
         }
     }
-
     const taskToCreate = props.taskStore.taskBeingEdited;
 
     const fields = {
         title: {
             name: `Title`,
-            id: `title`,
+            errorId: `title`,
             value: taskToCreate.title,
             errors: taskToCreate.validationErrors.title,
             selector: function () { return getSelector(fields.title.name, 'input'); },
@@ -166,7 +160,7 @@ const TaskCreatePopup = observer((props) => {
         },
         desc: {
             name: `Description`,
-            id: `desc`,
+            errorId: `desc`,
             value: taskToCreate.description,
             errors: taskToCreate.validationErrors.description,
             selector: function () { return getSelector(fields.desc.name, 'textarea'); },
@@ -177,7 +171,7 @@ const TaskCreatePopup = observer((props) => {
         },
         startDate: {
             name: `Start Date`,
-            id: `startDate`,
+            errorId: `startDate`,
             value: taskToCreate.startDateString,
             errors: taskToCreate.validationErrors.startDateString,
             selector: function () { return getSelector(fields.startDate.name, 'input'); },
@@ -188,9 +182,9 @@ const TaskCreatePopup = observer((props) => {
         },
         startTime: {
             name: `Start Time`,
-            id: `startTime`,
+            errorId: `startTime`,
             value: taskToCreate.startTimeString,
-            errors: function () { return taskToCreate.validationErrors.startTimeString; },
+            errors: taskToCreate.validationErrors.startTimeString,
             selector: function () { return getSelector(fields.startTime.name, 'input'); },
             change: function (e) {
                 taskToCreate.setStartTimeString(e.target.value);
@@ -199,7 +193,7 @@ const TaskCreatePopup = observer((props) => {
         },
         dueDate: {
             name: `Due Date`,
-            id: `dueDate`,
+            errorId: `dueDate`,
             value: taskToCreate.dueDateString,
             errors: taskToCreate.validationErrors.dueDateString,
             selector:  function () { return getSelector(fields.dueDate.name, 'input'); },
@@ -210,15 +204,22 @@ const TaskCreatePopup = observer((props) => {
         },
         dueTime: {
             name: `Due Time`,
-            id: `dueTime`,
+            errorId: `dueTime`,
             value: taskToCreate.dueTimeString,
-            errors:  function () { return taskToCreate.validationErrors.dueTimeName; },
+            errors:  taskToCreate.validationErrors.dueTimeString,
             selector:  function () { return getSelector(fields.dueTime.name, 'input'); },
             change: function (e) {
                 taskToCreate.setDueTimeString(e.target.value);
                 checkRemoveErrorOutline(fields.dueTime);
             },
         },
+        workInterval : {
+            name: `Work Range`,
+            errorId: 'dateRange',
+            value: '',
+            selector: function () { return getSelector(fields.startDate.name, 'input'); },
+            errors:  taskToCreate.validationErrors.workInterval,
+        }
     }
 
     useEffect(() => {
@@ -280,7 +281,8 @@ const TaskCreatePopup = observer((props) => {
                         />
                     </div>
                     <div className="centered">
-                        <button id="add-btn" className="btn not-square" type="submit" formNoValidate={true}>Add task</button>
+                        { fields.workInterval.errors.length ? ErrorsList(fields.workInterval.errors, fields.workInterval.errorId) : null }
+                        <button id="add-btn" className="btn not-square" type="submit" formNoValidate={true}>+</button>
                     </div>
                 </form>
             </section>

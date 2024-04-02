@@ -75,6 +75,11 @@ export const dateTimeHelper = (maybeDateTime) => {
         case "datetime":
             validatedDate = new DateTime(maybeDateTime);
             break;
+        case "object":
+            if (maybeDateTime.isLuxonDateTime) {
+                validatedDate = maybeDateTime;
+                break;
+            }
         default:
             validatedDate = DateTime.invalid("Invalid string or DateTime", "Please provide a valid string or DateTime");
             break;
