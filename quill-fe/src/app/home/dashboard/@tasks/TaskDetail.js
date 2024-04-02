@@ -6,7 +6,7 @@ import React, {
 import Task from "@/dash/@tasks/Task";
 import './TaskDetail.css';
 import { observer } from "mobx-react-lite";
-import { addAlert, NOTICE_ALERT } from '@/alerts';
+import { addAlert, NOTICE_ALERT } from '@/alerts/alertEvent';
 
 function handleEdit () {
     addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
