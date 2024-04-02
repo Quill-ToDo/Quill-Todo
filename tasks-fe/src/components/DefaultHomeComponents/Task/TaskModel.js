@@ -199,7 +199,7 @@ export default class TaskModel {
      * Get the date portion as a string of the validated start DateTime
     */
     get startDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.start);
+        return DATE_TIME_FORMATS().D.serializer(this.workRange.start);
     }
     /**
      * Get the time portion as a string of the validated start DateTime
@@ -247,13 +247,13 @@ export default class TaskModel {
      * Get the date portion as a string of the validated due DateTime
      */
     get dueDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.due);
+        return DATE_TIME_FORMATS().D.serializer(this.workRange.end);
     }
     /**
      * Get the time portion as a string of the validated due DateTime
      */
     get dueTimeString () {
-        return DATE_TIME_FORMATS().t.serializer(this.due);
+        return DATE_TIME_FORMATS().t.serializer(this.workRange.end);
     }
     /**
      * Get the default due DateTime

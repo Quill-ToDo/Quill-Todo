@@ -2,166 +2,154 @@ import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import './new.css';
 const ERROR_ID_END = "-error-list";
-/**
- * @param {string[]} errors List of errors to display 
- * @returns Content of errors list. Separated from the list for performance.
- */
-const ErrorsListContent = (errors) => {
-    return errors.map((errorText) => {
-        return <li key={"error-"+errorText}>
-            {errorText}
-        </li>
-    })
-}
-
-/**
- * @param {string[]} errors List of errors to display 
- * @returns List of errors
- */
-const errorsList = (errors, id) => {
-    if (errors.length > 1) {
-        return <Fragment> 
-            <ul id={id} className="error-list" aria-live="polite">
-                <ErrorsListContent errors={errors} />
-            </ul>
-        </Fragment>
-    }
-    else {
-        return <p className="error-list">{errors[0]}</p>
-    }
-}
-
-/**
- * 
- * A wrapper for time and date form fields.
- * 
- * ---
- * 
- * *Required props:*
- *  - **label** : string - Label that will be used in classes and IDs. "start" or "due" probably.
- *  - **date** : string - The date that will appear in the date form field
- *  - **time** : string - The time that will appear in the time form field
- *  - **dateErrors** : object - Any errors for this field
- *  - **timeErrors"* : object - Any errors for this field
- *  - **dateChangeCallback** : () => any - Method that will be called when the date is changed
- *  - **timeChangeCallback** : () => any - Method that will be called when the time is changed 
- * 
- * @param {*} props
- * @returns 
- */
-const TimeDateLabel = (props) => {
-    const startOrDue = props.label;
-    const date = props.date;
-        // name: `Due Date`,
-        // value: taskToCreate.dueDateString,
-        // errors: taskToCreate.validationErrors.dueDateString,
-        // selector: getSelector(dueDateName, 'input'),
-        // change: function (e) {
-        //     taskToCreate.setDueDateFromString(e.target.value);
-        //     checkRemoveErrorOutline(this);
-        // }
-    const time = props.time;
-    return <div>
-        <h3>{startOrDue}</h3>
-        <div className={"horizontal-align"}>
-            <label className={date.id}>
-                {date.name}
-                <input
-                    name={date.name}
-                    onChange={date.change}
-                    value={date.value}
-                    aria-describedby={date.errorId}
-                    />
-            </label>
-            <label className={time.id}>
-                {time.name}
-                <div className={"horizontal-align"}>
-                    <input
-                        id={`${startOrDue}-${time.id}`}
-                        name={time.name}
-                        onChange={time.change}
-                        value={time.value}
-                        aria-describedby={time.errorId}
-                    />
-                    <button 
-                        id={`datetime-picker-${startOrDue}`} 
-                        className="btn no-shadow datepicker-toggle" 
-                        type="button"
-                        name={`${startOrDue} time picker`}
-                        title={`Choose ${startOrDue} time`}
-                        >
-                        <i className="far fa-clock fa-fw"></i>
-                    </button>
-                </div>
-            </label>
-        </div>
-        <div className="horizontal-align">
-        { date.errors.length ? errorsList(date.errors, date.errorId) : null }
-        { time.errors.length ? errorsList(time.errors, time.errorId) : null }
-        </div>
-    </div>
-}
-
-/**
- * @param {string} name Name of DOM element
- * @param {string} type DOM element type
- * @returns A selector string for an element with #new-wrapper with type type and name name.
- */
-const getSelector = (name, type) => {
-    return `#new-wrapper ${type}[name='${name}']`;
-}
-
-
-/**
- * Handle submission of the form. Validates that the task does not have any errors. If it does, it moves focus to the first field in the form
- * with errors. Otherwise, the task is saved to the DB.
- * 
- * @param {SubmitEvent} event
- * @param {Task} taskToCreate 
- * @returns
- */
-const handleSubmit = (event, taskToCreate, possibleInputs) => {
-    event.preventDefault();
-    let focusEle = null;
-
-    // Get element with errors to switch focus to
-    for (const name in possibleInputs) {
-        const field = possibleInputs[name];
-        const elem = document.querySelector(field.selector);
-        if (field.errors.length) {
-            if (!focusEle) {
-                focusEle = elem;
-            }
-            elem.setAttribute("aria-invalid", "true");
-        }
-        else {
-            elem.setAttribute("aria-invalid", "false");
-        }
-    }
-
-    if (!focusEle) {
-        // Valid 
-        taskToCreate.finishEditing();
-        return;
-    }
-
-    focusEle.focus();
-}
-
-const checkRemoveErrorOutline = (fieldInfo) => {
-    // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
-    // Validation errors after they are set.
-    const elem = document.querySelector(fieldInfo.selector);
-    if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
-        elem.setAttribute("aria-invalid", "false");
-    }
-}
 
 /**
  * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
  * in TaskStore.
  */
-const TaskCreatePopup = observer((props) => {    
+const TaskCreatePopup = observer((props) => {
+    /**
+     * @param {string[]} errors List of errors to display 
+     * @returns Content of errors list. Separated from the list for performance.
+     */
+    const ErrorsListContent = (errors) => {
+        return errors.map((errorText) => {
+            return <li key={"error-"+errorText}>
+                {errorText}
+            </li>
+        })
+    }
+
+    /**
+     * @param {string[]} errors List of errors to display 
+     * @returns List of errors
+     */
+    const ErrorsList = (errors, id) => {
+        if (errors.length > 1) {
+            return <Fragment> 
+                <ul id={id} className="error-list" aria-live="polite">
+                    <ErrorsListContent errors={errors} />
+                </ul>
+            </Fragment>
+        }
+        else {
+            return <p className="error-list">{errors[0]}</p>
+        }
+    }
+
+    /**
+     * 
+     * A wrapper for time and date form fields.
+     * 
+     * ---
+     * 
+     * *Required props:*
+     *  - **label** : string - Label that will be used in classes and IDs. "start" or "due" probably.
+     *  - **date** : object - The date that will appear in the date form field
+     *       - **name**: string - name of the field
+     *       - **id**: string - to use for IDs
+     *       - **value**: string - value of the field
+     *       - **errors**: list<string> - errors of the field
+     *       - **selector**: function () - returns string to use to select this element
+     *       - **change**: function (e) - method to call on change
+     *  - **time** : object - The time that will appear in the time form field
+     *     - Same format as **date** above
+     * @param {*} props
+     * @returns 
+     */
+    const TimeDateLabel = (props) => {
+        const startOrDue = props.label;
+        const date = props.date;
+        const time = props.time;
+        const timeErrorId = `${time.id}${ERROR_ID_END}`;
+        const dateErrorId = `${date.id}${ERROR_ID_END}`;
+        return <div>
+            <h3>{startOrDue}</h3>
+            <div className={"horizontal-align"}>
+                <label className={date.id}>
+                    {date.name}
+                    <input
+                        id={`${date.id}-input`}
+                        name={date.name}
+                        onChange={date.change}
+                        value={date.value}
+                        aria-describedby={dateErrorId}
+                        />
+                </label>
+                <label className={time.id}>
+                    {time.name}
+                    <div className={"horizontal-align"}>
+                        <input
+                            id={`${time.id}-input`}
+                            name={time.name}
+                            onChange={time.change}
+                            value={time.value}
+                            aria-describedby={timeErrorId}
+                        />
+                    </div>
+                </label>
+            </div>
+            <div className="horizontal-align">
+            { date.errors.length ? ErrorsList(date.errors, dateErrorId) : null }
+            { time.errors.length ? ErrorsList(time.errors, timeErrorId) : null }
+            </div>
+        </div>
+    }
+
+    /**
+     * @param {string} name Name of DOM element
+     * @param {string} type DOM element type
+     * @returns A selector string for an element with #new-wrapper with type type and name name.
+     */
+    const getSelector = (name, type) => {
+        return `#new-wrapper ${type}[name='${name}']`;
+    }
+
+    /**
+     * Handle submission of the form. Validates that the task does not have any errors. If it does, it moves focus to the first field in the form
+     * with errors. Otherwise, the task is saved to the DB.
+     * 
+     * @param {SubmitEvent} event
+     * @param {Task} taskToCreate 
+     * @returns
+     */
+    const handleSubmit = (event, taskToCreate, possibleInputs) => {
+        event.preventDefault();
+        let focusEle = null;
+
+        // Get element with errors to switch focus to
+        for (const name in possibleInputs) {
+            const field = possibleInputs[name];
+            const elem = document.querySelector(field.selector());
+            if (field.errors.length) {
+                if (!focusEle) {
+                    focusEle = elem;
+                }
+                elem.setAttribute("aria-invalid", "true");
+            }
+            else {
+                elem.setAttribute("aria-invalid", "false");
+            }
+        }
+
+        if (!focusEle) {
+            // Valid 
+            taskToCreate.finishEditing();
+            return;
+        }
+
+        focusEle.focus();
+    }
+
+    const checkRemoveErrorOutline = (fieldInfo) => {
+        // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
+        // Validation errors after they are set.
+        const elem = document.querySelector(fieldInfo.selector());
+        if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
+            elem.setAttribute("aria-invalid", "false");
+        }
+    }
+
     const taskToCreate = props.taskStore.taskBeingEdited;
 
     const fields = {
@@ -170,68 +158,66 @@ const TaskCreatePopup = observer((props) => {
             id: `title`,
             value: taskToCreate.title,
             errors: taskToCreate.validationErrors.title,
-            selector: function () { return getSelector(this.name, 'input'); },
+            selector: function () { return getSelector(fields.title.name, 'input'); },
             change: function (e) {
                 taskToCreate.setTitle(e.target.value);
-                checkRemoveErrorOutline(this);
+                checkRemoveErrorOutline(fields.title);
             },
-            errorId: `title-${ERROR_ID_END}`,
         },
         desc: {
             name: `Description`,
+            id: `desc`,
             value: taskToCreate.description,
             errors: taskToCreate.validationErrors.description,
-            selector: function () { getSelector(this.name, 'textarea'); },
+            selector: function () { return getSelector(fields.desc.name, 'textarea'); },
             change: function (e) {
                 taskToCreate.setDescription(e.target.value);
-                checkRemoveErrorOutline(this);
+                checkRemoveErrorOutline(fields.desc);
             },
-            errorId: `desc-${ERROR_ID_END}`,
         },
         startDate: {
             name: `Start Date`,
+            id: `startDate`,
             value: taskToCreate.startDateString,
             errors: taskToCreate.validationErrors.startDateString,
-            selector: function () { return getSelector(this.name, 'input')},
+            selector: function () { return getSelector(fields.startDate.name, 'input'); },
             change: function (e) {
-                taskToCreate.setStartDateFromString(e.target.value);
-                checkRemoveErrorOutline(this);
+                taskToCreate.setStartDateString(e.target.value);
+                checkRemoveErrorOutline(fields.startDate);
             },
-            errorId: `startDate-${ERROR_ID_END}`,
         },
         startTime: {
             name: `Start Time`,
+            id: `startTime`,
             value: taskToCreate.startTimeString,
             errors: function () { return taskToCreate.validationErrors.startTimeString; },
-            selector: function () { return getSelector(this.name, 'input'); },
+            selector: function () { return getSelector(fields.startTime.name, 'input'); },
             change: function (e) {
-                taskToCreate.setStartTimeFromString(e.target.value);
-                checkRemoveErrorOutline(this);
+                taskToCreate.setStartTimeString(e.target.value);
+                checkRemoveErrorOutline(fields.startTime);
             },
-            errorId: `startTime-${ERROR_ID_END}`,
         },
         dueDate: {
             name: `Due Date`,
+            id: `dueDate`,
             value: taskToCreate.dueDateString,
             errors: taskToCreate.validationErrors.dueDateString,
-            selector:  function () { return getSelector(this.name, 'input'); },
+            selector:  function () { return getSelector(fields.dueDate.name, 'input'); },
             change: function (e) {
-                taskToCreate.setDueDateFromString(e.target.value);
-                checkRemoveErrorOutline(this);
+                taskToCreate.setDueDateString(e.target.value);
+                checkRemoveErrorOutline(fields.dueDate);
             },
-            errorId: `dueDate-${ERROR_ID_END}`,
         },
         dueTime: {
             name: `Due Time`,
+            id: `dueTime`,
             value: taskToCreate.dueTimeString,
             errors:  function () { return taskToCreate.validationErrors.dueTimeName; },
-            selector:  function () { return getSelector(this.name, 'input'); },
+            selector:  function () { return getSelector(fields.dueTime.name, 'input'); },
             change: function (e) {
-                taskToCreate.setDueTimeFromString(e.target.value);
-                checkRemoveErrorOutline(this);
+                taskToCreate.setDueTimeString(e.target.value);
+                checkRemoveErrorOutline(fields.dueTime);
             },
-            errorId: `dueTime-${ERROR_ID_END}`,
-
         },
     }
 
@@ -270,7 +256,7 @@ const TaskCreatePopup = observer((props) => {
                             required
                             />
                     </label>
-                    { fields.title.errors.length ? errorsList(fields.title.errors, fields.title.errorId) : null }
+                    { fields.title.errors.length ? ErrorsList(fields.title.errors, fields.title.errorId) : null }
                     <label>
                         Description
                         <textarea
@@ -280,7 +266,7 @@ const TaskCreatePopup = observer((props) => {
                             aria-describedby={fields.desc.errorId}
                         />
                     </label>
-                    { fields.desc.errors.length ? errorsList(fields.desc.errors, fields.desc.errorId) : null }
+                    { fields.desc.errors.length ? ErrorsList(fields.desc.errors, fields.desc.errorId) : null }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
                             label={"Start"}

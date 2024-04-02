@@ -51,7 +51,7 @@ export default class EditTaskModel {
             // set as this task is "in-progress" 
             dueDateStringBeingEdited = "";
         // get "validationErrors" : List<Objects> : A list of validation errors of this edited task.
-        // get "isValid" : Boolean : The fields in this task are parseable and it is safe to 
+        // get "isValid" : Boolean : True if the fields in this task are parseable and it is safe to 
             // update the parent TaskModel
         // "" : EditTaskModel : 
         // static taskBeingEdited = null;
@@ -90,37 +90,37 @@ export default class EditTaskModel {
         this.dueDateStringBeingEdited = this.task.dueDateString;
         this.dueTimeStringBeingEdited = this.task.dueTimeString;
         // Set inherited methods
-        this.setTitle = this.task.setTitle;
-        this.setDescription = this.task.setDescription;
-        this.setComplete = this.task.setComplete;
-        this.setStart = this.task.setStart;
-        this.setDue = this.task.setDue;
-        this.saveToServer = this.task.saveToServer;
-        this.dontSaveToServer = this.task.dontSaveToServer;
+        this.setTitle = (string) => this.task.setTitle(string);
+        this.setDescription = (string) => this.task.setDescription(string);
+        this.setComplete = (bool) => this.task.setComplete(bool);
+        this.setStart = (dateTime) => this.task.setStart(dateTime);
+        this.setDue = (dateTime) => this.task.setDue(dateTime);
+        this.saveToServer = () => this.task.saveToServer();
+        this.dontSaveToServer = () => this.task.dontSaveToServer();
         this.startEditing();
     }
 //#endregion
 //#region LOGICAL METHODS
     /**
      * Set the task passed as "being edited". Only one task can be 
-     * in this state at a time. Updates to the trask model will not 
+     * in this state at a time. Updates to the task model will not 
      * be saved to the DB, but changes will be synchronized in the UI 
      * through the TaskStore. 
      * To sync changes to DB, call `this.finishEditing` or abort 
      * changes with `this.abortEditing`.
      */
     startEditing() {
-        // EditTaskModel.setTaskBeingEdited(this);
         this.task.dontSaveToServer();
         this.setTaskBeingEdited(this);
     }
     /**
      * Set the task passed as "being edited". Only one task can be in this state at a time. 
-     * Updates to the trask model will not be saved to the DB, but changes will be synchronized 
+     * Updates to the task model will not be saved to the DB, but changes will be synchronized 
      * in the UI through the TaskStore.
      * @param {TaskModel} task 
      */
     setTaskBeingEdited(task=null) {
+        // TODO figure out how to make this class handle this logic instead of modifying taskStore
         // EditTaskModel.taskBeingEdited = task;
         this.task.store.setEditing(task);
     }
@@ -140,7 +140,7 @@ export default class EditTaskModel {
         } 
         
         // Post to server
-        this.store.API.createTask(this.asJson)
+        this.task.store.API.createTask(this.task.Json)
         .catch(e => {
             console.error(e)
             addAlert(document.querySelector('#home-wrapper'), 
@@ -159,7 +159,7 @@ export default class EditTaskModel {
         this.setTaskBeingEdited(null);
         if (!this.createdDate) {
             // TODO make sure this is removing
-            this.removeSelfFromStore();
+            this.task.removeSelfFromStore();
         }
         else {
             // TODO
@@ -167,6 +167,13 @@ export default class EditTaskModel {
     }
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
+//#region Inherited from TaskModel
+    get title () { return this.task.title; };
+    get description () { return this.task.description; };
+    get complete () { return this.task.complete; }
+    get start () { return this.task.start; }
+    get due () { return this.task.due; }
+//#endregion
 //#region startDateString
     get startDateString () {
         return this.startDateStringBeingEdited;
@@ -174,13 +181,13 @@ export default class EditTaskModel {
     setStartDateString = (dateString)  =>  { 
         this.startDateStringBeingEdited = dateString;
         if (this.validationErrors.startDateString.length === 0) {
-            this.task.setStart(`${dateString} ${this.startTimeString}`);
+            this.task.setStart(stringToDateTimeHelper(dateString, this.startTimeString));
         }
     }
 //#endregion
 //#region startTimeString
     get startTimeString () {
-        return this.startDateStringBeingEdited;
+        return this.startTimeStringBeingEdited;
     }
     /**
      * Set start time portion as displayed in text box to input string. 
@@ -190,7 +197,7 @@ export default class EditTaskModel {
     setStartTimeString = (timeString)  =>  { 
         this.startTimeStringBeingEdited = timeString;
         if (this.validationErrors.startTimeString.length === 0) {
-            this.task.setStart(`${this.startDateString} ${timeString}`);
+            this.task.setStart(stringToDateTimeHelper(this.startDateString, timeString));
         }
     }
 //#endregion
@@ -206,7 +213,7 @@ export default class EditTaskModel {
     setDueDateString (dateString) {
         this.dueDateStringBeingEdited = dateString;
         if (this.validationErrors.dueDateString.length === 0) {
-            this.task.setDue(`${dateString} ${this.dueTimeString}`);
+            this.task.setDue(stringToDateTimeHelper(dateString, this.dueTimeString));
         }
     }
 //#endregion
@@ -222,18 +229,10 @@ export default class EditTaskModel {
     setDueTimeString (timeString) { 
         this.dueTimeStringBeingEdited = timeString;
         if (this.validationErrors.dueTimeString.length === 0) {
-            this.task.setDue(`${this.dueDateString} ${timeString}`);
+            this.task.setDue(stringToDateTimeHelper(this.dueDateString, timeString));
         }
     }
 //#endregion
-//#region Methods inherited from TaskModel
-    get title () { return this.task.title; };
-    get description () { return this.task.description; };
-    get complete () { return this.task.complete; }
-    get start () { return this.task.start; }
-    get due () { return this.task.due; }
-
-//endregion
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
     /**
@@ -261,7 +260,7 @@ export default class EditTaskModel {
             errors.startDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
         }
         // start : Make sure date and time strings are parseable when combined
-        if (!stringToDateTimeHelper(`${this.startDateStringBeingEdited}  ${this.startDateStringBeingEdited}`).isValid) {
+        if (!stringToDateTimeHelper(this.startDateStringBeingEdited, this.startDateStringBeingEdited).isValid) {
             // TODO Add new message for this
             errors.start.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
         }
@@ -274,7 +273,7 @@ export default class EditTaskModel {
             errors.dueDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
         }
         // due : Make sure date and time strings are parseable when combined
-        if (!stringToDateTimeHelper(`${this.dueDateStringBeingEdited}  ${this.dueTimeStringBeingEdited}`).isValid) {
+        if (!stringToDateTimeHelper(this.dueDateStringBeingEdited, this.dueTimeStringBeingEdited).isValid) {
             // TODO Add new message for this
             errors.due.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
         }
