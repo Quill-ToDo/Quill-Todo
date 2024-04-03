@@ -1,5 +1,5 @@
 import { TaskApi } from "../API/TaskApi.js";
-import { TaskStore } from "./tasks/TaskStore";
+import TaskStore from "./tasks/TaskStore";
 import { EventStore } from "./events/EventStore";
 import { configure } from "mobx"
 

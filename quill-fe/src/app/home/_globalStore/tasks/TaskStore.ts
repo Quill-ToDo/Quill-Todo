@@ -1,22 +1,24 @@
 import { makeAutoObservable, runInAction} from "mobx";
-import { Task } from "./Task";
+import TaskModel from "./TaskModel";
 import { DateTime } from "luxon";
 import { END_OF_DAY } from "constants.js";
+import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/utilities/DateTimeHelper";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/home/API/TaskApi";
 import  RootStore from '@/store/RootStore';
 
-export class TaskStore {
+export default class TaskStore {
+// !!! Fields must have defaults set here to be observable. 
     API : TaskApi;
     rootStore : RootStore;
     timeline;
-    // userStore
-    // These must have a default value here to be observable
-    tasks : Task[] = [];
+    tasks : TaskModel[] = [];
     // Task to show details for
     taskBeingFocused = null;
-    taskBeingEdited = null;
-    isLoaded = false;
+    // Task : TODO: Move this to static EditTaskModel
+    taskBeingEdited : TaskModel | null = null;
+    // Boolean : Whether the store has synced with server
+    isLoaded : boolean = false;
 
     /**
      * The store which holds object representations of tasks currently in the DB, or that will be added.
@@ -30,7 +32,6 @@ export class TaskStore {
             rootStore: false,
             isLoaded: true
         }, {proxy: false})
-
         this.rootStore = rootStore;
         this.timeline = this.rootStore.eventStore;
         this.API = API;
@@ -49,7 +50,7 @@ export class TaskStore {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
-                fetchedTasks.data.forEach(json => this.updateTaskFromServer(json));
+                fetchedTasks.data.forEach(json => new TaskModel(this, json));
                 this.isLoaded = true;
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
@@ -70,39 +71,6 @@ export class TaskStore {
     }
 
     /**
-     * Update one task with info and fields from the DB and guarantee that it only exists in the store once.
-     * @param {object} taskJson Info about this task in JSON format.
-     */
-    updateTaskFromServer (taskJson) {
-        let task = this.tasks.find(t => t.id === taskJson.id)
-        if (!task) {
-            // Does not yet exist in store
-            task = new Task(this, taskJson.id);
-            this.tasks.push(task);
-        }
-        task.updateFromJson(taskJson);
-    } 
-
-    /**
-     * @param {DateTime} time The DT to check.
-     * @returns true if the time occurs before the end of the current day, false otherwise.
-     */
-    timeOccursBeforeEOD (time) {
-        return (time <= END_OF_DAY())
-    }
-
-    /**
-     * 
-     * @param {DateTime} time The DT to check.
-     * @param {*} currentTime The current time. (now)
-     * @returns true if time occurs between now and the end of the current day, false otherwise.
-     */
-    timeOccursBetweenNowAndEOD (time, currentTime) {
-        return (this.timeOccursBeforeEOD(time) && (currentTime < time))
-    }
-
-
-    /**
      * Get tasks grouped by statuses: overdue, todayDue, todayWork, and upcoming. These are disjoint sets.
      */
     get byStatus() {
@@ -110,26 +78,30 @@ export class TaskStore {
 
         return {
             "overdue": this.tasks.filter(task => task.due <= now),
-            "todayDue": this.tasks.filter(task => this.timeOccursBetweenNowAndEOD(task.due, now)),
+            "todayDue": this.tasks.filter(task => timeOccursBetweenNowAndEOD(task.due)),
             "todayWork": this.tasks.filter(task => 
                 (task.start && task.start <= now) 
                 && (now < task.due)
-                && !(this.timeOccursBetweenNowAndEOD(task.due, now))
+                && !(timeOccursBetweenNowAndEOD(task.due))
                 ),
             "upcoming": this.tasks.filter(task => 
-                (!task.start || now <= task.start) && !(this.timeOccursBeforeEOD(task.due, now))
+                (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
                 )
         }
     }
 
     /**
      * Specify the task that details should be shown for (show task popup).
-     * @param {Task} task Task that details should be shown for
+     * @param {TaskModel} task Task that details should be shown for
      */
     setFocus (task) {
         this.taskBeingFocused = task;
     }
     
+    setEditing(task) {
+        this.taskBeingEdited = task;
+    }
+
     /**
      * Specify that no task should have its details shown in a popup.
      */
@@ -138,28 +110,10 @@ export class TaskStore {
     }
 
     /**
-     * @param {Task} taskObj Task that should be added to the store. 
+     * @param {TaskModel} taskObj Task that should be added to the store. 
      */
-    add(taskObj : Task) {
+    add(taskObj : TaskModel) {
         this.tasks.push(taskObj);
     } 
 
-    /**
-     * Create a new task marked as currently being edited. It will need to have
-     * `finishEditing()` called on it to save it to the DB.
-     * @param {object} options Pass an optional default `dueDate` or `startDate` or both in an object. Keys are symbols, values should be 
-     * a Luxon DateTime or string in ISO format.
-     */
-    createInProgressTask ({dueDate=null, dueTime=null, startDate=null, startTime=null} = {}) {
-        const task = new Task(this);
-        if (dueDate) {
-            task.setDue(dueDate);
-        }
-        if (startDate) {
-            task.setStart(startDate);
-        }
-        task.startEditing(); 
-        this.add(task);
-        return task;
-    }
 }

@@ -22,8 +22,10 @@
       "@/app/*": ["./*"],
       "@/home/*": ["./home/*"],
       "@/dash/*": ["./home/dashboard/*"],
+      "@/widgets/*": ["./home/dashboard/widgets/*"],
       "@/store/*": ["./home/_globalStore/*"],
       "@/alerts/*": ["./home/alerts/*"],
+      "@/utilities/*": ["./@utilities/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
