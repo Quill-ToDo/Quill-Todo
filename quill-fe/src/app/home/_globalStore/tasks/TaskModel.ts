@@ -33,7 +33,7 @@ export default class TaskModel {
     // ----------------------------------------------------
     // ---- Public ----
         // get "id" : UUID : This ID of this Task.
-            id : number;
+            id : number = -1;
         // get / set "title" : Task name.
             title : string = "";
         // get / set "description" : A String which describes the task at hand.
@@ -89,6 +89,7 @@ export default class TaskModel {
         this.id = v4();
         this.title = "";
         this.description = "";
+        this.complete = false;;
         this.workRange = Interval.fromDateTimes(this.defaultStart, this.defaultDue);
         this.invalidStart = null;
         this.invalidDue = null;
@@ -103,7 +104,7 @@ export default class TaskModel {
         this.store.add(this);
         // Update this task in the DB when any field used in the to JSON format method is changed
         this.saveHandlerDisposer = reaction(
-            () => this.asJson,
+            () => this.Json,
             json => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {

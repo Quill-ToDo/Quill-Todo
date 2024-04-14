@@ -72,6 +72,14 @@ export default class TaskStore {
         })
     }
 
+    sorted(taskList : TaskModel[]) {
+        return taskList.toSorted((a, b) => { 
+            if (a.complete === b.complete) {
+                return a.due < b.due ? -1 : 1;
+            } 
+            return a.complete ? 1 : -1; 
+        })
+    }
     /**
      * Get tasks grouped by statuses: overdue, todayDue, todayWork, and upcoming. These are disjoint sets.
      */
@@ -79,16 +87,16 @@ export default class TaskStore {
         const now = DateTime.now();
 
         return {
-            "overdue": this.tasks.filter(task => task.due <= now),
-            "todayDue": this.tasks.filter(task => timeOccursBetweenNowAndEOD(task.due)),
-            "todayWork": this.tasks.filter(task => 
+            "overdue": this.sorted(this.tasks.filter(task => task.due <= now)),
+            "todayDue": this.sorted(this.tasks.filter(task => timeOccursBetweenNowAndEOD(task.due))),
+            "todayWork": this.sorted(this.tasks.filter(task => 
                 (task.start && task.start <= now) 
                 && (now < task.due)
                 && !(timeOccursBetweenNowAndEOD(task.due))
-                ),
-            "upcoming": this.tasks.filter(task => 
+                )),
+            "upcoming": this.sorted(this.tasks.filter(task => 
                 (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
-                )
+                ))
         }
     }
 
