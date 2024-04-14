@@ -3,7 +3,7 @@ import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import './tasks.css';
 import './taskDetail.css';
-
+import TaskModel from "@/store/tasks/TaskModel"
 
 /**
  * Displays the date and time of the task.
@@ -13,7 +13,7 @@ import './taskDetail.css';
  * @param {*} dateForm The Luxon format of the date to display
  * @returns 
  */
-const dateTimeWrapper = (task, type : string, dateForm : DateTime) => {
+const dateTimeWrapper = (task : TaskModel, type : string, dateForm : DateTime) => {
     const time = type === "start" ? task.start : task.due ;
     const converted = DateTime.fromISO(time);
     

@@ -6,8 +6,9 @@ import {
     DATE_TIME_FORMATS,
     END_OF_DAY,
     dateTimeHelper,
-} from "@utilities/DateTimeHelper.js";
-import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "@/alerts/alertEvent.js";
+} from "@utilities/DateTimeHelper";
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "@/alerts/alertEvent";
+import TaskStore from "./TaskStore";
 
 const DEFAULT_DUE_DATETIME = END_OF_DAY();
 /**
@@ -32,13 +33,13 @@ export default class TaskModel {
     // ----------------------------------------------------
     // ---- Public ----
         // get "id" : UUID : This ID of this Task.
-            id = null;
-        // get / set "title" : String : Task name.
-            title = null;
-        // get / set "description" : String : A String which describes the task at hand.
-            description = null;
-        // get / set "complete" : Boolean : Whether or not this task is complete.
-            complete = false;
+            id : number;
+        // get / set "title" : Task name.
+            title : string = "";
+        // get / set "description" : A String which describes the task at hand.
+            description : string = "";
+        // get / set "complete" : Whether or not this task is complete.
+            complete : boolean = false;
         // get / set "start" : Luxon DateTime : The DateTime when the user wants to start working on this task. 
             // get "startDateString" : String : The date portion of this DateTime formatted into string 
             // get "startTimeString" : String : The time portion of this DateTime formatted into string 
@@ -46,21 +47,21 @@ export default class TaskModel {
         // get / set "due" : Luxon DateTime : The DateTime by which the user wants to complete the task.
             // get "dueDateString" : String : The date portion of this DateTime formatted into string 
             // get "dueTimeString" : String : The time portion of this DateTime formatted into string 
-        // get "store" : TaskStore : The store which holds and syncronizes all tasks. 
-            store = null;
+        // get "store" : The store which holds and syncronizes all tasks. 
+            store : TaskStore;
         // get "createdDate" : Luxon DateTime : The DateTime when this object was created
-            createdDate = null;
+            createdDate : DateTime;
         // get "isValid" : Boolean : This task has no validation errors and is safe to sync to the database
         // get "validationErrors" : List<Objects> : A list of validation errors of this task.
         // get / set "Json" : JSON : This tasks fields formatted as JSON
     // ---- Private ----
-        // "autoSave" : Boolean : Whether or not changes to this task are synced
+        // "autoSave" : Whether or not changes to this task are synced
         //    to the database. Turn on or off with `saveToServer()` and `dontSaveToServer()
-            autoSave = true;
-        // "workRange" : Luxon Interval representing the complete range of time the
+            autoSave : boolean = true;
+        // "workRange" : Interval representing the complete range of time the
         //    user will be working on the task. Access start and end points with 
         //    `start` and `due` setters and getters.
-            workRange = null;
+            workRange : Interval;
             invalidStart = null;
             invalidDue = null;
         // get "defaultStart" : Luxon DateTime : Default start date of any task
@@ -151,13 +152,13 @@ export default class TaskModel {
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
 //#region title
-    setTitle (title) { this.title = title; }
+    setTitle (title : string) { this.title = title; }
 //#endregion
 //#region description
-    setDescription (desc) { this.description = desc; }
+    setDescription (desc : string) { this.description = desc; }
 //#endregion
 //#region complete
-    setComplete(complete) { this.complete = complete; }
+    setComplete(complete : boolean) { this.complete = complete; }
     /**
      * Toggle this tasks completion status between true and false.
      */
@@ -166,7 +167,7 @@ export default class TaskModel {
     }
 //#endregion
 //#region workRange
-    setWorkRange(start, end) { 
+    setWorkRange(start : DateTime, end : DateTime) { 
         this.workRange = Interval.fromDateTimes(start, end);
         if (!this.workRange.isValid) {
         }
@@ -189,7 +190,7 @@ export default class TaskModel {
      * 
      * @param {String} dateTime 
      */
-    setStart(dateTime) {
+    setStart(dateTime : DateTime) {
         try {
             const converted = dateTimeHelper(dateTime);
             this.setWorkRange(converted, this.due);
@@ -238,7 +239,7 @@ export default class TaskModel {
      * dateTime must be valid to set it. 
      * @param {string} dateTime 
      */
-    setDue (dateTime) {
+    setDue (dateTime : DateTime) {
         try {
             this.setWorkRange(this.start, dateTimeHelper(dateTime));
         }
@@ -300,7 +301,7 @@ export default class TaskModel {
      * Update this TaskModel with info pulled from a passed JSON.
      * @param {object} json 
      */
-    setJson(json) {
+    setJson(json : JSON) {
         this.dontSaveToServer();
         this.id = json.id;
         this.setTitle(json.title);
@@ -319,18 +320,27 @@ export default class TaskModel {
      *
      */
     get validationErrors() {
-        const errors = {
+        type ErrorObject = {
+            [index : string] : string[];
+            title: string[];
+            description: string[];
+            start: string[];
+            due: string[];
+            workInterval: string[];
+        };
+
+        const errors : ErrorObject = {
             title: [],
             description: [],
             start: [],
             due: [],
             workInterval: [],
-        }
+        };
 
         const errorMessages = {
             NO_TITLE: `Give this task a name`,
-            TITLE_TOO_LONG: (title) => `Title is ${pluralize(`character`, title.length-MAX_TITLE_LENGTH, true)} too long`,
-            DESCRIPTION_TOO_LONG: (description) => `Description is ${pluralize(`character`, description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
+            TITLE_TOO_LONG: (title : string) => `Title is ${pluralize(`character`, title.length-MAX_TITLE_LENGTH, true)} too long`,
+            DESCRIPTION_TOO_LONG: (description : string) => `Description is ${pluralize(`character`, description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
             START_TIME_AFTER_DUE: `Due time must be after start time`,
             START_DATE_AFTER_DUE: `Due date must be on or after start date`,
         }

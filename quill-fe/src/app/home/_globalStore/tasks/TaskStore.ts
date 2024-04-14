@@ -1,11 +1,12 @@
 import { makeAutoObservable, runInAction} from "mobx";
 import TaskModel from "./TaskModel";
 import { DateTime } from "luxon";
-import { END_OF_DAY } from "constants.js";
+import { END_OF_DAY } from "constants";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/utilities/DateTimeHelper";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/home/API/TaskApi";
 import  RootStore from '@/store/RootStore';
+import EditTaskModel from "../../dashboard/widgets/NewTask/EditTaskModel";
 
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
@@ -14,9 +15,9 @@ export default class TaskStore {
     timeline;
     tasks : TaskModel[] = [];
     // Task to show details for
-    taskBeingFocused = null;
+    taskBeingFocused : TaskModel | null = null;
     // Task : TODO: Move this to static EditTaskModel
-    taskBeingEdited : TaskModel | null = null;
+    taskBeingEdited : EditTaskModel | null = null;
     // Boolean : Whether the store has synced with server
     isLoaded : boolean = false;
 
@@ -38,6 +39,7 @@ export default class TaskStore {
         this.tasks = [];
         this.loadTasks();
         this.taskBeingFocused = null;
+        this.taskBeingEdited = null;
     }
 
     /**
@@ -94,11 +96,11 @@ export default class TaskStore {
      * Specify the task that details should be shown for (show task popup).
      * @param {TaskModel} task Task that details should be shown for
      */
-    setFocus (task) {
+    setFocus (task : TaskModel) {
         this.taskBeingFocused = task;
     }
     
-    setEditing(task) {
+    setEditing(task : EditTaskModel | null) {
         this.taskBeingEdited = task;
     }
 

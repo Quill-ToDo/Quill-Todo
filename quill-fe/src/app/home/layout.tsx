@@ -1,11 +1,13 @@
 'use client'
 
-import TaskCreationPopup from "@/dash/newTaskButton/TaskCreationPopup";
 import { observer } from "mobx-react-lite";
 import './home.css'
 import { useTaskStore } from "@/store/StoreProvider";
 import { addAlert, ERROR_ALERT } from '@/alerts/alertEvent';
 import TaskDetail from '@/dash/@tasks/TaskDetail';
+import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
+import TaskCreationPopup from "@/widgets/NewTask/TaskCreationPopup";
+import TaskModel from "@/store/tasks/TaskModel";
 
 const DashboardLayout = observer(({
   children, // will be a page or nested layout
@@ -20,7 +22,8 @@ const DashboardLayout = observer(({
             { taskStore.taskBeingFocused ? <TaskDetail taskStore={taskStore}/> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
                 <button role="menuitem" className="btn no-shadow" title="Add task" type="button" onClick={() => {
-                    taskStore.createInProgressTask();
+                        let newTask = new TaskModel(taskStore);
+                        new EditTaskModel(newTask);
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>

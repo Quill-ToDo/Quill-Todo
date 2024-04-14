@@ -1,0 +1,180 @@
+body {
+    background-color: var(--bg);
+  }
+  
+  .row {
+    width: 100%;
+  }
+  
+  .form-group {
+    text-align: center;
+    color: var(--lightest-font);
+    justify-content: center;
+    font-family: "Dongle", sans-serif;
+    padding-bottom: 7px;
+  }
+  
+  .form-control {
+    width: 250px;
+    border-radius: 6px;
+    background: var(--darkest-dark);
+    color: var(--lightest-font);
+    border: solid var(--darkest-dark);
+  }
+  
+  .text-center-head {
+    color: var(--lightest-font);
+    text-align: center;
+    font-family: "Secular One", sans-serif;
+  }
+  
+  .text-center {
+    text-align: center;
+    font-family: "Dongle", sans-serif;
+    font-size: 150%;
+  }
+  
+  .remember {
+    font-size: 120%;
+  }
+  
+  .links {
+    font-size: 150%
+  }
+  
+  /*
+  *= require_show 
+  */
+  
+  #new-wrapper {
+    min-width: min-content;
+    width: 28vw;
+    max-width: 95vw;
+    min-height: 10vh;
+    max-height: 40vh;
+    left: calc(var(--menu-width) + 10px);
+    top: var(--section-gap);
+    z-index: 5;
+    position: absolute;
+  }
+  
+  #new-wrapper #new-filter {
+    background-color: rgba(0, 0, 0, 0.507);
+    position: absolute;
+    display: none;
+    z-index: 3;
+    width: 100%;
+    height: 100%;
+  }
+  
+  #new-wrapper #add-btn {
+    margin-top: 15px;
+    width: 40%;
+    height: 40px;
+    font-weight: bold;
+    font-size: 35px;
+  }
+  
+  form input:focus,
+  form textarea:focus {
+    outline: 3px solid var(--light-select);
+    /* outline: 0px solid var(--light-select); */
+    /* background: var(--light-select); */
+  }
+  
+  form input[aria-invalid="true"],
+  form textarea[aria-invalid="true"] {
+    outline: 3px solid var(--failure-outline);
+  }
+  
+  #new-wrapper .mid-section {
+    outline: solid var(--mid-font) 3px;
+  }
+  
+  #new-wrapper form input:not(.btn),
+  #new-wrapper form label,
+  #new-wrapper form textarea,
+  #new-wrapper form h3 {
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    text-align: left;
+    font-size: var(--p-size);
+    border: none;
+  }
+  
+  #new-wrapper form .start-due-wrapper label {
+    font-size: var(--h5-size);
+    color: var(--subdued);
+    margin-top: 0;
+  }
+  
+  
+  #new-wrapper form .start-due-wrapper .default input {
+    color: var(--subdued);
+  }
+  
+  #new-wrapper form label.date {
+    min-width: 200px;
+  }
+  
+  #new-wrapper form label.time {
+    width: min-content;
+  }
+  
+  #new-wrapper form .start-due-wrapper .time input {
+    width: 100px;
+  }
+  
+  
+  #new-wrapper form .horizontal-align button {
+    display: block;
+  }
+  
+  #new-wrapper form label>* {
+    margin-top: 5px;
+  }
+  
+  #new-wrapper .horizontal-align {
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+  }
+  
+  #new-wrapper .start-due-wrapper {
+    flex-wrap: wrap;
+  }
+  
+  /* Center of screen if .from-calendar */
+  #new-wrapper.from-calendar {
+    display: flex;
+    justify-content: center;
+  }
+  
+  #new-wrapper.from-calendar #new-filter {
+    display: block;
+  }
+  
+  #new-wrapper.from-calendar .mid-section {
+    position: relative;
+    align-self: center;
+    justify-self: center;
+    box-shadow: none;
+  }
+  
+  .error-list {
+    color: var(--failure-outline);
+    font-size: 17px;
+    padding: 7px 0 7px 0;
+    height: 100%;
+  }
+  
+  ul.error-list {
+    margin-left: 30px;
+    margin-bottom: 15px;
+  }
+  
+  .error-list li {
+    list-style-type: square;
+  
+  }
