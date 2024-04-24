@@ -1,17 +1,11 @@
-import { makeAutoObservable } from "mobx"
+import { action, makeObservable, observable, override } from "mobx"
 import {  
     stringToDateTimeHelper,
     DATE_TIME_FORMATS,
 } from "@/utilities/DateTimeHelper";
 import TaskModel from "@/store/tasks/TaskModel";
-import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
+import { addAlert, ERROR_ALERT } from "@/app/home/dashboard/widgets/Alerts/alertEvent";
 import { DateTime } from "@eonasdan/tempus-dominus";
-
-const VALIDATION_ERROR_MESSAGES = {
-    INVALID_TIME_FORMAT: `Time is not of the format ${DATE_TIME_FORMATS().t.readable}. Ex: 10:30 am`,
-    INVALID_DATE_FORMAT: `Date is not of the format ${DATE_TIME_FORMATS().D.readable}. Ex: 7/26/2022`,
-    INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
-}
 
 /**
  * A Model to add fields and methods needed to edit a task. 
@@ -28,37 +22,14 @@ const VALIDATION_ERROR_MESSAGES = {
  *    ?? Or its parent class?? have any validation errors and this task may be saved 
  *    to the database.  
  */
-export default class EditTaskModel {
-//#region CLASS FIELDS AND CONSTRUCTOR
-    // "name" : Type : Description
-    // ----------------------------------------------------
-    // ---- Public ----
-        // get "task" : The base TaskModel being edited, what this class inherits data from..
-            task : TaskModel;
-        // get / set "startTimeString" : The text of the start time string 
-            // as the user edits this task. Does not need to be a valid time string to be
-            // set as this task is "in-progress" 
-            startTimeStringBeingEdited : String = "";
-        // get / set "startDateString" : The text of the start date string 
-            // as the user edits this task. Does not need to be a valid date string to be
-            // set as this task is "in-progress" 
-            startDateStringBeingEdited : String = "";
-        // get / set "dueTimeString" : The text of the due time string 
-            // as the user edits this task. Does not need to be a valid time string to be
-            // set as this task is "in-progress" 
-            dueTimeStringBeingEdited : String = "";
-        // get / set "dueDateString" : The text of the due date string 
-            // as the user edits this task. Does not need to be a valid date string to be
-            // set as this task is "in-progress" 
-            dueDateStringBeingEdited : String = "";
-        // get "validationErrors" : List<Objects> : A list of validation errors of this edited task.
-        // get "isValid" : Boolean : The fields in this task are parseable and it is safe to 
-            // update the parent TaskModel
-        // "" : EditTaskModel : 
-        // static taskBeingEdited = null;
+export default class EditTaskModel extends TaskModel {
+//#region CLASS FIELDS AND CONSTRUCTOR 
+    startTimeString : String = ""; 
+    startDateString : String = "";
+    dueTimeString : String = "";
+    dueDateString : String = "";
+    // static taskBeingEdited = null;
 
-    // ---- Private ----
-    // ----------------------------------------------------
     /**
      * An object to represent a task being edited. This extends TaskModel. It is used to show additional 
      * fields in a news task pop-up that may change the underlying TaskModels data. These changes are
@@ -69,21 +40,33 @@ export default class EditTaskModel {
      * 
      * @param {TaskModel} task The base TaskModel to edit
      */
-    constructor(task : TaskModel) {
-        makeAutoObservable(this, {
-            task: true,
-            startTimeString: true,
-            startDateString: true,
-            dueTimeString: true, 
-            dueDateString: true,
-        }, {proxy: false});
+    constructor(taskToEdit : TaskModel | null=null) {
+        super(taskToEdit === null ? taskToEdit : taskToEdit.json);
+
+        makeObservable(this, {
+            startDateString: observable,
+            setStartDateString: action,
+            startTimeString: observable,
+            setStartTimeString: action,
+            dueDateString: observable,
+            setDueDateString: action,
+            dueTimeString: observable,
+            setDueTimeString: action,
+            validationErrors: override, // A list of validation errors of this edited task.
+            isValid: override, // The fields in this task are parseable and it is safe to 
+            // update the parent TaskModel
+            startEditing: action,
+            finishEditing: action,
+            abortEditing: action,
+
+        });
         // Initialize all class fields not using setters
-        this.task = task;
-        this.startDateStringBeingEdited = this.task.startDateString;
-        this.startTimeStringBeingEdited = this.task.startTimeString;
-        this.dueDateStringBeingEdited = this.task.dueDateString;
-        this.dueTimeStringBeingEdited = this.task.dueTimeString;
+        this.startDateString = DATE_TIME_FORMATS().D.serializer(this.start);
+        this.startTimeString = DATE_TIME_FORMATS().t.serializer(this.start);
+        this.dueDateString = DATE_TIME_FORMATS().D.serializer(this.due);
+        this.dueTimeString = DATE_TIME_FORMATS().t.serializer(this.due);
         this.startEditing();
+   
     }
 //#endregion
 //#region LOGICAL METHODS
@@ -98,8 +81,8 @@ export default class EditTaskModel {
     startEditing() {
         // TODO figure out how to make this class handle this logic instead of modifying taskStore
         // EditTaskModel.setTaskBeingEdited(this);
-        this.task.dontSaveToServer();
-        this.task.store.setEditing(this);
+        this.dontSaveToServer();
+        this.store.setEditing(this);
     }
     /**
      * Mark a task being edited as "done" and save the task to the DB
@@ -107,57 +90,46 @@ export default class EditTaskModel {
      */
     finishEditing () {
         // Validate that there are no errors. If there are, raise an alert.
-        if (this.isValid) {
+        if (!this.isValid) {
             addAlert(document.querySelector('#new-wrapper'), 
             ERROR_ALERT, 
-            `Task could not be saved, it still has errors - ${this.validationErrors}`);
+            `Task could not be saved, it still has errors - ${this.validationErrors.toJSON()}`);
             console.error(this.validationErrors);
             console.error(this);
             return;
         } 
         
         // Post to server
-        this.task.store.API.createTask(this.task.Json)
+        this.store.API.createTask(this.json)
         .catch(e => {
             console.error(e)
             addAlert(document.querySelector('#home-wrapper'), 
             ERROR_ALERT, 
             `Could not add task - ${e}`);            
-            this.task.removeSelfFromStore();
+            this.store.remove(this);
         });
 
-        this.task.store.setEditing(null);
-        this.task.saveToServer();
+        this.store.setEditing(null);
+        this.saveToServer();
     }
     /**
      * Abort any edit changes and delete task from the TaskStore.
      */
     abortEditing () {
-        this.task.store.setEditing(null);
+        this.store.setEditing(null);
         if (!this.createdDate) {
             // TODO make sure this is removing
-            this.task.removeSelfFromStore();
+            this.store.remove(this);
         }
         else {
-            // TODO
+            // TODO 
         }
     }
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
-//#region startDateString
-    get startDateString () {
-        return this.startDateStringBeingEdited;
-    }
     setStartDateString = (dateString : String)  =>  { 
-        this.startDateStringBeingEdited = dateString;
-        if (this.validationErrors.startDateString.length === 0 && this.validationErrors.start.length === 0) {
-            this.task.setStart(`${dateString} ${this.startTimeString}`);
-        }
-    }
-//#endregion
-//#region startTimeString
-    get startTimeString () {
-        return this.startDateStringBeingEdited;
+        this.startDateString = dateString;
+        this.setStart(`${dateString}, ${this.startTimeString}`);
     }
     /**
      * Set start time portion as displayed in text box to input string. 
@@ -165,15 +137,10 @@ export default class EditTaskModel {
      * @param {String} timeString 
      */
     setStartTimeString = (timeString : String)  =>  { 
-        this.startTimeStringBeingEdited = timeString;
+        this.startTimeString = timeString;
         if (this.validationErrors.startTimeString.length === 0 && this.validationErrors.start.length === 0) {
-            this.task.setStart(`${this.startDateString} ${timeString}`);
+            this.setStart(`${this.startDateString}, ${timeString}`);
         }
-    }
-//#endregion
-//#region dueDateString
-    get dueDateString () {
-        return this.dueDateStringBeingEdited;
     }
     /**
      * Set due date portion as displayed in text box to input string. 
@@ -181,15 +148,10 @@ export default class EditTaskModel {
      * @param {String} dateString 
      */
     setDueDateString (dateString : String) {
-        this.dueDateStringBeingEdited = dateString;
+        this.dueDateString = dateString;
         if (this.validationErrors.dueDateString.length === 0 && this.validationErrors.due.length === 0) {
-            this.task.setDue(`${dateString} ${this.dueTimeString}`);
+            this.setDue(`${dateString}, ${this.dueTimeString}`);
         }
-    }
-//#endregion
-//#region dueTimeString
-    get dueTimeString () {
-        return this.dueTimeStringBeingEdited;
     }
     /**
      * Set due time portion as displayed in text box to input string. 
@@ -197,26 +159,11 @@ export default class EditTaskModel {
      * @param {String} dateString 
      */
     setDueTimeString (timeString : String) { 
-        this.dueTimeStringBeingEdited = timeString;
+        this.dueTimeString = timeString;
         if (this.validationErrors.dueTimeString.length === 0 && this.validationErrors.due.length === 0) {
-            this.task.setDue(`${this.dueDateString} ${timeString}`);
+            this.setDue(`${this.dueDateString}, ${timeString}`);
         }
     }
-//#endregion
-//#region Inherited from TaskModel
-    get title () { return this.task.title; };
-    get description () { return this.task.description; };
-    get complete () { return this.task.complete; }
-    get createdDate () { return this.task.createdDate; }
-    get start () { return this.task.start; }
-    get due () { return this.task.due; }
-    setTitle (string : string) { this.task.setTitle(string) };
-    setDescription (string : string) { this.task.setDescription(string) };
-    setComplete (bool : boolean) { this.task.setComplete(bool) };
-    setStart (dateTime : DateTime) { this.task.setStart(dateTime) };
-    setDue (dateTime : DateTime) { this.task.setDue(dateTime) };
-    saveToServer () { this.task.saveToServer() };
-//#endregion
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
     /**
@@ -225,7 +172,7 @@ export default class EditTaskModel {
      */
     get validationErrors() {
         // Object to save error messages in
-        type ErrorObject = {
+        type EditFieldsErrors = {
             [index : string] : string[];
             title: string[];
             description: string[];
@@ -235,47 +182,71 @@ export default class EditTaskModel {
             due: string[];
             dueTimeString: string[];
             dueDateString: string[];
+            workInterval: string[];
         };
-
-        const errors : ErrorObject = {
-            title: this.task.validationErrors.title,
-            description: this.task.validationErrors.description, 
-            start: this.task.validationErrors.start,
+        const errors : EditFieldsErrors = {
+            title: super.validationErrors.title,
+            description: super.validationErrors.description, 
+            start: super.validationErrors.start,
             startTimeString: [],
             startDateString: [],
-            due: this.task.validationErrors.due,
+            due: super.validationErrors.due,
             dueTimeString: [],
             dueDateString: [],
-            workInterval: this.task.validationErrors.workInterval,
+            workInterval: super.validationErrors.workInterval,
         };
-        // startTimeString : Make sure time string is parseable
-        //TODO: Fix, it's breaking here.
-        if (!DATE_TIME_FORMATS().t.deserializer(this.startTimeStringBeingEdited).isValid) {
-            errors.startTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
+        const VALIDATION_ERROR_MESSAGES = {
+            INVALID_TIME_FORMAT: `Time is not of the format ${DATE_TIME_FORMATS().t.readable}. Ex: 10:30 am`,
+            INVALID_DATE_FORMAT: `Date is not of the format ${DATE_TIME_FORMATS().D.readable}. Ex: 7/26/2022`,
+            INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
         }
-        // startDateString : Make sure date string is parseable
-        if (!DATE_TIME_FORMATS().D.deserializer(this.startDateStringBeingEdited).isValid) {
-            errors.startDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
+        const fieldsToValidate = {
+            startTimeString: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT,
+                    fail: () => !DATE_TIME_FORMATS().t.deserializer(this.startTimeString).isValid,
+                },
+            ],
+            startDateString: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT,
+                    fail: () => !DATE_TIME_FORMATS().D.deserializer(this.startDateString).isValid,
+                },
+            ],
+            start: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT,
+                    fail: () => !stringToDateTimeHelper(`${this.startDateString}, ${this.startTimeString}`).isValid,
+                }
+            ],
+            dueTimeString: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT,
+                    fail: () => !DATE_TIME_FORMATS().t.deserializer(this.dueTimeString).isValid,
+                },
+            ],
+            dueDateString: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT,
+                    fail: () => !DATE_TIME_FORMATS().D.deserializer(this.dueDateString).isValid,
+                },
+            ],
+            due: [
+                {
+                    text: VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT,
+                    fail: () => !stringToDateTimeHelper(`${this.dueDateString}, ${this.dueTimeString}`).isValid,
+                }
+            ],
         }
-        // start : Make sure date and time strings are parseable when combined
-        if (!stringToDateTimeHelper(`${this.startDateStringBeingEdited}  ${this.startDateStringBeingEdited}`).isValid) {
-            // TODO Add new message for this
-            errors.start.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
-        }
-        // dueTimeString : Make sure time string is parseable
-        if (!DATE_TIME_FORMATS().t.deserializer(this.dueTimeStringBeingEdited).isValid) {
-            errors.dueTimeString.push(VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT);
-        }
-        // dueDateString : Make sure date string is parseable
-        if (!DATE_TIME_FORMATS().D.deserializer(this.dueDateStringBeingEdited).isValid) {
-            errors.dueDateString.push(VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT);
-        }
-        // due : Make sure date and time strings are parseable when combined
-        if (!stringToDateTimeHelper(`${this.dueDateStringBeingEdited}  ${this.dueTimeStringBeingEdited}`).isValid) {
-            // TODO Add new message for this
-            errors.due.push(VALIDATION_ERROR_MESSAGES.INVALID_DATETIME_FORMAT);
-        }
-        // TODO: Figure out how to add TaskModel Validation Errors here
+        let casesToCheck;
+        for (let field in fieldsToValidate) {
+            casesToCheck = fieldsToValidate[field];
+            for (let testCaseIdx in casesToCheck) {
+                if (casesToCheck[testCaseIdx].fail()) {
+                    errors[field].push(casesToCheck[testCaseIdx].text);
+                }
+            }
+        } 
         return errors;
     }
     /**

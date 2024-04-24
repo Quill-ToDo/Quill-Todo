@@ -3,7 +3,7 @@
 import { observer } from "mobx-react-lite";
 import './home.css'
 import { useTaskStore } from "@/store/StoreProvider";
-import { addAlert, ERROR_ALERT } from '@/alerts/alertEvent';
+import { addAlert, ERROR_ALERT } from '@/app/home/dashboard/widgets/Alerts/alertEvent';
 import TaskDetail from '@/dash/@tasks/TaskDetail';
 import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
 import TaskCreationPopup from "@/widgets/NewTask/TaskCreationPopup";
@@ -22,8 +22,7 @@ const DashboardLayout = observer(({
             { taskStore.taskBeingFocused ? <TaskDetail taskStore={taskStore}/> : null }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
                 <button role="menuitem" className="btn no-shadow" title="Add task" type="button" onClick={() => {
-                        let newTask = new TaskModel(taskStore);
-                        new EditTaskModel(newTask);
+                        new EditTaskModel();
                     }}>
                     <i className = "fas fa-plus fa-fw"> </i>
                 </button>

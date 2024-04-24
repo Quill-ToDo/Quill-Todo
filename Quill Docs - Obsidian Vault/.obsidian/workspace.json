@@ -34,6 +34,16 @@
             }
           },
           {
+            "id": "0a4714d23c22a056",
+            "type": "leaf",
+            "state": {
+              "type": "release-notes",
+              "state": {
+                "currentVersion": "1.5.3"
+              }
+            }
+          },
+          {
             "id": "4d72c78fd70686d1",
             "type": "leaf",
             "state": {
@@ -108,7 +118,7 @@
             }
           }
         ],
-        "currentTab": 1
+        "currentTab": 2
       }
     ],
     "direction": "vertical"
@@ -242,7 +252,7 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "8b505198f95dab59",
+  "active": "0a4714d23c22a056",
   "lastOpenFiles": [
     "Documentation/Back-End Concepts.md",
     "Start Here 🎯 About Quill.md",

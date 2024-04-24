@@ -74,7 +74,7 @@ const Task = observer((props) => {
 
     if (props.basicVersion) {
         return (
-            <div className="task-wrapper" id={id} key={task.id}> 
+            <div className={`task-wrapper${task.complete ? " complete" : ""}`} id={id} key={task.id}> 
                 {checkbox}
                 <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                     {title}
@@ -86,7 +86,7 @@ const Task = observer((props) => {
     else if (props.buttons) {
         return (
             <Fragment>
-                <div className="title-button-wrapper">
+                <div className="header-container">
                     <div className="task-wrapper" data-testid={"taskwrapper-"+task.title} >
                         <div className="title-wrapper">
                             {checkbox}

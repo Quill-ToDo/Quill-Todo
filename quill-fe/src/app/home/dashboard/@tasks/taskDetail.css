@@ -77,11 +77,3 @@
 #show-wrapper .date-wrapper p.time {
   font-size: var(--p-size);
 }
-
-.btn-incomplete {
-  background-color: var(--darkest-dark);
-}
-
-.btn.btn-complete {
-  background-color: var(--success);
-}

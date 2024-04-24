@@ -24,7 +24,7 @@
       "@/dash/*": ["./home/dashboard/*"],
       "@/widgets/*": ["./home/dashboard/widgets/*"],
       "@/store/*": ["./home/_globalStore/*"],
-      "@/alerts/*": ["./home/alerts/*"],
+      "@/alerts/*": ["./home/dashboard/widgets/Alerts/*"],
       "@/utilities/*": ["./@utilities/*"],
     }
   },

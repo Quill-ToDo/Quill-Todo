@@ -1,6 +1,7 @@
 import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import './new.css';
+import { makeDraggable } from "@/app/@utilities/Draggable";
 const ERROR_ID_END = "-error-list";
 
 /**
@@ -54,12 +55,12 @@ const TimeDateLabel = (props) => {
     const startOrDue = props.label;
     const date = props.date;
     const time = props.time;
-    const timeErrorListId = `${time.id}${ERROR_ID_END}`;
-    const dateErrorListId = `${date.id}${ERROR_ID_END}`;
+    const timeErrorListId = `${time.idPrefix}${ERROR_ID_END}`;
+    const dateErrorListId = `${date.idPrefix}${ERROR_ID_END}`;
     return <div>
         <h3>{startOrDue}</h3>
         <div className={"horizontal-align"}>
-            <label className={date.idPrefix}>
+            <label className={`${date.idPrefix} sublabel`}>
                 {date.name}
                 <input
                     id={`${date.idPrefix}-input`}
@@ -67,35 +68,28 @@ const TimeDateLabel = (props) => {
                     onChange={date.change}
                     value={date.value}
                     aria-describedby={dateErrorListId}
+                    aria-invalid={date.errorsForInvalidField.length !== 0}
                     />
             </label>
-            <label className={time.id}>
+            <label className={`${time.idPrefix} sublabel`}>
                 {time.name}
                 <div className={"horizontal-align"}>
                     <input
-                        id={`${time.id}-input`}
+                        id={`${time.idPrefix}-input`}
                         name={time.name}
                         onChange={time.change}
                         value={time.value}
                         aria-describedby={timeErrorListId}
+                        aria-invalid={time.errorsForInvalidField.length !== 0}
                     />
                 </div>
             </label>
         </div>
         <div className="horizontal-align">
-        { date.errors && date.errors.length ? ErrorsList(date.errors, dateErrorListId) : null }
-        { time.errors && time.errors.length ? ErrorsList(time.errors, timeErrorListId) : null }
+        { date.errorsToDisplay&& date.errorsToDisplay.length ? ErrorsList(date.errorsToDisplay, dateErrorListId) : null }
+        { time.errorsToDisplay&& time.errorsToDisplay.length ? ErrorsList(time.errorsToDisplay, timeErrorListId) : null }
         </div>
     </div>
-}
-
-const checkRemoveErrorOutline = (fieldInfo) => {
-    // TODO: Need to make it so that calling this gets the most recent changes from task. Need to get the new
-    // Validation errors after they are set.
-    const elem = document.querySelector(fieldInfo.selector());
-    if (elem.hasAttribute("aria-invalid") && fieldInfo.errors.length) {
-        elem.setAttribute("aria-invalid", "false");
-    }
 }
 
 /**
@@ -126,15 +120,11 @@ const TaskCreatePopup = observer((props) => {
         // Get element with errors to switch focus to
         for (const name in possibleInputs) {
             const field = possibleInputs[name];
-            const elem = document.querySelector(field.selector());
-            if (field.errors.length) {
+            if (field.errorsToDisplay.length) {
+                const elem = document.querySelector(field.selectorForFieldElement());
                 if (!focusEle) {
                     focusEle = elem;
                 }
-                elem.setAttribute("aria-invalid", "true");
-            }
-            else {
-                elem.setAttribute("aria-invalid", "false");
             }
         }
 
@@ -153,78 +143,81 @@ const TaskCreatePopup = observer((props) => {
             name: `Title`,
             idPrefix: `title`,
             value: taskToCreate.title,
-            errors: taskToCreate.validationErrors.title,
-            selector: function () { return getSelector(fields.title.name, 'input'); },
+            errorsToDisplay: taskToCreate.validationErrors.title,
+            errorsForInvalidField: taskToCreate.validationErrors.title,
+            selectorForFieldElement: function () { return getSelector(fields.title.name, 'input'); },
             change: function (e) {
                 taskToCreate.setTitle(e.target.value);
-                checkRemoveErrorOutline(fields.title);
             },
         },
         desc: {
             name: `Description`,
             idPrefix: `desc`,
             value: taskToCreate.description,
-            errors: taskToCreate.validationErrors.description,
-            selector: function () { return getSelector(fields.desc.name, 'textarea'); },
+            errorsToDisplay: taskToCreate.validationErrors.description,
+            errorsForInvalidField: taskToCreate.validationErrors.description,
+            selectorForFieldElement: function () { return getSelector(fields.desc.name, 'textarea'); },
             change: function (e) {
                 taskToCreate.setDescription(e.target.value);
-                checkRemoveErrorOutline(fields.desc);
             },
         },
         startDate: {
             name: `Start Date`,
             idPrefix: `startDate`,
-            value: taskToCreate.startDateStringBeingEdited,
-            errors: taskToCreate.validationErrors.startDateString,
-            selector: function () { return getSelector(fields.startDate.name, 'input'); },
+            value: taskToCreate.startDateString,
+            errorsToDisplay: taskToCreate.validationErrors.startDateString.concat(taskToCreate.validationErrors.start),
+            errorsForInvalidField: taskToCreate.validationErrors.startDateString.concat(taskToCreate.validationErrors.start).concat(taskToCreate.validationErrors.workInterval),
+
+            selectorForFieldElement: function () { return getSelector(fields.startDate.name, 'input'); },
             change: function (e) {
                 taskToCreate.setStartDateString(e.target.value);
-                checkRemoveErrorOutline(fields.startDate);
             },
         },
         startTime: {
             name: `Start Time`,
             idPrefix: `startTime`,
-            value: taskToCreate.startTimeStringBeingEdited,
-            errors: taskToCreate.validationErrors.startTimeString,
-            selector: function () { return getSelector(fields.startTime.name, 'input'); },
+            value: taskToCreate.startTimeString,
+            errorsToDisplay: taskToCreate.validationErrors.startTimeString,
+            errorsForInvalidField: taskToCreate.validationErrors.startTimeString.concat(taskToCreate.validationErrors.workInterval),
+            selectorForFieldElement: function () { return getSelector(fields.startTime.name, 'input'); },
             change: function (e) {
                 taskToCreate.setStartTimeString(e.target.value);
-                checkRemoveErrorOutline(fields.startTime);
             },
         },
         dueDate: {
             name: `Due Date`,
             idPrefix: `dueDate`,
-            value: taskToCreate.dueDateStringBeingEdited,
-            errors: taskToCreate.validationErrors.dueDateString,
-            selector:  function () { return getSelector(fields.dueDate.name, 'input'); },
+            value: taskToCreate.dueDateString,
+            errorsToDisplay: taskToCreate.validationErrors.dueDateString.concat(taskToCreate.validationErrors.due),
+            errorsForInvalidField: taskToCreate.validationErrors.dueDateString.concat(taskToCreate.validationErrors.due).concat(taskToCreate.validationErrors.workInterval),
+            selectorForFieldElement:  function () { return getSelector(fields.dueDate.name, 'input'); },
             change: function (e) {
                 taskToCreate.setDueDateString(e.target.value);
-                checkRemoveErrorOutline(fields.dueDate);
             },
         },
         dueTime: {
             name: `Due Time`,
             idPrefix: `dueTime`,
-            value: taskToCreate.dueTimeStringBeingEdited,
-            errors:  taskToCreate.validationErrors.dueTimeString,
-            selector:  function () { return getSelector(fields.dueTime.name, 'input'); },
+            value: taskToCreate.dueTimeString,
+            errorsToDisplay:  taskToCreate.validationErrors.dueTimeString,
+            errorsForInvalidField: taskToCreate.validationErrors.dueTimeString.concat(taskToCreate.validationErrors.workInterval),
+            selectorForFieldElement:  function () { return getSelector(fields.dueTime.name, 'input'); },
             change: function (e) {
                 taskToCreate.setDueTimeString(e.target.value);
-                checkRemoveErrorOutline(fields.dueTime);
             },
         },
         workInterval : {
             name: `Work Range`,
-            idPrefix: 'dateRange',
+            idPrefix: `startDate`,
             value: '',
-            selector: function () { return getSelector(fields.startDate.name, 'input'); },
-            errors:  taskToCreate.validationErrors.workInterval,
+            selectorForFieldElement: function () { return getSelector(fields.startDate.name, 'input'); },
+            errorsToDisplay: taskToCreate.validationErrors.workInterval,
+            errorsForInvalidField: taskToCreate.validationErrors.workInterval,
         }
     }
 
     useEffect(() => {
+        makeDraggable(document.querySelector("#new-wrapper.popup"));
         const firstInput = document.querySelector(`input[name='${fields.title.name}']`);
         firstInput.focus();
 
@@ -236,18 +229,18 @@ const TaskCreatePopup = observer((props) => {
     }, [taskToCreate, fields.title.name])
 
     return (
-        <div id="new-wrapper">
-            <section className="mid-section" aria-labelledby="popup-title">
-                <div className="title-button-wrapper">
-                    <h2 id="popup-title">New Task</h2>
-                    <div className="aligned-buttons">
-                        <button className="btn btn-red" title="Close" onClick={() => {
-                            taskToCreate.abortEditing();
-                        }}>
-                            <i className="fas fa-times fa-fw fa-2x"></i>
-                        </button>
-                    </div>
+        <div id="new-wrapper" className="popup draggable">
+            <div className="header-container draggable-handle">
+                <h2 id="popup-title">New Task</h2>
+                <div className="aligned-buttons">
+                    <button className="btn btn-red" title="Close" onClick={() => {
+                        taskToCreate.abortEditing();
+                    }}>
+                        <i className="fas fa-times fa-fw fa-2x"></i>
+                    </button>
                 </div>
+            </div>
+            <section className="mid-section" aria-labelledby="popup-title">
                 <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate, fields)}>
                     <label>
                         Title
@@ -256,10 +249,11 @@ const TaskCreatePopup = observer((props) => {
                             onChange={fields.title.change}
                             value={fields.title.value}
                             aria-describedby={fields.title.idPrefix}
+                            aria-invalid={fields.title.errorsForInvalidField.length !== 0}
                             required
                             />
                     </label>
-                    { fields.title.errors.length ? ErrorsList(fields.title.errors, fields.title.idPrefix) : null }
+                    { fields.title.errorsToDisplay.length ? ErrorsList(fields.title.errorsToDisplay, fields.title.idPrefix) : null }
                     <label>
                         Description
                         <textarea
@@ -267,9 +261,10 @@ const TaskCreatePopup = observer((props) => {
                             onChange={fields.desc.change}
                             value={fields.desc.value}
                             aria-describedby={fields.desc.idPrefix}
+                            aria-invalid={fields.desc.errorsForInvalidField.length !== 0}
                         />
                     </label>
-                    { fields.desc.errors.length ? ErrorsList(fields.desc.errors, fields.desc.idPrefix) : null }
+                    { fields.desc.errorsToDisplay.length ? ErrorsList(fields.desc.errorsToDisplay, fields.desc.idPrefix) : null }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
                             label={"Start"}
@@ -283,8 +278,8 @@ const TaskCreatePopup = observer((props) => {
                         />
                     </div>
                     <div className="centered">
-                        { fields.workInterval.errors && fields.workInterval.errors.length ? ErrorsList(fields.workInterval.errors, fields.workInterval.idPrefix) : null }
-                        <button id="add-btn" className="btn not-square" type="submit" formNoValidate={true}>+</button>
+                        { fields.workInterval.errorsToDisplay && fields.workInterval.errorsToDisplay.length ? ErrorsList(fields.workInterval.errorsToDisplay, fields.workInterval.idPrefix) : null }
+                        <button id="add-btn" className="btn large" type="submit" formNoValidate={true}>+</button>
                     </div>
                 </form>
             </section>

@@ -1,6 +1,10 @@
 import React, { Fragment} from "react";
 import TaskSection from './TaskSection'
 import { observer } from "mobx-react-lite";
+import { DateTime } from "luxon";
+import TaskModel from "@/app/home/_globalStore/tasks/TaskModel";
+import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@utilities/DateTimeHelper";
+import './list.css'
 
 
 /**
@@ -13,11 +17,27 @@ import { observer } from "mobx-react-lite";
  * - **toggleDuration** : int - The time the sections should take to collapse in millis 
  */ 
 const ByStatusThreeSection = observer((props) => {
-    const byStatus = props.store.byStatus;
-    const overdue = byStatus["overdue"];
-    const todayDue = byStatus["todayDue"];
-    const todayWork = byStatus["todayWork"];
-    const upcoming = byStatus["upcoming"];
+    const tasks : TaskModel[] = props.store.tasksInRange(DateTime.now().minus({years:10}), DateTime.now().plus({years:10}));
+    const now = DateTime.now();
+    const sorted = (taskList : TaskModel[]) => {
+        return taskList.toSorted((a, b) => { 
+            if (a.complete === b.complete) {
+
+                return a.due < b.due ? -1 : 1;
+            } 
+            return a.complete ? 1 : -1; 
+        })
+    };
+    const overdue = sorted(tasks.filter(task => task.due <= now));
+    const todayDue = sorted(tasks.filter(task => timeOccursBetweenNowAndEOD(task.due)));
+    const todayWork = sorted(tasks.filter(task => 
+        (task.start && task.start <= now) 
+        && (now < task.due)
+        && !(timeOccursBetweenNowAndEOD(task.due))
+        ));
+    const upcoming = sorted(tasks.filter(task => 
+        (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
+        ));
 
 
     if (!(overdue.length || todayDue.length || todayWork.length || upcoming.length)) {

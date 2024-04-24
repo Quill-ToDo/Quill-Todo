@@ -1,16 +1,18 @@
-import { makeAutoObservable, reaction } from "mobx"
+import { action, computed, makeObservable, observable, reaction } from "mobx"
 import pluralize from 'pluralize';
 import { v4 } from "uuid";
 import { DateTime, Interval } from "luxon";
 import { 
-    DATE_TIME_FORMATS,
     END_OF_DAY,
     dateTimeHelper,
 } from "@utilities/DateTimeHelper";
-import { addAlert, ERROR_ALERT, NOTICE_ALERT } from "@/alerts/alertEvent";
+import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 
 const DEFAULT_DUE_DATETIME = END_OF_DAY();
+
+const MAX_TITLE_LENGTH = 100;
+const MAX_DESCRIPTION_LENGTH = 1000;
 /**
  * A Task model where changes are automatically synced to the DB.
  * 
@@ -32,40 +34,16 @@ export default class TaskModel {
     // "name" : Type : Description
     // ----------------------------------------------------
     // ---- Public ----
-        // get "id" : UUID : This ID of this Task.
             id : number = -1;
-        // get / set "title" : Task name.
             title : string = "";
-        // get / set "description" : A String which describes the task at hand.
+            start : DateTime = null;
+            due : DateTime = null;
             description : string = "";
-        // get / set "complete" : Whether or not this task is complete.
             complete : boolean = false;
-        // get / set "start" : Luxon DateTime : The DateTime when the user wants to start working on this task. 
-            // get "startDateString" : String : The date portion of this DateTime formatted into string 
-            // get "startTimeString" : String : The time portion of this DateTime formatted into string 
-            // get "defaultStartBeingUsed" : Boolean : Return True if this task is usign the default start date
-        // get / set "due" : Luxon DateTime : The DateTime by which the user wants to complete the task.
-            // get "dueDateString" : String : The date portion of this DateTime formatted into string 
-            // get "dueTimeString" : String : The time portion of this DateTime formatted into string 
-        // get "store" : The store which holds and syncronizes all tasks. 
             store : TaskStore;
-        // get "createdDate" : Luxon DateTime : The DateTime when this object was created
             createdDate : DateTime;
-        // get "isValid" : Boolean : This task has no validation errors and is safe to sync to the database
-        // get "validationErrors" : List<Objects> : A list of validation errors of this task.
-        // get / set "Json" : JSON : This tasks fields formatted as JSON
     // ---- Private ----
-        // "autoSave" : Whether or not changes to this task are synced
-        //    to the database. Turn on or off with `saveToServer()` and `dontSaveToServer()
             autoSave : boolean = true;
-        // "workRange" : Interval representing the complete range of time the
-        //    user will be working on the task. Access start and end points with 
-        //    `start` and `due` setters and getters.
-            workRange : Interval;
-            invalidStart = null;
-            invalidDue = null;
-        // get "defaultStart" : Luxon DateTime : Default start date of any task
-        // get "defaultDue" : Luxon DateTime : Default due date of any task
     // ----------------------------------------------------
     /**
      * An object to represent one task in the database. It has the same 
@@ -75,36 +53,60 @@ export default class TaskModel {
      * **Important:** Use setter methods to change any values, even internally. 
      * They may have side-effects.
      * 
-     * @param {TaskStore} store The store this task will be added to.
      * @param {uuid} id V4 UUID id of the task. If one is not passed in, one 
      * is generated upon init.
      */
-    constructor (store, jsonData = null) {
-        makeAutoObservable(this, {
-            id: false,
-            store: false,
+    constructor (taskJsonData : object | null = null) {
+        makeObservable(this, {
+            /// --- Task data --- 
+            autoSave: observable, // Whether or not changes to this task are synced
+            saveToServer: action,
+            dontSaveToServer: action,
+            //    to the database. Turn on or off with `saveToServer()` and `dontSaveToServer()
+            /// --- Task data --- 
+            title: observable, // Task name.
+            setTitle: action,
+            description: observable, // A String which describes the task
+            setDescription: action,
+            complete: observable, // Whether or not this task is complete.
+            setComplete: action,
+            toggleComplete: action,
+            workRange: computed,
+            start: observable, // The DateTime when the user wants to start working on this task
+            setStart: action,
+            due: observable, // The DateTime by which the user wants to complete the task
+            setDue: action,
+            json: computed,
+            setJson: action,
+            validationErrors: computed, // A list of validation errors of this task.
+            isValid: computed, // This task has no validation errors and is safe to sync to the database
+            id: false, // This ID of this Task.
+            store: false, // The store which holds and syncronizes all tasks. 
+            createdDate: false, // The DateTime when this task was created
+            deleteSelf: false,
             saveHandlerDisposer: false,
         }, {proxy: false});
         // Initialize all class fields not using setters
-        this.id = v4();
-        this.title = "";
-        this.description = "";
-        this.complete = false;;
-        this.workRange = Interval.fromDateTimes(this.defaultStart, this.defaultDue);
-        this.invalidStart = null;
-        this.invalidDue = null;
-        this.createdDate = null;
         // If there was Task data passed in as JSON, update this object give
         // passed data
-        if (jsonData) {
-            this.setJson(jsonData);
+        if (taskJsonData) {
+            this.setJson(taskJsonData);
+        }
+        else {
+            this.id = v4();
+            this.title = "";
+            this.description = "";
+            this.complete = false;
+            this.start = DEFAULT_DUE_DATETIME.startOf("day");
+            this.due =  DEFAULT_DUE_DATETIME;
+            this.createdDate = null;
         }
         // Add self to the TaskStore
-        this.store = store;
+        this.store = TaskStore.taskStoreSingletonInstance;
         this.store.add(this);
         // Update this task in the DB when any field used in the to JSON format method is changed
         this.saveHandlerDisposer = reaction(
-            () => this.Json,
+            () => this.json,
             json => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {
@@ -122,28 +124,11 @@ export default class TaskModel {
 //#endregion
 //#region LOGICAL METHODS     
     /**
-     * Remove this task from the taskStore. Does NOT remove it form the DB.
+     * Delete this task
      */
-    removeSelfFromStore() {
-        this.saveHandlerDisposer();
-        this.store.tasks.remove(this);
+    deleteSelf() {
+        this.store.delete(this);
     }
-    /**
-     * Delete this task from the task store and server.
-     */
-    delete() {
-        this.removeSelfFromStore();
-        this.store.API.deleteTask(this.id)
-        .then(() => {
-            addAlert(document.getElementById('home-wrapper'), 
-            NOTICE_ALERT, "Deleted " + this.title);
-        })
-        .catch(error => {
-            addAlert(document.getElementById('home-wrapper'), 
-            ERROR_ALERT, this.title + " could not be deleted - " + error.toString());
-            this.store.add(this);
-        });
-    } 
     /**
      * Mark this task as the one that detail pop-up should be rendered for
      */
@@ -168,22 +153,11 @@ export default class TaskModel {
     }
 //#endregion
 //#region workRange
-    setWorkRange(start : DateTime, end : DateTime) { 
-        this.workRange = Interval.fromDateTimes(start, end);
-        if (!this.workRange.isValid) {
-        }
-            this.invalidStart = start;
-            this.invalidDue = end;
-
+    get workRange() { 
+        return Interval.fromDateTimes(this.start, this.due);
     }
 //#endregion
 //#region start
-    /**
-     * Get the start DateTime
-     */
-    get start () {
-        return this.workRange.start ? this.workRange.start : this.invalidStart;
-    }
     /**
      * Set the start of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
@@ -194,46 +168,15 @@ export default class TaskModel {
     setStart(dateTime : DateTime) {
         try {
             const converted = dateTimeHelper(dateTime);
-            this.setWorkRange(converted, this.due);
+            this.start = converted;
         }
         catch (e) {
             addAlert(document.getElementById('home-wrapper'), 
             ERROR_ALERT, `Could not set task start: ${e}`);
         }
     }
-    /**
-     * Get the date portion as a string of the validated start DateTime
-    */
-    get startDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.start);
-    }
-    /**
-     * Get the time portion as a string of the validated start DateTime
-    */
-    get startTimeString () {
-        return DATE_TIME_FORMATS().t.serializer(this.start);
-    }
-    /**
-     * Get the default start DateTime
-     */
-    get defaultStart () {
-        return DEFAULT_DUE_DATETIME.startOf("day");
-    }
-    /**
-     * Returns true if the default start date is currently being used. 
-     * If false, the default start is not being used.
-     */
-    get defaultStartBeingUsed () {
-        return this.start.equals(this.defaultStart);
-    }
 //#endregion
 //#region due
-    /**
-     * Get the due DateTime
-     */
-    get due () {
-        return this.workRange.end ? this.workRange.end : this.invalidDue;
-    }
     /**
      * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
@@ -242,30 +185,13 @@ export default class TaskModel {
      */
     setDue (dateTime : DateTime) {
         try {
-            this.setWorkRange(this.start, dateTimeHelper(dateTime));
+            const converted = dateTimeHelper(dateTime);
+            this.due = converted;
         }
         catch (e) {
             addAlert(document.getElementById('home-wrapper'), 
             ERROR_ALERT, `Could not set task deadline: ${e}`);
         }
-    }
-    /**
-     * Get the date portion as a string of the validated due DateTime
-     */
-    get dueDateString () {
-        return DATE_TIME_FORMATS().D.serializer(this.due);
-    }
-    /**
-     * Get the time portion as a string of the validated due DateTime
-     */
-    get dueTimeString () {
-        return DATE_TIME_FORMATS().t.serializer(this.due);
-    }
-    /**
-     * Get the default due DateTime
-     */
-    get defaultDue () {
-        return DEFAULT_DUE_DATETIME;
     }
 //#endregion
 //#region autoSave
@@ -288,7 +214,7 @@ export default class TaskModel {
     /** 
      * Get the fields of this task formatted as a JSON
      */
-    get Json() {
+    get json() {
         return {
             id: this.id,
             title: this.title,
@@ -298,11 +224,12 @@ export default class TaskModel {
             description: this.description
         };
     } 
+
     /**
      * Update this TaskModel with info pulled from a passed JSON.
      * @param {object} json 
      */
-    setJson(json : JSON) {
+    setJson(json : object) {
         this.dontSaveToServer();
         this.id = json.id;
         this.setTitle(json.title);
@@ -321,7 +248,7 @@ export default class TaskModel {
      *
      */
     get validationErrors() {
-        type ErrorObject = {
+        type TaskValidationErrors = {
             [index : string] : string[];
             title: string[];
             description: string[];
@@ -329,74 +256,62 @@ export default class TaskModel {
             due: string[];
             workInterval: string[];
         };
-
-        const errors : ErrorObject = {
+        const errors : TaskValidationErrors = {
             title: [],
             description: [],
             start: [],
             due: [],
             workInterval: [],
         };
-
-        const errorMessages = {
-            NO_TITLE: `Give this task a name`,
-            TITLE_TOO_LONG: (title : string) => `Title is ${pluralize(`character`, title.length-MAX_TITLE_LENGTH, true)} too long`,
-            DESCRIPTION_TOO_LONG: (description : string) => `Description is ${pluralize(`character`, description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
-            START_TIME_AFTER_DUE: `Due time must be after start time`,
-            START_DATE_AFTER_DUE: `Due date must be on or after start date`,
+        const fieldsToValidate = {
+            title: [
+                {
+                    text: `Title is ${pluralize(`character`, this.title.length-MAX_TITLE_LENGTH, true)} too long`,
+                    fail: () => this.title.length > MAX_TITLE_LENGTH,
+                },
+                {
+                    text:  `This task must have a name`,
+                    fail: () => this.title.length === 0,
+                }
+            ],
+            description: [
+                {
+                    text: `Description is ${pluralize(`character`, this.description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
+                    fail: () => this.description.length > MAX_DESCRIPTION_LENGTH,
+                },
+            ],
+            start: [
+                {
+                    text: this.start.invalid ? this.start.invalid.explanation : "",
+                    fail: () => !this.start.isValid,
+                },
+            ],
+            due: [
+                {
+                    text: this.due.invalid ? this.due.invalid.explanation : "",
+                    fail: () => !this.due.isValid,
+                },
+            ],
+            workInterval: [
+                {
+                    text: `Due time must be after start time`,
+                    fail: () => this.start >= this.due && this.start.hasSame(this.due, 'day'),
+                },
+                {
+                    text: `Due date must be on or after start date`,
+                    fail: () => this.start >= this.due && !this.start.hasSame(this.due, 'day'),
+                },
+            ],
         }
-        
-        const MAX_TITLE_LENGTH = 100;
-        const MAX_DESCRIPTION_LENGTH = 1000;
-
-        //TODO: Implement this
-        // const validationCases = {
-        //     title: [
-        //         {
-        //             invalid: this.title.length > MAX_TITLE_LENGTH,
-        //             text: `Title is ${pluralize(`character`, this.title.length-MAX_TITLE_LENGTH, true)} too long`,
-        //         },
-        //         {
-        //             invalid: this.title.length === 0,
-        //             text:  `This task must have a name`,
-        //         }
-        //     ]
-        // }
-
-        // let caseToCheck;
-        // for (let field in validationCases) {
-        //     caseToCheck = validationCases[field];
-        //     if (caseToCheck.invalid) {
-        //         errors[field].push(caseToCheck.text);
-        //     }
-        // }
-
-        // title 
-        //    1 : Make sure title is not too long
-        if (this.title.length > MAX_TITLE_LENGTH) { 
-            errors.title.push(errorMessages.TITLE_TOO_LONG(this.title));
-        }
-        //    2 : Make sure title is not empty
-        else if (this.title.length === 0) {
-            errors.title.push(errorMessages.NO_TITLE);
-        }
-        // description : Make sure description is not too long
-        if (this.description.length > MAX_DESCRIPTION_LENGTH) { 
-            errors.description.push(
-                errorMessages.DESCRIPTION_TOO_LONG(this.description));
-        }
-        // start : N/A
-        // due : N/A
-        // workInterval 
-        //    1 : Make sure start is not after due
-        if (this.start >= this.due) {
-            if (this.start.hasSame(this.due, 'day')) {
-                errors.workInterval.push(errorMessages.START_TIME_AFTER_DUE);
+        let casesToCheck;
+        for (let field in fieldsToValidate) {
+            casesToCheck = fieldsToValidate[field];
+            for (let testCaseIdx in casesToCheck) {
+                if (casesToCheck[testCaseIdx].fail()) {
+                    errors[field].push(casesToCheck[testCaseIdx].text);
+                }
             }
-            else {
-                errors.workInterval.push(errorMessages.START_DATE_AFTER_DUE);
-            }
-        }
+        } 
         return errors;
     }
     /**
@@ -410,68 +325,5 @@ export default class TaskModel {
         }
         return true;
     }
-
-    //     /**
-    //  * Update the mapping of days : tasks for that day when the start or due is changed. 
-    //  * Pass EITHER startOld (previous start date) and startNew (date start is being changed to) as DateTime or dueOld and dueNew as DateTime.
-    //  * @param {DateTime} dates 
-    //  * @returns 
-    //  */
-    //     updateIntervalMappings({startOld=null, startNew=null, dueOld=null, dueNew=null}={}) {
-    //         const removeTaskFromDate = (date) => {
-     
-    //         }
-    //         const addTaskToDate = (date) => {
-    //             const key = date.DATE_SHORT;
-    //             if (!this.store.timeline.daysAsMap.has(key)) {
-    //                 this.store.timeline.daysAsMap.set(key, new Set());
-    //             }
-    //             this.store.timeline.daysAsMap.get(key).add(this);
-    //         }
-    
-    //         let action = null;
-    //         let iterationStart = null;
-    //         let iterationEnd = null;
-    
-    //         if (startOld != null && startNew != null) {
-    //             if (startNew.equals(startOld)) {
-    //                 return;
-    //             }
-    //             iterationStart = DateTime.min(startOld, startNew);
-    //             iterationEnd = DateTime.max(startOld, startNew);
-    //             if (startOld < startNew) {
-    //                 action = removeTaskFromDate; 
-    //             }
-    //             else {
-    //                 action = addTaskToDate;
-    //             }
-    //         }
-    //         else if (dueOld != null && dueNew != null) {
-    //             if (dueNew.equals(dueOld)) {
-    //                 return;
-    //             }
-    //             iterationStart = DateTime.min(dueNew, dueOld);
-    //             iterationEnd = DateTime.max(dueNew, dueOld);
-    //             if (dueOld > dueNew) {
-    //                 action = removeTaskFromDate; 
-    //             }
-    //             else {
-    //                 action = addTaskToDate;
-    //             }
-    //         }
-    //         else {
-    //             return;
-    //             //throw new TypeError("Both oldDue and due or oldStart and start must be provided.")
-    //         }
-    
-    //         // Iterate through difference of days and either add or remove the task from being mapped to that date
-    //         iterationEnd = iterationEnd.endOf("day");
-    //         iterationStart = iterationStart.startOf("day");
-    //         let current = iterationStart;
-    //         while (current < iterationEnd) {
-    //             action(current);
-    //             current = current.plus({days: 1});
-    //         }
-    //     }
 //#endregion
 }

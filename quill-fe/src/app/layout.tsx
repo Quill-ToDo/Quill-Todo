@@ -26,10 +26,6 @@ export default function RootLayout({
           
           {/* Font awesome */}
           <script src="https://kit.fontawesome.com/fd95a77a02.js" crossOrigin="anonymous"></script>
-
-          {/* Tempus Dominus Styles */}
-          <link href="https://cdn.jsdelivr.net/gh/Eonasdan/tempus-dominus@master/dist/css/tempus-dominus.css"
-            rel="stylesheet" crossOrigin="anonymous" />
       </head>
       <body className={`${inter.className} bg-red`}>{children}</body>
     </html>

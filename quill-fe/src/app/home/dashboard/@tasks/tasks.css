@@ -27,14 +27,14 @@
 }
 
 .dark-section {
-  background-color: var(--darkest-dark);
+  background-color: var(--g10);
   padding: var(--inner-box-padding);
   border-radius: var(--box-corner-rounding);
   margin-top: var(--section-gap);
 }
 
 #list-wrapper .dark-section button:focus {
-  background: var(--light-select);
+  background: var(--list-hover);
 }
 
 .section-collapsible {
@@ -46,7 +46,7 @@
 
 .subtle {
   font-style: italic;
-  color: var(--dark-font);
+  color: var(--g5);
   font-family: "Quicksand", sans-serif;
   font-weight: 600;
   font-size: var(--p-size);
@@ -85,12 +85,13 @@ li:not(:last-child) {
 
 .title-date-wrapper p,
 #show-wrapper .title-wrapper p {
-  color: var(--light-font);
+  color: var(--g2);
   text-align: left;
 }
 
 .title-date-wrapper>label>p {
   overflow: hidden;
+  transition: color .2s;
 }
 
 
@@ -101,13 +102,17 @@ li:not(:last-child) {
 }
 
 #list-wrapper .title-date-wrapper:hover {
-  background-color: var(--light-select);
+  background-color: var(--list-hover);
+}
+
+#list-wrapper .task-wrapper.complete .title-date-wrapper:hover p {
+  color: var(--g10);
 }
 
 
 p.date,
 p.time {
-  color: var(--subdued);
+  color: var(--g4);
   font-family: "Azeret Mono", monospace;
   font-size: var(--smaller-p-size);
 }
@@ -122,7 +127,7 @@ p.time {
 
 .title-date-wrapper p.title.complete,
 #show-wrapper .title-wrapper p.title.complete {
-  color: var(--subdued);
+  color: var(--g4);
   text-decoration: line-through 2px;
 }
 
@@ -163,11 +168,11 @@ p.time {
   line-height: .8;
   width: calc(var(--check-box-size)-2);
   font-size: var(--check-box-size);
-  color: var(--subdued);
+  color: var(--g4);
 }
 
 .check-box-wrapper input:focus~.checkmark {
-  background-color: var(--light-select);
+  background-color: var(--list-hover);
 }
 
 .checkmark.round {

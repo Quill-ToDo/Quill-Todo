@@ -6,7 +6,7 @@ import React, {
 import Task from "@/dash/@tasks/Task";
 import './TaskDetail.css';
 import { observer } from "mobx-react-lite";
-import { addAlert, NOTICE_ALERT } from '@/alerts/alertEvent';
+import { addAlert, NOTICE_ALERT } from '@/app/home/dashboard/widgets/Alerts/alertEvent';
 
 function handleEdit () {
     addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
@@ -48,7 +48,7 @@ const TaskDetail = observer((props) => {
 
     const buttons = <div className="aligned-buttons">
                         <button id="btn-delete" className="btn" title="Delete task" onClick={() => {
-                            task.delete();
+                            task.store.delete(task);
                             closeFn();
                             }}>
                             {/* <img src={bin} alt="Trash icon for delete"></img> */}

@@ -1,0 +1,8 @@
+#list-wrapper {
+    grid-area: list;
+    margin: 0;
+    display: grid;
+    overscroll-behavior: contain;
+    overflow-y: scroll;
+    grid-auto-rows: min-content;
+}
