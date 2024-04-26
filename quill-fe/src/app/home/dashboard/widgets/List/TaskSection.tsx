@@ -42,7 +42,7 @@ const TaskSectionContent = observer((props) => {
     const sectionTitleId = "dark-section-title-"+props.title;
     return (
         <section aria-labelledby={props.title !== undefined ? "dark-section-title-"+props.title : null}>
-            {props.title !== undefined ? <h3 id={sectionTitleId}>{props.title}</h3> : null}
+            {props.title !== undefined ? <h3 id={sectionTitleId} className="centered">{props.title}</h3> : null}
             <div className="dark-section">
                 {props.tasks.length === 0 ? 
                 <p className="subtle centered">{props.emptyText}</p>

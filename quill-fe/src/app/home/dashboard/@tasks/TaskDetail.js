@@ -7,6 +7,7 @@ import Task from "@/dash/@tasks/Task";
 import './TaskDetail.css';
 import { observer } from "mobx-react-lite";
 import { addAlert, NOTICE_ALERT } from '@/app/home/dashboard/widgets/Alerts/alertEvent';
+import { ICONS } from "@/app/constants";
 
 function handleEdit () {
     addAlert(document.querySelector("#btn-edit"), NOTICE_ALERT, "Edit is not implemented")
@@ -57,8 +58,8 @@ const TaskDetail = observer((props) => {
                         <button id="btn-edit" className="btn" title="Edit task" onClick={()=>handleEdit()}>
                             <i className="far fa-edit fa-fw fa"></i>
                         </button>
-                        <button className="btn btn-red" title="Close" onClick={closeFn}>
-                            <i className="fas fa-times fa-fw fa-2x"></i>
+                        <button className="btn small square btn-red" title="Close" onClick={closeFn}>
+                            { ICONS.X }
                         </button>
                     </div>;
 

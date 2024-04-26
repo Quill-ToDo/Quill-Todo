@@ -34,7 +34,7 @@ const Alert = (props) => {
                 props.removeCallback();
             }}
         >
-            <i className="fas fa-times fa-fw fa-2x"></i>
+            { ICONS.X }
         </button>
 
     useEffect(() => {

@@ -12,24 +12,21 @@ body {
     display: grid;
     background-color: rgb(37, 41, 46);
     grid-template-areas: "left-menu list slider calendar";
-    grid-template-columns: 50px minmax(min-content, 2fr) min-content 5fr;
-    grid-template-rows: 100vh auto 100vh 100vh 100vh;
+    grid-template-columns: min-content minmax(min-content, 2fr) var(--section-gap) 5fr;
+    grid-template-rows: 100vh;
 }
 
 #calendar-wrapper {
     grid-area: calendar;
-    /* height: 97vh; */
-    /* overscroll-behavior: contain;
-  overflow-y: scroll; */
     margin: var(--section-gap) var(--section-gap) var(--section-gap) 0;
 }
 
 #left-menu {
+    padding-left: var(--section-gap);
     margin: 0;
     grid-area: left-menu;
     display: flex;
     flex-direction: column;
-    padding: 0 8px 0 6px;
 }
 
 #left-menu>.btn {
@@ -70,17 +67,13 @@ h2 {
     width: max-content;
 }
 
-h3,
-form label {
+h3 {
+    font-size: var(--h3-size);
     color: var(--g3);
     font-family: "Quicksand", sans-serif;
     font-weight: 700;
-    font-size: var(--h3-size);
-    margin: var(--section-gap) 0 0 0;
-    justify-self: center;
-    align-self: center;
-    text-align: center;
 }
+
 
 .header-container {
     display: flex;
@@ -135,6 +128,7 @@ button:focus {
     font-family: "Azeret Mono", monospace;
     color: var(--g2);
     font-weight: 00;
+    padding: 5px;
     font-size: var(--p-size);
     background-color: var(--g5);
     box-shadow: 3px 3px var(--g6);
@@ -156,29 +150,39 @@ button:focus {
     aspect-ratio: 1 / 1;
 }
 .btn.small {
+    width: 35px;
+    height: auto;
 }
 .btn.med {
+    min-width: 100px;
+    min-height: 30px;
 }
 .btn.large {
-    margin-top: 15px;
-    width: 40%;
-    height: 40px;
+    min-width: 250px;
+    height: 50px;
     font-weight: bold;
     font-size: 35px;
 }
 .btn i {
-    font-size: var(--menu-icon-size);
     aspect-ratio: 1/1;
     display: flex;
     justify-content: center;
     align-items: center;
 } 
+.btn i svg {
+    stroke: var(--g2);
+    stroke-width: 4px;
+    stroke-linecap: round;
+}
 /* "invert" color if focused */
 .btn:hover {
     background-color: var(--g1);
     color: var(--g10);
     box-shadow: 3px 3px var(--g2);
     z-index: 0;
+}
+.btn:hover i svg {
+    stroke: var(--g10);
 }
 .btn:hover:not(.no-shadow) {
     transform: translate(1px, 2px);
@@ -187,7 +191,6 @@ button:focus {
 }
 .btn:focus {
     box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
-    /* color: var(--g1); */
 }
 .aligned-buttons {
     display: flex;
@@ -268,7 +271,7 @@ textarea {
     color: var(--g1);
 }
 
-form input:not(.btn),
+form input,
 form label,
 form textarea,
 form h3 {
@@ -276,22 +279,18 @@ form h3 {
   box-sizing: border-box;
   width: 100%;
   text-align: left;
-  font-size: var(--p-size);
   border: none;
+  color: var(--g3);
+  font-size: var(--p-size);
 }
 
+form .btn {
+    margin-top: var(--section-gap);
+}
  
 form input[aria-invalid="true"],
 form textarea[aria-invalid="true"] {
-    /* outline: 3px solid var(--failure-outline); */
     background-color: var(--failure-bg);
-}
-
-form input:focus,
-form textarea:focus {
-  outline: 3px solid var(--focus-highlight);
-  /* outline: 0px solid var(--list-hover); */
-  /* background: var(--list-hover); */
 }
 
 form label.sublabel {
@@ -299,7 +298,6 @@ form label.sublabel {
     color: var(--g4);
     margin-top: 0;
   }
-
     
   .error-list {
     color: var(--failure-outline);

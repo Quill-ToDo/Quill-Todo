@@ -1,7 +1,8 @@
 import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
-import './new.css';
+import './NewTask.css';
 import { makeDraggable } from "@/app/@utilities/Draggable";
+import { ICONS } from "@/app/constants";
 const ERROR_ID_END = "-error-list";
 
 /**
@@ -9,6 +10,7 @@ const ERROR_ID_END = "-error-list";
  * @returns Content of errors list. Separated from the list for performance.
  */
 const ErrorsListContent = (errors) => {
+    if (!errors) {return}
     return errors.map((errorText) => {
         return <li key={"error-"+errorText}>
             {errorText}
@@ -34,7 +36,7 @@ const ErrorsList = (errors, id) => {
 /**
  * 
  * A wrapper for time and date form fields.
- * 
+ * s
  * ---
  * 
  * *Required props:*
@@ -86,8 +88,8 @@ const TimeDateLabel = (props) => {
             </label>
         </div>
         <div className="horizontal-align">
-        { date.errorsToDisplay&& date.errorsToDisplay.length ? ErrorsList(date.errorsToDisplay, dateErrorListId) : null }
-        { time.errorsToDisplay&& time.errorsToDisplay.length ? ErrorsList(time.errorsToDisplay, timeErrorListId) : null }
+            { date.errorsToDisplay&& date.errorsToDisplay.length ? ErrorsList(date.errorsToDisplay, dateErrorListId) : null }
+            { time.errorsToDisplay&& time.errorsToDisplay.length ? ErrorsList(time.errorsToDisplay, timeErrorListId) : null }
         </div>
     </div>
 }
@@ -96,7 +98,7 @@ const TimeDateLabel = (props) => {
  * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
  * in TaskStore.
  */
-const TaskCreatePopup = observer((props) => {
+const NewTaskPopUp = observer((props) => {
     /**
      * @param {string} name Name of DOM element
      * @param {string} type DOM element type
@@ -233,10 +235,10 @@ const TaskCreatePopup = observer((props) => {
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned-buttons">
-                    <button className="btn btn-red" title="Close" onClick={() => {
+                    <button className="btn small square btn-red" title="Close" onClick={() => {
                         taskToCreate.abortEditing();
                     }}>
-                        <i className="fas fa-times fa-fw fa-2x"></i>
+                        { ICONS.X }
                     </button>
                 </div>
             </div>
@@ -287,4 +289,4 @@ const TaskCreatePopup = observer((props) => {
     )
 })
 
-export default TaskCreatePopup;
+export default NewTaskPopUp;

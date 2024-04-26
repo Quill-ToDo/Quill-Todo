@@ -27,8 +27,14 @@ export function makeDraggable(divToDrag : Element) {
                 y : event.clientY
     
             };
-            divToDrag.style.left = (mousePosition.x + offset[0]) + 'px';
-            divToDrag.style.top  = (mousePosition.y + offset[1]) + 'px';
+            let newX = mousePosition.x + offset[0];
+            let newY = mousePosition.y + offset[1];
+            if (newX > 0 && newX < window.innerWidth-50) {
+                divToDrag.style.left = newX + 'px';
+            }
+            if (newY > 0 && newY < window.innerHeight-50) {
+                divToDrag.style.top  = newY + 'px';
+            }
         }
     }, true);
 }

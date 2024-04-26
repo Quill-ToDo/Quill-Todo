@@ -54,7 +54,6 @@ dialog {
 }
 
 .alert-pop-up h3 {
-    /* font-family: "Quicksand", sans-serif; */
     font-family: "Secular One", sans-serif;
     color: var(--g1);
     font-weight: 800;

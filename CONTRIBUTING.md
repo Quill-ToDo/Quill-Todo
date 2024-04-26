@@ -256,7 +256,7 @@ You may consider install PgAdmin to make working with databases easier.
 
 #### Front-End Notes
 
-- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json` and commit any changes to this file.
+- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json` and commit any changes to this file. ex: `npm i sass --save`
 
 ### Testing
 
