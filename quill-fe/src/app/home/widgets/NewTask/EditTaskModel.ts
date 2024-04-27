@@ -2,9 +2,9 @@ import { action, makeObservable, observable, override } from "mobx"
 import {  
     stringToDateTimeHelper,
     DATE_TIME_FORMATS,
-} from "@/utilities/DateTimeHelper";
+} from "@/util/DateTimeHelper";
 import TaskModel from "@/store/tasks/TaskModel";
-import { addAlert, ERROR_ALERT } from "@/app/home/dashboard/widgets/Alerts/alertEvent";
+import { addAlert, ERROR_ALERT } from "@/widgets/Alerts/alertEvent";
 import { DateTime } from "@eonasdan/tempus-dominus";
 
 /**

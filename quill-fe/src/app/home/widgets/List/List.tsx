@@ -3,7 +3,7 @@ import TaskSection from './TaskSection'
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import TaskModel from "@/app/home/_globalStore/tasks/TaskModel";
-import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@utilities/DateTimeHelper";
+import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
 
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Task from '../../@tasks/Task';
+import Task from './taskViews/Task';
 import { observer } from "mobx-react-lite";
 
 

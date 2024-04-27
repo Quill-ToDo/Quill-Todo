@@ -5,10 +5,11 @@ import { DateTime, Interval } from "luxon";
 import { 
     END_OF_DAY,
     dateTimeHelper,
-} from "@utilities/DateTimeHelper";
+} from "@/app/@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 
+const DEFAULT_START_DATETIME = DateTime.now();
 const DEFAULT_DUE_DATETIME = END_OF_DAY();
 
 const MAX_TITLE_LENGTH = 100;
@@ -97,7 +98,7 @@ export default class TaskModel {
             this.title = "";
             this.description = "";
             this.complete = false;
-            this.start = DEFAULT_DUE_DATETIME.startOf("day");
+            this.start = DEFAULT_START_DATETIME;
             this.due =  DEFAULT_DUE_DATETIME;
             this.createdDate = null;
         }

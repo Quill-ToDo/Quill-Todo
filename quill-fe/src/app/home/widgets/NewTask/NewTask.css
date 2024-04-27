@@ -23,9 +23,14 @@
     font-family: "Secular One", sans-serif;
   }
   
+  #new-wrapper form input {
+    color: var(--g1);
+  }
+
   #new-wrapper form .start-due-wrapper .default input {
     color: var(--g4);
   }
+
   
   #new-wrapper form label.date {
     min-width: 200px;

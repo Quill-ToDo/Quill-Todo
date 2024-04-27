@@ -21,11 +21,10 @@
     "paths": {
       "@/app/*": ["./*"],
       "@/home/*": ["./home/*"],
-      "@/dash/*": ["./home/dashboard/*"],
-      "@/widgets/*": ["./home/dashboard/widgets/*"],
+      "@/widgets/*": ["./home/widgets/*"],
       "@/store/*": ["./home/_globalStore/*"],
-      "@/alerts/*": ["./home/dashboard/widgets/Alerts/*"],
-      "@/utilities/*": ["./@utilities/*"],
+      "@/alerts/*": ["./home/widgets/Alerts/*"],
+      "@/util/*": ["./@util/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
-import { ICONS } from '@/app/constants';
+import { ICONS } from '@/util/constants';
 
 /**
  * One Alert.

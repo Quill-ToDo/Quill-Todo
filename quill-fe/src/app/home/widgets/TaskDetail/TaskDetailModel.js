@@ -2,32 +2,12 @@ import React, { Fragment } from "react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import './tasks.css';
-import './taskDetail.css';
+import '@/widgets/TaskDetail/taskDetailStyle.css';
 import TaskModel from "@/store/tasks/TaskModel"
 
-/**
- * Displays the date and time of the task.
- * 
- * @param {Task} task The task to render the date and time for
- * @param {string} type The type of the task ("due" or "work") 
- * @param {*} dateForm The Luxon format of the date to display
- * @returns 
- */
-const dateTimeWrapper = (task : TaskModel, type : string, dateForm : DateTime) => {
-    const time = type === "start" ? task.start : task.due ;
-    const converted = DateTime.fromISO(time);
-    
-    return (
-        <time dateTime={converted} className={"date-time-wrapper" + (converted < DateTime.now() && !task.complete && type === "due" ? " overdue" : "")}> 
-            <p className="date">{converted.toLocaleString(dateForm)}</p>
-            <p className="time">{converted.toLocaleString(DateTime.TIME_SIMPLE)}</p>
-        </time>
-    );
-}
 
 /**
- * A task. Can appear within the list (this form is rendered when basicVersion is true) or within the task details popup 
- * (when basicVersion is false)
+ * A task within the task details popup
  * 
  * ---
  * 
@@ -40,12 +20,11 @@ const dateTimeWrapper = (task : TaskModel, type : string, dateForm : DateTime) =
  *      - start
  *      - description
  *      - completed_at
- *  - **basicVersion** : bool - Whether the version rendered should be is basic (in the list) or not (in show)
  */
-const Task = observer((props) => {
+const TaskDetail = observer((props) => {
     const task = props.data;
-    const id = "task-" + task.id;
-    const checkboxId = (props.basicVersion ? "list" : "show")+ "-checkbox-"+task.id;
+    const id = `task-${task.id}`;
+    const checkboxId = `show-checkbox-${task.id}`;
     
     const classAddition = task.complete ? "complete" : "";
     const title = (
@@ -70,20 +49,8 @@ const Task = observer((props) => {
             {props.type === "due" ? dueCheckbox : workCheckbox}
         </div>
     );
-    const dateForm = props.basicVersion? DateTime.DATE_SHORT : DateTime.DATE_MED_WITH_WEEKDAY;
-
-    if (props.basicVersion) {
-        return (
-            <div className={`task-wrapper${task.complete ? " complete" : ""}`} id={id} key={task.id}> 
-                {checkbox}
-                <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
-                    {title}
-                    {dateTimeWrapper(task, "due", dateForm)}
-                </button>
-            </div>
-        )
-    }
-    else if (props.buttons) {
+    const dateForm = DateTime.DATE_MED_WITH_WEEKDAY;
+    
         return (
             <Fragment>
                 <div className="header-container">
@@ -126,4 +93,4 @@ const Task = observer((props) => {
     }
 })
 
-export default Task
+export default TaskDetail;

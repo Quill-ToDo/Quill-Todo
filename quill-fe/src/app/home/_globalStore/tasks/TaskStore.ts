@@ -118,11 +118,11 @@ export default class TaskStore {
         .then(() => {
             this.remove(task);
             addAlert(document.getElementById('home-wrapper'), 
-            NOTICE_ALERT, "Deleted " + task.title);
+            NOTICE_ALERT, `Deleted "${task.title}"`);
         })
         .catch(error => {
             addAlert(document.getElementById('home-wrapper'), 
-            ERROR_ALERT, task.title + " could not be deleted - " + error.toString());
+            ERROR_ALERT, `${task.title} could not be deleted - ${error.toString()}`);
             this.add(task);
         });
     }

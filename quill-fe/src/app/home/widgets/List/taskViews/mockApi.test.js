@@ -2,7 +2,7 @@ import MockTaskApiHandler from "./MockTaskApiHandler";
 import { DateTime } from "luxon";
 import { setupServer } from 'msw/node'
 import { rest } from "msw";
-import { TaskApi } from "./TaskApi"
+import { TaskApi } from "../../../api/TaskApi"
 
 describe("should init with", () => {
     const defaultBaseDate = DateTime.utc(2069, 6, 6, 6, 4, 2, 0);

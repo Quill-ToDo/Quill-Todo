@@ -1,22 +1,10 @@
 import { Fragment, useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { makeDraggable } from "@/app/@utilities/Draggable";
-import { ICONS } from "@/app/constants";
+import { makeDraggable } from "@/util/Draggable";
+import { ICONS } from "@/util/constants";
 const ERROR_ID_END = "-error-list";
 
-/**
- * @param {string[]} errors List of errors to display 
- * @returns Content of errors list. Separated from the list for performance.
- */
-const ErrorsListContent = (errors) => {
-    if (!errors) {return}
-    return errors.map((errorText) => {
-        return <li key={"error-"+errorText}>
-            {errorText}
-        </li>
-    })
-}
 /**
  * @param {string[]} errors List of errors to display 
  * @returns List of errors
@@ -25,7 +13,13 @@ const ErrorsList = (errors, id) => {
     if (errors.length > 1) {
         return <Fragment> 
             <ul id={id} className="error-list" aria-live="polite">
-                <ErrorsListContent errors={errors} />
+            { 
+                errors.map((errorText) => 
+                    <li key={"error-"+errorText}>
+                        {errorText}
+                    </li>
+                )
+            }
             </ul>
         </Fragment>
     }

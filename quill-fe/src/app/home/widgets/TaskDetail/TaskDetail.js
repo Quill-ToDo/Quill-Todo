@@ -72,9 +72,8 @@ const TaskDetail = observer((props) => {
                 aria-labelledby="task-show-title"
                 aria-describedby={"task-title-" + task.id}
             >
-                <Task 
-                    data={task} 
-                    basicVersion={false} 
+                <TaskDetail
+                    data={task}
                     buttons={buttons}
                     type="due"
                 />
