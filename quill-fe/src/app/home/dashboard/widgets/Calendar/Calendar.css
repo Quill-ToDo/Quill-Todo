@@ -12,9 +12,8 @@
 .month-container {
     display: grid;
     grid-template-areas: "monthName calendarDays";
-    grid-template-columns: min-content 8fr;
+    grid-template-columns: 1fr 8fr;
     grid-template-rows: min-content;
-    grid-column-gap: var(--section-gap);
     width: 100%;
     height: 100%;
 }
@@ -24,11 +23,13 @@
     grid-area: calendarDays;
     grid-column: auto;
     grid-template-columns: repeat(7, 1fr);
-    gap: var(--section-gap);
 }
 
 .month-name {
     grid-area: monthName;
+    justify-self: flex-end;
+    border-top: 2px solid var(--g3);
+    padding: calc(var(--section-gap)/2) calc(var(--section-gap)/2) 0 0;
 }
 
 .header {
@@ -44,6 +45,20 @@
 .day-container {
     display: flex;
     flex-direction: column;
+    padding: calc(var(--section-gap)/2);
+}
+
+.day-container.border-top {
+    border-top: 2px solid var(--g3);
+}
+.day-container.border-bottom {
+    border-bottom: 2px solid var(--g3);
+}
+.day-container.border-left {
+    border-left: 2px solid var(--g3);
+}
+.day-container.border-right {
+    border-right: 2px solid var(--g3);
 }
 
 .day-container p {

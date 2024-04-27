@@ -6,17 +6,7 @@ import TaskModel from "@/app/home/_globalStore/tasks/TaskModel";
 import './Calendar.css';
 import { Fragment } from "react";
 
-/**
- * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
- * in TaskStore.
- */
-const Calendar = observer((props) => {
-    /**
-     * @param {string} name Name of DOM element
-     * @param {string} type DOM element type
-     * @returns A selector string for an element with #new-wrapper with type type and name name.
-     */
-
+const GetDateData = () => {
     const today : DateTime = START_OF_DAY();
     let start = today.startOf('month').startOf('day');
     while (start.weekdayLong !== START_OF_WEEK_WEEKDAY) {
@@ -28,36 +18,73 @@ const Calendar = observer((props) => {
     }
     type MonthData =
     {
-        monthName: string,
-        weeks: WeekData[],
+        monthName: string;
+        weeks: WeekData[];
     };
     type WeekData =
         {
-            days: DayData[],
+            days: DayData[];
         };
     type DayData =
         {
-            date: DateTime,
-            tasks: TaskModel[],
+            date: DateTime;
+            tasks: TaskModel[];
+            monthBorder: number[];
         };
 
     let dateData : MonthData[] = [];
-    
+    let paintingBorder = false;
+    const numWeekDays = 7;
+    let borderPaintingCountdownFromSeven = numWeekDays;
     for (let day = start; day <= end; day = day.plus({days:1})) {
-        if (day.day === 1) {
+        const itIsTheFirstOfTheMonth = day.day === 1;
+        const itIsAnewWeekday = day.weekdayLong === START_OF_WEEK_WEEKDAY;
+        // If it's the first, add a new month object 
+        let prevMonth = dateData[dateData.length-2];
+        if (itIsTheFirstOfTheMonth) {
+            paintingBorder = true;
+            borderPaintingCountdownFromSeven = numWeekDays;
             dateData.push({monthName: day.monthLong, weeks: []});
         }
+        prevMonth = dateData[dateData.length-2];
         const mostRecentMonth = dateData[dateData.length-1];
-        const prevMonth = dateData[dateData.length-2];
-        if (day.weekdayLong === START_OF_WEEK_WEEKDAY) {
+        // If it's the start of the week, add a new week object
+        if (itIsAnewWeekday) {
             mostRecentMonth.weeks.push({days: []});
         }
+        paintingBorder = borderPaintingCountdownFromSeven > 0;
         const mostRecentWeek = mostRecentMonth.weeks.length ? mostRecentMonth.weeks[mostRecentMonth.weeks.length-1] : prevMonth.weeks[prevMonth.weeks.length-1];
-        mostRecentWeek.days.push({
+        const newDay = {
             date: day,
             tasks: [],
-        });
+            monthBorder: [paintingBorder ? 1 : 0, 0, paintingBorder && itIsTheFirstOfTheMonth && !itIsAnewWeekday ? 1 : 0, 0],
+        };
+        // Add a day object for each day
+        if (paintingBorder) {borderPaintingCountdownFromSeven--};
+        console.log(day.day, borderPaintingCountdownFromSeven)
+        mostRecentWeek.days.push(newDay);
     }
+
+    return dateData;
+}
+/**
+ * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
+ * in TaskStore.
+ */
+const Calendar = observer((props) => {
+    /**
+     * @param {string} name Name of DOM element
+     * @param {string} type DOM element type
+     * @returns A selector string for an element with #new-wrapper with type type and name name.
+     */
+
+    const monthBorderIndexToClassName = new Map<number, string>();
+    monthBorderIndexToClassName.set(0, "border-top");
+    monthBorderIndexToClassName.set(1, "border-right");
+    monthBorderIndexToClassName.set(2, "border-left");
+    monthBorderIndexToClassName.set(3, "border-bottom");
+
+    const dateData = GetDateData();
     
     return (
         <section id="calendar-wrapper">
@@ -80,7 +107,11 @@ const Calendar = observer((props) => {
                             <div className="month-days"> 
                                 {
                                     monthData.weeks.map(weekData => weekData.days.map(day => 
-                                            <button className="day-container">
+                                            <button className={"day-container" + day.monthBorder.reduce((accumulator, currentValue, currentIndex) => 
+                                            {
+                                                return accumulator + (currentValue ? " " + monthBorderIndexToClassName.get(currentIndex) : "");
+                                            }
+                                            , " ") }>
                                                 <p>{day.date.day}</p>
                                                 <div className=" dark-section">
                                                 </div>
