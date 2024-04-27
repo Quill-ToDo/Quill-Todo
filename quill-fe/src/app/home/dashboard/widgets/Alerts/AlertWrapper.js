@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
+import { ICONS } from '@/app/constants';
 
 /**
  * One Alert.
@@ -14,15 +15,15 @@ const Alert = (props) => {
     const labelId = alert.id + "-label";
     const btnId = alert.id + "-close";
     
-    var closeBtnClass = "no-shadow btn ";
+    var closeBtnClass = "no-shadow btn small square";
     if (alert.type === SUCCESS_ALERT) {
-        closeBtnClass += "btn-green";
+        closeBtnClass += " btn-green";
     }
     else if (alert.type === ERROR_ALERT) {
-        closeBtnClass += "btn-red";
+        closeBtnClass += " btn-red";
     }
     else if (alert.type === NOTICE_ALERT) {
-        closeBtnClass += "btn-light-grey";
+        closeBtnClass += " btn-light-grey";
     }
 
     const closeBtn = 

@@ -1,3 +1,7 @@
+.calendar-wrapper .calendar-body {
+    padding-bottom: 0;
+}
+
 .calendar-body {
     display: flex;
     flex-direction: column;
@@ -49,7 +53,7 @@
 }
 
 .day-container.border-top {
-    border-top: 2px solid var(--g3);
+    border-top: 2px solid var(--g3); 
 }
 .day-container.border-bottom {
     border-bottom: 2px solid var(--g3);

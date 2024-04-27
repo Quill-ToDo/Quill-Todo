@@ -16,7 +16,7 @@ body {
     grid-template-rows: 100vh;
 }
 
-#calendar-wrapper {
+.calendar-wrapper {
     grid-area: calendar;
     margin: var(--section-gap) var(--section-gap) var(--section-gap) 0;
 }

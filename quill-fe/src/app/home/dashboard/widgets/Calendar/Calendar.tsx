@@ -87,7 +87,7 @@ const Calendar = observer((props) => {
     const dateData = GetDateData();
     
     return (
-        <section id="calendar-wrapper">
+        <section className="calendar-wrapper">
             <div className="calendar-body mid-section">
                 <div className="header">
                     <div></div>
