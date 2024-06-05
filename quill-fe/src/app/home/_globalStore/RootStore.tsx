@@ -1,4 +1,4 @@
-import { TaskApi } from "../widgets/List/taskViews/TaskApi";
+import { TaskApi } from "./tasks/TaskApi";
 import TaskStore from "./tasks/TaskStore";
 import { EventStore } from "./events/EventStore";
 import { configure } from "mobx"

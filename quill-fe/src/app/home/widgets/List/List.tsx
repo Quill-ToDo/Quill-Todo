@@ -2,7 +2,7 @@ import React, { Fragment} from "react";
 import TaskSection from './TaskSection'
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import TaskModel from "@/app/home/_globalStore/tasks/TaskModel";
+import TaskModel from "@/store/tasks/TaskModel";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
 
@@ -22,7 +22,6 @@ const ByStatusThreeSection = observer((props) => {
     const sorted = (taskList : TaskModel[]) => {
         return taskList.toSorted((a, b) => { 
             if (a.complete === b.complete) {
-
                 return a.due < b.due ? -1 : 1;
             } 
             return a.complete ? 1 : -1; 

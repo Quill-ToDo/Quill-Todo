@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import Task from './taskViews/Task';
+import ListViewTask from './ListViewTask';
 import { observer } from "mobx-react-lite";
 
 
@@ -18,9 +18,8 @@ const TaskList = observer((props) => {
         { props.tasks.map((task) => {
             return ( 
                 <li className="task" key={"task-li-"+task.id}>
-                    <Task
+                    <ListViewTask
                         data={task}
-                        basicVersion={true}
                         type={props.type}
                         />
                 </li>

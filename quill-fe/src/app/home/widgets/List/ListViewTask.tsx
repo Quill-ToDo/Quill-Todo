@@ -1,8 +1,8 @@
-import React, { Fragment } from "react";
+import React from "react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import './tasks.css';
-import '@/widgets/TaskDetail/taskDetailStyle.css';
+import '@/widgets/TaskDetail/TaskDetailStyle.css';
 import TaskModel from "@/store/tasks/TaskModel"
 
 /**

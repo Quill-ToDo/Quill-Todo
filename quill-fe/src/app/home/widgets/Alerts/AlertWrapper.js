@@ -81,6 +81,7 @@ const Alert = (props) => {
         return (
             <li 
                 id={alert.id}
+                key={`alert-${alert.id}`}
                 role="alertdialog"
                 open=""
                 aria-live='assertive'
@@ -99,6 +100,7 @@ const Alert = (props) => {
         return (
             <li 
                 id = {alert.id}
+                key={`alert-${alert.id}`}
                 aria-describedby={descId}
                 aria-labelledby={labelId}
                 className={"alert-pop-up slide-out " + alert.type}>
