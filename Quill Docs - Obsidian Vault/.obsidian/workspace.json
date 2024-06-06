@@ -44,18 +44,6 @@
             }
           },
           {
-            "id": "4d72c78fd70686d1",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Documentation/Ideas/Task Creation.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
             "id": "4272be2ba2659192",
             "type": "leaf",
             "pinned": true,
@@ -75,7 +63,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Documentation/Ideas/Widgets/Widget List.md",
+                "file": "Documentation/Ideas/Widgets/Calendar.md",
                 "mode": "source",
                 "source": false
               }
@@ -118,7 +106,7 @@
             }
           }
         ],
-        "currentTab": 2
+        "currentTab": 4
       }
     ],
     "direction": "vertical"
@@ -176,7 +164,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 200
+    "width": 200,
+    "collapsed": true
   },
   "right": {
     "id": "f8df76894e39634c",
@@ -192,7 +181,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Start Here 🎯 About Quill.md"
+                "file": "Documentation/Ideas/Widgets/Calendar.md"
               }
             }
           },
@@ -202,7 +191,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Start Here 🎯 About Quill.md",
+                "file": "Documentation/Ideas/Widgets/Calendar.md",
                 "collapseAll": true,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -219,7 +208,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Start Here 🎯 About Quill.md",
+                "file": "Documentation/Ideas/Widgets/Calendar.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -240,7 +229,8 @@
       }
     ],
     "direction": "horizontal",
-    "width": 300
+    "width": 300,
+    "collapsed": true
   },
   "left-ribbon": {
     "hiddenItems": {
@@ -252,8 +242,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "0a4714d23c22a056",
+  "active": "a95023e7390586ca",
   "lastOpenFiles": [
+    "527988_red-x-mark-png-1357587427.png",
+    "615-6158337_x-mark-png-3031476819.png",
+    "6TpoBbxac-2628309597.png",
+    "Documentation/Ideas/Widgets/Widget List.md",
+    "Documentation/Ideas/Widgets/Calendar.md",
+    "Documentation/Ideas/Task Creation.md",
     "Documentation/Back-End Concepts.md",
     "Start Here 🎯 About Quill.md",
     "Settings.md",
@@ -287,10 +283,6 @@
     "Documentation/Grid Dashboard.md",
     "Documentation/Calendar Sync.md",
     "Architecture Diagrams.md",
-    "Documentation/Ideas/Widgets/Clock.md",
-    "Documentation/Presentations/Presentations.md",
-    "Documentation/Architecture Diagrams.md",
-    "Documentation/Ideas/Work Distribution.md",
     "Documentation/Presentations/Migration Progress 01.30.2022.pdf",
     "ObsidianTemplates",
     "Documentation/Ideas/Widgets/Habit Tracker/Concept Photos/ProcessConcept4.jpg",
