@@ -12,7 +12,7 @@ export default class RootStore {
     eventStore : EventStore;
     
     constructor () {
-        this.taskStore = new TaskStore(this, new TaskApi());
+        this.taskStore = new TaskStore({rootStore: this, API: new TaskApi()});
         this.eventStore = new EventStore(this, this.taskStore);
     };
 }

@@ -8,12 +8,14 @@ import {
 } from "@/app/@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
+import { ReactNode } from "react";
 
 const DEFAULT_START_DATETIME = DateTime.now();
 const DEFAULT_DUE_DATETIME = END_OF_DAY();
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 1000;
+
 /**
  * A Task model where changes are automatically synced to the DB.
  * 
@@ -30,7 +32,7 @@ const MAX_DESCRIPTION_LENGTH = 1000;
  *    ?? Or its parent class?? have any validation errors and this task may be saved 
  *    to the database.  
  */
-export default class TaskModel {
+export class TaskModel {
 //#region CLASS FIELDS AND CONSTRUCTOR
     // "name" : Type : Description
     // ----------------------------------------------------
@@ -57,7 +59,7 @@ export default class TaskModel {
      * @param {uuid} id V4 UUID id of the task. If one is not passed in, one 
      * is generated upon init.
      */
-    constructor (taskJsonData : object | null = null) {
+    constructor (taskJsonData?: object) {
         makeObservable(this, {
             /// --- Task data --- 
             autoSave: observable, // Whether or not changes to this task are synced
@@ -86,6 +88,8 @@ export default class TaskModel {
             createdDate: false, // The DateTime when this task was created
             deleteSelf: false,
             saveHandlerDisposer: false,
+            // --- Visual Elements ---
+            visualStyles: false,
         }, {proxy: false});
         // Initialize all class fields not using setters
         // If there was Task data passed in as JSON, update this object give
@@ -327,4 +331,8 @@ export default class TaskModel {
         return true;
     }
 //#endregion
+}
+
+export module TaskModel {
+    export type VisualStyles = "work" | "due";
 }

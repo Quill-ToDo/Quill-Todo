@@ -1,10 +1,10 @@
-import { makeAutoObservable, runInAction} from "mobx";
-import TaskModel from "./TaskModel";
+import { makeObservable, observable, action, computed, runInAction} from "mobx";
+import { TaskModel } from "./TaskModel";
 import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
-import { TaskApi } from "@/home/API/TaskApi";
+import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
-import EditTaskModel from "../../dashboard/widgets/NewTask/EditTaskModel";
+import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
 
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
@@ -26,11 +26,28 @@ export default class TaskStore {
      * @param {*} rootStore The store that holds this instance.
      * @param {*} API The API module used to make network calls to the task API.
      */
-    constructor (rootStore : RootStore, API : TaskApi) {
-        makeAutoObservable(this, {
+    constructor ({rootStore, API}: {rootStore : RootStore, API : TaskApi}) {
+        makeObservable(this, {
+            // Do not observe
             API: false,
             rootStore: false,
-            isLoaded: true
+            tasksInRange: false,
+            timeline: false,
+            // Observables
+            isLoaded: observable,
+            taskSet: observable,
+            taskBeingFocused: observable,
+            taskBeingEdited: observable,
+            // Computeds
+            tasks: computed,
+            // Actions
+            loadTasks: false,
+            setEditing: action,
+            setFocus: action,
+            removeFocus: action,
+            add: action,
+            remove: action, 
+            delete: action,
         }, {proxy: false})
         this.rootStore = rootStore;
         if (TaskStore.taskStoreSingletonInstance !== undefined) {
@@ -75,7 +92,7 @@ export default class TaskStore {
         })
     }
 
-    tasksInRange (startTime : DateTime, endTime : DateTime) {
+    tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {
         return this.tasks.filter(task => (task.start <= endTime && task.start >= startTime) || (task.due <= endTime && task.due >= startTime));
     }
 

@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 import { START_OF_DAY } from "@/app/@util/DateTimeHelper";
 import { DateTime } from "luxon";
 import { END_OF_WEEK_WEEKDAY, START_OF_WEEK_WEEKDAY } from "@/util/constants";
-import TaskModel from "@/app/home/_globalStore/tasks/TaskModel";
+import { TaskModel } from "@/store/tasks/TaskModel";
 import './Calendar.css';
 
 const NUM_MONTHS_LOOKAHEAD = 6;

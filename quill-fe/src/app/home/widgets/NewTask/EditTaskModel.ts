@@ -1,9 +1,9 @@
 import { action, makeObservable, observable, override } from "mobx"
 import {  
     stringToDateTimeHelper,
-    DATE_TIME_FORMATS,
+    PARTIAL_DATETIME_FORMATS,
 } from "@/util/DateTimeHelper";
-import TaskModel from "@/store/tasks/TaskModel";
+import { TaskModel } from "@/store/tasks/TaskModel";
 import { addAlert, ERROR_ALERT } from "@/widgets/Alerts/alertEvent";
 import { DateTime } from "@eonasdan/tempus-dominus";
 
@@ -61,10 +61,10 @@ export default class EditTaskModel extends TaskModel {
 
         });
         // Initialize all class fields not using setters
-        this.startDateString = DATE_TIME_FORMATS().D.serializer(this.start);
-        this.startTimeString = DATE_TIME_FORMATS().t.serializer(this.start);
-        this.dueDateString = DATE_TIME_FORMATS().D.serializer(this.due);
-        this.dueTimeString = DATE_TIME_FORMATS().t.serializer(this.due);
+        this.startDateString = PARTIAL_DATETIME_FORMATS.D.serializer(this.start);
+        this.startTimeString = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
+        this.dueDateString = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
+        this.dueTimeString = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
         this.startEditing();
    
     }
@@ -196,21 +196,21 @@ export default class EditTaskModel extends TaskModel {
             workInterval: super.validationErrors.workInterval,
         };
         const VALIDATION_ERROR_MESSAGES = {
-            INVALID_TIME_FORMAT: `Time is not of the format ${DATE_TIME_FORMATS().t.readable}. Ex: 10:30 am`,
-            INVALID_DATE_FORMAT: `Date is not of the format ${DATE_TIME_FORMATS().D.readable}. Ex: 7/26/2022`,
+            INVALID_TIME_FORMAT: `Time is not of the format ${PARTIAL_DATETIME_FORMATS.t.readable}. Ex: 10:30 am`,
+            INVALID_DATE_FORMAT: `Date is not of the format ${PARTIAL_DATETIME_FORMATS.D.readable}. Ex: 7/26/2022`,
             INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
         }
         const fieldsToValidate = {
             startTimeString: [
                 {
                     text: VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT,
-                    fail: () => !DATE_TIME_FORMATS().t.deserializer(this.startTimeString).isValid,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.t.deserializer(this.startTimeString).isValid,
                 },
             ],
             startDateString: [
                 {
                     text: VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT,
-                    fail: () => !DATE_TIME_FORMATS().D.deserializer(this.startDateString).isValid,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.D.deserializer(this.startDateString).isValid,
                 },
             ],
             start: [
@@ -222,13 +222,13 @@ export default class EditTaskModel extends TaskModel {
             dueTimeString: [
                 {
                     text: VALIDATION_ERROR_MESSAGES.INVALID_TIME_FORMAT,
-                    fail: () => !DATE_TIME_FORMATS().t.deserializer(this.dueTimeString).isValid,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.t.deserializer(this.dueTimeString).isValid,
                 },
             ],
             dueDateString: [
                 {
                     text: VALIDATION_ERROR_MESSAGES.INVALID_DATE_FORMAT,
-                    fail: () => !DATE_TIME_FORMATS().D.deserializer(this.dueDateString).isValid,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.D.deserializer(this.dueDateString).isValid,
                 },
             ],
             due: [

@@ -1,23 +1,51 @@
-import React, { Fragment} from "react";
-import TaskSection from './TaskSection'
+import React, { Fragment, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import TaskModel from "@/store/tasks/TaskModel";
+import { TaskModel } from "@/store/tasks/TaskModel";
+import { DateTimeWrapper, Checkbox } from "@/store/tasks/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
+import "@/store/tasks/tasks.css";
+import TaskStore from "@/store/tasks/TaskStore";
+import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 
+
+const SECTION_TOGGLE_DURATION = 100;
+
+//#region List 
+/**
+ * The list view for tasks.
+ */
+export const ListWidget = observer(({store}: {store: TaskStore}) => {
+    // How long sections should take to collapse in millis
+
+    // All possible views for the list
+    const possibleListFormats = {
+        "by-status": <ByStatusThreeSection store={store}/>
+    };
+
+    const listFormat = "by-status";
+    const loading = 
+        <div className="loading-wrapper take-full-space">
+            <div>
+                <i className="fas fa-list-alt loading-icon fa-4x" aria-hidden="true"></i>
+                <p className="">Loading list...</p>
+            </div>
+        </div>;
+
+    // Before content is loaded show placeholder
+    return (
+        <section id="list-wrapper" aria-label="Task list">
+            {store.isLoaded ? possibleListFormats[listFormat] : loading}
+        </section>
+    );
+});
 
 /**
- * A format for task list contents where tasks are separated into overdue, today, and upcoming sections.
- * 
- * --- 
- * 
- * *Required props:*
- *  - **store** : TaskStore - The store to pull tasks from
- * - **toggleDuration** : int - The time the sections should take to collapse in millis 
+ * A list format where tasks are separated into overdue, today, and upcoming sections.
  */ 
-const ByStatusThreeSection = observer((props) => {
-    const tasks : TaskModel[] = props.store.tasksInRange(DateTime.now().minus({years:10}), DateTime.now().plus({years:10}));
+const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
+    const tasks : TaskModel[] = store.tasksInRange({startTime: DateTime.now().minus({years:10}), endTime: DateTime.now().plus({years:10})});
     const now = DateTime.now();
     const sorted = (taskList : TaskModel[]) => {
         return taskList.toSorted((a, b) => { 
@@ -51,11 +79,10 @@ const ByStatusThreeSection = observer((props) => {
 
     return (
         <Fragment>
-            <TaskSection 
+            <Section 
                 title="Overdue"
                 sectionNum={0}
-                toggleDuration={props.toggleDuration}
-                sectionContent={
+                content={
                     [{
                         "tasks": overdue,
                         "type": "due",
@@ -63,32 +90,30 @@ const ByStatusThreeSection = observer((props) => {
                     }]
                 }
             />
-            <TaskSection 
+            <Section 
                 title="Today"
                 sectionNum={1}
-                toggleDuration={props.toggleDuration}
-                sectionContent={
+                content={
                     [
                         {
-                        "optionalTitle": "Due",
-                        "tasks": todayDue,
-                        "type": "due",
-                        "emptyText": "No tasks due today"
+                            "title": "Due",
+                            "tasks": todayDue,
+                            "type": "due",
+                            "emptyText": "No tasks due today",
                         },
                         {
-                        "optionalTitle": "Work",
-                        "tasks": todayWork,
-                        "type": "work",
-                        "emptyText": "No tasks to work on today"
+                            "title": "Work",
+                            "tasks": todayWork,
+                            "type": "work",
+                            "emptyText": "No tasks to work on today",
                         }
                     ]
                 }
             />
-            <TaskSection 
+            <Section 
                 title="Upcoming"
                 sectionNum={2}
-                toggleDuration={props.toggleDuration}
-                sectionContent={
+                content={
                     [{
                         "tasks": upcoming,
                         "type": "due",
@@ -97,41 +122,241 @@ const ByStatusThreeSection = observer((props) => {
                 }
             />
         </Fragment>
-    );
+    )
 });
-
+//#region Section 
 /**
- * The list view for tasks.
- * 
- * ---
- * 
- * *Required props:*
- *  - **store** : TaskStore - The store to display tasks from.
+ * A section of tasks within a list. May be divided into subsections.
  */
-const List = observer((props) => {
-    // How long sections should take to collapse in millis
-    const sectionToggleDuration = 100;
+const Section = observer(({title, sectionNum, content, classNames}: {title: string, sectionNum: number, content: SubSectionContent[], classNames?: string}) => {
+    const [sectionOpen, setSectionOpen] = useState(true);
 
-    // All possible views for the list
-    const possibleListFormats = {
-        "by-status": <ByStatusThreeSection toggleDuration={sectionToggleDuration} store={props.store}/>
-    };
-
-    const listFormat = "by-status";
-    const loading = 
-        <div className="loading-wrapper take-full-space">
-            <div>
-                <i className="fas fa-list-alt loading-icon fa-4x" aria-hidden="true"></i>
-                <p className="">Loading list...</p>
-            </div>
-        </div>;
-
-    // Before content is loaded show placeholder
+    var collapseToolTip = sectionOpen ? "Collapse " + title.toLowerCase() + " tasks" : "Expand " + title.toLowerCase() + " tasks";
+    
     return (
-        <section id="list-wrapper" aria-label="Task list">
-            {props.store.isLoaded ? possibleListFormats[listFormat] : loading}
+        <section id={getSectionId(sectionNum)} aria-labelledby={"section-"+sectionNum+"-title"} >
+            <div className={(classNames !== undefined ? classNames + " " : "") + "mid-section"}>
+                <div className="header-container collapsible">
+                    <button 
+                        className="btn small square" 
+                        title={collapseToolTip} 
+                        aria-expanded={sectionOpen}
+                        onClick={(e) => {
+                            handleSectionToggle(sectionNum);
+                            setSectionOpen(!sectionOpen);
+                        }}
+                    >
+                        <i 
+                        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
+                        ></i>
+                    </button>
+                    <h2 id={"section-"+sectionNum+"-title"}>{title}</h2>
+                </div>
+                <div className="section-collapsible">
+                    <SubSection 
+                        sectionContent={content}
+                        sectionNum={sectionNum}
+                    />
+                </div>
+            </div>
         </section>
     );
 })
 
-export default List;
+function getSectionId(sectionNum: number) {
+    return "task-section-" + sectionNum;
+}
+
+type SubSectionContent = {title?: string, tasks: TaskModel[], type: TaskModel.VisualStyles, emptyText: string};
+/**
+ * The contents of a subsection with a list section serparated out for performance
+ */
+const SubSection = ({sectionNum, sectionContent}: {sectionNum: number, sectionContent: SubSectionContent[]}) => {
+    return sectionContent.map((section) => {
+        return ( 
+            <TaskSectionContent 
+                content={section}
+            />
+            )
+        })
+}
+//#region Task list
+/**
+ * The tasks within a subsection.
+ */
+const TaskSectionContent = ({content}: {content: SubSectionContent}) => {
+    const sectionTitleId = "dark-section-title-"+content.title;
+    return (
+        <section aria-labelledby={content.title !== undefined ? sectionTitleId : ""}>
+            {content.title !== undefined ? <h3 id={sectionTitleId} className="centered">{content.title}</h3> : null}
+            <div className="dark-section">
+                {content.tasks.length === 0 ? 
+                <p className="subtle centered">{content.emptyText}</p>
+                :
+                <TaskList 
+                    tasks={content.tasks} 
+                    type={content.type}    
+                />
+                }
+            </div>
+        </section>
+    )
+}
+
+/**
+ * The list of tasks, separated to a different method for performance
+ */
+const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
+    return <ul role="group">
+        { tasks.map((task) => {
+            return ( 
+                <li className="task" key={"task-li-"+task.id}>
+                    <ListViewTask
+                        task={task}
+                        type={type}
+                        />
+                </li>
+            )
+        })}
+    </ul>
+}
+
+/**
+ * One task within the list
+ */
+const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.VisualStyles }) => {
+    const id = `task-${task.id}`;
+    const checkboxId = `list-checkbox-${task.id}`;
+    const classAddition = task.complete ? "complete" : "";
+    const dateForm = DateTime.DATE_SHORT;
+
+    return (
+        <div className={`task-wrapper${task.complete ? " complete" : ""}`} id={id} key={task.id}> 
+            <Checkbox
+                task={task}
+                type={type}
+                checkboxId={checkboxId}
+            />
+            <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
+                {<label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
+                {task.complete ? <p id={"task-title-" + task.id} className={"title " + classAddition}><s>{task.title}</s></p>
+                : <p id={"task-title-" + task.id} className={"title " + classAddition}>{task.title}</p>}    
+            </label>}
+                <DateTimeWrapper 
+                    task={task} 
+                    type="due" 
+                    dateFormat={dateForm} 
+                />
+            </button>
+        </div>
+    )
+})
+
+//#endregion Task list
+//#region Section toggle
+/**
+ * Collapse/expand sections when the toggle symbol is clicked.
+ * 
+ * @param {sectionNum} The number of the section to toggle visibility of.
+ */
+function handleSectionToggle (sectionNum: number) {
+    const taskSection = document.getElementById(getSectionId(sectionNum));
+    if (!taskSection) {
+        addAlert(document.querySelector("#list"), ERROR_ALERT, "Could not toggle section :(");
+        return;
+    }
+    const outer_section: HTMLElement = taskSection.querySelector(".mid-section") as HTMLElement;
+    const inner_section: HTMLElement = taskSection.getElementsByClassName("section-collapsible")[0] as HTMLElement;
+    inner_section.style.transition = `transform ${SECTION_TOGGLE_DURATION * .98}ms ease-in-out 0s`;
+    outer_section.style.transition = `height ${SECTION_TOGGLE_DURATION}ms ease-in-out 0s`;
+    outer_section.style.height = "fit-content";
+    toggleSection(taskSection);
+    flipkarat(taskSection);
+}
+
+/**
+ * Toggle a section opened or closed.
+ * 
+ */
+function toggleSection(taskSectionToToggle: HTMLElement) {
+    var outerSection = taskSectionToToggle.querySelector(".mid-section") as HTMLElement;
+    var innerContent = taskSectionToToggle.querySelector(".section-collapsible") as HTMLElement;
+    if (!outerSection || !innerContent) {
+        addAlert(taskSectionToToggle, ERROR_ALERT, "Could not toggle section :(");
+        return;
+    }
+    
+    toggleInlineHeightAttribute(outerSection);
+
+    const sectionHeaderHeight = parseFloat(window.getComputedStyle(taskSectionToToggle.querySelector(".header-container.collapsible")).getPropertyValue('height'));
+
+    if (innerContent.style.display === "none") {
+        // Expand
+        innerContent.style.display = "block";
+        const sectionContentHeight = parseFloat(window.getComputedStyle(innerContent).getPropertyValue('height'));
+        setTimeout(() => {
+            // For some reason it needs a timeout after switching to block display before transforming. Don't know why.
+            outerSection.style.height = (sectionHeaderHeight + sectionContentHeight) + "px";
+            innerContent.style.transform = "scaleY(1)";
+        }, SECTION_TOGGLE_DURATION/100)
+    } else {
+        // Collapse
+        innerContent.style.transform = "scaleY(.01)";
+        var collapsedHeight = sectionHeaderHeight + "px";
+        outerSection.style.height = collapsedHeight;
+        setTimeout(() => {
+            innerContent.style.display = "none";
+        }, SECTION_TOGGLE_DURATION)
+    }
+
+    setTimeout(() => {
+        toggleInlineHeightAttribute(outerSection);
+    }, SECTION_TOGGLE_DURATION+10)
+}
+
+/**
+ * Add an inline height attribute to the passed DOM element equal to its current calculated height. Doing this because 
+ * if I don't then the height transition animation wont work the first time it's collapsed.
+ * 
+ * @param {*} outerSection The DOM element to add the attribute to
+ */
+function toggleInlineHeightAttribute (outerSection: HTMLElement) {
+    if (outerSection.style.height === "fit-content") {
+        // Set inline height attribute
+        const outerHeight = parseFloat(window.getComputedStyle(outerSection).getPropertyValue('height'));
+        outerSection.style.height = outerHeight + "px";
+    }
+    else {
+        // Remove inline height attribute (after animation is done so that the section will respond properly to window resizes)
+        outerSection.style.height = "fit-content";
+    }
+}
+
+/**
+ * Flip the karat indicating if the section is opened or closed within a section.
+ */
+function flipkarat (taskSectionWithKarat: HTMLElement) {
+    let symbol: HTMLElement = taskSectionWithKarat.querySelector(".expand-symbol") as HTMLElement;
+    if (!symbol) {
+        addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "Could not toggle section :(");
+        return;
+    }
+    const start = "rotate(180deg)";
+    const end = "rotate(0deg)";
+    symbol.style.transition = `transform ${SECTION_TOGGLE_DURATION}ms ease-in-out 0s`;
+    if (symbol.style._webkit_transform === start || 
+        symbol.style._ms_transform === start || 
+        symbol.style.transform === start) {
+        symbol.style._webkit_transform = end;
+        symbol.style._ms_transform = end;
+        symbol.style.transform = end;
+        } else {
+        symbol.style._webkit_transform = start;
+        symbol.style._ms_transform = start;
+        symbol.style.transform = start;
+    }
+}
+
+//#endregion Section Toggle
+//#endregion Section
+//#endregion List 

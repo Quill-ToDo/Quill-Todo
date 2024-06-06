@@ -20,6 +20,10 @@
   opacity: .8;
 }
 
+#show-wrapper h3 {
+  font-size: var(--h4-size);
+}
+
 /* Tasks */
 #show-wrapper .task-wrapper .title {
   font-family: "Secular One", sans-serif;

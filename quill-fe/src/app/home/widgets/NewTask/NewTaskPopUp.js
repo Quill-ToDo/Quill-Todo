@@ -228,7 +228,7 @@ const NewTaskPopUp = observer((props) => {
         <div id="new-wrapper" className="popup draggable">
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
-                <div className="aligned-buttons">
+                <div className="aligned end">
                     <button className="btn small square btn-red" title="Close" onClick={() => {
                         taskToCreate.abortEditing();
                     }}>
