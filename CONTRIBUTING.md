@@ -61,12 +61,12 @@ $ npm run start-be-unix
     nvm -v
     ```
 
-4. Install and switch to Node v16.13.1.
+4. Install Node
 
     > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
 
     ```Bash
-    nvm install v16.13.1 && nvm use 16.13.1
+    nvm install v22.2.0 && nvm use 22.2.0
     ```
 
     You may need to restart your computer for the installation to take effect.
