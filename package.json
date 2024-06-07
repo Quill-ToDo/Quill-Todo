@@ -19,8 +19,5 @@
   "bugs": {
     "url": "https://github.com/Quill-ToDo/App/issues"
   },
-  "homepage": "https://github.com/Quill-ToDo/App#readme",
-  "dependencies": {
-    "next": "^13.4.13"
-  }
+  "homepage": "https://github.com/Quill-ToDo/App#readme"
 }
