@@ -15,14 +15,14 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: cd ./tasks-fe && npm install
-    - run: cd ./tasks-fe && npm test -a -- --coverage --reporter=lcov
-    - run: cd ./tasks-fe/coverage && ls
+    - run: cd ./quill-fe && npm install
+    - run: cd ./quill-fe && npm test -a -- --coverage --reporter=lcov
+    - run: cd ./quill-fe/coverage && ls
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
         fail_ci_if_error: true
         token: ${{ secrets.CODECOV_TOKEN }}
         verbose: true
-        files: ./tasks-fe/coverage/coverage-final.json
+        files: ./quill-fe/coverage/coverage-final.json
         flags: FE

@@ -1,13 +1,14 @@
 {
-  "name": "quill-todo",
+  "name": "quill-quill-be-proj",
   "version": "1.0.0",
   "description": "A better todo app",
-  "main": "tasks-fe\\build\\index.html",
+  "main": "quill-fe\\build\\index.html",
   "scripts": {
     "init-be-unix": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
-    "start-fe": "workon quill && cd tasks-fe && npm install && npm start",
+    "start-fe": "workon quill && cd quill-fe && npm install && npm dev",
+    "start-be": "cd ./scripts && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
     "start-be-unix": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
-    "fe-tests": "workon quill && cd tasks-fe && npm run test"
+    "fe-tests": "workon quill && cd quill-fe && npm run test"
   },
   "repository": {
     "type": "git",
@@ -18,5 +19,8 @@
   "bugs": {
     "url": "https://github.com/Quill-ToDo/App/issues"
   },
-  "homepage": "https://github.com/Quill-ToDo/App#readme"
+  "homepage": "https://github.com/Quill-ToDo/App#readme",
+  "dependencies": {
+    "next": "^13.4.13"
+  }
 }

@@ -1,0 +1,92 @@
+.calendar-wrapper .calendar-body {
+    padding-bottom: 0;
+}
+
+.calendar-body {
+    display: grid;
+    grid-template-areas: 
+    "... weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
+    "monthNames calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays";
+    grid-template-columns: minmax(30px, min-content) repeat(7, 1fr);
+    grid-template-rows: minmax(min-content, 50px) 100%;
+    align-items: start;
+    gap: 0;
+    height: 100%;
+
+}
+
+.calendar-month-infinite-scroll-wrapper {
+    grid-column: monthNames / calendarDays;
+    display: grid;
+    grid-template-columns: subgrid;
+    overflow: scroll;
+    max-height: 100%;
+}
+
+/* M T W R F ... */
+.week-days-header {
+    grid-area: weekDays;
+    display: grid;
+    grid-template-columns: subgrid;
+    justify-content: center;
+    place-items: center;
+}
+
+/* Month titles and their days  */
+.month-container {
+    /* Pass the subgrid through... */
+    display: inherit;
+    grid-column: inherit;
+    grid-template-columns: subgrid;
+    align-items: flex-start;
+}
+
+/* Month titles */
+.month-container h2 {
+    grid-area: monthNames;
+    justify-self: flex-start;
+    width: 100%;
+    border-top: 2px solid var(--g4);
+    padding: calc(var(--section-gap)/2) calc(var(--section-gap)/2) 0 0;
+    font-size: 30px;
+}
+
+/* Actual grid of days  */
+.day-grid {
+    grid-area: calendarDays;
+    display: grid;
+    grid-auto-flow: row;
+    grid-template-columns: inherit;
+    align-content: flex-start;
+}
+
+.day-container {
+    display: flex;
+    flex-direction: column;
+    padding: calc(var(--section-gap)/2);
+}
+
+.day-container.border-top {
+    border-top: 2px solid var(--g4); 
+}
+.day-container.border-bottom {
+    border-bottom: 2px solid var(--g4);
+}
+.day-container.border-left {
+    border-left: 2px solid var(--g4);
+}
+.day-container.border-right {
+    border-right: 2px solid var(--g4);
+}
+
+.day-container p {
+    color: var(--g4);
+}
+
+.day-container .dark-section {
+    padding: var(--section-gap);
+    margin: 0;
+    padding: 0;
+    min-height: 70px;
+    max-height: fit-content;
+}

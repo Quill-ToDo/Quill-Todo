@@ -1,0 +1,55 @@
+#list-wrapper {
+    grid-area: list;
+    margin: 0;
+    display: grid;
+    overscroll-behavior: contain;
+    overflow-y: scroll;
+    grid-auto-rows: min-content;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+#list-wrapper::-webkit-scrollbar {
+    display: none;
+  }
+  
+  /* Hide scrollbar for IE, Edge and Firefox */
+  #list-wrapper {
+    -ms-overflow-style: none;
+    /* IE and Edge */
+    scrollbar-width: none;
+    position: relative;
+    /* Firefox */
+  }
+  
+  #list-wrapper>section {
+    margin: var(--section-gap) 0 0 var(--section-gap);
+    /* width: 100%; */
+    position: relative;
+  }
+  
+  #list-wrapper>section:last-child {
+    margin-bottom: var(--section-gap);
+  }
+
+  #list-wrapper .dark-section button:focus {
+    background: var(--list-hover);
+  }
+
+  
+  #list-wrapper .title-date-wrapper {
+    transition: background-color .1s, color .4s;
+    border-radius: 12px;
+    padding: 8px 8px 8px 8px;
+  }
+  
+  #list-wrapper .title-date-wrapper:hover {
+    background-color: var(--list-hover);
+  }
+
+#list-wrapper .task-wrapper.complete:hover p {
+  color: var(--g2);
+}
+
+#list-wrapper .task-wrapper.complete:hover s {
+  text-decoration: line-through solid var(--g2) 2px;
+}

@@ -1,0 +1,83 @@
+#show-wrapper {
+  display: flex;
+  width: 100%;
+  height: 100vh;
+  position: absolute;
+  z-index: 2;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  row-gap: 15px;
+}
+
+#show-wrapper .mid-section {
+  width: 35%;
+  z-index: 5;
+  margin-bottom: 100px;
+}
+
+#show-wrapper h2 {
+  opacity: .8;
+}
+
+#show-wrapper h3 {
+  font-size: var(--h4-size);
+}
+
+/* Tasks */
+#show-wrapper .task-wrapper .title {
+  font-family: "Secular One", sans-serif;
+  font-size: 30px;
+  text-align: left;
+}
+
+#show-wrapper .task-wrapper {
+  display: flex;
+  padding-left: 10px;
+  align-items: baseline;
+  overflow: hidden;
+}
+
+#show-wrapper .check-box-wrapper {
+  transform: scale(1.3);
+}
+
+#show-wrapper .title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#show-wrapper .date-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 10%;
+}
+
+#show-wrapper .date-wrapper > div {
+  display: flex;
+  gap: 5px;
+  text-align: center;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+#show-wrapper .date-wrapper p.bold {
+  font-size: 22px;
+  font-weight: bold;
+}
+
+#show-wrapper .task-wrapper .date-wrapper p {
+  font-size: 18px;
+}
+
+#show-wrapper .date-wrapper p.date {
+  font-size: var(--p-size);
+}
+
+#show-wrapper .date-wrapper p.time {
+  font-size: var(--p-size);
+}

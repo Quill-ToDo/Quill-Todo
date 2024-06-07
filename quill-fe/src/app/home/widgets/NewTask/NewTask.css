@@ -1,0 +1,81 @@
+  .row {
+    width: 100%;
+  }
+  
+  .form-group {
+    text-align: center;
+    color: var(--g1);
+    justify-content: center;
+    padding-bottom: 7px;
+  }
+  
+  .form-control {
+    width: 250px;
+    border-radius: 6px;
+    background: var(--g10);
+    color: var(--g1);
+    border: solid var(--g10);
+  }
+  
+  .text-center-head {
+    color: var(--g1);
+    text-align: center;
+    font-family: "Secular One", sans-serif;
+  }
+  
+  #new-wrapper form input {
+    color: var(--g1);
+  }
+
+  #new-wrapper form .start-due-wrapper .default input {
+    color: var(--g4);
+  }
+
+  
+  #new-wrapper form label.date {
+    min-width: 200px;
+  }
+  
+  #new-wrapper form label.time {
+    width: min-content;
+  }
+  
+  #new-wrapper form .start-due-wrapper .time input {
+    width: 100px;
+  }
+  
+  
+  #new-wrapper form .horizontal-align button {
+    display: block;
+  }
+  
+  #new-wrapper form label>* {
+    margin-top: 5px;
+  }
+  
+  #new-wrapper .horizontal-align {
+    display: flex;
+    flex-direction: row;
+    column-gap: 10px;
+  }
+  
+  #new-wrapper .start-due-wrapper {
+    flex-wrap: wrap;
+  }
+  
+  /* Center of screen if .from-calendar */
+  #new-wrapper.from-calendar {
+    display: flex;
+    justify-content: center;
+  }
+  
+  #new-wrapper.from-calendar #new-filter {
+    display: block;
+  }
+  
+  #new-wrapper.from-calendar .mid-section {
+    position: relative;
+    align-self: center;
+    justify-self: center;
+    box-shadow: none;
+  }

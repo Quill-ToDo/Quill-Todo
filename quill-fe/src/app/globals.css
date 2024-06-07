@@ -1,0 +1,65 @@
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    /* General Colors*/
+    --g1: #cccbcb;
+    --g2: #9c9c9c;
+    --g3: #757575;
+    --g4: #474747;
+    --g5: #3f3f3f;
+    --g6: #323233;
+    --g7: #242425;
+    --g8: #212427;
+    --g9: #05060627;
+    --g10: #1b1d1f;
+    --g11: #101113;
+  
+    --focus-highlight: #d8d8d8;
+    --overdue: #d33636;
+    --list-hover: rgba(255, 255, 255, 0.197);
+  
+    /* Alerts */
+    --alert-bg: #444444;
+    --error-alert-bg: #751b1b;
+    --success-alert-bg: #245e13;
+    --notice-outline: #6d6d6d;
+    --failure-outline: #e60000;
+    --failure-bg: #380000;
+    --success-outline: #1abd1a;
+  
+    /* Buttons */
+    --btn-green-bg: #1abd1a;
+    --btn-green-shadow: #083b08;
+    --btn-red-bg: #b90707;
+    --btn-red-shadow: #520606;
+    --btn-light-grey-bg: #888888;
+    --btn-light-grey-shadow: #363636;
+  
+    /* Sizing */
+    --section-gap: 15px;
+    --inner-box-padding: 17px;
+    --box-corner-rounding: 20px;
+    --check-box-size: 23px;
+    --menu-width: 50px;
+    --menu-icon-size: 25px;
+  
+    --calendar-h1-size: 35px;
+    --p-size: 21px;
+    --smaller-p-size: 17px;
+    --h2-size: 40px;
+    --h2-padding: 15px;
+    --h3-size: 30px;
+    --h4-size: 25px;
+    --event-p-size: 13px;
+  }
+}
+
+@import 'tailwindcss/base.css';
+@import 'tailwindcss/components.css';
+
+@import 'tailwindcss/utilities.css';

@@ -31,7 +31,7 @@ After these initial instructions are followed to set everyting up, on Windows yo
 
 **Windows:**
 ```cmd
-$ scripts\startQuilDevEnv.cmd
+$ dev-startup-scripts\startQuilDevEnv.cmd
 ```
 
 **Mac/Unix:**
@@ -48,7 +48,7 @@ $ npm run start-be-unix
 
 1. Clone repo wherever you'd like
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut scripts we have.
+2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut dev-startup-scripts we have.
 
 3. Install `nvm` (Node version manager)
 
@@ -61,12 +61,12 @@ $ npm run start-be-unix
     nvm -v
     ```
 
-4. Install and switch to Node v16.13.1.
+4. Install Node
 
     > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
 
     ```Bash
-    nvm install v16.13.1 && nvm use 16.13.1
+    nvm install v22.2.0 && nvm use 22.2.0
     ```
 
     You may need to restart your computer for the installation to take effect.
@@ -86,7 +86,7 @@ $ npm run start-be-unix
         - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
         - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
 
-7. Init back-end using npm scripts
+7. Init back-end using npm dev-startup-scripts
 
     ---
 
@@ -103,7 +103,7 @@ $ npm run start-be-unix
         - Create database and user for Quill
 
             ```cmd
-            $ scripts\initBEWin.cmd
+            $ dev-startup-scripts\initBEWin.cmd
             ```
 
     - **Mac/Unix:**
@@ -214,12 +214,13 @@ $ npm run start-be-unix
 #### Back-End Notes
 
 - After this initial setup, you can use the appropriate script for your OS to start the API
-  - **Windows:** You can use `$ scripts\startBEWin.cmd` to just start the API, or `$ scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
+  - **Windows:** You can use `$ dev-startup-scripts\startBEWin.cmd` to just start the API, or `$ dev-startup-scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
   - **Mac/Unix**: `$ npm run start-be-unix`
 
   to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
 - To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
+You may consider install PgAdmin to make working with databases easier.
 - > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
@@ -234,7 +235,7 @@ $ npm run start-be-unix
 4. Install dependencies:
 
     ```cmd
-    $ cd tasks-fe && npm install
+    $ cd quill-fe && npm install
     ```
 
 - To launch in development mode:
@@ -255,17 +256,17 @@ $ npm run start-be-unix
 
 #### Front-End Notes
 
-- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json` and commit any changes to this file.
+- > **Important:** If you install more npm packages during development, make sure to add the `--save` flag to the install command to automatically update `package.json` and commit any changes to this file. ex: `npm i sass --save`
 
 ### Testing
 
 #### Front-end Testing
 
-The test files are stored near the code they test, for most components, in [tasks-fe/src/components/__tests__/](./tasks-fe/src/components/__tests__/).
+The test files are stored near the code they test, for most components, in [quill-fe/src/components/__tests__/](./quill-fe/src/components/__tests__/).
 
 ##### Running Tests
 
-To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `tasks-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `quill-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
 
 The tests should re-run automatically every time you save.
 Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
@@ -282,18 +283,18 @@ it.only("should load tasks in the list", async () => {
 
 Additionally, you can mark a test as not yet implemented by adding `todo`.
 
-**Ex:** `it.todo("should do something cool");`
+**Ex:** `it.quill-be-proj("should do something cool");`
 
 ##### Writing Tests
 ###### Mocking Network Calls
 
-We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./tasks-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./quill-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
 
-An example of the default server being used can be seen in [the tests for the list feature](./tasks-fe/src/components/__tests__/list.js#L18).
+An example of the default server being used can be seen in [the tests for the list feature](./quill-fe/src/components/__tests__/list.js#L18).
 
 ###### Mocking time
 
-Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./tasks-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
+Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) exposes a settings module that lets you set the output of `DateTime.now()` ([Example](./quill-fe/src/components/__tests__/list.js#L19-L31)). Mocking any other methods not mentioned in their setting will require using Jest mocks/spies.  
 
 ###### Useful testing resources
 
