@@ -1,1 +1,0 @@
-This should also be a component lol. Just one that pops up isntead of staying in the board.
