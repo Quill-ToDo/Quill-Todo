@@ -37,7 +37,7 @@
 
   
   #list-wrapper .title-date-wrapper {
-    transition: background-color .4s, color .4s;
+    transition: background-color .1s, color .4s;
     border-radius: 12px;
     padding: 8px 8px 8px 8px;
   }
@@ -45,8 +45,11 @@
   #list-wrapper .title-date-wrapper:hover {
     background-color: var(--list-hover);
   }
-  
-  #list-wrapper .task-wrapper.complete .title-date-wrapper:hover p {
-    color: var(--g10);
-  }
-  
+
+#list-wrapper .task-wrapper.complete:hover p {
+  color: var(--g2);
+}
+
+#list-wrapper .task-wrapper.complete:hover s {
+  text-decoration: line-through solid var(--g2) 2px;
+}

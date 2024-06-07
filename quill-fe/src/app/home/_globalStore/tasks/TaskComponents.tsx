@@ -32,9 +32,9 @@ const WorkCheckbox = observer(({task}: {task: TaskModel}) =>
      */
 export const DateTimeWrapper = observer(({task, type, dateFormat}: {task: TaskModel, type: "start" | "due", dateFormat: DateTime}) => {
     const time = type === "start" ? task.start : task.due;
-    const overdue = type==="due" && time < DateTime.now() && !task.complete;
+    const overdue = type === "due" && time < DateTime.now() && !task.complete;
     return (
-        <time dateTime={time} className={"date-time-wrapper" + (overdue ? " overdue" : "")}> 
+        <time dateTime={time} className={`date-time-wrapper ${overdue ? "overdue" : ""}`}> 
             <p className="date">{time.toLocaleString(dateFormat)}</p>
             <p className="time">{time.toLocaleString(DateTime.TIME_SIMPLE)}</p>
         </time>

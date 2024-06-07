@@ -22,18 +22,14 @@
 
 .title-date-wrapper>label>p {
   overflow: hidden;
-  transition: color .2s;
 }
 
-.title-date-wrapper p.title.complete,
-#show-wrapper .title-wrapper p.title.complete {
+.complete .title-date-wrapper p {
   color: var(--g4);
-  text-decoration: line-through 2px;
 }
-
-#show-wrapper .title-wrapper p.title.complete {
-  text-decoration: line-through 4px;
-}
+.complete s {
+  text-decoration: line-through solid var(--g4) 2px ;
+} 
 
 /*#region Checkbox*/
 .check-box-wrapper {
