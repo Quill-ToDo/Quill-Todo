@@ -31,6 +31,11 @@
   text-align: left;
 }
 
+#show-wrapper .complete s {
+  color: var(--g4);
+  text-decoration: line-through solid var(--g4) 3px ;
+} 
+
 #show-wrapper .task-wrapper {
   display: flex;
   padding-left: 10px;

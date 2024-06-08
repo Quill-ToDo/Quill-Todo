@@ -17,14 +17,14 @@ export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, ty
 
 const TaskDueCheckbox = observer(({task}: {task: TaskModel}) => 
     task.complete ? 
-        <i className="far fa-check-square fa-fw checkmark" aria-hidden="true"></i> 
-        : <i className="far fa-square fa-fw checkmark" aria-hidden="true"></i>); 
+        <i className="far fa-check-square fa-fw checkmark"></i> 
+        : <i className="far fa-square fa-fw checkmark"></i>); 
 
 
 const WorkCheckbox = observer(({task}: {task: TaskModel}) => 
     task.complete ? 
-        <i className="far fa-check-circle fa-fw checkmark round" aria-hidden="true"></i> 
-        : <i className="far fa-circle fa-fw checkmark round" aria-hidden="true"></i>);
+        <i className="far fa-check-circle fa-fw checkmark round"></i> 
+        : <i className="far fa-circle fa-fw checkmark round"></i>);
 
 /**
      * Displays the date and time for a task

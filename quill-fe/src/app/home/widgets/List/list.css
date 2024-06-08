@@ -34,22 +34,26 @@
   #list-wrapper .dark-section button:focus {
     background: var(--list-hover);
   }
-
   
+  #list-wrapper .title-date-wrapper:hover {
+    background-color: var(--list-hover);
+  }
+
   #list-wrapper .title-date-wrapper {
     transition: background-color .1s, color .4s;
     border-radius: 12px;
     padding: 8px 8px 8px 8px;
   }
   
-  #list-wrapper .title-date-wrapper:hover {
-    background-color: var(--list-hover);
-  }
 
-#list-wrapper .task-wrapper.complete:hover p {
-  color: var(--g2);
+  #list-wrapper .task-wrapper.complete:hover p,
+  #list-wrapper .task-wrapper.complete .title-date-wrapper:focus p,
+  #list-wrapper .task-wrapper.complete:hover s,
+  #list-wrapper .task-wrapper.complete .title-date-wrapper:focus s {
+    color: var(--g2);
 }
 
-#list-wrapper .task-wrapper.complete:hover s {
+#list-wrapper .task-wrapper.complete:hover s,
+#list-wrapper .task-wrapper.complete .title-date-wrapper:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }

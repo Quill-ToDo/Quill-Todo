@@ -10,7 +10,7 @@ import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
-import {Checkbox, DateTimeWrapper} from "@/store/tasks/TaskComponents";
+import {Checkbox, DateTimeWrapper} from "@/widgets/TaskDetail/TaskComponents";
 import TaskStore from "@/store/tasks/TaskStore";
 import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 

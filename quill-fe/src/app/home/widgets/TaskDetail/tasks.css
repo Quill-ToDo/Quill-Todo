@@ -14,6 +14,15 @@
   width: 100%;
 }
 
+.task-wrapper.complete p {
+  color: var(--g4);
+}
+
+.task-wrapper.complete s {
+  color: var(--g4);
+  text-decoration: line-through solid var(--g4) 2px ;
+} 
+
 .title-date-wrapper p,
 #show-wrapper .title-wrapper p {
   color: var(--g2);
@@ -24,12 +33,6 @@
   overflow: hidden;
 }
 
-.complete .title-date-wrapper p {
-  color: var(--g4);
-}
-.complete s {
-  text-decoration: line-through solid var(--g4) 2px ;
-} 
 
 /*#region Checkbox*/
 .check-box-wrapper {
@@ -69,7 +72,8 @@
 }
 
 .check-box-wrapper input:focus~.checkmark {
-  background-color: var(--list-hover);
+  /* background-color: var(--list-hover); */
+  border: 1px solid white ;
 }
 
 .checkmark.round {

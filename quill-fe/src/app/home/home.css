@@ -301,7 +301,13 @@ button {
 button:focus {
     outline: none;
 }
-.btn:focus {
+
+.check-box-wrapper .checkmark {
+    border-radius: 3px;
+}
+
+.btn:focus,
+.check-box-wrapper input:focus~.checkmark {
     box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
 }
 /* "invert" color if focused */
