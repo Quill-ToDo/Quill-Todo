@@ -24,10 +24,11 @@ import { DateTime } from "@eonasdan/tempus-dominus";
  */
 export default class EditTaskModel extends TaskModel {
 //#region CLASS FIELDS AND CONSTRUCTOR 
-    startTimeString : String = ""; 
-    startDateString : String = "";
-    dueTimeString : String = "";
-    dueDateString : String = "";
+    startTimeString : string = ""; 
+    startDateString : string = "";
+    dueTimeString : string = "";
+    dueDateString : string = "";
+    colorString: string = "";
     // static taskBeingEdited = null;
 
     /**
@@ -40,8 +41,8 @@ export default class EditTaskModel extends TaskModel {
      * 
      * @param {TaskModel} task The base TaskModel to edit
      */
-    constructor(taskToEdit : TaskModel | null=null) {
-        super(taskToEdit === null ? taskToEdit : taskToEdit.json);
+    constructor(taskToEdit : TaskModel | undefined=undefined) {
+        super(taskToEdit === undefined ? taskToEdit : taskToEdit.json);
 
         makeObservable(this, {
             startDateString: observable,
@@ -52,6 +53,8 @@ export default class EditTaskModel extends TaskModel {
             setDueDateString: action,
             dueTimeString: observable,
             setDueTimeString: action,
+            colorString: observable,
+            setColorString: action,
             validationErrors: override, // A list of validation errors of this edited task.
             isValid: override, // The fields in this task are parseable and it is safe to 
             // update the parent TaskModel
@@ -65,6 +68,8 @@ export default class EditTaskModel extends TaskModel {
         this.startTimeString = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
         this.dueDateString = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
         this.dueTimeString = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
+        this.colorString = this.color;
+        // this.colorString = "bing bong";
         this.startEditing();
    
     }
@@ -93,24 +98,26 @@ export default class EditTaskModel extends TaskModel {
         if (!this.isValid) {
             addAlert(document.querySelector('#new-wrapper'), 
             ERROR_ALERT, 
-            `Task could not be saved, it still has errors - ${this.validationErrors.toJSON()}`);
+            `Task could not be saved, it still has errors - ${this.validationErrors.toJSON}`);
             console.error(this.validationErrors);
             console.error(this);
             return;
         } 
         
         // Post to server
-        this.store.API.createTask(this.json)
+        let res = this.store.API.createTask(this.json)
         .catch(e => {
             console.error(e)
             addAlert(document.querySelector('#home-wrapper'), 
             ERROR_ALERT, 
             `Could not add task - ${e}`);            
-            this.store.remove(this);
+            // this.store.remove(this);
+            return;
+        }).then(res => {
+            this.store.setEditing(null);
+            this.saveToServer();
         });
 
-        this.store.setEditing(null);
-        this.saveToServer();
     }
     /**
      * Abort any edit changes and delete task from the TaskStore.
@@ -127,16 +134,16 @@ export default class EditTaskModel extends TaskModel {
     }
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
-    setStartDateString = (dateString : String)  =>  { 
+    setStartDateString = (dateString : string)  =>  { 
         this.startDateString = dateString;
         this.setStart(`${dateString}, ${this.startTimeString}`);
     }
     /**
      * Set start time portion as displayed in text box to input string. 
      * Doesn't have to be valid. If it is parseable, also update the start time of the task.
-     * @param {String} timeString 
+     * @param {string} timeString 
      */
-    setStartTimeString = (timeString : String)  =>  { 
+    setStartTimeString = (timeString : string)  =>  { 
         this.startTimeString = timeString;
         if (this.validationErrors.startTimeString.length === 0 && this.validationErrors.start.length === 0) {
             this.setStart(`${this.startDateString}, ${timeString}`);
@@ -145,9 +152,9 @@ export default class EditTaskModel extends TaskModel {
     /**
      * Set due date portion as displayed in text box to input string. 
      * Doesn't have to be valid. If valid, also update the start time of the task.
-     * @param {String} dateString 
+     * @param {string} dateString 
      */
-    setDueDateString (dateString : String) {
+    setDueDateString (dateString : string) {
         this.dueDateString = dateString;
         if (this.validationErrors.dueDateString.length === 0 && this.validationErrors.due.length === 0) {
             this.setDue(`${dateString}, ${this.dueTimeString}`);
@@ -156,12 +163,22 @@ export default class EditTaskModel extends TaskModel {
     /**
      * Set due time portion as displayed in text box to input string. 
      * Doesn't have to be valid. If valid, also update the start time of the task.
-     * @param {String} dateString 
+     * @param {string} dateString 
      */
-    setDueTimeString (timeString : String) { 
+    setDueTimeString (timeString : string) { 
         this.dueTimeString = timeString;
         if (this.validationErrors.dueTimeString.length === 0 && this.validationErrors.due.length === 0) {
             this.setDue(`${this.dueDateString}, ${timeString}`);
+        }
+    }
+    /**
+     * Set the color hex code to the value of the passed string. 
+     * Doesn't have to be valid. If valid, also update the color of the underlying task.
+     */
+    setColorString (input : string) { 
+        this.colorString = input.trim();
+        if (!this.validationErrors.color.length) {
+            this.setColor(input);
         }
     }
 //#endregion CLASS FIELD GETTERS AND SETTERS
@@ -183,6 +200,7 @@ export default class EditTaskModel extends TaskModel {
             dueTimeString: string[];
             dueDateString: string[];
             workInterval: string[];
+            color: string[];
         };
         const errors : EditFieldsErrors = {
             title: super.validationErrors.title,
@@ -194,6 +212,7 @@ export default class EditTaskModel extends TaskModel {
             dueTimeString: [],
             dueDateString: [],
             workInterval: super.validationErrors.workInterval,
+            color: super.getValidationErrorsForField({field: "color", paramsForTestMethod: {test: this.colorString}}),
         };
         const VALIDATION_ERROR_MESSAGES = {
             INVALID_TIME_FORMAT: `Time is not of the format ${PARTIAL_DATETIME_FORMATS.t.readable}. Ex: 10:30 am`,

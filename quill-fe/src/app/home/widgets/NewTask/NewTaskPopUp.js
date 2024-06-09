@@ -3,6 +3,8 @@ import { observer } from "mobx-react-lite";
 import './NewTask.css';
 import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
+import { ColorBubble } from "../TaskDetail/TaskComponents";
+import { FormField } from "@/app/@util/FormComponents";
 const ERROR_ID_END = "-error-list";
 
 /**
@@ -209,6 +211,17 @@ const NewTaskPopUp = observer((props) => {
             selectorForFieldElement: function () { return getSelector(fields.startDate.name, 'input'); },
             errorsToDisplay: taskToCreate.validationErrors.workInterval,
             errorsForInvalidField: taskToCreate.validationErrors.workInterval,
+        },
+        color : {
+            name: `Color`,
+            idPrefix: `color`,
+            value: taskToCreate.colorString,
+            selectorForFieldElement: function () { return getSelector(fields.color.name, 'input'); },
+            errorsToDisplay: taskToCreate.validationErrors.color,
+            errorsForInvalidField: taskToCreate.validationErrors.color,
+            change: function (e) {
+                taskToCreate.setColorString(e.target.value);
+            }
         }
     }
 
@@ -238,18 +251,28 @@ const NewTaskPopUp = observer((props) => {
             </div>
             <section className="mid-section" aria-labelledby="popup-title">
                 <form id="add-task" className="form" onSubmit={(e) => handleSubmit(e, taskToCreate, fields)}>
-                    <label>
-                        Title
-                        <input
-                            name={fields.title.name}
-                            onChange={fields.title.change}
-                            value={fields.title.value}
-                            aria-describedby={fields.title.idPrefix}
-                            aria-invalid={fields.title.errorsForInvalidField.length !== 0}
-                            required
+                    <div id="title-color">
+                        <FormField 
+                             name={fields.title.name}
+                             required={true}
+                             onChange={fields.title.change}
+                             value={fields.title.value}
+                             listOfValidationErrors={fields.title.errorsToDisplay}
+                             labelClasses={"title"}
+                        />
+                        <div className="color-label-wrapper">
+                            <FormField
+                                name={fields.color.name}
+                                required={true}
+                                onChange={fields.color.change}
+                                value={fields.color.value}
+                                listOfValidationErrors={fields.color.errorsToDisplay}
+                                labelClasses={"color"}
+                                contentBeforeInput={<ColorBubble task={taskToCreate}/>}
+                                inputContentWrapperClasses="color-label-wrapper"
                             />
-                    </label>
-                    { fields.title.errorsToDisplay.length ? ErrorsList(fields.title.errorsToDisplay, fields.title.idPrefix) : null }
+                        </div>
+                    </div>
                     <label>
                         Description
                         <textarea
@@ -260,7 +283,7 @@ const NewTaskPopUp = observer((props) => {
                             aria-invalid={fields.desc.errorsForInvalidField.length !== 0}
                         />
                     </label>
-                    { fields.desc.errorsToDisplay.length ? ErrorsList(fields.desc.errorsToDisplay, fields.desc.idPrefix) : null }
+                    { fields.desc.errorsToDisplay && ErrorsList(fields.desc.errorsToDisplay, fields.desc.idPrefix) }
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <TimeDateLabel 
                             label={"Start"}
@@ -274,7 +297,7 @@ const NewTaskPopUp = observer((props) => {
                         />
                     </div>
                     <div className="centered">
-                        { fields.workInterval.errorsToDisplay && fields.workInterval.errorsToDisplay.length ? ErrorsList(fields.workInterval.errorsToDisplay, fields.workInterval.idPrefix) : null }
+                        { fields.workInterval.errorsToDisplay && fields.workInterval.errorsToDisplay && ErrorsList(fields.workInterval.errorsToDisplay, fields.workInterval.idPrefix)}
                         <button id="add-btn" className="btn large" type="submit" formNoValidate={true}>+</button>
                     </div>
                 </form>

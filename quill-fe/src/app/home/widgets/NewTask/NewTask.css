@@ -79,3 +79,16 @@
     justify-self: center;
     box-shadow: none;
   }
+
+  #title-color {
+    column-gap: 10px;
+    display: flex;
+  }
+
+  #title-color .title {
+    flex: 3 1 0px;
+  }
+
+  #title-color .color-label-wrapper {
+    flex: 1 1 0px;
+  }
