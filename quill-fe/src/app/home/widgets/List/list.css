@@ -32,9 +32,9 @@
   }
 
   #list-wrapper .dark-section button:focus {
-    background: var(--list-hover);
+    box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
   }
-  
+    
   #list-wrapper .title-date-wrapper:hover {
     background-color: var(--list-hover);
   }

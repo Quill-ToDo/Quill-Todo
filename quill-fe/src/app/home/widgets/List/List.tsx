@@ -2,10 +2,10 @@ import React, { Fragment, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
-import { DateTimeWrapper, Checkbox } from "@/store/tasks/TaskComponents";
+import { DateTimeWrapper, Checkbox, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
-import "@/store/tasks/tasks.css";
+import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 
@@ -16,19 +16,19 @@ const SECTION_TOGGLE_DURATION = 100;
 /**
  * The list view for tasks.
  */
-export const ListWidget = observer(({store}: {store: TaskStore}) => {
+export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     // How long sections should take to collapse in millis
 
     // All possible views for the list
     const possibleListFormats = {
-        "by-status": <ByStatusThreeSection store={store}/>
+        "by-status": <ByStatusThreeSection store={taskStore}/>
     };
 
     const listFormat = "by-status";
     const loading = 
         <div className="loading-wrapper take-full-space">
             <div>
-                <i className="fas fa-list-alt loading-icon fa-4x" aria-hidden="true"></i>
+                <i className="fas fa-list-alt loading-icon fa-4x"></i>
                 <p className="">Loading list...</p>
             </div>
         </div>;
@@ -36,7 +36,7 @@ export const ListWidget = observer(({store}: {store: TaskStore}) => {
     // Before content is loaded show placeholder
     return (
         <section id="list-wrapper" aria-label="Task list">
-            {store.isLoaded ? possibleListFormats[listFormat] : loading}
+            {taskStore.isLoaded ? possibleListFormats[listFormat] : loading}
         </section>
     );
 });
@@ -239,8 +239,7 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
             />
             <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
                 {<label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
-                {task.complete ? <p id={"task-title-" + task.id} className={"title " + classAddition}><s>{task.title}</s></p>
-                : <p id={"task-title-" + task.id} className={"title " + classAddition}>{task.title}</p>}    
+                <TaskTitle task={task} />
             </label>}
                 <DateTimeWrapper 
                     task={task} 

@@ -4,12 +4,36 @@ import { DateTime } from "luxon";
 import { END_OF_WEEK_WEEKDAY, START_OF_WEEK_WEEKDAY } from "@/util/constants";
 import { TaskModel } from "@/store/tasks/TaskModel";
 import './Calendar.css';
+import TaskStore, { TaskDataOnDay, Timeline } from "@/store/tasks/TaskStore";
+import { Checkbox, TaskTitle } from "../TaskDetail/TaskComponents";
+import { Fragment } from "react";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_WEEKDAYS = 7;
 
-const GetDateData = () => {
-    // Find start and end date of iteration 
+type MonthData =
+    {
+        monthName: string;
+        weeks: WeekData[];
+    };
+type WeekData =
+    {
+        days: DayData[];
+    };
+type DayData =
+    {
+        date: DateTime;
+        tasksToday: TaskDataOnDay | undefined;
+        monthBorder: number[];
+    };
+
+const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
+    const monthBorderIndexToClassName = new Map<number, string>();
+    monthBorderIndexToClassName.set(0, "border-top");
+    monthBorderIndexToClassName.set(1, "border-right");
+    monthBorderIndexToClassName.set(2, "border-left");
+    monthBorderIndexToClassName.set(3, "border-bottom");
+
     const today : DateTime = START_OF_DAY();
     let start = today.startOf('month').startOf('day');
     while (start.weekdayLong !== START_OF_WEEK_WEEKDAY) {
@@ -19,23 +43,8 @@ const GetDateData = () => {
     while (end.weekdayLong !== END_OF_WEEK_WEEKDAY) {
         end = end.plus({days:1})
     }
+    
     // Define month data structure
-    type MonthData =
-        {
-            monthName: string;
-            weeks: WeekData[];
-        };
-    type WeekData =
-        {
-            days: DayData[];
-        };
-    type DayData =
-        {
-            date: DateTime;
-            tasksToday: TaskModel[];
-            monthBorder: number[];
-        };
-
     const allLoadedMonthData: MonthData[] = [];
     let itIsTheFirstOfTheMonth: boolean, 
         itIsANewWeekday: boolean, 
@@ -44,7 +53,9 @@ const GetDateData = () => {
         mostRecentMonthLoaded: MonthData, 
         previousMonthLoaded: MonthData,
         mostRecentWeekLoaded: WeekData;
+
     for (let day = start; day <= end; day = day.plus({days:1})) {
+        let dayKey = day.toLocaleString(DateTime.DATE_SHORT);
         itIsTheFirstOfTheMonth = day.day === 1;
         itIsANewWeekday = day.weekdayLong === START_OF_WEEK_WEEKDAY;
         if (itIsTheFirstOfTheMonth || !allLoadedMonthData.length) {
@@ -62,36 +73,23 @@ const GetDateData = () => {
         paintingMonthVisualSeparatorLine = borderPaintingCountdownFromSeven > 0;
         const newDay = {
             date: day,
-            tasksToday: [],
+            tasksToday: taskStore.taskTimeline.get(dayKey),
             monthBorder: [paintingMonthVisualSeparatorLine ? 1 : 0, 0, paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? 1 : 0, 0],
         };
         // Add a day object for each day
         if (paintingMonthVisualSeparatorLine) {borderPaintingCountdownFromSeven--};
         mostRecentWeekLoaded.days.push(newDay);
     }
-    return allLoadedMonthData;
-}
-/**
- * A form to create a new task. It works by editing the fields of a task that has already been created and is marked as being edited
- * in TaskStore.
- */
-const Calendar = observer((props) => {
-    /**
-     * @param {string} name Name of DOM element
-     * @param {string} type DOM element type
-     * @returns A selector string for an element with #new-wrapper with type type and name name.
-     */
-
-    const monthBorderIndexToClassName = new Map<number, string>();
-    monthBorderIndexToClassName.set(0, "border-top");
-    monthBorderIndexToClassName.set(1, "border-right");
-    monthBorderIndexToClassName.set(2, "border-left");
-    monthBorderIndexToClassName.set(3, "border-bottom");
-
-    const dateData = GetDateData();
     
-    return (
-        <section className="calendar-wrapper">
+    const loading = 
+        <div className="loading-wrapper take-full-space">
+            <div>
+                <i className="fa-solid fa-calendar loading-icon fa-4x"></i>
+                <p>Loading calendar...</p>
+            </div>
+        </div>;
+
+    const content = 
             <div className="calendar-body mid-section">
                 <div className="week-days-header">
                     <h3>M</h3>
@@ -103,8 +101,7 @@ const Calendar = observer((props) => {
                     <h3>U</h3>
                 </div>
                 <div className="calendar-month-infinite-scroll-wrapper">
-                {
-                    dateData.map(monthData => 
+                    { allLoadedMonthData.map(monthData => 
                         <div className="month-container" key={`month-${monthData.monthName}`}>
                             <h2>{monthData.monthName}</h2>
                             <div className="day-grid"> 
@@ -117,17 +114,32 @@ const Calendar = observer((props) => {
                                         >
                                             <p>{day.date.day}</p>
                                             <div className=" dark-section">
+                                                { day.tasksToday &&  day.tasksToday.scheduled && day.tasksToday.scheduled.map((task) => {
+                                                        return <Fragment>
+                                                            <Checkbox task={task} type={'work'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
+                                                            <TaskTitle task={task} />
+                                                        </Fragment>
+                                                    })
+                                                }
+                                                { day.tasksToday && day.tasksToday.due && day.tasksToday.due.map((task) => {
+                                                    return <Fragment>
+                                                        <Checkbox task={task} type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
+                                                        <TaskTitle task={task} />
+                                                    </Fragment>
+                                                })}
                                             </div>
                                         </button>    
                                     )
                                 )}
                             </div>
-                        </div>)
-                }
+                        </div>
+                    )}
                 </div>
-            </div>
-        </section>
-        )
-})
+            </div>;
+
+    return <section className="calendar-wrapper">
+        {taskStore.isLoaded ? content : loading}
+    </section>;
+});
 
 export default Calendar;

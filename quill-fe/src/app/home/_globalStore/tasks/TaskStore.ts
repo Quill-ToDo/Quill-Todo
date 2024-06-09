@@ -6,12 +6,19 @@ import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
 import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
 
+export type TaskDataOnDay = {
+    start: TaskModel[];
+    due: TaskModel[];
+    scheduled: TaskModel[];
+};
+
+export type Timeline = Map<DateTime, TaskDataOnDay>;
+
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
     static taskStoreSingletonInstance : TaskStore;
     API : TaskApi;
     rootStore : RootStore;
-    timeline;
     taskSet : Set<TaskModel> = new Set<TaskModel>();
     // Task to show details for
     taskBeingFocused : TaskModel | null = null;
@@ -32,7 +39,6 @@ export default class TaskStore {
             API: false,
             rootStore: false,
             tasksInRange: false,
-            timeline: false,
             // Observables
             isLoaded: observable,
             taskSet: observable,
@@ -40,6 +46,7 @@ export default class TaskStore {
             taskBeingEdited: observable,
             // Computeds
             tasks: computed,
+            taskTimeline: computed,
             // Actions
             loadTasks: false,
             setEditing: action,
@@ -54,7 +61,6 @@ export default class TaskStore {
             throw new Error("You cannot create two TaskStores, access the global TaskStore with TaskStore.taskStoreSingletonInstance")
         }
         TaskStore.taskStoreSingletonInstance = this;
-        this.timeline = this.rootStore.eventStore;
         this.API = API;
         this.taskSet = new Set<TaskModel>();
         this.loadTasks();
@@ -82,28 +88,58 @@ export default class TaskStore {
             });
         }).catch(e => {
             if (retry === 0) {
-                connectionAlertIdSelector = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
+                connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
                 console.error(e);
             }
-            else if (connectionAlertIdSelector) {
-                updateAlertText(connectionAlertIdSelector, `Could not load tasks - ${e} - Retry #${retry+1}`)
+            else if (connectionAlertIdselectorForFieldElementstring) {
+                updateAlertText(connectionAlertIdselectorForFieldElementstring, `Could not load tasks - ${e} - Retry #${retry+1}`)
             }
-            setTimeout(() => {this.loadTasks(retry + 1, connectionAlertIdSelector)}, 3000);
+            setTimeout(() => {this.loadTasks(retry + 1, connectionAlertIdselectorForFieldElementstring)}, 3000);
         })
     }
 
+    
+    get tasks () {
+        return Array.from(this.taskSet);
+    }
+    
     tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {
         return this.tasks.filter(task => (task.start <= endTime && task.start >= startTime) || (task.due <= endTime && task.due >= startTime));
     }
 
-    get tasks () {
-        return Array.from(this.taskSet);
+    get taskTimeline () {
+        const timeline: Timeline = new Map();
+        let dayKey: string, firstDayInRange: DateTime, lastDayInRange: DateTime, tasksThisDay; 
+        this.tasks.forEach(task => {
+            firstDayInRange = task.start.startOf('day');
+            lastDayInRange = task.due.endOf('day');
+            for (let dayItr = firstDayInRange.startOf('day'); dayItr <= lastDayInRange.endOf('day'); dayItr = dayItr.plus({days:1})) {
+                dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
+                if (!timeline.has(dayKey)) { 
+                    timeline.set(dayKey, 
+                        {
+                            start: [],
+                            due: [],
+                            scheduled: [],
+                        })
+                }
+                tasksThisDay = timeline.get(dayKey);
+                if (tasksThisDay) {
+                    if (dayItr.hasSame(lastDayInRange, 'day')) {
+                        tasksThisDay.due.push(task);
+                    }
+                    if (dayItr.hasSame(firstDayInRange, 'day')) {
+                        tasksThisDay.start.push(task);
+                    }
+                    if (!dayItr.hasSame(lastDayInRange, 'day') && !dayItr.hasSame(firstDayInRange, 'day')) {
+                       tasksThisDay.scheduled.push(task);
+                    }
+                }
+            }
+        });
+        return timeline;
     }
 
-    /**
-     * Specify the task that details should be shown for (show task popup).
-     * @param {TaskModel} task Task that details should be shown for
-     */
     setFocus (task : TaskModel) {
         this.taskBeingFocused = task;
     }

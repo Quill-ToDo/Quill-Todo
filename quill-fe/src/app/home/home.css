@@ -143,6 +143,18 @@ p.time {
     align-items: center;
 }
 
+.aligned.top {
+    align-items: flex-start;
+}
+
+.same-size {
+    display: flex;
+}
+
+.same-size > * {
+    flex: 1 1 0px;
+}
+
 .aligned.end {
     justify-content: flex-end;
     gap: 7px;
@@ -157,6 +169,7 @@ p.time {
     display: none;
     opacity: 0;
 }
+
 /*#endregion Layout/Style Helpers*/
 /*#region Re-Usable Elements*/
 /*#region Inline Elements*/
@@ -306,8 +319,8 @@ button:focus {
     border-radius: 3px;
 }
 
-.btn:focus,
-.check-box-wrapper input:focus~.checkmark {
+.btn:focus
+{
     box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
 }
 /* "invert" color if focused */

@@ -10,7 +10,7 @@ import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
-import {Checkbox, DateTimeWrapper} from "@/widgets/TaskDetail/TaskComponents";
+import {Checkbox, DateTimeWrapper, TaskTitle} from "@/widgets/TaskDetail/TaskComponents";
 import TaskStore from "@/store/tasks/TaskStore";
 import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 
@@ -19,8 +19,7 @@ const TaskPortion = observer(({task, actionButtons}: {task: TaskModel, actionBut
     const classAddition = task.complete ? "complete" : "";
     const title = (
             <label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
-                {task.complete ? <p id={"task-title-" + task.id} className={"title " + classAddition}><s>{task.title}</s></p>
-                : <p id={"task-title-" + task.id} className={"title " + classAddition}>{task.title}</p>}    
+                <TaskTitle task={task} />    
             </label>
     );
     const dateForm = DATETIME_FORMATS.D_t;
@@ -134,7 +133,6 @@ const TaskDetail = observer(({task}: {task: TaskModel}) => {
                 className="mid-section" 
                 role="dialog"
                 aria-labelledby="task-show-title"
-                aria-describedby={"task-title-" + task.id}
             >
                 <TaskPortion
                     task={task}

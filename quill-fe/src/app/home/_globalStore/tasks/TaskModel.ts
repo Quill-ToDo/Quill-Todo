@@ -8,13 +8,37 @@ import {
 } from "@/app/@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
-import { ReactNode } from "react";
 
 const DEFAULT_START_DATETIME = DateTime.now();
 const DEFAULT_DUE_DATETIME = END_OF_DAY();
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 1000;
+
+type ValidationTest = {
+    text: string;
+    fail: Function;
+}
+
+type TaskValidationTests = {
+    [index : string] : ValidationTest[];
+    title: ValidationTest[];
+    description: ValidationTest[];
+    start: ValidationTest[];
+    due: ValidationTest[];
+    workInterval: ValidationTest[];
+    color: ValidationTest[];
+
+}
+type TaskValidationErrors = {
+    [index : string] : string[];
+    title: string[];
+    description: string[];
+    start: string[];
+    due: string[];
+    workInterval: string[];
+    color: string[];
+};
 
 /**
  * A Task model where changes are automatically synced to the DB.
@@ -45,6 +69,7 @@ export class TaskModel {
             complete : boolean = false;
             store : TaskStore;
             createdDate : DateTime;
+            color : string = "#ffffff";
     // ---- Private ----
             autoSave : boolean = true;
     // ----------------------------------------------------
@@ -81,11 +106,13 @@ export class TaskModel {
             setDue: action,
             json: computed,
             setJson: action,
+            validationTests: computed,
             validationErrors: computed, // A list of validation errors of this task.
             isValid: computed, // This task has no validation errors and is safe to sync to the database
             id: false, // This ID of this Task.
             store: false, // The store which holds and syncronizes all tasks. 
             createdDate: false, // The DateTime when this task was created
+            color: observable, // The color of the task
             deleteSelf: false,
             saveHandlerDisposer: false,
             // --- Visual Elements ---
@@ -168,7 +195,7 @@ export class TaskModel {
      * **OR as a Luxon DateTime object**. 
      * dateTime must be valid to set it. 
      * 
-     * @param {String} dateTime 
+     * @param {string} dateTime 
      */
     setStart(dateTime : DateTime) {
         try {
@@ -199,6 +226,21 @@ export class TaskModel {
         }
     }
 //#endregion
+//#region color
+    /**
+     * Set the color of the task to a hex code string
+     */
+    setColor (color : string) {
+        const errors = this.getValidationErrorsForField({field: "color", paramsForTestMethod: {color}}); 
+        if (!errors.length) {
+            this.color = color;
+        }
+        else {
+            addAlert(document.getElementById('home-wrapper'), 
+            ERROR_ALERT, `Could not set task color: ${errors.join(", ")}`);
+        }
+    }
+//#endregion
 //#region autoSave
     /**
      * Turn on autosave for this task, so that changes to this TaskModel's fields will be 
@@ -226,7 +268,8 @@ export class TaskModel {
             complete: this.complete,
             start: this.start ? this.start.toJSON() : "", 
             due: this.due.toJSON(),
-            description: this.description
+            description: this.description,
+            // color: this.color,
         };
     } 
 
@@ -243,80 +286,92 @@ export class TaskModel {
         this.setDue(json.due);
         this.setComplete(json.complete)
         this.createdDate = dateTimeHelper(json.created_at);
+        this.setColor(json.color);
         this.saveToServer();
     }
+
 //#endregion JSON
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
+    get validationTests() {
+        return {
+            title: [
+                {
+                    text: `Title is ${pluralize(`character`, this.title.length-MAX_TITLE_LENGTH, true)} too long`,
+                    fail: ({title=this.title}: {title: string}) => title.length > MAX_TITLE_LENGTH,
+                },
+                {
+                    text:  `This task must have a name`,
+                    fail: ({title=this.title}: {title: string}) => title.length === 0,
+                }
+            ],
+            description: [
+                {
+                    text: `Description is ${pluralize(`character`, this.description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
+                    fail: ({description=this.description}: {description: string}) => description.length > MAX_DESCRIPTION_LENGTH,
+                },
+            ],
+            start: [
+                {
+                    text: this.start.invalid ? this.start.invalid.explanation : "",
+                    fail: ({start=this.start}: {start: DateTime}) => !start.isValid,
+                },
+            ],
+            due: [
+                {
+                    text: this.due.invalid ? this.due.invalid.explanation : "",
+                    fail: ({due=this.due}: {due: DateTime}) => !due.isValid,
+                },
+            ],
+            workInterval: [
+                {
+                    text: `Due time must be after start time`,
+                    fail: ({start=this.start, due=this.due}: {start: DateTime, due: DateTime}) => start >= due && start.hasSame(due, 'day'),
+                },
+                {
+                    text: `Due date must be on or after start date`,
+                    fail: ({start=this.start, due=this.due}: {start: DateTime, due: DateTime}) => start >= due && !start.hasSame(due, 'day'),
+                },
+            ],
+            color: [
+                {
+                    text: `Color must be formatted as a valid hex code (ex: #ffffff)`,
+                    fail: ({test=this.color}: {test: string}) => !(/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(test)),
+                },
+            ],
+        } as TaskValidationTests;
+    }
+
+    getValidationErrorsForField({field, paramsForTestMethod={}}: {field: string, paramsForTestMethod?: any}) {
+        const errors: string[] = [];
+        const casesToCheck = this.validationTests[field];
+
+        for (let testCaseIdx in casesToCheck) {
+            if (casesToCheck[testCaseIdx].fail(paramsForTestMethod)) {
+                errors.push(casesToCheck[testCaseIdx].text);
+            }
+        }
+        return errors;
+    }
+
     /**
      * Get any validation errors as strings for this task in an object with the symbols and values:
      *
      */
     get validationErrors() {
-        type TaskValidationErrors = {
-            [index : string] : string[];
-            title: string[];
-            description: string[];
-            start: string[];
-            due: string[];
-            workInterval: string[];
-        };
         const errors : TaskValidationErrors = {
             title: [],
             description: [],
             start: [],
             due: [],
             workInterval: [],
+            color: [],
         };
-        const fieldsToValidate = {
-            title: [
-                {
-                    text: `Title is ${pluralize(`character`, this.title.length-MAX_TITLE_LENGTH, true)} too long`,
-                    fail: () => this.title.length > MAX_TITLE_LENGTH,
-                },
-                {
-                    text:  `This task must have a name`,
-                    fail: () => this.title.length === 0,
-                }
-            ],
-            description: [
-                {
-                    text: `Description is ${pluralize(`character`, this.description.length-MAX_DESCRIPTION_LENGTH, true)} too long`,
-                    fail: () => this.description.length > MAX_DESCRIPTION_LENGTH,
-                },
-            ],
-            start: [
-                {
-                    text: this.start.invalid ? this.start.invalid.explanation : "",
-                    fail: () => !this.start.isValid,
-                },
-            ],
-            due: [
-                {
-                    text: this.due.invalid ? this.due.invalid.explanation : "",
-                    fail: () => !this.due.isValid,
-                },
-            ],
-            workInterval: [
-                {
-                    text: `Due time must be after start time`,
-                    fail: () => this.start >= this.due && this.start.hasSame(this.due, 'day'),
-                },
-                {
-                    text: `Due date must be on or after start date`,
-                    fail: () => this.start >= this.due && !this.start.hasSame(this.due, 'day'),
-                },
-            ],
-        }
-        let casesToCheck;
-        for (let field in fieldsToValidate) {
-            casesToCheck = fieldsToValidate[field];
-            for (let testCaseIdx in casesToCheck) {
-                if (casesToCheck[testCaseIdx].fail()) {
-                    errors[field].push(casesToCheck[testCaseIdx].text);
-                }
-            }
-        } 
+  
+        for (let field in this.validationTests as TaskValidationTests) {
+            errors[field] = this.getValidationErrorsForField({field: field});
+        };
+
         return errors;
     }
     /**

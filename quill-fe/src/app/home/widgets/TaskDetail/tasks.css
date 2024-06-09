@@ -72,8 +72,7 @@
 }
 
 .check-box-wrapper input:focus~.checkmark {
-  /* background-color: var(--list-hover); */
-  border: 1px solid white ;
+  border: 3px solid white ;
 }
 
 .checkmark.round {
@@ -85,4 +84,22 @@
 
 .task-wrapper .date-time-wrapper {
   flex-direction: column;
+}
+
+.color-bubble-wrapper {
+  aspect-ratio: 1 / 1;
+  min-width: 20px;
+  max-width: 30px;
+  align-content: center;
+}
+
+.color-label-wrapper {
+  display: flex;
+  column-gap: 10px;
+  max-height: min-content;
+}
+
+.color-label-wrapper input {
+  max-width: 120px;
+  width: 100%;
 }

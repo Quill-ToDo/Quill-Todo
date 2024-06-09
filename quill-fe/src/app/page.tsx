@@ -13,8 +13,8 @@ const Home = observer(() => {
     <StoreProvider>
       <AlertWrapper>
           <DashboardLayout>
-            <ListWidget store={taskStore} />
-            <Calendar />
+            <ListWidget taskStore={taskStore} />
+            <Calendar taskStore={taskStore} />
           </DashboardLayout>
       </AlertWrapper>
     </StoreProvider>
