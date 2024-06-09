@@ -1,15 +1,11 @@
 import { observer } from "mobx-react-lite";
-import { ChangeEventHandler, Fragment, ReactNode } from "react";
+import { ChangeEventHandler, FormEvent, Fragment, ReactNode } from "react";
+import { v4 } from 'uuid';
 
-
-/**
- * @param {string[]} errors List of errors to display 
- * @returns List of errors
- */
-const ErrorsList = (errors, id) => {
+export const ErrorsList = ({errors, errorListId}: {errors: string[], errorListId?: string}) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul id={id} className="error-list" aria-live="polite">
+            <ul id={errorListId} className="error-list" aria-live="polite">
             { 
                 errors.map((errorText) => 
                     <li key={"error-"+errorText}>
@@ -25,47 +21,104 @@ const ErrorsList = (errors, id) => {
     }
 }
 
+/**
+ * Handle submission of the form. Validates that the task does not have any errors. If it does, it moves focus to the first field in the form
+ * with errors. Otherwise, the task is saved to the DB.
+ * 
+ */
+export const handleSubmit = ({
+    outerWidgetId,
+    submitEvent,
+    successCallback,
+    fieldData,
+}: {
+    outerWidgetId: string,
+    submitEvent: FormEvent,
+    successCallback: () => any,
+    fieldData: {
+        [index: string]: FormFieldParams}
+        string: FormFieldParams, 
+    }) => {
+    submitEvent.preventDefault();
+    let focusEle = null;
+
+    // Get element with errors to switch focus to
+    for (const fieldName in fieldData) {
+        const field: FormFieldParams = fieldData[fieldName];
+        if (field.errors && field.errors.length) {
+            const elem = document.querySelector(getFieldInputSelector({name: field.name, type: field.type, outerWidgetId}));
+            if (!focusEle) {
+                focusEle = elem;
+            }
+        }
+    }
+
+    if (!focusEle) {
+        // Valid 
+        successCallback();
+        return;
+    }
+
+    focusEle.focus();
+}
+
+
+const getFieldInputSelector = ({name, type, outerWidgetId}: {name: string, type: string, outerWidgetId: string}) => {
+    return `${outerWidgetId}-${name}-${type}`;
+}
+
+export type FormFieldParams = {
+    name: string;
+    type?: "input" | "textarea";
+    outerWidgetId: string;
+    onChange: (e: Event) => void;
+    value: string;
+    required?: boolean;
+    labelClasses?: string;
+    inputContentWrapperClasses?: string;
+    errors?: string[];
+    contentBeforeInput?: ReactNode;
+    contentAfterInput?: ReactNode;
+}
 export const FormField = observer(({
     name, 
+    type="input", 
+    outerWidgetId, 
     required=false,
     onChange, 
     value="",
     labelClasses="",
-    listOfValidationErrors=()=>[],
+    errors=[],
     contentBeforeInput=null,
     contentAfterInput=null,
     inputContentWrapperClasses="",
 
- }: {
-    name: string,
-    required?: boolean,
-    onChange: ChangeEventHandler,
-    value?: string,
-    labelClasses?: string,
-    listOfValidationErrors?: Function,
-    contentBeforeInput?: ReactNode,
-    contentAfterInput?: ReactNode,
-    inputContentWrapperClasses?: string,
-    })=>{
+ }: FormFieldParams) => {
+    const inputId = getFieldInputSelector({name, type, outerWidgetId});
+    const errorListId = `${inputId}-error-list`;
+    const props = {
+        "id": inputId,
+        "name": name,
+        "onChange": onChange,
+        "value": value,
+        "aria-describedby": errorListId,
+        "aria-invalid": !!errors.length,
+        "required": required,
+    }
+    const inputElement = type === "input" ? <input
+        {...props}
+    /> :
+    <textarea {...props}/>;
 
-const inputId = `${name}-form-field`;
-const inputElement = <input
-    name={name}
-    onChange={onChange}
-    value={value}
-    aria-describedby={inputId}
-    aria-invalid={!!listOfValidationErrors.length}
-    required={required}
-/>;
-const innerInputContent = contentAfterInput || contentBeforeInput ? <div className={inputContentWrapperClasses}>
-    {contentBeforeInput}
-    {inputElement}
-    {contentAfterInput}
-</div> : inputElement;
+    const innerInputContent = contentAfterInput || contentBeforeInput ? <div className={inputContentWrapperClasses}>
+        {contentBeforeInput}
+        {inputElement}
+        {contentAfterInput}
+    </div> : inputElement;
 
-return <label className={labelClasses}>
-    {name}
-    {innerInputContent}
-    { listOfValidationErrors && ErrorsList(listOfValidationErrors, inputId) }
-</label>
-})
+    return <label className={labelClasses}>
+        {name}
+        {innerInputContent}
+        { errors && ErrorsList({errors: errors, errorListId: errorListId}) }
+    </label>
+});

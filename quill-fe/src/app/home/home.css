@@ -386,6 +386,7 @@ form textarea[aria-invalid="true"] {
     background-color: var(--failure-bg);
 }
 
+form .sublabel label,
 form label.sublabel {
     font-size: var(--h5-size);
     color: var(--g4);

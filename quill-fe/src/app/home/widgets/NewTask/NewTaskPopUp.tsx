@@ -3,155 +3,87 @@ import { observer } from "mobx-react-lite";
 import './NewTask.css';
 import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
-import { ColorBubble } from "../TaskDetail/TaskComponents";
-import { FormField, FormFieldParams, handleSubmit } from "@/app/@util/FormComponents";
-import EditTaskModel from "./EditTaskModel";
-const ERROR_ID_END = "-error-list";
-const OUTER_WRAPPER_ID = "#new-wrapper";
+import { ColorBubble } from "@/widgets/TaskDetail/TaskComponents";
+import { ErrorsList, FormField, FormFieldParams, handleSubmit } from "@util/FormComponents";
+import TaskStore from "@/store/tasks/TaskStore";
 
-// /**
-//  * 
-//  * A wrapper for time and date form formData.
-//  * 
-//  * @param {*} props
-//  * @returns 
-//  */
-const TimeDateLabel = ({dateData, timeData}: {dateData: FormFieldParams, timeData: FormFieldParams}) => {
-    const timeErrorListId = `${time.idPrefix}${ERROR_ID_END}`;
-    const dateErrorListId = `${date.idPrefix}${ERROR_ID_END}`;
-    return <div>
-        <h3>{startOrDue}</h3>
-        <div className={"horizontal-align"}>
-            <FormField 
-                {...dateData}
-            />
-            <label className={`${date.idPrefix} sublabel`}>
-                {date.name}
-                <input
-                    id={`${date.idPrefix}-input`}
-                    name={date.name}
-                    onChange={date.change}
-                    value={date.value}
-                    aria-describedby={dateErrorListId}
-                    aria-invalid={date.errorsForInvalidField.length !== 0}
-                    />
-            </label>
-            <label className={`${time.idPrefix} sublabel`}>
-                {time.name}
-                <div className={"horizontal-align"}>
-                    <input
-                        id={`${time.idPrefix}-input`}
-                        name={time.name}
-                        onChange={time.change}
-                        value={time.value}
-                        aria-describedby={timeErrorListId}
-                        aria-invalid={time.errorsForInvalidField.length !== 0}
-                    />
-                </div>
-            </label>
-        </div>
-        <div className="horizontal-align">
-            { date.errorsToDisplay&& date.errorsToDisplay.length ? ErrorsList(date.errorsToDisplay, dateErrorListId) : null }
-            { time.errorsToDisplay&& time.errorsToDisplay.length ? ErrorsList(time.errorsToDisplay, timeErrorListId) : null }
-        </div>
-    </div>
-}
+
+const OUTER_WRAPPER_NAME = "new-wrapper";
+const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
 
 /**
  * A form to create a new task. It works by editing the formData of a task that has already been created and is marked as being edited
  * in TaskStore.
  */
-const NewTaskPopUp = observer((props) => {
-    const taskToCreate = props.taskStore.taskBeingEdited;
+const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
+    const taskToCreate = taskStore.taskBeingEdited;
+    if (!taskToCreate) { return; }
+    
+    const formData: {
+        [index: string]: FormFieldParams,
+        [index: number]: FormFieldParams,
+        title: FormFieldParams, 
+        desc: FormFieldParams, 
+        startDate: FormFieldParams, 
+        startTime: FormFieldParams, 
+        dueDate: FormFieldParams, 
+        dueTime: FormFieldParams, 
+        workInterval: FormFieldParams, 
+        color: FormFieldParams, 
 
-    const formData: 
-        {
-            [index: string]: FormFieldParams,
-            [index: number]: FormFieldParams,
-            title: FormFieldParams, 
-            desc: FormFieldParams, 
-            startDate: FormFieldParams, 
-            startTime: FormFieldParams, 
-            dueDate: FormFieldParams, 
-            dueTime: FormFieldParams, 
-            workInterval: FormFieldParams, 
-            color: FormFieldParams, 
-
-        } = {
+    } = {
         title: {
             name: `Title`,
-            outerWidgetId: OUTER_WRAPPER_ID,
             value: taskToCreate.title,
+            onChange: function (e) { e.target && taskToCreate.setTitle(e.target.value); },
             labelClasses: `title`,
             errors: taskToCreate.validationErrors.title,
-            onChange: function (e) {
-                taskToCreate.setTitle(e.target.value);
-            },
+            outerWidgetId: OUTER_WRAPPER_ID
         },
         desc: {
             name: `Description`,
             type: `textarea`,
-            outerWidgetId: OUTER_WRAPPER_ID,
             value: taskToCreate.description,
             errors: taskToCreate.validationErrors.description,
-            onChange: function (e) {
-                taskToCreate.setDescription(e.target.value);
-            },
+            onChange: function (e) { e.target && taskToCreate.setDescription(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         },
         startDate: {
             name: `Start Date`,
-            inputId: `${OUTER_WRAPPER_ID}-startDate`,
             value: taskToCreate.startDateString,
-            errorsToDisplay: taskToCreate.validationErrors.startDateString.concat(taskToCreate.validationErrors.start),
-            errorsForInvalidField: taskToCreate.validationErrors.startDateString.concat(taskToCreate.validationErrors.start).concat(taskToCreate.validationErrors.workInterval),
-
-            selectorForFieldElement: function () { return getSelector(formData.startDate.name, 'input'); },
-            change: function (e) {
-                taskToCreate.setStartDateString(e.target.value);
-            },
+            errors: taskToCreate.validationErrors.startDateString,
+            onChange: function (e) { e.target && taskToCreate.setStartDateString(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         },
         startTime: {
             name: `Start Time`,
-            inputId: `${OUTER_WRAPPER_ID}-startTime`,
             value: taskToCreate.startTimeString,
-            errorsToDisplay: taskToCreate.validationErrors.startTimeString,
-            errorsForInvalidField: taskToCreate.validationErrors.startTimeString.concat(taskToCreate.validationErrors.workInterval),
-            selectorForFieldElement: function () { return getSelector(formData.startTime.name, 'input'); },
-            change: function (e) {
-                taskToCreate.setStartTimeString(e.target.value);
-            },
+            errors: taskToCreate.validationErrors.startTimeString,
+            onChange: function (e) { e.target && taskToCreate.setStartTimeString(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         },
         dueDate: {
             name: `Due Date`,
-            inputId: `${OUTER_WRAPPER_ID}-dueDate`,
             value: taskToCreate.dueDateString,
-            errorsToDisplay: taskToCreate.validationErrors.dueDateString.concat(taskToCreate.validationErrors.due),
-            errorsForInvalidField: taskToCreate.validationErrors.dueDateString.concat(taskToCreate.validationErrors.due).concat(taskToCreate.validationErrors.workInterval),
-            selectorForFieldElement:  function () { return getSelector(formData.dueDate.name, 'input'); },
-            change: function (e) {
-                taskToCreate.setDueDateString(e.target.value);
-            },
+            errors: taskToCreate.validationErrors.due,
+            onChange: function (e) { e.target && taskToCreate.setDueDateString(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         },
         dueTime: {
             name: `Due Time`,
-            inputId: `${OUTER_WRAPPER_ID}-dueTime`,
             value: taskToCreate.dueTimeString,
-            errorsToDisplay:  taskToCreate.validationErrors.dueTimeString,
-            errorsForInvalidField: taskToCreate.validationErrors.dueTimeString.concat(taskToCreate.validationErrors.workInterval),
-            selectorForFieldElement:  function () { return getSelector(formData.dueTime.name, 'input'); },
-            change: function (e) {
-                taskToCreate.setDueTimeString(e.target.value);
-            },
+            errors:  taskToCreate.validationErrors.dueTimeString,
+            onChange: function (e) { e.target && taskToCreate.setDueTimeString(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         },
-        // workInterval : {
-        //     name: `Work Range`,
-        //     inputId: `${OUTER_WRAPPER_ID}-startDate`,
-        //     value: '',
-        //     selectorForFieldElement: function () { return getSelector(formData.startDate.name, 'input'); },
-        //     errorsToDisplay: taskToCreate.validationErrors.workInterval,
-        //     errorsForInvalidField: taskToCreate.validationErrors.workInterval,
-        // },
-        color : {
+        workInterval: {
+            name: `Work Range`,
+            value: '',
+            errors: taskToCreate.validationErrors.workInterval,
+            onChange: (e) => {},
+            outerWidgetId: OUTER_WRAPPER_ID,
+        },
+        color: {
             name: `Color`,
             required: true,
             value: taskToCreate.colorString,
@@ -159,16 +91,16 @@ const NewTaskPopUp = observer((props) => {
             contentBeforeInput: <ColorBubble task={taskToCreate}/>,
             inputContentWrapperClasses: `color-label-wrapper`,
             errors: taskToCreate.validationErrors.color,
-            onChange: function (e) {
-                taskToCreate.setColorString(e.target.value);
-            },
+            onChange: function (e) { e.target && taskToCreate.setColorString(e.target.value); },
+            outerWidgetId: OUTER_WRAPPER_ID,
         }
     }
 
     useEffect(() => {
-        makeDraggable(document.querySelector("#new-wrapper.popup"));
-        const firstInput = document.querySelector(`input[name='${formData.title.name}']`);
-        firstInput.focus();
+        const popup = document.querySelector(OUTER_WRAPPER_ID);
+        popup && makeDraggable(popup);
+        const firstInput = document.querySelector(`input[name='${formData[Object.keys(formData)[0]].name}']`) as HTMLElement;
+        firstInput && firstInput.focus();
 
         return () => {
             if (taskToCreate.beingEdited) {
@@ -178,7 +110,7 @@ const NewTaskPopUp = observer((props) => {
     }, [taskToCreate, formData.title.name])
 
     return (
-        <div id="new-wrapper" className="popup draggable">
+        <div id={OUTER_WRAPPER_NAME} className="popup draggable">
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned end">
@@ -206,19 +138,23 @@ const NewTaskPopUp = observer((props) => {
                         <FormField {...formData.desc}/>
                     </label>
                     <div className={"start-due-wrapper horizontal-align"}> 
-                        {/* <TimeDateLabel 
-                            label={"Start"}
-                            date={formData.startDate}
-                            time={formData.startTime}
-                        />
-                        <TimeDateLabel 
-                            label={"Due"} 
-                            date={formData.dueDate}
-                            time={formData.dueTime}
-                        /> */}
+                        <div>
+                            <h3>Start</h3>
+                            <div className={"horizontal-align sublabel"}>
+                                <FormField {...formData.startDate} />
+                                <FormField {...formData.startTime} />
+                            </div>
+                        </div>
+                        <div>
+                            <h3>Due</h3>
+                            <div className={"horizontal-align sublabel"}>
+                                <FormField {...formData.dueDate} />
+                                <FormField {...formData.dueTime} />
+                            </div>
+                        </div>
                     </div>
                     <div className="centered">
-                        {/* { formData.workInterval.errorsToDisplay && formData.workInterval.errorsToDisplay && ErrorsList(formData.workInterval.errorsToDisplay, formData.workInterval.idPrefix)} */}
+                        { formData.workInterval.errors && ErrorsList({errors: formData.workInterval.errors, errorListId: formData.workInterval.idPrefix})}
                         <button id="add-btn" className="btn large" type="submit" formNoValidate={true}>+</button>
                     </div>
                 </form>

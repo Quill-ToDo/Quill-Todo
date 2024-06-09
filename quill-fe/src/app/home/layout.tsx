@@ -18,8 +18,8 @@ const DashboardLayout = observer(({
 
     return ( 
         <div id="home-wrapper" data-testid="home">
-            { taskStore.taskBeingEdited && !taskStore.taskBeingFocused ? <NewTaskPopUp taskStore={taskStore}/> : null }
-            { taskStore.taskBeingFocused ? <TaskDetail task={taskStore.taskBeingFocused}/> : null }
+            { taskStore.taskBeingEdited && !taskStore.taskBeingFocused && <NewTaskPopUp taskStore={taskStore}/> }
+            { taskStore.taskBeingFocused && <TaskDetail task={taskStore.taskBeingFocused}/> }
             <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
                 <button role="menuitem" className="btn small square no-shadow" title="Add task" type="button" onClick={() => {
                         new EditTaskModel();
