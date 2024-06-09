@@ -2,9 +2,8 @@ import { observer } from "mobx-react-lite";
 import { START_OF_DAY } from "@/app/@util/DateTimeHelper";
 import { DateTime } from "luxon";
 import { END_OF_WEEK_WEEKDAY, START_OF_WEEK_WEEKDAY } from "@/util/constants";
-import { TaskModel } from "@/store/tasks/TaskModel";
 import './Calendar.css';
-import TaskStore, { TaskDataOnDay, Timeline } from "@/store/tasks/TaskStore";
+import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle } from "../TaskDetail/TaskComponents";
 import { Fragment } from "react";
 
@@ -18,6 +17,7 @@ type MonthData =
     };
 type WeekData =
     {
+        weekNum: number,
         days: DayData[];
     };
 type DayData =
@@ -54,7 +54,7 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
         previousMonthLoaded: MonthData,
         mostRecentWeekLoaded: WeekData;
 
-    for (let day = start; day <= end; day = day.plus({days:1})) {
+    for (let day: DateTime = start; day <= end; day = day.plus({days:1})) {
         let dayKey = day.toLocaleString(DateTime.DATE_SHORT);
         itIsTheFirstOfTheMonth = day.day === 1;
         itIsANewWeekday = day.weekdayLong === START_OF_WEEK_WEEKDAY;
@@ -66,7 +66,7 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
         mostRecentMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-1];
         if (itIsANewWeekday) {
             // Add a new WeekData to MonthData
-            mostRecentMonthLoaded.weeks.push({days: []});
+            mostRecentMonthLoaded.weeks.push({days: [], weekNum: day.weekNumber});
         }
         previousMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-2];
         mostRecentWeekLoaded = mostRecentMonthLoaded.weeks.length ? mostRecentMonthLoaded.weeks[mostRecentMonthLoaded.weeks.length-1] : previousMonthLoaded.weeks[previousMonthLoaded.weeks.length-1];
@@ -106,30 +106,32 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                             <h2>{monthData.monthName}</h2>
                             <div className="day-grid"> 
                                 { monthData.weeks.map((weekData, i) =>
-                                        weekData.days.map(day =>  
+                                    <Fragment key={`${weekData.weekNum}`}>
+                                        { weekData.days.map(day =>  
                                         <button 
                                             className={"day-container" + day.monthBorder.reduce((accumulator, currentValue, currentIndex) => 
                                                 accumulator + (currentValue ? " " + monthBorderIndexToClassName.get(currentIndex) : ""), " ")}
                                             key={`day-${monthData.monthName}-${day.date}`}
-                                        >
+                                            >
                                             <p>{day.date.day}</p>
                                             <div className=" dark-section">
                                                 { day.tasksToday &&  day.tasksToday.scheduled && day.tasksToday.scheduled.map((task) => {
-                                                        return <Fragment>
+                                                    return <Fragment key={`${day.date}-${task.id}`}>
                                                             <Checkbox task={task} type={'work'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                             <TaskTitle task={task} />
                                                         </Fragment>
                                                     })
                                                 }
                                                 { day.tasksToday && day.tasksToday.due && day.tasksToday.due.map((task) => {
-                                                    return <Fragment>
+                                                    return <Fragment key={`${day.date}-${task.id}`}>
                                                         <Checkbox task={task} type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                         <TaskTitle task={task} />
                                                     </Fragment>
                                                 })}
                                             </div>
                                         </button>    
-                                    )
+                                    )}
+                                    </Fragment>
                                 )}
                             </div>
                         </div>

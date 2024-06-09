@@ -269,7 +269,7 @@ export class TaskModel {
             start: this.start ? this.start.toJSON() : "", 
             due: this.due.toJSON(),
             description: this.description,
-            // color: this.color,
+            color: this.color,
         };
     } 
 

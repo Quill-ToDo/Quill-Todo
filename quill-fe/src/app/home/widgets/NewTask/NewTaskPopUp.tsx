@@ -38,7 +38,7 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
             onChange: function (e) { e.target && taskToCreate.setTitle(e.target.value); },
             labelClasses: `title`,
             errors: taskToCreate.validationErrors.title,
-            outerWidgetId: OUTER_WRAPPER_ID
+            outerWidgetId: OUTER_WRAPPER_NAME
         },
         desc: {
             name: `Description`,
@@ -46,42 +46,42 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
             value: taskToCreate.description,
             errors: taskToCreate.validationErrors.description,
             onChange: function (e) { e.target && taskToCreate.setDescription(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         startDate: {
             name: `Start Date`,
             value: taskToCreate.startDateString,
             errors: taskToCreate.validationErrors.startDateString,
             onChange: function (e) { e.target && taskToCreate.setStartDateString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         startTime: {
             name: `Start Time`,
             value: taskToCreate.startTimeString,
             errors: taskToCreate.validationErrors.startTimeString,
             onChange: function (e) { e.target && taskToCreate.setStartTimeString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         dueDate: {
             name: `Due Date`,
             value: taskToCreate.dueDateString,
             errors: taskToCreate.validationErrors.due,
             onChange: function (e) { e.target && taskToCreate.setDueDateString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         dueTime: {
             name: `Due Time`,
             value: taskToCreate.dueTimeString,
             errors:  taskToCreate.validationErrors.dueTimeString,
             onChange: function (e) { e.target && taskToCreate.setDueTimeString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         workInterval: {
             name: `Work Range`,
             value: '',
             errors: taskToCreate.validationErrors.workInterval,
             onChange: (e) => {},
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         color: {
             name: `Color`,
@@ -92,7 +92,7 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
             inputContentWrapperClasses: `color-label-wrapper`,
             errors: taskToCreate.validationErrors.color,
             onChange: function (e) { e.target && taskToCreate.setColorString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_ID,
+            outerWidgetId: OUTER_WRAPPER_NAME,
         }
     }
 
@@ -103,9 +103,9 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
         firstInput && firstInput.focus();
 
         return () => {
-            if (taskToCreate.beingEdited) {
-                taskToCreate.abortEditing();
-            }
+            // if (taskToCreate.beingEdited) {
+            //     taskToCreate.abortEditing();
+            // }
         }
     }, [taskToCreate, formData.title.name])
 
@@ -134,9 +134,7 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
                             <FormField {...formData.color} />
                         </div>
                     </div>
-                    <label>
-                        <FormField {...formData.desc}/>
-                    </label>
+                    <FormField {...formData.desc}/>
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <div>
                             <h3>Start</h3>

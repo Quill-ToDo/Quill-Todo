@@ -1,4 +1,4 @@
-export function makeDraggable(divToDrag : Element) {
+export function makeDraggable(divToDrag : HTMLElement) {
     var mousePosition;
     var offset = [0,0];
     var isDown = false;
@@ -6,6 +6,7 @@ export function makeDraggable(divToDrag : Element) {
     if (dragHandle === null) {
         throw new Error("");
     }
+
     dragHandle.addEventListener('mousedown', function(e) {
         isDown = true;
         offset = [

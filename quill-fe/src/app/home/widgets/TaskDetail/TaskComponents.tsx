@@ -1,7 +1,6 @@
 import { TaskModel } from "@/store/tasks/TaskModel";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ReactNode } from "react";
 
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
     return <div className="check-box-wrapper">
@@ -57,13 +56,13 @@ export const TaskTitle = observer(({task, pClasses=""}: {task: TaskModel, pClass
  * Displays the date and time for a task
  * 
  */
-export const DateTimeWrapper = observer(({task, type, dateFormat}: {task: TaskModel, type: "start" | "due", dateFormat: DateTime}) => {
-    const time = type === "start" ? task.start : task.due;
-    const overdue = type === "due" && time < DateTime.now() && !task.complete;
+export const DateTimeWrapper = observer(({task, type, dateFormat=DateTime.DATE_SIMPLE}: {task: TaskModel, type: "start" | "due", dateFormat?: object}) => {
+    const date = type === "start" ? task.start : task.due;
+    const overdue = type === "due" && date < DateTime.now() && !task.complete;
     return (
-        <time dateTime={time} className={`date-time-wrapper ${overdue && "overdue"}`}> 
-            <p className="date">{time.toLocaleString(dateFormat)}</p>
-            <p className="time">{time.toLocaleString(DateTime.TIME_SIMPLE)}</p>
+        <time dateTime={date} className={`date-time-wrapper ${overdue && "overdue"}`}> 
+            <p className="date">{date.toLocaleString(dateFormat)}</p>
+            <p className="time">{date.toLocaleString(DateTime.TIME_SIMPLE)}</p>
         </time>
     );
 })

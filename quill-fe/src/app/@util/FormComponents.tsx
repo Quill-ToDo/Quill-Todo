@@ -1,6 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { ChangeEventHandler, FormEvent, Fragment, ReactNode } from "react";
-import { v4 } from 'uuid';
+import { FormEvent, Fragment, ReactNode } from "react";
 
 export const ErrorsList = ({errors, errorListId}: {errors: string[], errorListId?: string}) => {
     if (errors.length > 1) {
@@ -8,7 +7,7 @@ export const ErrorsList = ({errors, errorListId}: {errors: string[], errorListId
             <ul id={errorListId} className="error-list" aria-live="polite">
             { 
                 errors.map((errorText) => 
-                    <li key={"error-"+errorText}>
+                    <li key={`error-${errorText}-${errorListId}`}>
                         {errorText}
                     </li>
                 )
@@ -34,19 +33,17 @@ export const handleSubmit = ({
 }: {
     outerWidgetId: string,
     submitEvent: FormEvent,
-    successCallback: () => any,
-    fieldData: {
-        [index: string]: FormFieldParams}
-        string: FormFieldParams, 
+    successCallback: () => void,
+    fieldData: any, 
     }) => {
     submitEvent.preventDefault();
-    let focusEle = null;
+    let focusEle;
 
     // Get element with errors to switch focus to
     for (const fieldName in fieldData) {
         const field: FormFieldParams = fieldData[fieldName];
         if (field.errors && field.errors.length) {
-            const elem = document.querySelector(getFieldInputSelector({name: field.name, type: field.type, outerWidgetId}));
+            const elem = document.querySelector(getFieldInputSelector({name: field.name, type: field.type, outerWidgetId})) as HTMLElement;
             if (!focusEle) {
                 focusEle = elem;
             }
@@ -63,7 +60,7 @@ export const handleSubmit = ({
 }
 
 
-const getFieldInputSelector = ({name, type, outerWidgetId}: {name: string, type: string, outerWidgetId: string}) => {
+const getFieldInputSelector = ({name, type="input", outerWidgetId}: {name: string, type?: string, outerWidgetId: string}) => {
     return `${outerWidgetId}-${name}-${type}`;
 }
 

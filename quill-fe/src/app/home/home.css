@@ -147,6 +147,15 @@ p.time {
     align-items: flex-start;
 }
 
+.aligned.end {
+    justify-content: flex-end;
+    gap: 7px;
+}
+
+.aligned.even {
+    justify-content: space-around;
+}
+
 .same-size {
     display: flex;
 }
@@ -155,10 +164,6 @@ p.time {
     flex: 1 1 0px;
 }
 
-.aligned.end {
-    justify-content: flex-end;
-    gap: 7px;
-}
 
 .take-full-space {
     height: 100vh;
@@ -410,17 +415,15 @@ form label.sublabel {
   }
 
 hr {
-    width: 60%;
+    width: 70%;
     color: var(--g3);
-    background-color: linear-gradient(90deg,
-            rgba(94, 94, 94, 0.6979925759366247) 0%,
-            rgba(94, 94, 94, 1) 25%,
-            rgba(94, 94, 94, 1) 75%,
-            rgba(94, 94, 94, 0.6951914554884453) 100%);
     margin: auto;
     margin-top: 20px;
     margin-bottom: 20px;
     opacity: 0.4;
+    border-top: 3px solid;
+    border-radius: 3px;
+    
 }
 /*#endregion Forms*/
 /*#endregion Inline Elements*/
@@ -431,8 +434,6 @@ hr {
     width: 28vw;
     max-width: 95vw;
     min-height: 10vh;
-    left: calc(var(--menu-width) + 10px);
-    top: var(--section-gap);
     z-index: 5;
     position: absolute;
     background-color: var(--g8);

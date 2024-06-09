@@ -185,18 +185,17 @@ const SubSection = ({sectionNum, sectionContent}: {sectionNum: number, sectionCo
  * The tasks within a subsection.
  */
 const TaskSectionContent = ({content}: {content: SubSectionContent}) => {
-    const sectionTitleId = "dark-section-title-"+content.title;
+    const sectionTitleId = `dark-section-title-${content.title}`;
     return (
-        <section aria-labelledby={content.title !== undefined ? sectionTitleId : ""}>
-            {content.title !== undefined ? <h3 id={sectionTitleId} className="centered">{content.title}</h3> : null}
+        <section aria-labelledby={content.title ? sectionTitleId : ""} key={`${content.title}-${content.type}`}>
+            {content.title && <h3 id={sectionTitleId} className="centered">{content.title}</h3>}
             <div className="dark-section">
-                {content.tasks.length === 0 ? 
-                <p className="subtle centered">{content.emptyText}</p>
-                :
+                {content.tasks.length ? 
                 <TaskList 
                     tasks={content.tasks} 
                     type={content.type}    
-                />
+                /> :
+                <p className="subtle centered">{content.emptyText}</p>
                 }
             </div>
         </section>
@@ -210,7 +209,7 @@ const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyl
     return <ul role="group">
         { tasks.map((task) => {
             return ( 
-                <li className="task" key={"task-li-"+task.id}>
+                <li className="task" key={`task-li-${task.id}`}>
                     <ListViewTask
                         task={task}
                         type={type}

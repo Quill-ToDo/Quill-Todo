@@ -29,7 +29,6 @@ export default class EditTaskModel extends TaskModel {
     dueTimeString : string = "";
     dueDateString : string = "";
     colorString: string = "";
-    // static taskBeingEdited = null;
 
     /**
      * An object to represent a task being edited. This extends TaskModel. It is used to show additional 
@@ -69,9 +68,7 @@ export default class EditTaskModel extends TaskModel {
         this.dueDateString = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
         this.dueTimeString = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
         this.colorString = this.color;
-        // this.colorString = "bing bong";
         this.startEditing();
-   
     }
 //#endregion
 //#region LOGICAL METHODS
@@ -84,10 +81,11 @@ export default class EditTaskModel extends TaskModel {
      * changes with `this.abortEditing`.
      */
     startEditing() {
-        // TODO figure out how to make this class handle this logic instead of modifying taskStore
-        // EditTaskModel.setTaskBeingEdited(this);
         this.dontSaveToServer();
         this.store.setEditing(this);
+    }
+    get beingEdited() {
+        return this.store.taskBeingEdited === this;
     }
     /**
      * Mark a task being edited as "done" and save the task to the DB
@@ -96,22 +94,24 @@ export default class EditTaskModel extends TaskModel {
     finishEditing () {
         // Validate that there are no errors. If there are, raise an alert.
         if (!this.isValid) {
+            const legibleErrors = Object.keys(this.validationErrors).map((key: string) => this.validationErrors[key].length ? `${key}: ${this.validationErrors[key].join(",")}` : ``  );
+
             addAlert(document.querySelector('#new-wrapper'), 
-            ERROR_ALERT, 
-            `Task could not be saved, it still has errors - ${this.validationErrors.toJSON}`);
-            console.error(this.validationErrors);
-            console.error(this);
+                ERROR_ALERT, 
+                `Task could not be saved, it still has errors - ${legibleErrors.join("\n")}`
+            );
             return;
-        } 
+        }
         
         // Post to server
         let res = this.store.API.createTask(this.json)
         .catch(e => {
             console.error(e)
-            addAlert(document.querySelector('#home-wrapper'), 
-            ERROR_ALERT, 
-            `Could not add task - ${e}`);            
-            // this.store.remove(this);
+            addAlert(
+                document.querySelector('#home-wrapper'), 
+                ERROR_ALERT, 
+                `Could not add task - ${e}`
+            );            
             return;
         }).then(res => {
             this.store.setEditing(null);
@@ -125,11 +125,14 @@ export default class EditTaskModel extends TaskModel {
     abortEditing () {
         this.store.setEditing(null);
         if (!this.createdDate) {
-            // TODO make sure this is removing
             this.store.remove(this);
         }
         else {
-            // TODO 
+            addAlert(
+                document.querySelector('#new-wrapper'), 
+                ERROR_ALERT, 
+                `abortEditing not implemented!`
+            );
         }
     }
 //#endregion
