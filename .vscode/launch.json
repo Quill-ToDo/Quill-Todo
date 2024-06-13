@@ -1,18 +1,8 @@
 {
     "version": "0.2.0",
-    "configurations": [{
-            "name": "Debug CRA Tests",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "${workspaceRoot}/quill-fe/node_modules/.bin/react-scripts",
-            "args": ["test", "--runInBand", "--no-cache", "--env=jsdom"],
-            "cwd": "${workspaceRoot}/quill-fe",
-            "protocol": "inspector",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
+    "configurations": [
         {
-            "name": "Launch Chrome",
+            "name": "Debug FE Chrome",
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:3000",
@@ -22,65 +12,25 @@
             }
         },
         {
-            "name": "Launch Firefox",
+            "name": "Debug FE Firefox",
             "type": "firefox",
             "request": "launch",
             "url": "http://localhost:3000",
-            "pathMappings": [{
-                    "url": "${workspaceRoot}/quill-fe/src",
-                    "path": "${workspaceFolder}/quill-fe/src"
-                },
+            "pathMappings": [
                 {
-                    "url": "http://localhost:3000/",
-                    "path": "${workspaceFolder}/"
-                },
-                {
-                    "url": "http://localhost:3000",
-                    "path": "${workspaceFolder}/"
+                    "url": "webpack://_n_e/src/app",
+                    "path": "${workspaceFolder}/quill-fe/src/app"
                 }
             ]
         },
         {
-            "name": "Debug Jest tests Single Run",
-            "type": "node",
+            "name": "Debug BE",
+            "type": "debugpy",
             "request": "launch",
-            "env": {
-                "CI": "true"
-            },
-            "runtimeExecutable": "${workspaceRoot}/quill-fe/node_modules/.bin/react-scripts",
-            "args": ["test", "--runInBand", "--no-cache"],
-            "cwd": "${workspaceRoot}/quill-fe",
-            "protocol": "inspector",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
+            "program": "${workspaceFolder}\\manage.py",
+            "args": ["runserver"],
+            "django": true,
+            "justMyCode": true
         },
-        {
-            "name": "Debug Jest tests watch mode",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "${workspaceRoot}/quill-fe/node_modules/.bin/react-scripts",
-            "args": ["test", "--runInBand", "--no-cache", "--watchAll"],
-            "cwd": "${workspaceRoot}/quill-fe",
-            "protocol": "inspector",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        },
-        {
-            "name": "Debug Jest tests opened file",
-            "type": "node",
-            "request": "launch",
-            "runtimeExecutable": "${workspaceRoot}/quill-fe/node_modules/.bin/react-scripts",
-            "args": [
-                "test",
-                "${fileBasenameNoExtension}",
-                "--runInBand",
-                "--no-cache",
-                "--watchAll"
-            ],
-            "cwd": "${workspaceRoot}/quill-fe",
-            "protocol": "inspector",
-            "console": "integratedTerminal",
-            "internalConsoleOptions": "neverOpen"
-        }
     ]
 }

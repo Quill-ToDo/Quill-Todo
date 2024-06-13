@@ -20,8 +20,6 @@ export default class TaskStore {
     API : TaskApi;
     rootStore : RootStore;
     taskSet : Set<TaskModel> = new Set<TaskModel>();
-    // Task to show details for
-    taskBeingFocused : TaskModel | null = null;
     // Task : TODO: Move this to static EditTaskModel
     taskBeingEdited : EditTaskModel | null = null;
     // Boolean : Whether the store has synced with server
@@ -42,7 +40,6 @@ export default class TaskStore {
             // Observables
             isLoaded: observable,
             taskSet: observable,
-            taskBeingFocused: observable,
             taskBeingEdited: observable,
             // Computeds
             tasks: computed,
@@ -50,8 +47,6 @@ export default class TaskStore {
             // Actions
             loadTasks: false,
             setEditing: action,
-            setFocus: action,
-            removeFocus: action,
             add: action,
             remove: action, 
             delete: action,
@@ -64,7 +59,6 @@ export default class TaskStore {
         this.API = API;
         this.taskSet = new Set<TaskModel>();
         this.loadTasks();
-        this.taskBeingFocused = null;
         this.taskBeingEdited = null;
     }
 
@@ -139,20 +133,9 @@ export default class TaskStore {
         });
         return timeline;
     }
-
-    setFocus (task : TaskModel) {
-        this.taskBeingFocused = task;
-    }
     
     setEditing(task : EditTaskModel | null) {
         this.taskBeingEdited = task;
-    }
-
-    /**
-     * Specify that no task should have its details shown in a popup.
-     */
-    removeFocus () {
-        this.taskBeingFocused = null;
     }
 
     /**

@@ -8,8 +8,13 @@
 }
 
 #show-wrapper .complete s {
-  color: var(--g4);
-  text-decoration: line-through solid var(--g4) 3px ;
+  color: var(--g7);
+  text-decoration: line-through solid var(--g7) 3px ;
+} 
+
+#show-wrapper .task-wrapper.complete .checkmark
+{
+  color: var(--g7);
 } 
 
 #show-wrapper .check-box-wrapper {

@@ -161,12 +161,6 @@ export class TaskModel {
     deleteSelf() {
         this.store.delete(this);
     }
-    /**
-     * Mark this task as the one that detail pop-up should be rendered for
-     */
-    setFocus() {
-        this.store.setFocus(this);
-    }
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
 //#region title

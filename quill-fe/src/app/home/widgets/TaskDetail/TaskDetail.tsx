@@ -17,64 +17,74 @@ import { FormField } from "@/app/@util/FormComponents";
 const WIDGET_NAME = "show-wrapper";
 const WIDGET_ID = `#${WIDGET_NAME}`;
 
-const TaskDetail = observer(({task}: {task: TaskModel}) => {
+const TaskDetail = observer((
+    {
+        task, 
+        floatHelperRefs, 
+        floatHelperRefStyle,
+        // getFloatingProps,
+        // setShowState,
+        close,
+    }: 
+    {
+        task: TaskModel,  
+        floatHelperRefs: any, 
+        floatHelperRefStyle: {},
+        // getFloatingProps: () => {},
+        // setShowState: (arg0: boolean) => void,
+        close: () => void,
+    }
+    ) => {
+
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
-    const taskStore: TaskStore = task.store;
     const checkboxId = `${WIDGET_ID}-checkbox-${task.id}`;
-    
-    const closeFn = useCallback(
-        () => {
-            taskStore.removeFocus();
-        },
-        [taskStore],
-    )
 
     useEffect(() => {
-        // Keep track of the previously focused element and the new filter behind popup
+        // Keep track of the previously focused element and
         previouslyFocused.current = document.activeElement as HTMLElement;
-        // Make items behind pop-up unfocusable and focus on focused tasks checkbox
-        const home : HTMLElement | null = document.getElementById("home-wrapper");
         const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
-        home && (home.tabIndex = -1);
         taskCheckbox && taskCheckbox.focus();
-        const popup = document.querySelector(WIDGET_ID) as HTMLElement;
-        popup && makeDraggable(popup);
-
-        
-        // Add ESC keybindings
-        window.addEventListener("keydown", (e) => {
-            switch (e.key) {
-                case "Escape":
-                    closeFn();
-                    break;
-                case "Esc":
-                    closeFn();
-                    break;
-                default:
-                    return;
-            }
-        });
+        // const popup = document.querySelector(WIDGET_ID) as HTMLElement;
+        // popup && makeDraggable(popup);
         return () => {
+            // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
         }
-    }, [closeFn, task.id])
+    }, [task.id])
 
     const buttons = <div className="aligned end">
-                        <button id="btn-delete" className="btn small square no-shadow" title="Delete task" onClick={() => {
-                            task.store.delete(task);
-                            closeFn();
-                            }}>
+                        <button 
+                            id="btn-delete"
+                            className="btn small square no-shadow"
+                            title="Delete task" 
+                            onClick={() => {
+                                task.store.delete(task);
+                                close();
+                            }
+                        }>
                             <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
-                        <button className="btn small square btn-red" title="Close" onClick={closeFn}>
+                        <button 
+                            className="btn small square btn-red"
+                            title="Close"
+                            onClick={() => {
+                                console.log("triggied")
+                                close();
+                            }}>
                             { ICONS.X }
                         </button>
                     </div>;
 
     return (
-        <section id={WIDGET_NAME} className="popup">
+        <section 
+            id={WIDGET_NAME} 
+            className="popup" 
+            ref={floatHelperRefs.setFloating} 
+            style={floatHelperRefStyle} 
+        > 
+            {/* // style={floatHelperRefStyle} >  */}
             <div>
-                <div className="task-wrapper header-container aligned draggable-handle" data-testid={`taskwrapper-${task.title}`} >
+                <div className={`task-wrapper header-container aligned draggable-handle ${task.complete && "complete"}`} data-testid={`taskwrapper-${task.title}`} >
                     <Checkbox 
                         task={task}
                         type={"due"}

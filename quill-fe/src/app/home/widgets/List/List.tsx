@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
@@ -8,6 +8,9 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
+import { useFloating, offset, FloatingPortal, autoUpdate, useFocus, useInteractions, useClick, useDismiss, useClientPoint } from "@floating-ui/react";
+import TaskDetail from "../TaskDetail/TaskDetail";
+import { ICONS } from "@/app/@util/constants";
 
 
 const SECTION_TOGGLE_DURATION = 100;
@@ -171,7 +174,7 @@ type SubSectionContent = {title?: string, tasks: TaskModel[], type: TaskModel.Vi
 /**
  * The contents of a subsection with a list section serparated out for performance
  */
-const SubSection = ({sectionNum, sectionContent}: {sectionNum: number, sectionContent: SubSectionContent[]}) => {
+const SubSection = observer(({sectionNum, sectionContent}: {sectionNum: number, sectionContent: SubSectionContent[]}) => {
     return sectionContent.map((section) => {
         return ( 
             <TaskSectionContent 
@@ -179,12 +182,12 @@ const SubSection = ({sectionNum, sectionContent}: {sectionNum: number, sectionCo
             />
             )
         })
-}
+})
 //#region Task list
 /**
  * The tasks within a subsection.
  */
-const TaskSectionContent = ({content}: {content: SubSectionContent}) => {
+const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
     const sectionTitleId = `dark-section-title-${content.title}`;
     return (
         <section aria-labelledby={content.title ? sectionTitleId : ""} key={`${content.title}-${content.type}`}>
@@ -200,12 +203,12 @@ const TaskSectionContent = ({content}: {content: SubSectionContent}) => {
             </div>
         </section>
     )
-}
+})
 
 /**
  * The list of tasks, separated to a different method for performance
  */
-const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
+const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
     return <ul role="group">
         { tasks.map((task) => {
             return ( 
@@ -218,7 +221,7 @@ const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyl
             )
         })}
     </ul>
-}
+})
 
 /**
  * One task within the list
@@ -226,20 +229,70 @@ const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyl
 const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.VisualStyles }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
-    const classAddition = task.complete ? "complete" : "";
     const dateForm = DateTime.DATE_SHORT;
+    const [showDetails, setShowDetails] = useState(false);
+    const {refs, floatingStyles, context} = useFloating({
+        open: showDetails,
+        onOpenChange(nextOpen, event, reason) {
+            setShowDetails(nextOpen);
+            console.log(`${nextOpen} ${reason}`)
+        },
+        placement: "right",
+        whileElementsMounted: autoUpdate,
+        middleware: [offset(20)],
+    });
+    // const clientPoint = useClientPoint(context);
+    // const click = useClick(context, {
+    //     toggle: false,
+    // });
+    // const dismiss = useDismiss(context, {
+    //     outsidePress: false,
+    //     referencePress: false,
+    // });
+    // const {getReferenceProps, getFloatingProps} = useInteractions([
+    //     click,
+    //     dismiss,
+    //     clientPoint,
+    // ]);
 
+    const close = () => setShowDetails(false);
+    // getFloatingProps={getFloatingProps
+    // floatHelperRefs={refs} floatHelperRefStyle={floatingStyles}
+    const taskDetailPopup = <TaskDetail task={task} close={close} floatHelperRefs={refs} floatHelperRefStyle={floatingStyles} />
+    // {...getReferenceProps()}
+    // ref={refs.setReference}
     return (
-        <div className={`task-wrapper${task.complete ? " complete" : ""}`} id={id} key={task.id}> 
+        <div 
+            className={`task-wrapper ${task.complete && "complete"}`} 
+            id={id} 
+            key={`list-task-${task.id}`}
+            ref={refs.setReference}
+        >
             <Checkbox
                 task={task}
                 type={type}
                 checkboxId={checkboxId}
             />
-            <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
-                {<label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
-                <TaskTitle task={task} />
-            </label>}
+                { showDetails &&
+                <FloatingPortal>
+                    {taskDetailPopup}
+                    {/* <button 
+                            // className="btn small square btn-red"
+                            // title="Close"
+                            onClick={close}
+                            >
+                            HELLO!!!!!
+                        </button> */}
+                </FloatingPortal> }
+            <button role="link" className="title-date-wrapper" onClick={() => setShowDetails(true)}>
+                <label 
+                    htmlFor={checkboxId} 
+                    onClick={(e) => {
+                        e.preventDefault();
+                    }}
+                >
+                    <TaskTitle task={task} />
+                </label>
                 <DateTimeWrapper 
                     task={task} 
                     type="due" 

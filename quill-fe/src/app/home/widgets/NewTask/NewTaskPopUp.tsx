@@ -6,7 +6,7 @@ import { ICONS } from "@/util/constants";
 import { ColorBubble } from "@/widgets/TaskDetail/TaskComponents";
 import { ErrorsList, FormField, FormFieldParams, handleSubmit } from "@util/FormComponents";
 import TaskStore from "@/store/tasks/TaskStore";
-
+import { FloatingPortal } from "@floating-ui/react";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
@@ -15,7 +15,13 @@ const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
  * A form to create a new task. It works by editing the formData of a task that has already been created and is marked as being edited
  * in TaskStore.
  */
-const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
+const AddNewTaskPopUp = observer(({taskStore, addNewTaskFloatStyles, addNewTaskFloatRefs, addNewTaskFloatContext}: 
+    {
+        taskStore: TaskStore, 
+        addNewTaskFloatStyles?: {}, 
+        addNewTaskFloatRefs?: any
+        addNewTaskFloatContext?: any,   
+    }) => {
     const taskToCreate = taskStore.taskBeingEdited;
     if (!taskToCreate) { return; }
     
@@ -101,16 +107,17 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
         popup && makeDraggable(popup);
         const firstInput = document.querySelector(`input[name='${formData[Object.keys(formData)[0]].name}']`) as HTMLElement;
         firstInput && firstInput.focus();
-
+        
         return () => {
-            // if (taskToCreate.beingEdited) {
+            // if (taskStore.taskBeingEdited) {
             //     taskToCreate.abortEditing();
             // }
         }
-    }, [taskToCreate, formData.title.name])
+    }, [])
+
 
     return (
-        <div id={OUTER_WRAPPER_NAME} className="popup draggable">
+        <div id={OUTER_WRAPPER_NAME} ref={addNewTaskFloatRefs && addNewTaskFloatRefs.setFloating} style={addNewTaskFloatStyles && addNewTaskFloatStyles} className="popup draggable">
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned end">
@@ -161,4 +168,4 @@ const NewTaskPopUp = observer(({taskStore}: {taskStore: TaskStore}) => {
     )
 })
 
-export default NewTaskPopUp;
+export default AddNewTaskPopUp;
