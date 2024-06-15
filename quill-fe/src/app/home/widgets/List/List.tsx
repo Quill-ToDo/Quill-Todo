@@ -8,9 +8,8 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-import { useFloating, offset, FloatingPortal, autoUpdate, useFocus, useInteractions, useClick, useDismiss, useClientPoint } from "@floating-ui/react";
+import { useFloating, offset, FloatingPortal, useInteractions, useDismiss, shift } from "@floating-ui/react";
 import TaskDetail from "../TaskDetail/TaskDetail";
-import { ICONS } from "@/app/@util/constants";
 
 
 const SECTION_TOGGLE_DURATION = 100;
@@ -231,42 +230,34 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const checkboxId = `list-checkbox-${task.id}`;
     const dateForm = DateTime.DATE_SHORT;
     const [showDetails, setShowDetails] = useState(false);
+    const close = () => setShowDetails(false);
     const {refs, floatingStyles, context} = useFloating({
         open: showDetails,
-        onOpenChange(nextOpen, event, reason) {
-            setShowDetails(nextOpen);
-            console.log(`${nextOpen} ${reason}`)
-        },
+        onOpenChange: setShowDetails,
         placement: "right",
-        whileElementsMounted: autoUpdate,
-        middleware: [offset(20)],
+        middleware: [offset(20), shift()],
     });
-    // const clientPoint = useClientPoint(context);
-    // const click = useClick(context, {
-    //     toggle: false,
-    // });
-    // const dismiss = useDismiss(context, {
-    //     outsidePress: false,
-    //     referencePress: false,
-    // });
-    // const {getReferenceProps, getFloatingProps} = useInteractions([
-    //     click,
-    //     dismiss,
-    //     clientPoint,
-    // ]);
+    const dismiss = useDismiss(context, {
+        outsidePress: false,
+        referencePress: false,
+    });
+    const {getReferenceProps, getFloatingProps} = useInteractions([
+        dismiss,
+    ]);
+    const taskDetailPopup = <TaskDetail 
+        task={task} 
+        close={close} 
+        refs={refs} 
+        floatHelperRefStyle={floatingStyles} 
+        getFloatingProps={getFloatingProps}/>
 
-    const close = () => setShowDetails(false);
-    // getFloatingProps={getFloatingProps
-    // floatHelperRefs={refs} floatHelperRefStyle={floatingStyles}
-    const taskDetailPopup = <TaskDetail task={task} close={close} floatHelperRefs={refs} floatHelperRefStyle={floatingStyles} />
-    // {...getReferenceProps()}
-    // ref={refs.setReference}
     return (
         <div 
             className={`task-wrapper ${task.complete && "complete"}`} 
             id={id} 
             key={`list-task-${task.id}`}
             ref={refs.setReference}
+            {...getReferenceProps()}
         >
             <Checkbox
                 task={task}
@@ -276,15 +267,12 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
                 { showDetails &&
                 <FloatingPortal>
                     {taskDetailPopup}
-                    {/* <button 
-                            // className="btn small square btn-red"
-                            // title="Close"
-                            onClick={close}
-                            >
-                            HELLO!!!!!
-                        </button> */}
-                </FloatingPortal> }
-            <button role="link" className="title-date-wrapper" onClick={() => setShowDetails(true)}>
+                </FloatingPortal>}
+            <button 
+                role="link"
+                className="title-date-wrapper"
+                onClick={() => setShowDetails(true)}
+            >
                 <label 
                     htmlFor={checkboxId} 
                     onClick={(e) => {

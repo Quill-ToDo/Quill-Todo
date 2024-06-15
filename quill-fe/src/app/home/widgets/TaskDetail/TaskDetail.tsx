@@ -1,51 +1,45 @@
 import React, {
     useEffect,
-    useCallback,
     useRef,
     MutableRefObject,
-    Fragment,
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
 import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle} from "@/widgets/TaskDetail/TaskComponents";
-import TaskStore from "@/store/tasks/TaskStore";
-import { makeDraggable } from "@/app/@util/Draggable";
+import { makeDraggableUsingFloating } from "@/app/@util/Draggable";
 import { FormField } from "@/app/@util/FormComponents";
 
 const WIDGET_NAME = "show-wrapper";
-const WIDGET_ID = `#${WIDGET_NAME}`;
 
 const TaskDetail = observer((
     {
         task, 
-        floatHelperRefs, 
+        refs, 
         floatHelperRefStyle,
-        // getFloatingProps,
-        // setShowState,
+        getFloatingProps,
         close,
     }: 
     {
         task: TaskModel,  
-        floatHelperRefs: any, 
+        refs: any, 
         floatHelperRefStyle: {},
-        // getFloatingProps: () => {},
-        // setShowState: (arg0: boolean) => void,
+        getFloatingProps: () => {},
         close: () => void,
     }
     ) => {
 
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
-    const checkboxId = `${WIDGET_ID}-checkbox-${task.id}`;
+    const checkboxId = `${WIDGET_NAME}-checkbox-${task.id}`;
 
     useEffect(() => {
         // Keep track of the previously focused element and
         previouslyFocused.current = document.activeElement as HTMLElement;
         const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
         taskCheckbox && taskCheckbox.focus();
-        // const popup = document.querySelector(WIDGET_ID) as HTMLElement;
-        // popup && makeDraggable(popup);
+        const popup = refs.floating.current
+        popup && makeDraggableUsingFloating({containerRef: popup});
         return () => {
             // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
@@ -77,12 +71,11 @@ const TaskDetail = observer((
 
     return (
         <section 
-            id={WIDGET_NAME} 
-            className="popup" 
-            ref={floatHelperRefs.setFloating} 
+            className={`popup draggable ${WIDGET_NAME}`} 
+            ref={refs.setFloating} 
             style={floatHelperRefStyle} 
+            {...getFloatingProps()}
         > 
-            {/* // style={floatHelperRefStyle} >  */}
             <div>
                 <div className={`task-wrapper header-container aligned draggable-handle ${task.complete && "complete"}`} data-testid={`taskwrapper-${task.title}`} >
                     <Checkbox 

@@ -24,7 +24,7 @@
 } 
 
 .title-date-wrapper p,
-#show-wrapper .title-wrapper p {
+.show-wrapper .title-wrapper p {
   color: var(--g2);
   text-align: left;
 }
@@ -50,9 +50,9 @@
 .check-box-wrapper input {
   z-index: 1;
   position: absolute;
-  opacity: 0;
-  top: 0;
-  left: 0;
+  opacity: 0%;
+  top: 0px;
+  left: 3px;
   cursor: pointer;
   margin: 0;
   height: var(--check-box-size);
