@@ -8,28 +8,16 @@ import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
 import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle} from "@/widgets/TaskDetail/TaskComponents";
-import { makeDraggableUsingFloating } from "@/app/@util/Draggable";
-import { FormField } from "@/app/@util/FormComponents";
 
 const WIDGET_NAME = "show-wrapper";
 
-const TaskDetail = observer((
-    {
+const TaskDetail = observer(({
         task, 
-        refs, 
-        floatHelperRefStyle,
-        getFloatingProps,
         close,
-    }: 
-    {
+    }: {
         task: TaskModel,  
-        refs: any, 
-        floatHelperRefStyle: {},
-        getFloatingProps: () => {},
         close: () => void,
-    }
-    ) => {
-
+}) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
     const checkboxId = `${WIDGET_NAME}-checkbox-${task.id}`;
 
@@ -38,8 +26,8 @@ const TaskDetail = observer((
         previouslyFocused.current = document.activeElement as HTMLElement;
         const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
         taskCheckbox && taskCheckbox.focus();
-        const popup = refs.floating.current
-        popup && makeDraggableUsingFloating({containerRef: popup});
+        // const popup = refs.floating.current
+        // popup && makeDraggableUsingFloating({containerRef: popup});
         return () => {
             // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
@@ -71,19 +59,19 @@ const TaskDetail = observer((
 
     return (
         <section 
-            className={`popup draggable ${WIDGET_NAME}`} 
-            ref={refs.setFloating} 
-            style={floatHelperRefStyle} 
-            {...getFloatingProps()}
+            className={`popup draggable ${WIDGET_NAME}`}
         > 
             <div>
                 <div className={`task-wrapper header-container aligned draggable-handle ${task.complete && "complete"}`} data-testid={`taskwrapper-${task.title}`} >
-                    <Checkbox 
-                        task={task}
-                        type={"due"}
-                        checkboxId={checkboxId}
-                    />
-                    <TaskTitle task={task} />   
+                    <div className="checkbox-color">
+                        <ColorBubble task={task} />
+                        <Checkbox 
+                            task={task}
+                            type={"due"}
+                            checkboxId={checkboxId}
+                        />
+                    </div>
+                    <TaskTitle task={task} editAllowed={true} />   
                     {buttons}             
                 </div>
                 <section 
@@ -91,15 +79,6 @@ const TaskDetail = observer((
                     role="dialog"
                     aria-labelledby="task-show-title"
                 >
-                    <div className="dark-section">
-                        <FormField 
-                            name="Color"
-                            value={task.color}
-                            contentBeforeInput={<ColorBubble task={task} />}
-                            onChange={()=>{}}
-                            outerWidgetId={WIDGET_NAME}
-                        />
-                    </div>
                     <div className="dark-section">
                         <div className="date-wrapper aligned even">
                             <div>
@@ -131,7 +110,7 @@ const TaskDetail = observer((
                     }
                 </section>
             </div>
-        </section>);
-})
+        </section>
+)})
 
 export default TaskDetail;

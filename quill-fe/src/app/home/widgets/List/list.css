@@ -23,7 +23,6 @@
   
   #list-wrapper>section {
     margin: var(--section-gap) 0 0 var(--section-gap);
-    /* width: 100%; */
     position: relative;
   }
   
@@ -32,8 +31,9 @@
   }
 
   #list-wrapper .dark-section button:focus {
-    box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
+    box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
   }
+
     
   #list-wrapper .title-date-wrapper:hover {
     background-color: var(--list-hover);

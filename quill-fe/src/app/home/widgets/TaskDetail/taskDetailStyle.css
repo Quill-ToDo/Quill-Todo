@@ -1,13 +1,31 @@
-.show-wrapper h3 {
-  font-size: var(--h4-size);
+.show-wrapper.popup {
+  width: max-content;
+  max-width: 40vw;
+  min-width: 20vw;
+  overflow: visible;
 }
 
-.show-wrapper p.title {
+.show-wrapper .checkbox-color {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  justify-content: center;
+  min-width: fit-content;
+  min-height: fit-content;
+}
+
+.show-wrapper .title {
   font-size: 30px;
   text-align: left;
 }
 
-.show-wrapper .complete s {
+.show-wrapper label {
+  color: var(--g3);
+  font-size: var(--p-size);
+}
+
+.show-wrapper .complete s,
+.show-wrapper .complete input {
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 3px ;
 } 
@@ -18,7 +36,12 @@
 } 
 
 .show-wrapper .check-box-wrapper {
-  transform: scale(1.3);
+  scale: 1.3;
+  height: 18px;
+}
+
+.show-wrapper .header-container {
+  min-width: fit-content;
 }
 
 .show-wrapper .date-wrapper > div {

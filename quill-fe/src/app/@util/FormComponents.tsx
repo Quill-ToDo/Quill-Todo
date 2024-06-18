@@ -59,7 +59,6 @@ export const handleSubmit = ({
     focusEle.focus();
 }
 
-
 const getFieldInputSelector = ({name, type="input", outerWidgetId}: {name: string, type?: string, outerWidgetId: string}) => {
     return `${outerWidgetId}-${name}-${type}`;
 }
@@ -68,14 +67,12 @@ export type FormFieldParams = {
     name: string;
     type?: "input" | "textarea";
     outerWidgetId: string;
-    onChange: (e: Event) => void;
-    value: string;
+    onChange?: (e: Event) => void;
+    value?: string;
     required?: boolean;
     labelClasses?: string;
-    inputContentWrapperClasses?: string;
     errors?: string[];
-    contentBeforeInput?: ReactNode;
-    contentAfterInput?: ReactNode;
+    inputContent?: ReactNode;
 }
 export const FormField = observer(({
     name, 
@@ -83,14 +80,16 @@ export const FormField = observer(({
     outerWidgetId, 
     required=false,
     onChange, 
-    value="",
-    labelClasses="",
+    value,
+    labelClasses,
     errors=[],
-    contentBeforeInput=null,
-    contentAfterInput=null,
-    inputContentWrapperClasses="",
+    inputContent,
 
  }: FormFieldParams) => {
+     if (value === undefined && inputContent === undefined) {
+         throw new Error("Either inputContent or a value must be defined for form components");
+    }
+    let inputElement;
     const inputId = getFieldInputSelector({name, type, outerWidgetId});
     const errorListId = `${inputId}-error-list`;
     const props = {
@@ -102,20 +101,18 @@ export const FormField = observer(({
         "aria-invalid": !!errors.length,
         "required": required,
     }
-    const inputElement = type === "input" ? <input
-        {...props}
-    /> :
-    <textarea {...props}/>;
-
-    const innerInputContent = contentAfterInput || contentBeforeInput ? <div className={inputContentWrapperClasses}>
-        {contentBeforeInput}
-        {inputElement}
-        {contentAfterInput}
-    </div> : inputElement;
-
+    if (value !== undefined) {
+        inputElement = type === "input" ? <input
+            {...props}
+        /> :
+        <textarea {...props}/>;
+    }
+    else {
+        inputElement = inputContent;
+    }
     return <label className={labelClasses}>
         {name}
-        {innerInputContent}
-        { errors && ErrorsList({errors: errors, errorListId: errorListId}) }
+        {inputElement}
+    { errors && ErrorsList({errors: errors, errorListId: errorListId}) }
     </label>
 });

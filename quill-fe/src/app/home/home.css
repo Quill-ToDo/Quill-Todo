@@ -106,8 +106,7 @@ p {
   }
   
 
-p.date,
-p.time {
+.date-time-wrapper {
   color: var(--g4);
   font-size: var(--smaller-p-size);
 }
@@ -116,7 +115,8 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.date-time-wrapper.overdue p {
+.overdue.title,
+.overdue.date-time-wrapper p {
   color: var(--overdue);
 }
 
@@ -223,19 +223,29 @@ section.more-padding {
     opacity: 1;
     font-family: "Azeret Mono", monospace;
     color: var(--g2);
-    font-weight: 00;
     padding: 5px;
     font-size: var(--p-size);
     background-color: var(--g5);
     box-shadow: 3px 3px var(--g6);
-    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
-    transition: box-shadow 0.2s, background-color 0.2s, color .2s, transform 0.2s;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    transition: box-shadow 0.2s, background-color 0.2s, color .2s, transform 0.2s;
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
+
+/* Show a transition for focusing on elements */
+.check-box-wrapper input:focus~i,
+input:focus,
+#list-wrapper button.title-date-wrapper:focus,
+.color-bubble-wrapper:focus,
+:focus-visible {
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: border 0.2s, box-shadow 0.2s, color .2s, outline 0.2s;
+}
+
 /*#region Button Styles*/
 .btn.no-shadow:not(:focus),
 .btn.btn-light-grey.no-shadow,
@@ -284,7 +294,7 @@ section.more-padding {
 }
 .btn.btn-red:focus,
 .btn.btn-red:hover {
-    color: white;
+    color: var(--focus-highlight);
     background-color: var(--btn-red-shadow);
 }
 /* Green button */
@@ -294,7 +304,7 @@ section.more-padding {
 }
 .btn.btn-green:focus,
 .btn.btn-green:hover {
-    color: white;
+    color: var(--focus-highlight);
     background-color: var(--btn-green-shadow);
 }
 /* Grey button */
@@ -305,7 +315,7 @@ section.more-padding {
 }
 .btn.btn-light-grey:focus,
 .btn.btn-light-grey:hover {
-    color: white;
+    color: var(--focus-highlight);
     background-color: var(--btn-light-grey-shadow);
 }
 /*#endregion Colors*/
@@ -326,13 +336,12 @@ button:focus {
 
 .btn:focus
 {
-    box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
+    box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
 }
 /* "invert" color if focused */
 .btn:hover {
     background-color: var(--g1);
     color: var(--g10);
-    box-shadow: 3px 3px var(--g2);
     z-index: 0;
 }
 .btn:hover i svg {
@@ -365,8 +374,11 @@ textarea {
     border-radius: 10px;
     font-family: "Quicksand", sans-serif;
     font-weight: 500;
-    font-size: vr(--p-size);
     color: var(--g1);
+}
+
+:focus-visible {
+    outline: var(--focus-highlight) solid var(--focus-border-width);
 }
 
 form input,
@@ -379,7 +391,6 @@ form h3 {
   text-align: left;
   border: none;
   color: var(--g3);
-  font-size: var(--p-size);
 }
 
 form .btn {

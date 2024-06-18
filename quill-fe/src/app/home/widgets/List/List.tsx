@@ -1,4 +1,4 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
@@ -8,8 +8,9 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-import { useFloating, offset, FloatingPortal, useInteractions, useDismiss, shift } from "@floating-ui/react";
+import { offset, shift, UseFloatingOptions, UseDismissProps } from "@floating-ui/react";
 import TaskDetail from "../TaskDetail/TaskDetail";
+import { PositionedPopupAndReferenceElement } from "@/app/@util/FloatingUiHelpers";
 
 
 const SECTION_TOGGLE_DURATION = 100;
@@ -157,7 +158,6 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                 <div className="section-collapsible">
                     <SubSection 
                         sectionContent={content}
-                        sectionNum={sectionNum}
                     />
                 </div>
             </div>
@@ -173,16 +173,18 @@ type SubSectionContent = {title?: string, tasks: TaskModel[], type: TaskModel.Vi
 /**
  * The contents of a subsection with a list section serparated out for performance
  */
-const SubSection = observer(({sectionNum, sectionContent}: {sectionNum: number, sectionContent: SubSectionContent[]}) => {
+const SubSection = observer(({sectionContent}: {sectionContent: SubSectionContent[]}) => {
     return sectionContent.map((section) => {
         return ( 
             <TaskSectionContent 
                 content={section}
+                key={`${section.title}-${section.type}`}
             />
             )
         })
 })
 //#region Task list
+
 /**
  * The tasks within a subsection.
  */
@@ -231,63 +233,60 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const dateForm = DateTime.DATE_SHORT;
     const [showDetails, setShowDetails] = useState(false);
     const close = () => setShowDetails(false);
-    const {refs, floatingStyles, context} = useFloating({
+
+    const taskDetailsPopupPositioning: UseFloatingOptions = {
         open: showDetails,
         onOpenChange: setShowDetails,
         placement: "right",
         middleware: [offset(20), shift()],
-    });
-    const dismiss = useDismiss(context, {
+    };
+    const dismissOptions: UseDismissProps = {
         outsidePress: false,
         referencePress: false,
-    });
-    const {getReferenceProps, getFloatingProps} = useInteractions([
-        dismiss,
-    ]);
-    const taskDetailPopup = <TaskDetail 
-        task={task} 
-        close={close} 
-        refs={refs} 
-        floatHelperRefStyle={floatingStyles} 
-        getFloatingProps={getFloatingProps}/>
-
-    return (
-        <div 
-            className={`task-wrapper ${task.complete && "complete"}`} 
-            id={id} 
-            key={`list-task-${task.id}`}
-            ref={refs.setReference}
-            {...getReferenceProps()}
+    }
+    const taskWrapper = (
+    <div 
+        className={`task-wrapper ${task.complete && "complete"}`} 
+        id={id} 
+        key={`list-task-${task.id}`}
+    >
+        <Checkbox
+            task={task}
+            type={type}
+            checkboxId={checkboxId}
+        />
+        <button 
+            role="link"
+            className="title-date-wrapper"
+            onClick={() => setShowDetails(true)}
         >
-            <Checkbox
-                task={task}
-                type={type}
-                checkboxId={checkboxId}
-            />
-                { showDetails &&
-                <FloatingPortal>
-                    {taskDetailPopup}
-                </FloatingPortal>}
-            <button 
-                role="link"
-                className="title-date-wrapper"
-                onClick={() => setShowDetails(true)}
-            >
-                <label 
-                    htmlFor={checkboxId} 
-                    onClick={(e) => {
-                        e.preventDefault();
-                    }}
-                >
-                    <TaskTitle task={task} />
+            <label 
+                htmlFor={checkboxId} 
+                onClick={(e) => {
+                    e.preventDefault();
+            }}>
+            <TaskTitle task={task} />
                 </label>
                 <DateTimeWrapper 
                     task={task} 
                     type="due" 
                     dateFormat={dateForm} 
                 />
-            </button>
-        </div>
+        </button>
+    </div>);
+
+    return (
+        <PositionedPopupAndReferenceElement
+            popupPositioningOptions={taskDetailsPopupPositioning}
+            dismissPopupOptions={dismissOptions}
+            refElement={taskWrapper}
+            popupElement={
+                <TaskDetail 
+                    task={task} 
+                    close={close} 
+                />
+            }
+        />
     )
 })
 

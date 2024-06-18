@@ -23,14 +23,23 @@
     font-family: "Secular One", sans-serif;
   }
   
-  #new-wrapper form input {
+  #new-wrapper form input,
+  #new-wrapper form textarea {
     color: var(--g1);
+    font-size: var(--p-size);
+  }
+
+  #new-wrapper form label {
+    font-size: var(--p-size);
+  }
+
+  #new-wrapper form label.color .name-and-errors input {
+    font-size: initial;
   }
 
   #new-wrapper form .start-due-wrapper .default input {
     color: var(--g4);
   }
-
   
   #new-wrapper form label.date {
     min-width: 200px;
@@ -43,7 +52,6 @@
   #new-wrapper form .start-due-wrapper .time input {
     width: 100px;
   }
-  
   
   #new-wrapper form .horizontal-align button {
     display: block;
@@ -62,23 +70,6 @@
   #new-wrapper .start-due-wrapper {
     flex-wrap: wrap;
   }
-  
-  /* Center of screen if .from-calendar */
-  #new-wrapper.from-calendar {
-    display: flex;
-    justify-content: center;
-  }
-  
-  #new-wrapper.from-calendar #new-filter {
-    display: block;
-  }
-  
-  #new-wrapper.from-calendar .mid-section {
-    position: relative;
-    align-self: center;
-    justify-self: center;
-    box-shadow: none;
-  }
 
   #title-color {
     column-gap: 10px;
@@ -86,9 +77,16 @@
   }
 
   #title-color .title {
-    flex: 3 1 0px;
+    flex: 3 0 0px;
+    width: 100%;
   }
 
-  #title-color .color-label-wrapper {
-    flex: 1 1 0px;
-  }
+#title-color .color {
+  flex: 0 1 0px;
+  justify-content: center;
+}
+
+#title-color .color-bubble-wrapper {
+  margin-top: 9px;
+  width: 100%;
+}
