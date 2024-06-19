@@ -47,7 +47,7 @@ const TaskDetail = observer(({
                             <i className="far fa-trash-alt fa-fw fa"></i>
                         </button>
                         <button 
-                            className="btn small square btn-red"
+                            className="btn small square"
                             title="Close"
                             onClick={() => {
                                 console.log("triggied")

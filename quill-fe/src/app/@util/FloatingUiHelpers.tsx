@@ -15,6 +15,7 @@ import {
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { ReactElement, cloneElement } from 'react';
+import { ALERT_CAPTURE_ID } from './constants';
 
 // This code is copied from: https://floating-ui.com/docs/FloatingTree
 
@@ -50,7 +51,7 @@ const NestablePopup = observer(({
         {cloneElement(refElement, {ref: refs.setReference, props: getReferenceProps()})}
             <FloatingNode id={nodeId}>
             {useFloatingParams.open && (
-                <FloatingPortal>
+                <FloatingPortal id={ALERT_CAPTURE_ID}>
                     <FloatingFocusManager context={context} {...focusManagerProps}>
                     <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
                 </FloatingFocusManager>

@@ -1,8 +1,10 @@
 // URLs
 export const API_URL = "http://localhost:8000/api/tasks/";
+// Date and time -- more in DateTimeHelper.ts
 export const START_OF_WEEK_WEEKDAY = "Monday";
 export const END_OF_WEEK_WEEKDAY = "Sunday";
-
+// ID and Classes
+export const ALERT_CAPTURE_ID: string = "alert-capture";
 // SVG Icons
 
 export const ICONS = {

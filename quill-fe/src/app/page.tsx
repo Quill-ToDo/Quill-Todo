@@ -6,9 +6,11 @@ import AlertWrapper from '@/alerts/AlertWrapper';
 import {useTaskStore, StoreProvider} from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import Calendar from '@/widgets/Calendar/Calendar';
+import TaskStore from './home/_globalStore/tasks/TaskStore';
 
 const Home = observer(() => {
-  const taskStore = useTaskStore();
+  const taskStore: TaskStore = useTaskStore();
+
   return (
     <StoreProvider>
       <AlertWrapper>

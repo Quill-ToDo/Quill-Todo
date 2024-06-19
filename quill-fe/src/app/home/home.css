@@ -164,6 +164,9 @@ p.time {
     flex: 1 1 0px;
 }
 
+.full-width {
+    width: 100%;
+}
 
 .take-full-space {
     height: 100vh;
@@ -225,8 +228,6 @@ section.more-padding {
     color: var(--g2);
     padding: 5px;
     font-size: var(--p-size);
-    background-color: var(--g5);
-    box-shadow: 3px 3px var(--g6);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -238,7 +239,6 @@ section.more-padding {
 
 /* Show a transition for focusing on elements */
 .check-box-wrapper input:focus~i,
-input:focus,
 #list-wrapper button.title-date-wrapper:focus,
 .color-bubble-wrapper:focus,
 :focus-visible {
@@ -246,17 +246,16 @@ input:focus,
     transition: border 0.2s, box-shadow 0.2s, color .2s, outline 0.2s;
 }
 
-/*#region Button Styles*/
-.btn.no-shadow:not(:focus),
-.btn.btn-light-grey.no-shadow,
-.btn.btn-green.no-shadow,
-.btn.btn-red.no-shadow {
-    /* No shadow */
-    box-shadow: none;
+input:focus {
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: outline 0.1s;
 }
+
+/*#region Button Styles*/
 .btn.square {
     aspect-ratio: 1 / 1;
 }
+
 .btn.small {
     width: 35px;
     height: auto;
@@ -271,7 +270,16 @@ input:focus,
     font-weight: bold;
     font-size: 35px;
 }
+
+.btn.large.text {
+    font-size: 23px;
+}
 /*#region Colors*/
+
+.btn.bg {
+    background-color: var(--g11);
+}
+
 .btn.btn-red,
 .btn.btn-green,
 .btn.btn-light-grey {
@@ -282,15 +290,9 @@ input:focus,
 .btn.btn-light-grey:focus {
     background-color: var(--g2);
 }
-.btn.btn-red:hover,
-.btn.btn-green:hover,
-.btn.btn-light-grey:hover {
-    box-shadow: none;
-}
 /* Red button */
 .btn.btn-red {
     background-color: var(--btn-red-bg);
-    box-shadow: 2px 2px var(--btn-red-shadow);
 }
 .btn.btn-red:focus,
 .btn.btn-red:hover {
@@ -300,7 +302,6 @@ input:focus,
 /* Green button */
 .btn.btn-green {
     background-color: var(--btn-green-bg);
-    box-shadow: 2px 2px var(--btn-green-shadow);
 }
 .btn.btn-green:focus,
 .btn.btn-green:hover {
@@ -310,13 +311,7 @@ input:focus,
 /* Grey button */
 .btn.btn-light-grey {
     background-color: var(--btn-light-grey-bg);
-    box-shadow: 2px 2px var(--btn-light-grey-shadow);
 
-}
-.btn.btn-light-grey:focus,
-.btn.btn-light-grey:hover {
-    color: var(--focus-highlight);
-    background-color: var(--btn-light-grey-shadow);
 }
 /*#endregion Colors*/
 /*#endregion Button Styles*/
@@ -338,19 +333,12 @@ button:focus {
 {
     box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
 }
-/* "invert" color if focused */
-.btn:hover {
-    background-color: var(--g1);
-    color: var(--g10);
-    z-index: 0;
-}
-.btn:hover i svg {
-    stroke: var(--g10);
-}
-.btn:hover:not(.no-shadow) {
-    transform: translate(1px, 2px);
-    box-shadow: none;
-    z-index: 0;
+
+.btn:hover, .btn:focus{
+    background-color: var(--list-hover);
+    color: var(--focus-highlight);}
+.btn:hover i svg, .btn:focus i svg {
+    stroke: var(--focus-highlight);
 }
 /*#endregion Button States*/
 .btn i {

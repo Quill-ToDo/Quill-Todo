@@ -7,7 +7,7 @@ import NewTaskPopUp from "@/widgets/NewTask/NewTaskPopUp";
 import { offset, UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
 import { ICONS } from "../@util/constants";
 import { PositionedPopupAndReferenceElement } from "../@util/FloatingUiHelpers";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
 
 
@@ -28,6 +28,8 @@ const DashboardLayout = observer(({
         referencePress: false,
         bubbles: false,
     }
+
+    const taskStore = useRef(useTaskStore());
     
     return ( 
             <div id="home-wrapper" data-testid="home">
@@ -35,9 +37,9 @@ const DashboardLayout = observer(({
                     <PositionedPopupAndReferenceElement
                         popupPositioningOptions={newTaskPopupPositioning}
                         dismissPopupOptions={dismissOptions}
-                        refElement={<button id="add-task" role="menuitem" className="btn small square no-shadow" title="Add task" 
+                        refElement={<button id="add-task" role="menuitem" className="btn small square bg" title="Add task" 
                             onClick={() => {
-                                useTaskStore().createNewTask();
+                                taskStore.current.createNewTask();
                                 setShowNewTaskPopupFromMenuButton(true);
                                 } }>
                             { ICONS.PLUS }
@@ -46,16 +48,16 @@ const DashboardLayout = observer(({
                             <NewTaskPopUp 
                                 close={() => {
                                     setShowNewTaskPopupFromMenuButton(false);
-                                    const taskBeingCreated = useTaskStore().taskBeingCreated;
+                                    const taskBeingCreated = taskStore.current.taskBeingCreated;
                                     if (taskBeingCreated && taskBeingCreated.isNewAndUnsubmitted) {
                                         taskBeingCreated.abortTaskCreation();
                                     }
                                 }}
-                                taskToCreate={useTaskStore().taskBeingCreated}
+                                taskToCreate={taskStore.current.taskBeingCreated}
                             />
                         }
                     />
-                    <button role="menuitem" className="btn small square no-shadow" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
+                    <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
                         <i className="fas fa-power-off fa-fw"></i>
                     </button>
                 </menu>

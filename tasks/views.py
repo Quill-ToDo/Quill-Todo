@@ -60,9 +60,12 @@ def tasks(request):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-            "errors": serializer.errors,
-            "submittedData": serializer})
+        return Response(
+            data={
+                "errors": serializer.errors,
+                "submittedData": serializer.data
+            },
+            status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'DELETE', 'PATCH'])
 def task_details(request, id):

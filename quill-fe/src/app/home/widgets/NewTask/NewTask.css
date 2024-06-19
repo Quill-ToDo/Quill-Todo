@@ -77,16 +77,17 @@
   }
 
   #title-color .title {
-    flex: 3 0 0px;
+    flex: 10 0 0px;
     width: 100%;
   }
 
 #title-color .color {
-  flex: 0 1 0px;
-  justify-content: center;
+  flex: 1 0 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 #title-color .color-bubble-wrapper {
-  margin-top: 9px;
   width: 100%;
 }

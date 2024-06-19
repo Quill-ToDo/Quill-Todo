@@ -9,18 +9,24 @@ class Task(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(editable=False, auto_now=True)
-    title = models.CharField(max_length=100, help_text="Enter task title")
-    description = models.TextField(blank=True, null=True, help_text="Enter task description", max_length=1000)
-    # Default  time is today at 11:59 pm
-    start = models.DateTimeField(help_text="Enter the date to start working on the task", blank=True, null=True)
+    title = models.CharField(max_length=100, null=True, blank=True)
+    description = models.TextField(null=True, blank=True, max_length=1000)
+    # Default time is today at 11:59 pm
+    start = models.DateTimeField(null=True)
     # Default due time is today at 11:59 pm
-    due = models.DateTimeField(help_text="Enter the date the task is due")
+    due = models.DateTimeField(null=True)
     complete = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(editable=False, blank=True, null=True)
-    color = models.CharField(max_length=7, editable=True, blank=True, null=True, default="#ffffff", validators=[RegexValidator(
-        regex=r'^#(?:[0-9a-fA-F]{3}){1,2}$',
-        message='Enter a valid hex code'
-    )])
+    completed_at = models.DateTimeField(editable=False, null=True)
+    color = models.CharField(
+        max_length=7, 
+        editable=True, 
+        null=True, 
+        default="#ffffff", 
+        validators=[RegexValidator(
+            regex=r'^#(?:[0-9a-fA-F]{3}){1,2}$',
+            message='Enter a valid hex code',
+        )]
+    )
 
     # TODO null for user should not be true
     # user =  models.ForeignKey('User', null=True)

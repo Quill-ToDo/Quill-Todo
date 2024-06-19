@@ -4,7 +4,6 @@ import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
-import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
 
 export type TaskDataOnDay = {
     start: TaskModel[];
@@ -20,8 +19,8 @@ export default class TaskStore {
     API : TaskApi;
     rootStore : RootStore;
     taskSet : Set<TaskModel> = new Set<TaskModel>();
-    // Task : TODO: Move this to static EditTaskModel
-    taskBeingEdited : EditTaskModel | null = null;
+    // The singleton task currenbtly being created, has not synced to server
+    taskBeingCreated : TaskModel | null = null;
     // Boolean : Whether the store has synced with server
     isLoaded : boolean = false;
 
@@ -40,16 +39,17 @@ export default class TaskStore {
             // Observables
             isLoaded: observable,
             taskSet: observable,
-            taskBeingEdited: observable,
+            taskBeingCreated: observable,
             // Computeds
             tasks: computed,
             taskTimeline: computed,
             // Actions
-            loadTasks: false,
-            setEditing: action,
+            createNewTask: action,
+            setNewTask: action,
             add: action,
             remove: action, 
             delete: action,
+            loadTasks: false,
         }, {proxy: false})
         this.rootStore = rootStore;
         if (TaskStore.taskStoreSingletonInstance !== undefined) {
@@ -59,7 +59,7 @@ export default class TaskStore {
         this.API = API;
         this.taskSet = new Set<TaskModel>();
         this.loadTasks();
-        this.taskBeingEdited = null;
+        this.taskBeingCreated = null;
     }
 
     /**
@@ -134,8 +134,35 @@ export default class TaskStore {
         return timeline;
     }
     
-    setEditing(task : EditTaskModel | null) {
-        this.taskBeingEdited = task;
+    createNewTask () : TaskModel {
+        if (this.taskBeingCreated) {
+            // If a new task is already being added, return focus to it
+            // until it's intentionally disgarded
+            const popup = document.getElementById("new-wrapper");
+            if (!popup) { return this.taskBeingCreated; }
+            const firstInput = popup.querySelector("input");
+            firstInput && firstInput.focus();
+            return this.taskBeingCreated;
+        } 
+        else {
+            const taskBeingCreated = new TaskModel();
+            this.setNewTask(taskBeingCreated);
+            this.add(taskBeingCreated);
+            return taskBeingCreated;
+        }
+    } 
+
+    /**
+     * Set the task passed as "being created". Only one task can be 
+     * in this state at a time. Updates to the task model will not 
+     * be saved to the server, but changes will be synchronized in the UI 
+     * through the TaskStore. 
+     * To sync changes to server, call `task.submitNewTask` or abort 
+     * changes with `task.abortTaskCreation`.
+     */
+    setNewTask (task : TaskModel | null) {
+        this.taskBeingCreated = task;
+        task && task.turnOffAutosaveToDb();
     }
 
     /**

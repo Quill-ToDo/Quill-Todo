@@ -4,13 +4,15 @@ import { v4 } from "uuid";
 import { DateTime, Interval } from "luxon";
 import { 
     END_OF_DAY,
+    PARTIAL_DATETIME_FORMATS,
     dateTimeHelper,
 } from "@/app/@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
+import { AxiosResponse } from "axios";
 
-const DEFAULT_START_DATETIME = DateTime.now();
-const DEFAULT_DUE_DATETIME = END_OF_DAY();
+const DEFAULT_START_DATETIME = () => DateTime.now();
+const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 
 const MAX_TITLE_LENGTH = 100;
 const MAX_DESCRIPTION_LENGTH = 1000;
@@ -28,6 +30,11 @@ type TaskValidationTests = {
     due: ValidationTest[];
     workInterval: ValidationTest[];
     color: ValidationTest[];
+    startTimeStringUnderEdit: ValidationTest[];
+    startDateStringUnderEdit: ValidationTest[];
+    dueTimeStringUnderEdit: ValidationTest[];
+    dueDateStringUnderEdit: ValidationTest[];
+    colorStringUnderEdit: ValidationTest[];
 
 }
 type TaskValidationErrors = {
@@ -38,7 +45,59 @@ type TaskValidationErrors = {
     due: string[];
     workInterval: string[];
     color: string[];
+    startTimeStringUnderEdit: string[];
+    startDateStringUnderEdit: string[];
+    dueTimeStringUnderEdit: string[];
+    dueDateStringUnderEdit: string[];
+    colorStringUnderEdit: string[];
 };
+
+export const TaskColorCodes = [
+    { 
+        key: "C0",
+        data: ["ff00ff", "cc00ff", "9900ff", "6600ff", "3300ff", "0000ff"],
+    },
+    {
+        key: "C1",
+        data: ["ff00cc", "ff33ff", "cc33ff", "9933ff", "6633ff", "3333ff", "0033ff"],
+    },
+    {
+        key: "C2",
+        data: ["ff0099", "ff33cc", "ff66ff", "cc66ff", "9966ff", "6666ff", "3366ff", "0066ff"],
+    },
+    {
+        key: "C3",
+        data: ["ff0066", "ff3399", "ff66cc", "ff99ff", "cc99ff", "9999ff", "6699ff", "3399ff", "0099ff"],
+    },
+    {
+        key: "C4",
+        data: ["ff0033", "ff3366", "ff6699", "ff99cc", "ffccff", "ccccff", "99ccff", "66ccff", "33ccff", "00ccff"],
+    },
+    {
+        key: "C5",
+        data: ["ff0000", "ff3333", "ff6666", "ff9999", "ffcccc", "ffffff", "ccffff", "99ffff", "33ffff", "00ffff"],
+    },
+    {
+        key: "C6",
+        data: ["ff3300", "ff6633", "ff9966", "ffcc99", "ffffcc", "ccffcc", "99ffcc", "66ffcc", "33ffcc", "00ffcc"],
+    },
+    {
+        key: "C7",
+        data: ["ff6600", "ff9933", "ffcc66", "ffff99", "ccff99", "99ff99", "66ff99", "33ff99", "00ff99"],
+    },
+    {
+        key: "C8",
+        data: ["ff9900", "ffcc33", "ffff66", "ccff66", "99ff66", "66ff66", "33ff66", "00ff66"],
+    },
+    {
+        key: "C9",
+        data: ["ffcc00", "ffff33", "ccff33", "99ff33", "66ff33", "33ff33", "00ff33"],
+    },
+    {
+        key: "C10",
+        data: ["ffff00", "ccff00", "99ff00", "66ff00", "33ff00", "00ff00"],
+    },
+]
 
 /**
  * A Task model where changes are automatically synced to the DB.
@@ -70,8 +129,15 @@ export class TaskModel {
             store : TaskStore;
             createdDate : DateTime;
             color : string = "#ffffff";
+    // ---- Fields that may be used while editing the task ----
+            startTimeStringUnderEdit : string = ""; 
+            startDateStringUnderEdit : string = "";
+            dueTimeStringUnderEdit : string = "";
+            dueDateStringUnderEdit : string = "";
+            colorStringUnderEdit: string = "";
     // ---- Private ----
             autoSave : boolean = true;
+            saveHandlerDisposer;
     // ----------------------------------------------------
     /**
      * An object to represent one task in the database. It has the same 
@@ -87,10 +153,11 @@ export class TaskModel {
     constructor (taskJsonData?: object) {
         makeObservable(this, {
             /// --- Task data --- 
-            autoSave: observable, // Whether or not changes to this task are synced
-            saveToServer: action,
-            dontSaveToServer: action,
-            //    to the database. Turn on or off with `saveToServer()` and `dontSaveToServer()
+            autoSave: observable, // Whether or not changes to this task are synced to the database. Turn on or off with `saveToServer()` and `turnOffAutosaveToDb`
+            saveToServer: false,
+            patchToServer: false,
+            turnOffAutosaveToDb: action,
+            turnOnAutosaveToDb: action,
             /// --- Task data --- 
             title: observable, // Task name.
             setTitle: action,
@@ -103,21 +170,36 @@ export class TaskModel {
             start: observable, // The DateTime when the user wants to start working on this task
             setStart: action,
             due: observable, // The DateTime by which the user wants to complete the task
+            overdue: false,
             setDue: action,
             json: computed,
             setJson: action,
+            setColor: action,
+            color: observable, // The color of the task
+            // --- Editing mode ---
+            submitNewTask: action,
+            abortTaskCreation: action,
+            isNewAndUnsubmitted: computed,
+            startDateStringUnderEdit: observable,
+            setStartDateStringUnderEdit: action,
+            startTimeStringUnderEdit: observable,
+            setStartTimeStringUnderEdit: action,
+            dueDateStringUnderEdit: observable,
+            setDueDateStringUnderEdit: action,
+            dueTimeStringUnderEdit: observable,
+            setDueTimeStringUnderEdit: action,
+            colorStringUnderEdit: observable,
+            setColorStringUnderEdit: action,
+            // ---
             validationTests: computed,
             validationErrors: computed, // A list of validation errors of this task.
             isValid: computed, // This task has no validation errors and is safe to sync to the database
             id: false, // This ID of this Task.
             store: false, // The store which holds and syncronizes all tasks. 
             createdDate: false, // The DateTime when this task was created
-            color: observable, // The color of the task
             deleteSelf: false,
             saveHandlerDisposer: false,
-            // --- Visual Elements ---
-            visualStyles: false,
-        }, {proxy: false});
+        });
         // Initialize all class fields not using setters
         // If there was Task data passed in as JSON, update this object give
         // passed data
@@ -129,26 +211,27 @@ export class TaskModel {
             this.title = "";
             this.description = "";
             this.complete = false;
-            this.start = DEFAULT_START_DATETIME;
-            this.due =  DEFAULT_DUE_DATETIME;
+            this.start = DEFAULT_START_DATETIME();
+            this.due =  DEFAULT_DUE_DATETIME();
             this.createdDate = null;
+            let allColorCodes: string[] = TaskColorCodes.flatMap((item: {key: string, data: string[]}) => item.data); 
+            this.color = `#${(allColorCodes[Math.floor(Math.random() * (allColorCodes.length))])}`;
         }
         // Add self to the TaskStore
         this.store = TaskStore.taskStoreSingletonInstance;
         this.store.add(this);
+        this.startDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.start);
+        this.startTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
+        this.dueDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
+        this.dueTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
+        this.colorStringUnderEdit = this.color;
         // Update this task in the DB when any field used in the to JSON format method is changed
         this.saveHandlerDisposer = reaction(
-            () => this.json,
-            json => {
+            () => this.complete,
+            () => {
                 // If autosave is true, send JSON to update server
                 if (this.autoSave) {
-                    this.store.API.updateTask(this.id, json)
-                    .catch(error => {
-                        addAlert(document.querySelector('#home-wrapper'), 
-                        ERROR_ALERT, "Task could not be updated - " + error.toString());
-                        // Revert changes
-                        this.store.loadTasks();
-                    });
+                    this.patchToServer();
                 }
             }
         );
@@ -219,6 +302,15 @@ export class TaskModel {
             ERROR_ALERT, `Could not set task deadline: ${e}`);
         }
     }
+
+    /**
+     * 
+     * @returns if this task is overdue at the moment this method
+     * is called
+     */
+    overdue () {
+        return this.due < DateTime.now() && !this.complete;
+    }
 //#endregion
 //#region color
     /**
@@ -228,26 +320,64 @@ export class TaskModel {
         const errors = this.getValidationErrorsForField({field: "color", paramsForTestMethod: {color}}); 
         if (!errors.length) {
             this.color = color;
+            this.colorStringUnderEdit = color;
         }
         else {
             addAlert(document.getElementById('home-wrapper'), 
-            ERROR_ALERT, `Could not set task color: ${errors.join(", ")}`);
+            ERROR_ALERT, `Could not set task color ${color}: ${errors.join(", ")}`);
         }
     }
 //#endregion
 //#region autoSave
+
     /**
-     * Turn on autosave for this task, so that changes to this TaskModel's fields will be 
-     * synced with the DB model
+     * Internal method to sync all of this tasks fields with its DB model
      */
-    saveToServer () {
+    patchToServer (data: {
+        title?: string,
+        complete?: boolean,
+        start?: DateTime,
+        end?: DateTime,
+        description?: string,
+        color?: string,
+    }=this.json) {
+        this.store.API.updateTask(this.id, data)
+        .catch(error => {
+            addAlert(document.querySelector('#home-wrapper'), 
+            ERROR_ALERT, "Task could not be updated - " + error.toString());
+            // Revert changes
+            this.store.loadTasks();
+        });
+    }
+
+    /**
+     * Turn on autosave for this task for future changes and 
+     * patch fields to the server
+     */
+    saveToServer (data: {
+        title?: string,
+        complete?: boolean,
+        start?: DateTime,
+        end?: DateTime,
+        description?: string,
+        color?: string,
+    }=this.json) {
+        // If has been initialized and this is not a task not yet posted to the server
+        if (this.store && !this.isNewAndUnsubmitted) {
+            this.turnOnAutosaveToDb();
+            this.patchToServer(data);
+        }
+    }
+
+    turnOnAutosaveToDb () {
         this.autoSave = true;
     }
+
     /**
-     * Turn off autosave for this task, so that changes to this TaskModel's fields will be 
-     * synced with the DB model
+     * Turn off autosave for this task, so that any changes to this TaskModel's fields will 
+     * NOT be synced with the DB model
      */
-    dontSaveToServer () {
+    turnOffAutosaveToDb () {
         this.autoSave = false;
     }
 //#endregion
@@ -272,7 +402,8 @@ export class TaskModel {
      * @param {object} json 
      */
     setJson(json : object) {
-        this.dontSaveToServer();
+        this.turnOffAutosaveToDb
+        ();
         this.id = json.id;
         this.setTitle(json.title);
         this.setDescription(json.description);
@@ -285,19 +416,127 @@ export class TaskModel {
     }
 
 //#endregion JSON
+//#region NEW TASK CREATION
+    get isNewAndUnsubmitted() {
+        return this.store.taskBeingCreated === this;
+    }
+
+    /**
+     * Mark a task being created as "finished" and save the task to the server
+     * if changes are valid.
+     */
+    async submitNewTask ()  : Promise<AxiosResponse> {
+        // Validate that there are no errors. If there are, raise an alert.
+        if (!this.isValid) {
+            const legibleErrors = Object.keys(this.validationErrors).map((key: string) => this.validationErrors[key].length ? `${key}: ${this.validationErrors[key].join(",")}` : ``  );
+
+            addAlert(document.querySelector('#new-wrapper'), 
+                ERROR_ALERT, 
+                `Task could not be saved, it still has errors - ${legibleErrors.join("\n")}`
+            );
+            return (new Promise((resolve, reject) => reject("Task could not be saved, it still has errors")));
+        }
+        
+        // Post to server
+        return this.store.API.createTask(this.json);
+    }
+    /**
+     * Abort the new task that was being created 
+     * and delete task from the TaskStore.
+     */
+    abortTaskCreation () {
+        this.store.setNewTask(null);
+        this.store.remove(this);
+    }
+
+    /**
+     * Set the date portion of the DateTime as a string. 
+     * It does not need to be valid, if it is not, validation errors will be generated.
+     * If it is parseable with the time, update the actual Start 
+     * DateTime. 
+     * @param dateString The string the user submitted for the date portion.
+     */
+    setStartDateStringUnderEdit = (dateString : string)  =>  { 
+        this.startDateStringUnderEdit = dateString;
+        this.setStart(`${dateString}, ${this.startTimeStringUnderEdit}`);
+    }
+    /**
+     * Set the time portion of the DateTime as a string. 
+     * It does not need to be valid, if it is not, validation errors will be generated.
+     * If it is parseable with the date, update the actual Start 
+     * DateTime. 
+     * @param timeString The string the user submitted for the time portion.
+     */
+    setStartTimeStringUnderEdit = (timeString : string)  =>  { 
+        this.startTimeStringUnderEdit = timeString;
+        if (this.validationErrors.startTimeStringUnderEdit.length === 0 && this.validationErrors.start.length === 0) {
+            this.setStart(`${this.startDateStringUnderEdit}, ${timeString}`);
+        }
+    }
+    /**
+     * Set the date portion of the DateTime as a string. 
+     * It does not need to be valid, if it is not, validation errors will be generated.
+     * If it is parseable with the time, update the actual Due 
+     * DateTime. 
+     * @param dateString The string the user submitted for the date portion.
+     */
+    setDueDateStringUnderEdit (dateString : string) {
+        this.dueDateStringUnderEdit = dateString;
+        if (this.validationErrors.dueDateStringUnderEdit.length === 0 && this.validationErrors.due.length === 0) {
+            this.setDue(`${dateString}, ${this.dueTimeStringUnderEdit}`);
+        }
+    }
+    /**
+     * Set the time portion of the DateTime as a string. 
+     * It does not need to be valid, if it is not, validation errors will be generated.
+     * If it is parseable with the date, update the actual Due 
+     * DateTime. 
+     * @param timeString The string the user submitted for the time portion.
+     */
+    setDueTimeStringUnderEdit (timeString : string) { 
+        this.dueTimeStringUnderEdit = timeString;
+        if (this.validationErrors.dueTimeStringUnderEdit.length === 0 && this.validationErrors.due.length === 0) {
+            this.setDue(`${this.dueDateStringUnderEdit}, ${timeString}`);
+        }
+    }
+    /**
+     * Set the string value that the user entered as they're editing the color. 
+     * It does not need to be valid, if it is not, validation errors will be generated.
+     * If it is valid, update the actual color used as well. 
+     * DateTime. 
+     * @param input The hex code with the # included at the front. Should accept
+     * 3 and 6 digit codes 
+     */
+    setColorStringUnderEdit (input : string) { 
+        this.colorStringUnderEdit = input.trim();
+        if (!this.validationErrors.colorStringUnderEdit.length) {
+            this.setColor(input);
+        }
+    }
+
+//#endregion NEW TASK CREATION
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
-    get validationTests() {
+    get validationTests(): TaskValidationTests {
+        const reUsedErrorMessages = {
+            INVALID_TIME_FORMAT: `Time is not of the format ${PARTIAL_DATETIME_FORMATS.t.readable}. Ex: 10:30 am`,
+            INVALID_DATE_FORMAT: `Date is not of the format ${PARTIAL_DATETIME_FORMATS.D.readable}. Ex: 7/26/2022`,
+            INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
+        }
+        const reUsedTests = {
+            validHexCode: {
+                text: `Color must be formatted as a valid hex code (ex: #ffffff)`,
+                fail: ({test=this.color}: {test: string}) => !(/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(test)),
+            }
+        }
+        
+
         return {
             title: [
                 {
                     text: `Title is ${pluralize(`character`, this.title.length-MAX_TITLE_LENGTH, true)} too long`,
                     fail: ({title=this.title}: {title: string}) => title.length > MAX_TITLE_LENGTH,
                 },
-                {
-                    text:  `This task must have a name`,
-                    fail: ({title=this.title}: {title: string}) => title.length === 0,
-                }
             ],
             description: [
                 {
@@ -328,9 +567,33 @@ export class TaskModel {
                 },
             ],
             color: [
+                reUsedTests.validHexCode,
+            ],
+            colorStringUnderEdit: [
+                reUsedTests.validHexCode,
+            ],
+            startTimeStringUnderEdit: [
                 {
-                    text: `Color must be formatted as a valid hex code (ex: #ffffff)`,
-                    fail: ({test=this.color}: {test: string}) => !(/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(test)),
+                    text: reUsedErrorMessages.INVALID_TIME_FORMAT,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.t.deserializer(this.startTimeStringUnderEdit).isValid,
+                },
+            ],
+            startDateStringUnderEdit: [
+                {
+                    text: reUsedErrorMessages.INVALID_DATE_FORMAT,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.D.deserializer(this.startDateStringUnderEdit).isValid,
+                },
+            ],
+            dueTimeStringUnderEdit: [
+                {
+                    text: reUsedErrorMessages.INVALID_TIME_FORMAT,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.t.deserializer(this.dueTimeStringUnderEdit).isValid,
+                },
+            ],
+            dueDateStringUnderEdit: [
+                {
+                    text: reUsedErrorMessages.INVALID_DATE_FORMAT,
+                    fail: () => !PARTIAL_DATETIME_FORMATS.D.deserializer(this.dueDateStringUnderEdit).isValid,
                 },
             ],
         } as TaskValidationTests;
@@ -360,6 +623,11 @@ export class TaskModel {
             due: [],
             workInterval: [],
             color: [],
+            startTimeStringUnderEdit: [],
+            startDateStringUnderEdit: [],
+            dueTimeStringUnderEdit: [],
+            dueDateStringUnderEdit: [],
+            colorStringUnderEdit: [],
         };
   
         for (let field in this.validationTests as TaskValidationTests) {
