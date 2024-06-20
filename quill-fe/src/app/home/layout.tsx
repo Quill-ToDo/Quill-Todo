@@ -37,13 +37,22 @@ const DashboardLayout = observer(({
                     <PositionedPopupAndReferenceElement
                         popupPositioningOptions={newTaskPopupPositioning}
                         dismissPopupOptions={dismissOptions}
-                        refElement={<button id="add-task" role="menuitem" className="btn small square bg" title="Add task" 
+                        renderRef={(ref, props) => {
+                        return <button 
+                            id="add-task"
+                            ref={ref} 
+                            role="menuitem" 
+                            className="btn small square bg" 
+                            title="Add task" 
                             onClick={() => {
                                 taskStore.current.createNewTask();
                                 setShowNewTaskPopupFromMenuButton(true);
-                                } }>
+                                }}
+                                {...props}
+                                >
                             { ICONS.PLUS }
-                        </button>}
+                        </button>
+                        }}
                         popupElement={ 
                             <NewTaskPopUp 
                                 close={() => {

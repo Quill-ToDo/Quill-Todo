@@ -22,6 +22,10 @@ type ValidationTest = {
     fail: Function;
 }
 
+const getLegibleErrors = (errors: { [index : string]: string[] }) => {
+    return Object.keys(errors).map(key => errors[key].length ? `${key}: ${(errors[key]).join(", ")}` : "").join('\n');
+}
+
 type TaskValidationTests = {
     [index : string] : ValidationTest[];
     title: ValidationTest[];
@@ -120,7 +124,7 @@ export class TaskModel {
     // "name" : Type : Description
     // ----------------------------------------------------
     // ---- Public ----
-            id : number = -1;
+            id : string = -1;
             title : string = "";
             start : DateTime = null;
             due : DateTime = null;
@@ -341,13 +345,17 @@ export class TaskModel {
         description?: string,
         color?: string,
     }=this.json) {
-        this.store.API.updateTask(this.id, data)
-        .catch(error => {
-            addAlert(document.querySelector('#home-wrapper'), 
-            ERROR_ALERT, "Task could not be updated - " + error.toString());
-            // Revert changes
-            this.store.loadTasks();
-        });
+        this.store.API.updateTask(this.id, data).then(
+            result => result,
+            reason => {
+                addAlert(document.querySelector('#home-wrapper'), 
+                ERROR_ALERT, 
+                `Task could not be updated - ${getLegibleErrors(reason.response.data)}`);
+                // Revert changes
+                this.store.loadTasks({refresh: true});
+                return reason;
+            }
+        );;
     }
 
     /**
@@ -401,9 +409,8 @@ export class TaskModel {
      * Update this TaskModel with info pulled from a passed JSON.
      * @param {object} json 
      */
-    setJson(json : object) {
-        this.turnOffAutosaveToDb
-        ();
+    setJson(json : {[index : string]: any}) {
+        this.turnOffAutosaveToDb();
         this.id = json.id;
         this.setTitle(json.title);
         this.setDescription(json.description);
@@ -428,17 +435,30 @@ export class TaskModel {
     async submitNewTask ()  : Promise<AxiosResponse> {
         // Validate that there are no errors. If there are, raise an alert.
         if (!this.isValid) {
-            const legibleErrors = Object.keys(this.validationErrors).map((key: string) => this.validationErrors[key].length ? `${key}: ${this.validationErrors[key].join(",")}` : ``  );
-
+            const msg = `Task could not be saved, it still has errors - ${getLegibleErrors(this.validationErrors)}`;
             addAlert(document.querySelector('#new-wrapper'), 
                 ERROR_ALERT, 
-                `Task could not be saved, it still has errors - ${legibleErrors.join("\n")}`
+                msg
             );
-            return (new Promise((resolve, reject) => reject("Task could not be saved, it still has errors")));
+            return (new Promise((resolve, reject) => reject(msg)));
         }
         
         // Post to server
-        return this.store.API.createTask(this.json);
+        return this.store.API.createTask(this.json).then(
+            (value) => {
+                this.store.setNewTask(null);
+                close();
+                return value;
+            },
+            (reason) => {
+                addAlert(
+                    document.querySelector('#home-wrapper'), 
+                    ERROR_ALERT, 
+                    `Could not add task - ${getLegibleErrors(reason.response.data)}`
+                );
+                return reason;
+            }
+        );;
     }
     /**
      * Abort the new task that was being created 

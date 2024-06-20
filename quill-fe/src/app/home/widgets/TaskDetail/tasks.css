@@ -36,9 +36,22 @@
   width: 100%;
 } 
 
-.title-date-wrapper p,
-.show-wrapper .title-wrapper p {
+.title p,
+.show-wrapper .title p {
   text-align: left;
+}
+
+.overdue.title,
+.overdue.title p,
+.overdue.date-time-wrapper p {
+  color: var(--overdue);
+}
+
+.title.blank p,
+.title.blank.overdue p,
+input.title.blank::placeholder {
+  font-style: italic;
+  color: var(--g4);
 }
 
 .title-date-wrapper>label>p {

@@ -37,13 +37,14 @@ def serve_front_end(request):
 
 def check_illegal_field(fieldname, request):
     if fieldname in request.data:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-                "errors": "cannot change " + fieldname})
+        return Response(data={
+                "errors": "cannot change " + fieldname},
+                status=status.HTTP_400_BAD_REQUEST)
 
 def check_illegal_post(fieldname, request):
     if fieldname in request.data:
-        return Response(status=status.HTTP_400_BAD_REQUEST, data={
-                "errors": "cannot create task with " + fieldname})
+        return Response(data={
+                "errors": "cannot create task with " + fieldname}, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['GET', 'POST'])
 def tasks(request):
@@ -97,6 +98,4 @@ def task_details(request, id):
             serializer.save()
             return Response(serializer.data)
 
-        return Response(status=status.HTTP_500_INTERNAL_SERVER_ERROR, data={
-            "errors": serializer.errors,
-            "submittedData": serializer})
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

@@ -14,19 +14,19 @@ import {
     FloatingFocusManagerProps,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
-import { ReactElement, cloneElement } from 'react';
+import { ReactElement } from 'react';
 import { ALERT_CAPTURE_ID } from './constants';
 
-// This code is copied from: https://floating-ui.com/docs/FloatingTree
+// This code is from: https://floating-ui.com/docs/FloatingTree
 
 const NestablePopup = observer(({
-    refElement, 
+    renderRef,
     floatingElement,
     useFloatingParams,
     useDismissParams,
-    focusManagerProps
+    focusManagerProps,
 }: {
-    refElement: ReactElement,
+    renderRef: (ref: any, props: Record<string, unknown>) => ReactElement,
     floatingElement: ReactElement,
     useFloatingParams: UseFloatingOptions,
     useDismissParams?: UseDismissProps,
@@ -48,29 +48,29 @@ const NestablePopup = observer(({
     // passing in the subscribed `nodeId`:
     return (
       <>
-        {cloneElement(refElement, {ref: refs.setReference, props: getReferenceProps()})}
-            <FloatingNode id={nodeId}>
-            {useFloatingParams.open && (
-                <FloatingPortal id={ALERT_CAPTURE_ID}>
-                    <FloatingFocusManager context={context} {...focusManagerProps}>
-                    <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
-                </FloatingFocusManager>
-                </FloatingPortal>
-            )}
-            </FloatingNode>
+        { renderRef(refs.setReference, getReferenceProps())} 
+        <FloatingNode id={nodeId}>
+        {useFloatingParams.open && (
+            <FloatingPortal id={ALERT_CAPTURE_ID}>
+                <FloatingFocusManager context={context} {...focusManagerProps}>
+                <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
+            </FloatingFocusManager>
+            </FloatingPortal>
+        )}
+        </FloatingNode>
       </>
     );
   })
 
   // This is the component the consumer uses
 export const PositionedPopupAndReferenceElement = observer(({
-    refElement, 
+    renderRef, 
     popupElement,
     popupPositioningOptions,
     dismissPopupOptions,
     popupFocusOptions,
 }: {
-    refElement: ReactElement,
+    renderRef: (ref: any, props: Record<string, unknown>) => ReactElement,
     popupElement: ReactElement,
     popupPositioningOptions: UseFloatingOptions,
     dismissPopupOptions?: UseDismissProps,
@@ -79,7 +79,7 @@ export const PositionedPopupAndReferenceElement = observer(({
 
     const parentId = useFloatingParentNodeId();
     const props = {
-        refElement: refElement,
+        renderRef: renderRef,
         floatingElement: popupElement,
         useFloatingParams: popupPositioningOptions,
         useDismissParams: dismissPopupOptions,

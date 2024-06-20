@@ -1,13 +1,25 @@
 import { observer } from "mobx-react-lite";
 import { FormEvent, Fragment, ReactNode } from "react";
 
-export const ErrorsList = ({errors, errorListId}: {errors: string[], errorListId?: string}) => {
+const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
+
+const getFieldLabelSelector = ({name, outerWidgetId}: {name: string, type?: string, outerWidgetId: string}) => {
+    return `${outerWidgetId} label.${getSafeName(name)}`;
+}
+
+/**
+ * Render a list of errors for an element.
+ * @param errors the list of errors to display.
+ * @param id the id of this list of errors. Make this the value of aria-describedby for the element that has errors. 
+ * @returns 
+ */
+export const ErrorsList = ({errors, id}: {errors: string[], id: string}) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul id={errorListId} className="error-list" aria-live="polite">
+            <ul id={id} className="error-list" aria-live="polite">
             { 
                 errors.map((errorText) => 
-                    <li key={`error-${errorText}-${errorListId}`}>
+                    <li key={`error-${errorText}-${id}`}>
                         {errorText}
                     </li>
                 )
@@ -38,66 +50,68 @@ export const handleSubmit = ({
     }) => {
     submitEvent.preventDefault();
     let focusEle;
+    let invalid = false;
 
     // Get element with errors to switch focus to
     for (const fieldName in fieldData) {
         const field: FormFieldParams = fieldData[fieldName];
         if (field.errors && field.errors.length) {
-            const elem = document.querySelector(getFieldInputSelector({name: field.name, type: field.type, outerWidgetId})) as HTMLElement;
+            invalid = true;
+            const elem = document.querySelector(getFieldLabelSelector({name: field.name, outerWidgetId: outerWidgetId})) as HTMLElement;
             if (!focusEle) {
                 focusEle = elem;
             }
         }
     }
 
-    if (!focusEle) {
-        // Valid 
+    if (!invalid) {
         successCallback();
         return;
     }
 
-    focusEle.focus();
-}
-
-const getFieldInputSelector = ({name, type="input", outerWidgetId}: {name: string, type?: string, outerWidgetId: string}) => {
-    return `${outerWidgetId}-${name}-${type}`;
+    focusEle && focusEle.focus();
 }
 
 export type FormFieldParams = {
     name: string;
     type?: "input" | "textarea";
-    outerWidgetId: string;
     onChange?: (e: Event) => void;
     value?: string;
     required?: boolean;
     labelClasses?: string;
     errors?: string[];
-    inputContent?: ReactNode;
+    element?: ReactNode;
 }
+
+/**
+ * Return a label and corresponding input for a field. 
+ * 
+ * 
+ */
 export const FormField = observer(({
     name, 
     type="input", 
-    outerWidgetId, 
     required=false,
     onChange, 
     value,
     labelClasses,
     errors=[],
-    inputContent,
-
+    element,
  }: FormFieldParams) => {
-     if (value === undefined && inputContent === undefined) {
-         throw new Error("Either inputContent or a value must be defined for form components");
+     if (value === undefined && element === undefined) {
+         throw new Error("Either element or a value must be defined for form components");
     }
+    if ((value !== undefined || onChange !== undefined)&& element !== undefined) {
+        throw new Error("Please only specify (value and onChange) or element for form components.");
+   }
     let inputElement;
-    const inputId = getFieldInputSelector({name, type, outerWidgetId});
-    const errorListId = `${inputId}-error-list`;
+    const safeName = getSafeName(name);
+    const id = `${safeName}-error-list`;
     const props = {
-        "id": inputId,
-        "name": name,
+        "name": safeName,
         "onChange": onChange,
         "value": value,
-        "aria-describedby": errorListId,
+        "aria-describedby": id,
         "aria-invalid": !!errors.length,
         "required": required,
     }
@@ -108,11 +122,11 @@ export const FormField = observer(({
         <textarea {...props}/>;
     }
     else {
-        inputElement = inputContent;
+        inputElement = element;
     }
-    return <label className={labelClasses}>
+    return <label className={`${safeName}${labelClasses ? " " + labelClasses : ""} `}>
         {name}
         {inputElement}
-    { errors && ErrorsList({errors: errors, errorListId: errorListId}) }
+    { errors && ErrorsList({errors: errors, id: id}) }
     </label>
 });

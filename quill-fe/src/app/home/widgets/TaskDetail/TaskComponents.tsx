@@ -1,11 +1,15 @@
 import { PositionedPopupAndReferenceElement } from "@/app/@util/FloatingUiHelpers";
 import { ErrorsList } from "@/app/@util/FormComponents";
 import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
-import { UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
+import { UseDismissProps, UseFloatingOptions, shift, offset } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { LegacyRef, useCallback, useRef, useState } from "react";
+import { ComponentProps, HTMLProps, LegacyRef, useCallback, useRef, useState } from "react";
+import TaskDetail from "./TaskDetail";
+import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
 
+
+//#region Checkbox
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
     return <div className="check-box-wrapper">
         <input 
@@ -21,6 +25,28 @@ export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, ty
     </div>;
 });
 
+const TaskCheckbox = observer(({task, form}: {task: TaskModel, form: "work" | "due"}) => {
+    const styleText = !task.complete ? {color: task.color} : {};
+    const checkFormat = task.complete ? checkboxIconOptions[form].complete : checkboxIconOptions[form].notComplete;
+    return <i className={`far fa-fw checkmark ${checkFormat}`} style={styleText}></i>;  
+});
+
+const checkboxIconOptions = {
+    work: {
+        complete: `fa-check-circle round`,
+        notComplete: `fa-circle round`
+    },
+    due: {
+        complete: `fa-check-square`,
+        notComplete: `fa-square`,
+    }
+};
+
+const TaskDueCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="due" />);
+
+const WorkCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="work" />);
+//#endregion 
+//#region Color Picker
 const ColorGridPicker = observer(({task, closePicker}: {
     task: TaskModel, 
     closePicker: () => void, 
@@ -34,6 +60,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
         }
         closePicker();
     }, [finalTaskColor, startingTaskColor]);
+    const errorId = `color-${task.id}-errors`;
 
     return <div 
                 className="color-picker popup" 
@@ -67,11 +94,13 @@ const ColorGridPicker = observer(({task, closePicker}: {
             <input 
                 value={task.color} 
                 readOnly
-                aria-invalid={!!task.validationErrors.colorStringUnderEdit}
+                aria-invalid={!!task.validationErrors.colorStringUnderEdit.length}
+                aria-describedby={errorId}
             >    
             </input>
             <ErrorsList 
                 errors={task.validationErrors.colorStringUnderEdit}
+                id={errorId}
             />
         </div>
     </div>
@@ -95,21 +124,23 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
     return <PositionedPopupAndReferenceElement
         popupPositioningOptions={colorPickerGridPositioning}
         dismissPopupOptions={dismissOptions}
-        refElement={
-            <button
+        renderRef={(ref, props) => {
+            return <button
                 className="color-bubble-wrapper" 
+                ref={ref}
                 onClick={(e) => {
                     e.preventDefault();
                     setShowPicker(true);
                 }}
                 title="Change task color"
                 aria-label="Task color changer"
+                {...props}
             >
                 <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                     <circle cx="50" cy="50" r="50" fill={task.color}/>
                 </svg>
             </button>
-        }
+        }}
         popupElement={
             <ColorGridPicker 
                 task={task} 
@@ -118,44 +149,65 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
         }
     /> 
 });
-
-const forms = {
-    work: {
-        complete: `fa-check-circle round`,
-        notComplete: `fa-circle round`
-    },
-    due: {
-        complete: `fa-check-square`,
-        notComplete: `fa-square`,
+//#endregion 
+//#region Title
+const PlainTaskTitle = observer((
+    {
+        task,
+        props,
+    }: {
+        task: TaskModel,
+        props: ComponentProps<"p">,
     }
-}
-
-const TaskCheckbox = observer(({task, form}: {task: TaskModel, form: "work" | "due"}) => {
-    const styleText = !task.complete ? {color: task.color} : {};
-    const checkFormat = task.complete ? forms[form].complete : forms[form].notComplete;
-    return <i className={`far fa-fw checkmark ${checkFormat}`} style={styleText}></i>;  
-})
-
-const TaskDueCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="due" />);
-
-const WorkCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="work" />);
-
-export const TaskTitle = observer(({task, pClasses="", editAllowed=false}: {task: TaskModel, pClasses?: string, editAllowed?: boolean}) => {
-    const overdue = task.overdue();
-    const props = {
-        className: `title${pClasses ? " " + pClasses : ""}${overdue ? " overdue" : ""}`,
-        style: {
-            color: !task.complete && !overdue ? task.color : undefined,
-        },
+) => {
+    const [showDetails, setShowDetails] = useState(false);
+    const close = () => setShowDetails(false);
+    const taskDetailsPopupPositioning: UseFloatingOptions = {
+        open: showDetails,
+        onOpenChange: setShowDetails,
+        placement: "right",
+        middleware: [offset(20), shift()],
     };
-
-    // Use p element if not editable
-    if (!editAllowed) {
-        return <p {...props}>
-                { task.complete ? <s>{task.title}</s> : task.title }
-        </p>;
+    const dismissOptions: UseDismissProps = {
+        outsidePress: false,
+        referencePress: false,
     }
-    
+
+    const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
+
+    return <PositionedPopupAndReferenceElement
+                popupPositioningOptions={taskDetailsPopupPositioning}
+                dismissPopupOptions={dismissOptions}
+                renderRef={(ref, floatProps) => {
+                    return <button
+                            ref={ref}
+                            onClick={() => {setShowDetails(true);}}
+                            className={props.className}
+                            {...floatProps} 
+                        >
+                        <p style={props.style}> 
+                            { task.complete ? <s>{displayTitle}</s> : displayTitle } 
+                        </p>
+                    </button>
+                }}
+                popupElement={
+                    <TaskDetail 
+                        task={task} 
+                        close={close} 
+                    />
+                }
+            />;
+});
+
+const EditableTaskTitle = observer((
+    {
+        task,
+        props,
+    }: {
+        task: TaskModel,
+        props: ComponentProps<"input">,
+    }
+) => {
     const startingText = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
@@ -166,19 +218,65 @@ export const TaskTitle = observer(({task, pClasses="", editAllowed=false}: {task
         }
     }
 
-    return <input 
-            className={props.className}
-            style={props.style}
-            value={task.title}
-            aria-label={"Title"}
-            aria-invalid={!!task.validationErrors.title.length}
-            title={"Edit Title"}
-            ref={editInputRef}
-            onChange={(e) => task.setTitle(e.target.value)}
-            onBlur={finishEditing}
-        />;
-})
+    // const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
+    const errorId = `detail-${task.id}-title-errors`;
 
+    return <div>
+            <input 
+                placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
+                value={task.title}
+                aria-labelabel={"Title"}
+                aria-invalid={!!task.validationErrors.title.length}
+                aria-describedby={errorId}
+                title={"Edit Title"}
+                ref={editInputRef}
+                onChange={(e) => task.setTitle(e.target.value)}
+                onBlur={finishEditing}
+                {...props}
+            />
+            {
+                !!task.validationErrors.title.length && <ErrorsList
+                    errors={task.validationErrors.title}
+                    id={errorId}
+                />
+            }
+    </div>
+
+});
+
+export const TaskTitle = observer((
+    {
+        task, 
+        editAllowed=false,
+    }: {
+        task: TaskModel, 
+        editAllowed?: boolean,
+    }) => {
+    const overdue = task.overdue();
+
+    const props: HTMLProps<any> = {
+        className: `title${overdue ? " overdue" : ""}${!!!task.title.length ? " blank" : "" }`,
+        style: {
+            color: !task.complete && !overdue ? task.color : undefined,
+        },
+    };
+
+    // Use p element if not editable
+    if (!editAllowed) {
+        return <PlainTaskTitle 
+            task={task}
+            props={props as ComponentProps<"p">}
+        />;
+    }
+    else {
+        return <EditableTaskTitle
+            task={task}
+            props={props as ComponentProps<"input">}
+        />
+    }
+})
+//#endregion 
+//#region Date / Time
 /**
  * Displays the date and time for a task
  * 
@@ -193,3 +291,4 @@ export const DateTimeWrapper = observer(({task, type, dateFormat=DateTime.DATE_S
         </time>
     );
 })
+//#endregion 

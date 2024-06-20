@@ -19,6 +19,10 @@
   text-align: left;
 }
 
+.show-wrapper input.title.blank::placeholder {
+  color: var(--g6);
+}
+
 .show-wrapper label {
   color: var(--g3);
   font-size: var(--p-size);

@@ -115,11 +115,6 @@ p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
 }
 
-.overdue.title,
-.overdue.date-time-wrapper p {
-  color: var(--overdue);
-}
-
 .subtle {
     font-style: italic;
     color: var(--g5);
@@ -239,7 +234,7 @@ section.more-padding {
 
 /* Show a transition for focusing on elements */
 .check-box-wrapper input:focus~i,
-#list-wrapper button.title-date-wrapper:focus,
+#list-wrapper button.title:focus,
 .color-bubble-wrapper:focus,
 :focus-visible {
     transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -385,9 +380,14 @@ form .btn {
     margin-top: var(--section-gap);
 }
  
-form input[aria-invalid="true"],
-form textarea[aria-invalid="true"] {
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
     background-color: var(--failure-bg);
+}
+
+input[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus {
+    box-shadow: 0 0 0 var(--focus-border-width) var(--failure-outline);
 }
 
 form .sublabel label,

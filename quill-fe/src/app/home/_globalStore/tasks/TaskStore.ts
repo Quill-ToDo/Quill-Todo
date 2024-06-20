@@ -18,7 +18,7 @@ export default class TaskStore {
     static taskStoreSingletonInstance : TaskStore;
     API : TaskApi;
     rootStore : RootStore;
-    taskSet : Set<TaskModel> = new Set<TaskModel>();
+    taskSet : Set<TaskModel> = new Set();
     // The singleton task currenbtly being created, has not synced to server
     taskBeingCreated : TaskModel | null = null;
     // Boolean : Whether the store has synced with server
@@ -42,6 +42,7 @@ export default class TaskStore {
             taskBeingCreated: observable,
             // Computeds
             tasks: computed,
+            taskMap: computed,
             taskTimeline: computed,
             // Actions
             createNewTask: action,
@@ -49,6 +50,7 @@ export default class TaskStore {
             add: action,
             remove: action, 
             delete: action,
+            getTaskWithId: false,
             loadTasks: false,
         }, {proxy: false})
         this.rootStore = rootStore;
@@ -58,7 +60,7 @@ export default class TaskStore {
         TaskStore.taskStoreSingletonInstance = this;
         this.API = API;
         this.taskSet = new Set<TaskModel>();
-        this.loadTasks();
+        this.loadTasks({});
         this.taskBeingCreated = null;
     }
 
@@ -68,16 +70,34 @@ export default class TaskStore {
      * @param {*} retry The number of times this call has been retried.
      * @returns 
      */
-    async loadTasks (retry:number=0, connectionAlertIdselectorForFieldElementstring="") {
+    async loadTasks (
+        {
+            retry=0,
+            connectionAlertIdselectorForFieldElementstring,
+            refresh=false,
+        } : {
+            retry?: number, 
+            connectionAlertIdselectorForFieldElementstring?: string, 
+            refresh?: boolean}) {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
-                fetchedTasks.data.forEach((json : object )=> new TaskModel(json));
+                fetchedTasks.data.forEach((json : {[index : string]: any}) => {
+                    if (refresh && this.taskMap && this.taskMap.has(json.id)) {
+                        this.getTaskWithId(json.id) && this.getTaskWithId(json.id).setJson(json);
+                    }
+                    else {
+                        new TaskModel(json);
+                    }
+                });
                 this.isLoaded = true;
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
                     addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Re-established connection");
+                }
+                if (refresh) {
+                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Reset all tasks to previous state");
                 }
             });
         }).catch(e => {
@@ -88,13 +108,26 @@ export default class TaskStore {
             else if (connectionAlertIdselectorForFieldElementstring) {
                 updateAlertText(connectionAlertIdselectorForFieldElementstring, `Could not load tasks - ${e} - Retry #${retry+1}`)
             }
-            setTimeout(() => {this.loadTasks(retry + 1, connectionAlertIdselectorForFieldElementstring)}, 3000);
+            setTimeout(() => {this.loadTasks({retry: retry + 1, connectionAlertIdselectorForFieldElementstring: connectionAlertIdselectorForFieldElementstring})}, 3000);
         })
     }
 
     
     get tasks () {
         return Array.from(this.taskSet);
+    }
+    
+    get taskMap (): Map<string, TaskModel> {
+        let map: Map<string, TaskModel> = new Map();
+        this.tasks.forEach((task) => {
+            map.set(task.id, task);
+        });
+        return map;
+        
+    }
+
+    getTaskWithId = (id: string) => {
+        return this.taskMap.get(id);
     }
     
     tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {

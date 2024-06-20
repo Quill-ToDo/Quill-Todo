@@ -35,25 +35,41 @@
   }
 
     
-  #list-wrapper .title-date-wrapper:hover {
+  #list-wrapper .title:hover {
     background-color: var(--list-hover);
   }
 
-  #list-wrapper .title-date-wrapper {
+  #list-wrapper .title {
     transition: background-color .1s, color .4s;
     border-radius: 12px;
     padding: 8px 8px 8px 8px;
   }
-  
+
+  #list-wrapper .title {
+    border-radius: 12px;
+    width: 100%;
+    height: 100%;
+    padding: 5px;
+    text-align: left;
+  }
+
+  #list-wrapper label {
+    flex: 1 0 0px;
+    width: 100%;
+    height: 100%;
+  }
+  #list-wrapper time {
+    flex: 0 1 0px;
+  }
 
   #list-wrapper .task-wrapper.complete:hover p,
-  #list-wrapper .task-wrapper.complete .title-date-wrapper:focus p,
+  #list-wrapper .task-wrapper.complete .title:focus p,
   #list-wrapper .task-wrapper.complete:hover s,
-  #list-wrapper .task-wrapper.complete .title-date-wrapper:focus s {
+  #list-wrapper .task-wrapper.complete .title:focus s {
     color: var(--g2);
 }
 
 #list-wrapper .task-wrapper.complete:hover s,
-#list-wrapper .task-wrapper.complete .title-date-wrapper:focus s {
+#list-wrapper .task-wrapper.complete .title:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }

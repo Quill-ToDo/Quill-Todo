@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
@@ -8,10 +8,6 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-import { offset, shift, UseFloatingOptions, UseDismissProps } from "@floating-ui/react";
-import TaskDetail from "../TaskDetail/TaskDetail";
-import { PositionedPopupAndReferenceElement } from "@/app/@util/FloatingUiHelpers";
-
 
 const SECTION_TOGGLE_DURATION = 100;
 
@@ -134,18 +130,23 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 const Section = observer(({title, sectionNum, content, classNames}: {title: string, sectionNum: number, content: SubSectionContent[], classNames?: string}) => {
     const [sectionOpen, setSectionOpen] = useState(true);
 
-    var collapseToolTip = sectionOpen ? "Collapse " + title.toLowerCase() + " tasks" : "Expand " + title.toLowerCase() + " tasks";
+    var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} tasks` : `Expand ${title.toLowerCase()} tasks`;
+
+    useEffect(() => {
+        if (sectionOpen) {
+            // handleSectionToggle(sectionNum);
+        }
+    }, [])
     
     return (
-        <section id={getSectionId(sectionNum)} aria-labelledby={"section-"+sectionNum+"-title"} >
-            <div className={(classNames !== undefined ? classNames + " " : "") + "mid-section"}>
+        <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
+            <div className={`${classNames ? classNames : ""} mid-section`}>
                 <div className="header-container collapsible">
                     <button 
                         className="btn small square" 
                         title={collapseToolTip} 
                         aria-expanded={sectionOpen}
                         onClick={(e) => {
-                            handleSectionToggle(sectionNum);
                             setSectionOpen(!sectionOpen);
                         }}
                     >
@@ -153,7 +154,7 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                         className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
                         ></i>
                     </button>
-                    <h2 id={"section-"+sectionNum+"-title"}>{title}</h2>
+                    <h2 id={`section-${sectionNum}-title`}>{title}</h2>
                 </div>
                 <div className="section-collapsible">
                     <SubSection 
@@ -231,19 +232,7 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
     const dateForm = DateTime.DATE_SHORT;
-    const [showDetails, setShowDetails] = useState(false);
-    const close = () => setShowDetails(false);
 
-    const taskDetailsPopupPositioning: UseFloatingOptions = {
-        open: showDetails,
-        onOpenChange: setShowDetails,
-        placement: "right",
-        middleware: [offset(20), shift()],
-    };
-    const dismissOptions: UseDismissProps = {
-        outsidePress: false,
-        referencePress: false,
-    }
     const taskWrapper = (
     <div 
         className={`task-wrapper ${task.complete && "complete"}`} 
@@ -255,39 +244,26 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
             type={type}
             checkboxId={checkboxId}
         />
-        <button 
-            role="link"
+        <div 
             className="title-date-wrapper"
-            onClick={() => setShowDetails(true)}
         >
             <label 
                 htmlFor={checkboxId} 
                 onClick={(e) => {
                     e.preventDefault();
-            }}>
-            <TaskTitle task={task} />
-                </label>
-                <DateTimeWrapper 
-                    task={task} 
-                    type="due" 
-                    dateFormat={dateForm} 
-                />
-        </button>
+                }}
+            >
+                <TaskTitle task={task} />
+            </label>
+            <DateTimeWrapper 
+                task={task} 
+                type="due" 
+                dateFormat={dateForm} 
+            />
+        </div>
     </div>);
 
-    return (
-        <PositionedPopupAndReferenceElement
-            popupPositioningOptions={taskDetailsPopupPositioning}
-            dismissPopupOptions={dismissOptions}
-            refElement={taskWrapper}
-            popupElement={
-                <TaskDetail 
-                    task={task} 
-                    close={close} 
-                />
-            }
-        />
-    )
+    return taskWrapper;
 })
 
 //#endregion Task list

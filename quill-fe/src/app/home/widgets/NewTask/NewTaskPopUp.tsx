@@ -1,29 +1,44 @@
-import { ChangeEvent, FormEvent, Fragment, useEffect } from "react";
+import { useEffect } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
 import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
-import { ColorBubble } from "@/widgets/TaskDetail/TaskComponents";
-import { ErrorsList, FormField, FormFieldParams, handleSubmit } from "@util/FormComponents";
-import TaskStore from "@/store/tasks/TaskStore";
-import { FloatingPortal } from "@floating-ui/react";
+import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
+import { FormField, FormFieldParams, handleSubmit } from "@util/FormComponents";
+import { TaskModel } from "../../_globalStore/tasks/TaskModel";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
 
 /**
- * A form to create a new task. It works by editing the formData of a task that has already been created and is marked as being edited
+ * A form to create a new task. 
+ * It surfaces and edits the editable fields of a task that has already been created 
+ * and is marked as "beingCreated"
  * in TaskStore.
  */
-const AddNewTaskPopUp = observer(({taskStore, addNewTaskFloatStyles, addNewTaskFloatRefs, addNewTaskFloatContext}: 
+const AddNewTaskPopUp = observer(({close, taskToCreate}: 
     {
-        taskStore: TaskStore, 
-        addNewTaskFloatStyles?: {}, 
-        addNewTaskFloatRefs?: any
-        addNewTaskFloatContext?: any,   
+        close: () => void, 
+        taskToCreate: TaskModel | null, 
     }) => {
-    const taskToCreate = taskStore.taskBeingEdited;
-    if (!taskToCreate) { return; }
+
+    if (!taskToCreate) {
+        return null;
+    }
+
+    useEffect(() => {
+        const popup = document.querySelector(OUTER_WRAPPER_ID);
+        popup && makeDraggable(popup as HTMLElement);
+        const firstInput = document.querySelector(`input[name='${formData[Object.keys(formData)[0]].name}']`) as HTMLElement;
+        firstInput && firstInput.focus();
+        
+        // return (() => {
+        //     if (taskToCreate && taskToCreate.isNewAndUnsubmitted) {
+        //         taskToCreate.abortTaskCreation();
+        //     }
+        // })
+    }, [])
+
     
     const formData: {
         [index: string]: FormFieldParams,
@@ -34,17 +49,12 @@ const AddNewTaskPopUp = observer(({taskStore, addNewTaskFloatStyles, addNewTaskF
         startTime: FormFieldParams, 
         dueDate: FormFieldParams, 
         dueTime: FormFieldParams, 
-        workInterval: FormFieldParams, 
         color: FormFieldParams, 
 
     } = {
         title: {
             name: `Title`,
-            value: taskToCreate.title,
-            onChange: function (e) { e.target && taskToCreate.setTitle(e.target.value); },
-            labelClasses: `title`,
-            errors: taskToCreate.validationErrors.title,
-            outerWidgetId: OUTER_WRAPPER_NAME
+            element: <TaskTitle task={taskToCreate} editAllowed={true}/>,
         },
         desc: {
             name: `Description`,
@@ -52,115 +62,82 @@ const AddNewTaskPopUp = observer(({taskStore, addNewTaskFloatStyles, addNewTaskF
             value: taskToCreate.description,
             errors: taskToCreate.validationErrors.description,
             onChange: function (e) { e.target && taskToCreate.setDescription(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
         },
         startDate: {
             name: `Start Date`,
-            value: taskToCreate.startDateString,
-            errors: taskToCreate.validationErrors.startDateString,
-            onChange: function (e) { e.target && taskToCreate.setStartDateString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
+            value: taskToCreate.startDateStringUnderEdit,
+            errors: taskToCreate.validationErrors.startDateStringUnderEdit,
+            onChange: function (e) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value); },
         },
-        startTime: {
+        startTime: { 
             name: `Start Time`,
-            value: taskToCreate.startTimeString,
-            errors: taskToCreate.validationErrors.startTimeString,
-            onChange: function (e) { e.target && taskToCreate.setStartTimeString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
+            value: taskToCreate.startTimeStringUnderEdit,
+            errors: taskToCreate.validationErrors.startTimeStringUnderEdit,
+            onChange: function (e) { e.target && taskToCreate.setStartTimeStringUnderEdit(e.target.value); },
         },
         dueDate: {
             name: `Due Date`,
-            value: taskToCreate.dueDateString,
-            errors: taskToCreate.validationErrors.due,
-            onChange: function (e) { e.target && taskToCreate.setDueDateString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
+            value: taskToCreate.dueDateStringUnderEdit,
+            errors: taskToCreate.validationErrors.due.concat(taskToCreate.validationErrors.workInterval, taskToCreate.validationErrors.dueDateStringUnderEdit),
+            onChange: function (e) { e.target && taskToCreate.setDueDateStringUnderEdit(e.target.value); },
         },
         dueTime: {
             name: `Due Time`,
-            value: taskToCreate.dueTimeString,
-            errors:  taskToCreate.validationErrors.dueTimeString,
-            onChange: function (e) { e.target && taskToCreate.setDueTimeString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
-        },
-        workInterval: {
-            name: `Work Range`,
-            value: '',
-            errors: taskToCreate.validationErrors.workInterval,
-            onChange: (e) => {},
-            outerWidgetId: OUTER_WRAPPER_NAME,
+            value: taskToCreate.dueTimeStringUnderEdit,
+            errors:  taskToCreate.validationErrors.dueTimeStringUnderEdit,
+            onChange: function (e) { e.target && taskToCreate.setDueTimeStringUnderEdit(e.target.value); },
+
         },
         color: {
             name: `Color`,
             required: true,
-            value: taskToCreate.colorString,
-            labelClasses: `color`,
-            contentBeforeInput: <ColorBubble task={taskToCreate}/>,
-            inputContentWrapperClasses: `color-label-wrapper`,
-            errors: taskToCreate.validationErrors.color,
-            onChange: function (e) { e.target && taskToCreate.setColorString(e.target.value); },
-            outerWidgetId: OUTER_WRAPPER_NAME,
+            element: <ColorBubble task={taskToCreate}/>,
         }
     }
 
-    useEffect(() => {
-        const popup = document.querySelector(OUTER_WRAPPER_ID);
-        popup && makeDraggable(popup);
-        const firstInput = document.querySelector(`input[name='${formData[Object.keys(formData)[0]].name}']`) as HTMLElement;
-        firstInput && firstInput.focus();
-        
-        return () => {
-            // if (taskStore.taskBeingEdited) {
-            //     taskToCreate.abortEditing();
-            // }
-        }
-    }, [])
-
-
     return (
-        <div id={OUTER_WRAPPER_NAME} ref={addNewTaskFloatRefs && addNewTaskFloatRefs.setFloating} style={addNewTaskFloatStyles && addNewTaskFloatStyles} className="popup draggable">
+        <div id={OUTER_WRAPPER_NAME} className="popup draggable">
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned end">
-                    <button className="btn small square btn-red" title="Close" onClick={() => {
-                        taskToCreate.abortEditing();
+                    <button className="btn small square" title="Close" onClick={() => {
+                        close();
+                        taskToCreate && taskToCreate.abortTaskCreation();
                     }}>
                         { ICONS.X }
                     </button>
                 </div>
             </div>
             <section className="mid-section" aria-labelledby="popup-title">
-                <form id="add-task" className="form" onSubmit={(e) => handleSubmit({
+                <form id="add-taskToCreate" className="form" onSubmit={(e) => handleSubmit({
                     outerWidgetId: OUTER_WRAPPER_ID,
                     submitEvent: e,
-                    successCallback: () => taskToCreate.finishEditing(),
+                    successCallback: () => {
+                        if (taskToCreate) { taskToCreate.submitNewTask(); }
+                        }, 
                     fieldData: formData, 
                 })}>
                     <div id="title-color">
+                        <FormField {...formData.color} />
                         <FormField {...formData.title} />
-                        <div className="color-label-wrapper">
-                            <FormField {...formData.color} />
-                        </div>
                     </div>
                     <FormField {...formData.desc}/>
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <div>
-                            <h3>Start</h3>
-                            <div className={"horizontal-align sublabel"}>
+                            <div className={"horizontal-align"}>
                                 <FormField {...formData.startDate} />
                                 <FormField {...formData.startTime} />
                             </div>
                         </div>
                         <div>
-                            <h3>Due</h3>
-                            <div className={"horizontal-align sublabel"}>
+                            <div className={"horizontal-align"}>
                                 <FormField {...formData.dueDate} />
                                 <FormField {...formData.dueTime} />
                             </div>
                         </div>
                     </div>
                     <div className="centered">
-                        { formData.workInterval.errors && ErrorsList({errors: formData.workInterval.errors, errorListId: formData.workInterval.idPrefix})}
-                        <button id="add-btn" className="btn large" type="submit" formNoValidate={true}>+</button>
+                        <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>Add</button>
                     </div>
                 </form>
             </section>
