@@ -13,5 +13,6 @@ tasks/migrations/__pycache__
 # Dev 
 .vscode/settings.json
 devNotes.md
+.quill-venv/
 venv/pyvenv.cfg
 venv/

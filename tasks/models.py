@@ -6,15 +6,13 @@ from django.core.validators import RegexValidator
 
 class Task(models.Model):
     # Fields
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4,serialize=False)
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
-    updated_at = models.DateTimeField(editable=False, auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True, max_length=1000)
-    # Default time is today at 11:59 pm
-    start = models.DateTimeField(null=True)
-    # Default due time is today at 11:59 pm
-    due = models.DateTimeField(null=True)
+    start = models.DateTimeField(blank=True, null=True)
+    due = models.DateTimeField(blank=True, null=True)
     complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(editable=False, null=True)
     color = models.CharField(

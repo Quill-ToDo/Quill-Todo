@@ -28,7 +28,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 ## Setting up the development environment
 
-After these initial instructions are followed to set everyting up, on Windows you can start the development environment with 
+After the initial set-up instructions are followed to set everything up, you can start the backebnd server and front-end with: 
 
 **Windows:**
 ```cmd
@@ -36,64 +36,86 @@ $ dev-startup-scripts\startQuilDevEnv.cmd
 ```
 
 **Mac/Unix:**
-In one terminal:
-```cmd
-$ npm run start-fe 
-```
-In another terminal:
-```cmd
-$ npm run start-be-unix
+```bash
+$ source dev-startup-scripts/startQuillUnix.bash
 ```
 
 ### Back-End
 
-1. Clone repo wherever you'd like
+> **Note:** If Python commands do not work prefixed with `py`, also try `python3` and `python`. It works differently across operating systems.
 
-2. [Set up virtual development environment](https://developer.mozilla.org/en-US/docs/Learn/Server-side/Django/development_environment) named "quill". It MUST be named quill if you want to use any of the shortcut dev-startup-scripts we have.
+1. Clone this repo
 
-3. Install `nvm` (Node version manager)
+2. Install [Python](https://www.python.org/downloads/) 
 
-    - [Windows](https://github.com/coreybutler/nvm-windows)
-    - [MacOS/unix](https://github.com/nvm-sh/nvm)
+3. [Set up a Python virtual environment](https://packaging.python.org/en/latest/guides/installing-using-pip-and-virtual-environments/#create-and-use-virtual-environments) 
+    named "quill-venv" within the "quill-todo" directory 
+    for Python dependencies. It MUST be named quill-venv if you 
+    want to use any of the shortcut dev-startup-scripts we have.
 
-    Verify installation with
-  
-    ```Bash
-    nvm -v
-    ```
-
-4. Install Node
-
-    > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
+    Create the environment
 
     ```Bash
-    nvm install v22.2.0 && nvm use 22.2.0
+    py -m venv .quill-venv
     ```
 
-    You may need to restart your computer for the installation to take effect.
+    Use the environment 
+    
+    ```Bash
+    .quill-venv/bin/activate
+    ```
 
-5. Add secret `.env` file to `App` dir. Ask in Slack for the file.
+    You can tell it's active because the environment name will prefix the command line surrounded by parentheses 
+    similar to the following:
 
-    **This file should never be pushed to GitHub!**
+    ```Bash
+    (.quill-venv) lily@Lilys-Laptop Quill-Todo % 
+    ```
 
+4. Add a file called `.env` file to the base project directory
+
+    > **This file should never be pushed to GitHub!**
+    
+    Add the following values to the file:
+
+    ```
+    SECRET_KEY=<your secret key>
+    DB_PASSWORD=<your db password>
+    ```
+
+    - I believe the key and password values can be anything you want, so replace \<your secret key> and 
+    \<your db password> with anything you want. 
     - Add `.` if needed to the front of the file in the directory so it is invisible. (Filename should be: `.env`)
-    - In [setup.sql](./setup.sql), change PASS_IN_ENV to the value of DB_PASSWORD in [.env](./.env). **❗Do not push this change, reset it after you init the database.**
+    - In [setup.sql](./dev-startup-scripts/setup.sql), change PASS_IN_ENV to the value of DB_PASSWORD in [.env](./.env). 
+        - > **❗Do not push this change, reset it after you init the database.**
+    - This allows Django to access the database by reading this password.
 
-6. Set up the database
+5. Install PostgreSQL for our database
     - **Windows:**
         - [Install PostgreSQL](https://www.postgresql.org/download/windows/) using installer. Leave configuration defaults as they are.
         - Set environment variables after install following [step 3 of this guide](https://medium.com/@aeadedoyin/getting-started-with-postgresql-on-windows-201906131300-ee75f066df78)
     - **Mac/Unix:**
-        - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using homebrew
-        - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. To check you can always run `$ pg_ctl status`
+        - [Install PostgreSQL](https://www.postgresql.org/download/macosx/) using [homebrew](https://brew.sh/)
+            - Pay attention to the directory where it inititlizes the the cluster.
+        - Add postgresql installation to your terminal profile. Copy the directory where the cluster was started and then run 
+            ```Bash
+             echo "export PGDATA='<YOUR PATH HERE>'" >> ~/.zshrc
+            ```
+            replacing \<YOUR PATH HERE> with the cluster dir.
+            - If you are not using ZSH then replace ~/.zshrc in the command above with ~/.bashrc or ~/.profile.
+            - This should let you use pg_ctl commands after you close and re-open the terminal.
+        - **Note:** After the initial set-up, if you installed via homebrew the server should start automatically when you boot your computer up. 
+    - Verify that `pg_ctl status` command can run. 
+        - If you see sonething about a server running or not running, you are good, 
+        - if it does not recognize pg_ctl as a command you have set the path variables or terminal profile incorrectly.
 
-7. Init back-end using npm dev-startup-scripts
+6. Init the database and server for the first time using dev-startup-scripts
 
     ---
 
     > 🐛 **Read if the scripts fail**:
     >
-    > 1. Please let Lily know via Slack or submit a bug report so I can fix them! I am new to scripting and am not working on Unix so I might have missed something.
+    > 1. Please let Lily know or submit a bug report so I can fix them! I am new to scripting and am not working on Unix so I might have missed something.
     > 3. If all else fails, continue with [Manual Back-End Init](#manual-back-end-init) to set it up manually with more detailed instructions.
 
     ---
@@ -104,47 +126,46 @@ $ npm run start-be-unix
         - Create database and user for Quill
 
             ```cmd
-            $ dev-startup-scripts\initBEWin.cmd
+            dev-startup-scripts\initBEWin.cmd
             ```
 
     - **Mac/Unix:**
         - Start database server for the first time
 
-            ```cmd
-            $ brew services start postgresql
+            ```Bash
+            brew services start postgresql
             ```
 
         - Create database and user for Quill
 
-            ```cmd
-            $ npm run init-unix
+            ```Bash
+            source dev-startup-scripts/initUnix.bash
             ```
 
 8. Verify success
     - Start psql (used to view and manipulate PostgreSQL databases and data)
 
         ```cmd
-        $ psql quill_db
+        psql quill_db
         ```
 
     - In psql (indicated by `$ quill_db=# `), list users under quill_db database
 
         ```psql
-        $ quill_db=# \du
+        quill_db=# \du
         ```
 
-    - Make sure that you see quill_user
-    - Enter `\q` to quit psql
+        - 🔍 Verify that you see quill_user
+        - If it is there, enter `\q` to quit psql
 
-        > **Useful psql commands:**
-        >
-        > - `\q` Quit
-        > - `\l` List databases
-        > - `\du` List roles
+            > **Other useful psql commands:**
+            >
+            > - `\q` Quit
+            > - `\l` List databases
+            > - `\du` List roles
 
     - ✅ If everything looks good:
         > **❗IMPORTANT NOTE: Remove the db password you added from [setup.sql](./setup.sql).**
-        - **Mac/Unix:** run `$ npm run start-be-unix` to start the database and server.
         - You're done! Read [Back-End Notes](#back-end-notes)
 
     #### Debugging Tips
@@ -160,7 +181,7 @@ $ npm run start-be-unix
 
 #### Manual Back-End Init
 
-1. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
+1. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ source .quill-venv/bin/activate`)
   
     > **Note for Windows:** You must use Command Prompt if you are using [`virtualenvwrapper-win`](https://pypi.org/project/virtualenvwrapper-win/), it will not work with powershell.
     - Start psql
@@ -169,11 +190,13 @@ $ npm run start-be-unix
         $ psql postgres
         ```
 
-    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the password provided in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
+    - Run all SQL commands in [setup.sql](./setup.sql), replacing PASS_IN_ENV with the same password you wrote in .ENV (Eventually we will automate this process). When you're done, quit psql with `\q`.
 
     ❗**Make sure you don't commit setup.sql with the password in it in git.**
 
 2. Install dependencies:  
+
+    Make sure your Python virtual environment is activated, and then run:
   
     ```cmd
     $ pip install -r requirements.txt
@@ -200,25 +223,17 @@ $ npm run start-be-unix
 
 4. Make and apply migrations:
 
-    > **Note:** If these commands do not work prefixed with `py`, also try `python3` and `python`.
-
     ```Bash
     $ py manage.py makemigrations && py manage.py migrate
     ```
 
-5. Start server:
-
-    ```Bash
-    $ py manage.py runserver
-    ```
-
 #### Back-End Notes
 
-- After this initial setup, you can use the appropriate script for your OS to start the API
-  - **Windows:** You can use `$ dev-startup-scripts\startBEWin.cmd` to just start the API, or `$ dev-startup-scripts\startQuilDevEnv.cmd` to staert the FE and BE at once
+- After this initial setup, you can use the appropriate script for your OS to start the database and server
+  - **Windows:** You can use `$ dev-startup-scripts\startBEWin.cmd` to just start the API, or `$ dev-startup-scripts\startQuilDevEnv.cmd` to start the FE and BE at once
   - **Mac/Unix**: `$ npm run start-be-unix`
+  - Or just run `$ pg_ctl start` to start the database and `$ py manage.py runserver` to start the server (make sure your virtual environment is active)
 
-  to start the back-end server and database.
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
 - To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
 You may consider install PgAdmin to make working with databases easier.
@@ -228,12 +243,31 @@ You may consider install PgAdmin to make working with databases easier.
 
 1. Follow steps for back-end to get database and Django server running
 
-2. **In a second terminal (so that you can leave the server running):**
-    Start dev server with `$ npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
+2. Install `nvm` (Node version manager)
 
-3. Switch to virtual environment following instructions of whichever virtual environment you're using (something like `$ venv quill`)
+    - [Windows](https://github.com/coreybutler/nvm-windows)
+    - [MacOS/unix](https://github.com/nvm-sh/nvm)
 
-4. Install dependencies:
+    Verify installation with
+  
+    ```Bash
+    nvm -v
+    ```
+
+3. Install Node
+
+    > **Note for Windows:** If access is denied on windows, try running commands in Command Prompt with elevated privileges. (Make sure to switch back into venv in Command Prompt.)
+
+    ```Bash
+    nvm install v22.2.0 && nvm use 22.2.0
+    ```
+
+    You may need to restart your computer for the installation to take effect.
+
+
+4. Start dev server with `$ npm run start-fe`. If that fails or does not launch a new window, proceed with step 3.
+
+5. Install dependencies:
 
     ```cmd
     $ cd quill-fe && npm install

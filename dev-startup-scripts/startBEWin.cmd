@@ -1,5 +1,5 @@
 @ECHO on 
-call workon quill
+call workon quill-venv
 
 :startDb
 pg_ctl start
