@@ -13,6 +13,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
   - [Front-end](#front-end)
     - [Front-End Notes](#front-end-notes)
   - [Testing](#testing)
+    - [Debugging](#debugging)
     - [Front-end Testing](#front-end-testing)
       - [Running Tests](#running-tests)
       - [Writing Tests](#writing-tests)
