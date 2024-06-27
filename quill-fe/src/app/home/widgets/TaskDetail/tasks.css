@@ -1,0 +1,155 @@
+.task-wrapper {
+  display: flex;
+  gap: var(--section-gap);
+  align-items: center;
+}
+
+.task-wrapper input.title {
+  background-color: unset;
+}
+
+.task-wrapper input.title.editing {
+  background-color: rgba(0, 0, 0, 0.265);
+}
+
+.title-date-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 10px;
+  row-gap: 3px;
+  margin: 0;
+  width: 100%;
+}
+
+.task-wrapper.complete p,
+.task-wrapper.complete i.checkmark {
+  color: var(--g4);
+}
+
+.task-wrapper.complete s {
+  color: var(--g4);
+  text-decoration: line-through solid var(--g4) 2px ;
+} 
+
+.task-wrapper.complete input {
+  text-decoration: line-through solid var(--g4) 2px;
+  width: 100%;
+} 
+
+.title p,
+.show-wrapper .title p {
+  text-align: left;
+}
+
+.overdue.title,
+.overdue.title p,
+.overdue.date-time-wrapper p {
+  color: var(--overdue);
+}
+
+.title.blank p,
+.title.blank.overdue p,
+input.title.blank::placeholder {
+  font-style: italic;
+  color: var(--g4);
+}
+
+.title-date-wrapper>label>p {
+  overflow: hidden;
+}
+
+/*#region Checkbox*/
+label.check-box-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+} 
+
+.check-box-wrapper input {
+  display: none;
+}
+
+i.checkmark {
+  width: min-content;
+  aspect-ratio: 1 / 1;
+  font-size: var(--check-box-size);
+  display: flex;
+}
+
+.check-box-wrapper label:focus i,
+.color-bubble-wrapper:focus {
+  box-shadow: 0 0 0 var(--focus-border-width) var(--focus-highlight);
+}
+
+.checkmark.round {
+  border-radius: 100%;
+  height: calc(var(--check-box-size)-1);
+  width: calc(var(--check-box-size)-1);
+}
+/*#endregion Checkbox*/
+
+.task-wrapper .date-time-wrapper {
+  flex-direction: column;
+}
+
+.color-bubble-wrapper {
+  aspect-ratio: 1 / 1;
+  min-width: 15px;
+  max-width: 30px;
+  align-content: center;
+  border-radius: 100%;
+  z-index: 5;
+}
+
+.color-label-wrapper {
+  display: flex;
+  column-gap: 10px;
+  max-height: min-content;
+}
+
+.color-label-wrapper input {
+  max-width: 120px;
+  width: 100%;
+}
+
+.color-picker {
+  position: absolute;
+  width: fit-content;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.color-picker > * {
+  flex: 1 1 0px;
+}
+
+.color-picker .colors {
+  display: flex;
+  align-items: center;
+  flex-direction: row;
+  width: min-content;
+}
+
+.color-picker .name-and-errors input {
+  text-align: center;
+  font-size: unset;
+}
+
+.color-picker-col {
+  display: flex;
+  flex-direction: column;
+}
+
+.color-picker .color-square {
+  aspect-ratio: 1 / 1;
+  width: 20px;
+  transition: transform .1s;
+}
+
+.color-picker .color-square:hover {
+  transform: scale(1.5);  
+}

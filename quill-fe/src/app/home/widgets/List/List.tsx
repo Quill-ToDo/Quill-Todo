@@ -1,14 +1,13 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
-import { DateTimeWrapper, Checkbox } from "@/store/tasks/TaskComponents";
+import { DateTimeWrapper, Checkbox, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
-import "@/store/tasks/tasks.css";
+import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-
 
 const SECTION_TOGGLE_DURATION = 100;
 
@@ -16,19 +15,19 @@ const SECTION_TOGGLE_DURATION = 100;
 /**
  * The list view for tasks.
  */
-export const ListWidget = observer(({store}: {store: TaskStore}) => {
+export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     // How long sections should take to collapse in millis
 
     // All possible views for the list
     const possibleListFormats = {
-        "by-status": <ByStatusThreeSection store={store}/>
+        "by-status": <ByStatusThreeSection store={taskStore}/>
     };
 
     const listFormat = "by-status";
     const loading = 
         <div className="loading-wrapper take-full-space">
             <div>
-                <i className="fas fa-list-alt loading-icon fa-4x" aria-hidden="true"></i>
+                <i className="fas fa-list-alt loading-icon fa-4x"></i>
                 <p className="">Loading list...</p>
             </div>
         </div>;
@@ -36,7 +35,7 @@ export const ListWidget = observer(({store}: {store: TaskStore}) => {
     // Before content is loaded show placeholder
     return (
         <section id="list-wrapper" aria-label="Task list">
-            {store.isLoaded ? possibleListFormats[listFormat] : loading}
+            {taskStore.isLoaded ? possibleListFormats[listFormat] : loading}
         </section>
     );
 });
@@ -131,18 +130,23 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 const Section = observer(({title, sectionNum, content, classNames}: {title: string, sectionNum: number, content: SubSectionContent[], classNames?: string}) => {
     const [sectionOpen, setSectionOpen] = useState(true);
 
-    var collapseToolTip = sectionOpen ? "Collapse " + title.toLowerCase() + " tasks" : "Expand " + title.toLowerCase() + " tasks";
+    var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} tasks` : `Expand ${title.toLowerCase()} tasks`;
+
+    useEffect(() => {
+        if (sectionOpen) {
+            // handleSectionToggle(sectionNum);
+        }
+    }, [])
     
     return (
-        <section id={getSectionId(sectionNum)} aria-labelledby={"section-"+sectionNum+"-title"} >
-            <div className={(classNames !== undefined ? classNames + " " : "") + "mid-section"}>
+        <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
+            <div className={`${classNames ? classNames : ""} mid-section`}>
                 <div className="header-container collapsible">
                     <button 
                         className="btn small square" 
                         title={collapseToolTip} 
                         aria-expanded={sectionOpen}
                         onClick={(e) => {
-                            handleSectionToggle(sectionNum);
                             setSectionOpen(!sectionOpen);
                         }}
                     >
@@ -150,12 +154,11 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                         className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
                         ></i>
                     </button>
-                    <h2 id={"section-"+sectionNum+"-title"}>{title}</h2>
+                    <h2 id={`section-${sectionNum}-title`}>{title}</h2>
                 </div>
                 <div className="section-collapsible">
                     <SubSection 
                         sectionContent={content}
-                        sectionNum={sectionNum}
                     />
                 </div>
             </div>
@@ -171,46 +174,47 @@ type SubSectionContent = {title?: string, tasks: TaskModel[], type: TaskModel.Vi
 /**
  * The contents of a subsection with a list section serparated out for performance
  */
-const SubSection = ({sectionNum, sectionContent}: {sectionNum: number, sectionContent: SubSectionContent[]}) => {
+const SubSection = observer(({sectionContent}: {sectionContent: SubSectionContent[]}) => {
     return sectionContent.map((section) => {
         return ( 
             <TaskSectionContent 
                 content={section}
+                key={`${section.title}-${section.type}`}
             />
             )
         })
-}
+})
 //#region Task list
+
 /**
  * The tasks within a subsection.
  */
-const TaskSectionContent = ({content}: {content: SubSectionContent}) => {
-    const sectionTitleId = "dark-section-title-"+content.title;
+const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
+    const sectionTitleId = `dark-section-title-${content.title}`;
     return (
-        <section aria-labelledby={content.title !== undefined ? sectionTitleId : ""}>
-            {content.title !== undefined ? <h3 id={sectionTitleId} className="centered">{content.title}</h3> : null}
+        <section aria-labelledby={content.title ? sectionTitleId : ""} key={`${content.title}-${content.type}`}>
+            {content.title && <h3 id={sectionTitleId} className="centered">{content.title}</h3>}
             <div className="dark-section">
-                {content.tasks.length === 0 ? 
-                <p className="subtle centered">{content.emptyText}</p>
-                :
+                {content.tasks.length ? 
                 <TaskList 
                     tasks={content.tasks} 
                     type={content.type}    
-                />
+                /> :
+                <p className="subtle centered">{content.emptyText}</p>
                 }
             </div>
         </section>
     )
-}
+})
 
 /**
  * The list of tasks, separated to a different method for performance
  */
-const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
+const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
     return <ul role="group">
         { tasks.map((task) => {
             return ( 
-                <li className="task" key={"task-li-"+task.id}>
+                <li className="task" key={`task-li-${task.id}`}>
                     <ListViewTask
                         task={task}
                         type={type}
@@ -219,7 +223,7 @@ const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyl
             )
         })}
     </ul>
-}
+})
 
 /**
  * One task within the list
@@ -227,29 +231,39 @@ const TaskList = ({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyl
 const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.VisualStyles }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
-    const classAddition = task.complete ? "complete" : "";
     const dateForm = DateTime.DATE_SHORT;
 
-    return (
-        <div className={`task-wrapper${task.complete ? " complete" : ""}`} id={id} key={task.id}> 
-            <Checkbox
-                task={task}
-                type={type}
-                checkboxId={checkboxId}
+    const taskWrapper = (
+    <div 
+        className={`task-wrapper ${task.complete && "complete"}`} 
+        id={id} 
+        key={`list-task-${task.id}`}
+    >
+        <Checkbox
+            task={task}
+            type={type}
+            checkboxId={checkboxId}
+        />
+        <div 
+            className="title-date-wrapper"
+        >
+            <label 
+                htmlFor={checkboxId} 
+                onClick={(e) => {
+                    e.preventDefault();
+                }}
+            >
+                <TaskTitle task={task} />
+            </label>
+            <DateTimeWrapper 
+                task={task} 
+                type="due" 
+                dateFormat={dateForm} 
             />
-            <button role="link" className="title-date-wrapper" onClick={() => task.setFocus()}>
-                {<label htmlFor={checkboxId} onClick={(e) => {e.preventDefault()}}>
-                {task.complete ? <p id={"task-title-" + task.id} className={"title " + classAddition}><s>{task.title}</s></p>
-                : <p id={"task-title-" + task.id} className={"title " + classAddition}>{task.title}</p>}    
-            </label>}
-                <DateTimeWrapper 
-                    task={task} 
-                    type="due" 
-                    dateFormat={dateForm} 
-                />
-            </button>
         </div>
-    )
+    </div>);
+
+    return taskWrapper;
 })
 
 //#endregion Task list

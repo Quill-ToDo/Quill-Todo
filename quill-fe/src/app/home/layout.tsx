@@ -2,36 +2,72 @@
 
 import { observer } from "mobx-react-lite";
 import './home.css'
-import { useTaskStore } from "@/store/StoreProvider";
 import { addAlert, ERROR_ALERT } from '@/alerts/alertEvent';
-import TaskDetail from '@/widgets/TaskDetail/TaskDetail';
-import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
-import NewTaskPopUp from "@/widgets/NewTask/NewTaskPopUp";
-import { ICONS } from "@/util/constants";
+import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
+import { offset, UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
+import { ICONS } from "../@util/constants";
+import { PositionedPopupAndReferenceElement } from "../@util/FloatingUiHelpers";
+import { useRef, useState } from "react";
+import { useTaskStore } from "./_globalStore/StoreProvider";
+
 
 const DashboardLayout = observer(({
   children, // will be a page or nested layout
 }: {
     children: React.ReactNode
 }) => {
-    const taskStore = useTaskStore();
+    const [showNewTaskPopupFromMenuButton, setShowNewTaskPopupFromMenuButton] = useState(false);
+    const newTaskPopupPositioning: UseFloatingOptions = {
+        open: showNewTaskPopupFromMenuButton,
+        onOpenChange: setShowNewTaskPopupFromMenuButton,
+        placement: "right-start",
+        middleware: [offset(20)],
+    };
+    const dismissOptions: UseDismissProps = {
+        outsidePress: false,
+        referencePress: false,
+        bubbles: false,
+    }
 
+    const taskStore = useRef(useTaskStore());
+    
     return ( 
-        <div id="home-wrapper" data-testid="home">
-            { taskStore.taskBeingEdited && !taskStore.taskBeingFocused ? <NewTaskPopUp taskStore={taskStore}/> : null }
-            { taskStore.taskBeingFocused ? <TaskDetail task={taskStore.taskBeingFocused}/> : null }
-            <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
-                <button role="menuitem" className="btn small square no-shadow" title="Add task" type="button" onClick={() => {
-                        new EditTaskModel();
-                    }}>
-                    { ICONS.PLUS }
-                </button>
-                <button role="menuitem" className="btn small square no-shadow" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
-                    <i className="fas fa-power-off fa-fw"></i>
-                </button>
-            </menu>
-            {children}
-        </div>
+            <div id="home-wrapper" data-testid="home">
+                <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
+                    <PositionedPopupAndReferenceElement
+                        popupPositioningOptions={newTaskPopupPositioning}
+                        dismissPopupOptions={dismissOptions}
+                        renderRef={(ref, props) => {
+                        return <button 
+                            id="add-task"
+                            ref={ref} 
+                            role="menuitem" 
+                            className="btn small square bg" 
+                            title="Add task" 
+                            onClick={() => {
+                                taskStore.current.createNewTask();
+                                setShowNewTaskPopupFromMenuButton(true);
+                                }}
+                                {...props}
+                                >
+                            { ICONS.PLUS }
+                        </button>
+                        }}
+                        popupElement={ 
+                            <AddNewTaskPopUp 
+                                close={() => {
+                                    setShowNewTaskPopupFromMenuButton(false);
+                                }}
+                                taskToCreate={taskStore.current.taskBeingCreated}
+                            />
+                        }
+                    />
+                    <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
+                        <i className="fas fa-power-off fa-fw"></i>
+                    </button>
+                </menu>
+                {children}
+            </div>
     )
 })
 

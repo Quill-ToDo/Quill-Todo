@@ -106,18 +106,13 @@ p {
   }
   
 
-p.date,
-p.time {
+.date-time-wrapper {
   color: var(--g4);
   font-size: var(--smaller-p-size);
 }
 
 p.time {
   font-size: calc(var(--smaller-p-size) - 3px);
-}
-
-.date-time-wrapper.overdue p {
-  color: var(--overdue);
 }
 
 .subtle {
@@ -143,9 +138,29 @@ p.time {
     align-items: center;
 }
 
+.aligned.top {
+    align-items: flex-start;
+}
+
 .aligned.end {
     justify-content: flex-end;
     gap: 7px;
+}
+
+.aligned.even {
+    justify-content: space-around;
+}
+
+.same-size {
+    display: flex;
+}
+
+.same-size > * {
+    flex: 1 1 0px;
+}
+
+.full-width {
+    width: 100%;
 }
 
 .take-full-space {
@@ -157,6 +172,7 @@ p.time {
     display: none;
     opacity: 0;
 }
+
 /*#endregion Layout/Style Helpers*/
 /*#region Re-Usable Elements*/
 /*#region Inline Elements*/
@@ -205,30 +221,36 @@ section.more-padding {
     opacity: 1;
     font-family: "Azeret Mono", monospace;
     color: var(--g2);
-    font-weight: 00;
     padding: 5px;
     font-size: var(--p-size);
-    background-color: var(--g5);
-    box-shadow: 3px 3px var(--g6);
-    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
-    transition: box-shadow 0.2s, background-color 0.2s, color .2s, transform 0.2s;
     border-radius: 8px;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
+    transition: box-shadow 0.2s, background-color 0.2s, color .2s, transform 0.2s;
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
 }
+
+/* Show a transition for focusing on elements */
+.check-box-wrapper input:focus~i,
+#list-wrapper button.title:focus,
+.color-bubble-wrapper:focus,
+:focus-visible {
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: border 0.2s, box-shadow 0.2s, color .2s, outline 0.2s;
+}
+
+input:focus {
+    transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
+    transition: outline 0.1s;
+}
+
 /*#region Button Styles*/
-.btn.no-shadow:not(:focus),
-.btn.btn-light-grey.no-shadow,
-.btn.btn-green.no-shadow,
-.btn.btn-red.no-shadow {
-    /* No shadow */
-    box-shadow: none;
-}
 .btn.square {
     aspect-ratio: 1 / 1;
 }
+
 .btn.small {
     width: 35px;
     height: auto;
@@ -243,7 +265,16 @@ section.more-padding {
     font-weight: bold;
     font-size: 35px;
 }
+
+.btn.large.text {
+    font-size: 23px;
+}
 /*#region Colors*/
+
+.btn.bg {
+    background-color: var(--g11);
+}
+
 .btn.btn-red,
 .btn.btn-green,
 .btn.btn-light-grey {
@@ -254,41 +285,28 @@ section.more-padding {
 .btn.btn-light-grey:focus {
     background-color: var(--g2);
 }
-.btn.btn-red:hover,
-.btn.btn-green:hover,
-.btn.btn-light-grey:hover {
-    box-shadow: none;
-}
 /* Red button */
 .btn.btn-red {
     background-color: var(--btn-red-bg);
-    box-shadow: 2px 2px var(--btn-red-shadow);
 }
 .btn.btn-red:focus,
 .btn.btn-red:hover {
-    color: white;
+    color: var(--focus-highlight);
     background-color: var(--btn-red-shadow);
 }
 /* Green button */
 .btn.btn-green {
     background-color: var(--btn-green-bg);
-    box-shadow: 2px 2px var(--btn-green-shadow);
 }
 .btn.btn-green:focus,
 .btn.btn-green:hover {
-    color: white;
+    color: var(--focus-highlight);
     background-color: var(--btn-green-shadow);
 }
 /* Grey button */
 .btn.btn-light-grey {
     background-color: var(--btn-light-grey-bg);
-    box-shadow: 2px 2px var(--btn-light-grey-shadow);
 
-}
-.btn.btn-light-grey:focus,
-.btn.btn-light-grey:hover {
-    color: white;
-    background-color: var(--btn-light-grey-shadow);
 }
 /*#endregion Colors*/
 /*#endregion Button Styles*/
@@ -301,23 +319,21 @@ button {
 button:focus {
     outline: none;
 }
-.btn:focus {
-    box-shadow:inset 0px 0px 0px 3px var(--focus-highlight);
+
+.check-box-wrapper .checkmark {
+    border-radius: 3px;
 }
-/* "invert" color if focused */
-.btn:hover {
-    background-color: var(--g1);
-    color: var(--g10);
-    box-shadow: 3px 3px var(--g2);
-    z-index: 0;
+
+.btn:focus
+{
+    box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
 }
-.btn:hover i svg {
-    stroke: var(--g10);
-}
-.btn:hover:not(.no-shadow) {
-    transform: translate(1px, 2px);
-    box-shadow: none;
-    z-index: 0;
+
+.btn:hover, .btn:focus{
+    background-color: var(--list-hover);
+    color: var(--focus-highlight);}
+.btn:hover i svg, .btn:focus i svg {
+    stroke: var(--focus-highlight);
 }
 /*#endregion Button States*/
 .btn i {
@@ -341,8 +357,11 @@ textarea {
     border-radius: 10px;
     font-family: "Quicksand", sans-serif;
     font-weight: 500;
-    font-size: vr(--p-size);
     color: var(--g1);
+}
+
+:focus-visible {
+    outline: var(--focus-highlight) solid var(--focus-border-width);
 }
 
 form input,
@@ -355,18 +374,25 @@ form h3 {
   text-align: left;
   border: none;
   color: var(--g3);
-  font-size: var(--p-size);
 }
 
 form .btn {
     margin-top: var(--section-gap);
 }
  
-form input[aria-invalid="true"],
-form textarea[aria-invalid="true"] {
+input[aria-invalid="true"],
+textarea[aria-invalid="true"] {
     background-color: var(--failure-bg);
 }
 
+input[aria-invalid="true"]:focus,
+input[aria-invalid="true"]:focus-visible,
+textarea[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus-visible {
+    outline: var(--failure-outline) solid var(--focus-border-width);;
+}
+
+form .sublabel label,
 form label.sublabel {
     font-size: var(--h5-size);
     color: var(--g4);
@@ -390,17 +416,15 @@ form label.sublabel {
   }
 
 hr {
-    width: 60%;
+    width: 70%;
     color: var(--g3);
-    background-color: linear-gradient(90deg,
-            rgba(94, 94, 94, 0.6979925759366247) 0%,
-            rgba(94, 94, 94, 1) 25%,
-            rgba(94, 94, 94, 1) 75%,
-            rgba(94, 94, 94, 0.6951914554884453) 100%);
     margin: auto;
     margin-top: 20px;
     margin-bottom: 20px;
     opacity: 0.4;
+    border-top: 3px solid;
+    border-radius: 3px;
+    
 }
 /*#endregion Forms*/
 /*#endregion Inline Elements*/
@@ -411,14 +435,16 @@ hr {
     width: 28vw;
     max-width: 95vw;
     min-height: 10vh;
-    left: calc(var(--menu-width) + 10px);
-    top: var(--section-gap);
     z-index: 5;
     position: absolute;
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);
     overflow: hidden;
     outline: solid var(--g4) 3px;
+  }
+
+  div[data-floating-ui-portal] > div {
+    z-index: 5;
   }
 
 .popup .header-container {

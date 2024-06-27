@@ -1,6 +1,7 @@
 import { DateTime } from "luxon";
 
 // Date and Time Constants
+// Make sure you call these inside of a hook in a React component to avoid hydration errors!
 export const END_OF_DAY = () => DateTime.now().endOf('day');
 export const START_OF_DAY = () => DateTime.now().startOf('day');
 

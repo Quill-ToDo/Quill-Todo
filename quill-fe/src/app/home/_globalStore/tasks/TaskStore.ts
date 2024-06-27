@@ -4,19 +4,23 @@ import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
-import EditTaskModel from "@/widgets/NewTask/EditTaskModel";
+
+export type TaskDataOnDay = {
+    start: TaskModel[];
+    due: TaskModel[];
+    scheduled: TaskModel[];
+};
+
+export type Timeline = Map<DateTime, TaskDataOnDay>;
 
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
     static taskStoreSingletonInstance : TaskStore;
     API : TaskApi;
     rootStore : RootStore;
-    timeline;
-    taskSet : Set<TaskModel> = new Set<TaskModel>();
-    // Task to show details for
-    taskBeingFocused : TaskModel | null = null;
-    // Task : TODO: Move this to static EditTaskModel
-    taskBeingEdited : EditTaskModel | null = null;
+    taskSet : Set<TaskModel> = new Set();
+    // The singleton task currenbtly being created, has not synced to server
+    taskBeingCreated : TaskModel | null = null;
     // Boolean : Whether the store has synced with server
     isLoaded : boolean = false;
 
@@ -32,34 +36,32 @@ export default class TaskStore {
             API: false,
             rootStore: false,
             tasksInRange: false,
-            timeline: false,
             // Observables
             isLoaded: observable,
             taskSet: observable,
-            taskBeingFocused: observable,
-            taskBeingEdited: observable,
+            taskBeingCreated: observable,
             // Computeds
             tasks: computed,
+            taskMap: computed,
+            taskTimeline: computed,
             // Actions
-            loadTasks: false,
-            setEditing: action,
-            setFocus: action,
-            removeFocus: action,
+            createNewTask: action,
+            setNewTask: action,
             add: action,
             remove: action, 
             delete: action,
+            getTaskWithId: false,
+            loadTasks: false,
         }, {proxy: false})
         this.rootStore = rootStore;
         if (TaskStore.taskStoreSingletonInstance !== undefined) {
             throw new Error("You cannot create two TaskStores, access the global TaskStore with TaskStore.taskStoreSingletonInstance")
         }
         TaskStore.taskStoreSingletonInstance = this;
-        this.timeline = this.rootStore.eventStore;
         this.API = API;
         this.taskSet = new Set<TaskModel>();
-        this.loadTasks();
-        this.taskBeingFocused = null;
-        this.taskBeingEdited = null;
+        this.loadTasks({});
+        this.taskBeingCreated = null;
     }
 
     /**
@@ -68,55 +70,132 @@ export default class TaskStore {
      * @param {*} retry The number of times this call has been retried.
      * @returns 
      */
-    async loadTasks (retry:number=0, connectionAlertIdselectorForFieldElementstring="") {
+    async loadTasks (
+        {
+            retry=0,
+            connectionAlertIdselectorForFieldElementstring,
+            refresh=false,
+        } : {
+            retry?: number, 
+            connectionAlertIdselectorForFieldElementstring?: string, 
+            refresh?: boolean}) {
         this.isLoaded = false;
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
-                fetchedTasks.data.forEach((json : object )=> new TaskModel(json));
+                fetchedTasks.data.forEach((json : {[index : string]: any}) => {
+                    if (refresh && this.taskMap && this.taskMap.has(json.id)) {
+                        this.getTaskWithId(json.id) && this.getTaskWithId(json.id).setJson(json);
+                    }
+                    else {
+                        new TaskModel(json);
+                    }
+                });
                 this.isLoaded = true;
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
                     addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Re-established connection");
                 }
+                if (refresh) {
+                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Reset all tasks to previous state");
+                }
             });
         }).catch(e => {
             if (retry === 0) {
-                connectionAlertIdSelector = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
+                connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
                 console.error(e);
             }
-            else if (connectionAlertIdSelector) {
-                updateAlertText(connectionAlertIdSelector, `Could not load tasks - ${e} - Retry #${retry+1}`)
+            else if (connectionAlertIdselectorForFieldElementstring) {
+                updateAlertText(connectionAlertIdselectorForFieldElementstring, `Could not load tasks - ${e} - Retry #${retry+1}`)
             }
-            setTimeout(() => {this.loadTasks(retry + 1, connectionAlertIdSelector)}, 3000);
+            setTimeout(() => {this.loadTasks({retry: retry + 1, connectionAlertIdselectorForFieldElementstring: connectionAlertIdselectorForFieldElementstring})}, 3000);
         })
     }
 
+    
+    get tasks () {
+        return Array.from(this.taskSet);
+    }
+    
+    get taskMap (): Map<string, TaskModel> {
+        let map: Map<string, TaskModel> = new Map();
+        this.tasks.forEach((task) => {
+            map.set(task.id, task);
+        });
+        return map;
+        
+    }
+
+    getTaskWithId = (id: string) => {
+        return this.taskMap.get(id);
+    }
+    
     tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {
         return this.tasks.filter(task => (task.start <= endTime && task.start >= startTime) || (task.due <= endTime && task.due >= startTime));
     }
 
-    get tasks () {
-        return Array.from(this.taskSet);
-    }
-
-    /**
-     * Specify the task that details should be shown for (show task popup).
-     * @param {TaskModel} task Task that details should be shown for
-     */
-    setFocus (task : TaskModel) {
-        this.taskBeingFocused = task;
+    get taskTimeline () {
+        const timeline: Timeline = new Map();
+        let dayKey: string, firstDayInRange: DateTime, lastDayInRange: DateTime, tasksThisDay; 
+        this.tasks.forEach(task => {
+            firstDayInRange = task.start.startOf('day');
+            lastDayInRange = task.due.endOf('day');
+            for (let dayItr = firstDayInRange.startOf('day'); dayItr <= lastDayInRange.endOf('day'); dayItr = dayItr.plus({days:1})) {
+                dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
+                if (!timeline.has(dayKey)) { 
+                    timeline.set(dayKey, 
+                        {
+                            start: [],
+                            due: [],
+                            scheduled: [],
+                        })
+                }
+                tasksThisDay = timeline.get(dayKey);
+                if (tasksThisDay) {
+                    if (dayItr.hasSame(lastDayInRange, 'day')) {
+                        tasksThisDay.due.push(task);
+                    }
+                    if (dayItr.hasSame(firstDayInRange, 'day')) {
+                        tasksThisDay.start.push(task);
+                    }
+                    if (!dayItr.hasSame(lastDayInRange, 'day') && !dayItr.hasSame(firstDayInRange, 'day')) {
+                       tasksThisDay.scheduled.push(task);
+                    }
+                }
+            }
+        });
+        return timeline;
     }
     
-    setEditing(task : EditTaskModel | null) {
-        this.taskBeingEdited = task;
-    }
+    createNewTask () : TaskModel {
+        if (this.taskBeingCreated) {
+            // If a new task is already being added, return focus to it
+            // until it's intentionally disgarded
+            const popup = document.getElementById("new-wrapper");
+            if (!popup) { return this.taskBeingCreated; }
+            const firstInput = popup.querySelector("input");
+            firstInput && firstInput.focus();
+            return this.taskBeingCreated;
+        } 
+        else {
+            const taskBeingCreated = new TaskModel();
+            this.setNewTask(taskBeingCreated);
+            this.add(taskBeingCreated);
+            return taskBeingCreated;
+        }
+    } 
 
     /**
-     * Specify that no task should have its details shown in a popup.
+     * Set the task passed as "being created". Only one task can be 
+     * in this state at a time. Updates to the task model will not 
+     * be saved to the server, but changes will be synchronized in the UI 
+     * through the TaskStore. 
+     * To sync changes to server, call `task.submitNewTask` or abort 
+     * changes with `task.abortTaskCreation`.
      */
-    removeFocus () {
-        this.taskBeingFocused = null;
+    setNewTask (task : TaskModel | null) {
+        this.taskBeingCreated = task;
+        task && task.turnOffAutosaveToDb();
     }
 
     /**
