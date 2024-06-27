@@ -3,7 +3,7 @@
 import { observer } from "mobx-react-lite";
 import './home.css'
 import { addAlert, ERROR_ALERT } from '@/alerts/alertEvent';
-import NewTaskPopUp from "@/widgets/NewTask/NewTaskPopUp";
+import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
 import { offset, UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
 import { ICONS } from "../@util/constants";
 import { PositionedPopupAndReferenceElement } from "../@util/FloatingUiHelpers";
@@ -54,13 +54,9 @@ const DashboardLayout = observer(({
                         </button>
                         }}
                         popupElement={ 
-                            <NewTaskPopUp 
+                            <AddNewTaskPopUp 
                                 close={() => {
                                     setShowNewTaskPopupFromMenuButton(false);
-                                    const taskBeingCreated = taskStore.current.taskBeingCreated;
-                                    if (taskBeingCreated && taskBeingCreated.isNewAndUnsubmitted) {
-                                        taskBeingCreated.abortTaskCreation();
-                                    }
                                 }}
                                 taskToCreate={taskStore.current.taskBeingCreated}
                             />

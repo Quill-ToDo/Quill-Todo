@@ -386,8 +386,10 @@ textarea[aria-invalid="true"] {
 }
 
 input[aria-invalid="true"]:focus,
-textarea[aria-invalid="true"]:focus {
-    box-shadow: 0 0 0 var(--focus-border-width) var(--failure-outline);
+input[aria-invalid="true"]:focus-visible,
+textarea[aria-invalid="true"]:focus,
+textarea[aria-invalid="true"]:focus-visible {
+    outline: var(--failure-outline) solid var(--focus-border-width);;
 }
 
 form .sublabel label,
@@ -439,6 +441,10 @@ hr {
     border-radius: var(--box-corner-rounding);
     overflow: hidden;
     outline: solid var(--g4) 3px;
+  }
+
+  div[data-floating-ui-portal] > div {
+    z-index: 5;
   }
 
 .popup .header-container {

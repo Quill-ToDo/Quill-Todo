@@ -108,7 +108,7 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                 { monthData.weeks.map((weekData, i) =>
                                     <Fragment key={`${weekData.weekNum}`}>
                                         { weekData.days.map(day =>  
-                                        <button 
+                                        <div 
                                             className={"day-container" + day.monthBorder.reduce((accumulator, currentValue, currentIndex) => 
                                                 accumulator + (currentValue ? " " + monthBorderIndexToClassName.get(currentIndex) : ""), " ")}
                                             key={`day-${monthData.monthName}-${day.date}`}
@@ -129,7 +129,7 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                                     </Fragment>
                                                 })}
                                             </div>
-                                        </button>    
+                                        </div>    
                                     )}
                                     </Fragment>
                                 )}

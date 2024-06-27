@@ -1,10 +1,10 @@
-import { useEffect } from "react";
+import { ChangeEvent, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
 import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
 import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
-import { FormField, FormFieldParams, handleSubmit } from "@util/FormComponents";
+import { FormField } from "@util/FormComponents";
 import { TaskModel } from "../../_globalStore/tasks/TaskModel";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
@@ -16,20 +16,17 @@ const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
  * and is marked as "beingCreated"
  * in TaskStore.
  */
-const AddNewTaskPopUp = observer(({close, taskToCreate}: 
+export const AddNewTaskPopUp = observer(({close, taskToCreate}: 
     {
         close: () => void, 
         taskToCreate: TaskModel | null, 
     }) => {
-
-    if (!taskToCreate) {
-        return null;
-    }
+    const formRef = useRef(null);
 
     useEffect(() => {
         const popup = document.querySelector(OUTER_WRAPPER_ID);
         popup && makeDraggable(popup as HTMLElement);
-        const firstInput = document.querySelector(`input[name='${formData[Object.keys(formData)[0]].name}']`) as HTMLElement;
+        const firstInput = formRef.current.querySelector(`[name="Title"]`);
         firstInput && firstInput.focus();
         
         // return (() => {
@@ -39,100 +36,120 @@ const AddNewTaskPopUp = observer(({close, taskToCreate}:
         // })
     }, [])
 
-    
-    const formData: {
-        [index: string]: FormFieldParams,
-        [index: number]: FormFieldParams,
-        title: FormFieldParams, 
-        desc: FormFieldParams, 
-        startDate: FormFieldParams, 
-        startTime: FormFieldParams, 
-        dueDate: FormFieldParams, 
-        dueTime: FormFieldParams, 
-        color: FormFieldParams, 
 
-    } = {
-        title: {
-            name: `Title`,
-            element: <TaskTitle task={taskToCreate} editAllowed={true}/>,
-        },
-        desc: {
-            name: `Description`,
-            type: `textarea`,
-            value: taskToCreate.description,
-            errors: taskToCreate.validationErrors.description,
-            onChange: function (e) { e.target && taskToCreate.setDescription(e.target.value); },
-        },
-        startDate: {
-            name: `Start Date`,
-            value: taskToCreate.startDateStringUnderEdit,
-            errors: taskToCreate.validationErrors.startDateStringUnderEdit,
-            onChange: function (e) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value); },
-        },
-        startTime: { 
-            name: `Start Time`,
-            value: taskToCreate.startTimeStringUnderEdit,
-            errors: taskToCreate.validationErrors.startTimeStringUnderEdit,
-            onChange: function (e) { e.target && taskToCreate.setStartTimeStringUnderEdit(e.target.value); },
-        },
-        dueDate: {
-            name: `Due Date`,
-            value: taskToCreate.dueDateStringUnderEdit,
-            errors: taskToCreate.validationErrors.due.concat(taskToCreate.validationErrors.workInterval, taskToCreate.validationErrors.dueDateStringUnderEdit),
-            onChange: function (e) { e.target && taskToCreate.setDueDateStringUnderEdit(e.target.value); },
-        },
-        dueTime: {
-            name: `Due Time`,
-            value: taskToCreate.dueTimeStringUnderEdit,
-            errors:  taskToCreate.validationErrors.dueTimeStringUnderEdit,
-            onChange: function (e) { e.target && taskToCreate.setDueTimeStringUnderEdit(e.target.value); },
-
-        },
-        color: {
-            name: `Color`,
-            required: true,
-            element: <ColorBubble task={taskToCreate}/>,
-        }
-    }
-
-    return (
-        <div id={OUTER_WRAPPER_NAME} className="popup draggable">
+    return (!taskToCreate ? <></> : <div id={OUTER_WRAPPER_NAME} className="popup draggable">
             <div className="header-container draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned end">
                     <button className="btn small square" title="Close" onClick={() => {
-                        close();
                         taskToCreate && taskToCreate.abortTaskCreation();
+                        close();
                     }}>
                         { ICONS.X }
                     </button>
                 </div>
             </div>
             <section className="mid-section" aria-labelledby="popup-title">
-                <form id="add-taskToCreate" className="form" onSubmit={(e) => handleSubmit({
-                    outerWidgetId: OUTER_WRAPPER_ID,
-                    submitEvent: e,
-                    successCallback: () => {
-                        if (taskToCreate) { taskToCreate.submitNewTask(); }
-                        }, 
-                    fieldData: formData, 
-                })}>
+                <form 
+                    id="add-taskToCreate" 
+                    ref={formRef}
+                    className="form"
+                    onSubmit={(e) =>  {
+                        e.preventDefault();
+                        if (taskToCreate) { 
+                            if (taskToCreate.isValid) {
+                                taskToCreate.submitNewTask().then(((value) => {
+                                    close();
+                                })); 
+                            }
+                            else {
+                                let focusEle = e.target.querySelector(`[aria-invalid="true"]`);
+                                !!focusEle && focusEle.focus();
+                            }
+                        }
+                    }}
+                >
                     <div id="title-color">
-                        <FormField {...formData.color} />
-                        <FormField {...formData.title} />
+                        <FormField 
+                            name="Color"
+                            required={true}
+                            element={<ColorBubble task={taskToCreate} />}
+                            />
+                        <FormField
+                            name="Title"
+                            required={true}
+                            element={<TaskTitle task={taskToCreate} editAllowed={true}/>}
+                        />
                     </div>
-                    <FormField {...formData.desc}/>
+                    <FormField 
+                        name={`Description`}
+                        required={false}
+                        type={`textarea`}
+                        inputProps={
+                            { 
+                                // TODO figure out what happens if I set this : required: true,
+                                value: taskToCreate.description,
+                                onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDescription((e.target as HTMLTextAreaElement).value);}
+
+                            }
+                        }
+                        errors={taskToCreate.validationErrors.description}
+                    />
                     <div className={"start-due-wrapper horizontal-align"}> 
                         <div>
                             <div className={"horizontal-align"}>
-                                <FormField {...formData.startDate} />
-                                <FormField {...formData.startTime} />
+                                <FormField 
+                                    name={`Start Date`}
+                                    required={false}
+                                    inputProps={
+                                        { 
+                                            value: taskToCreate.startDateStringUnderEdit,
+                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value);}
+                                        }
+                                    }
+                                    errors={taskToCreate.validationErrors.startDateStringUnderEdit}
+                                />
+                                <FormField 
+                                    name={`Start Time`}
+                                    required={false}
+                                    inputProps={
+                                        { 
+                                            value: taskToCreate.startTimeStringUnderEdit,
+                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartTimeStringUnderEdit(e.target.value); }
+            
+                                        }
+                                    }
+                                    errors={taskToCreate.validationErrors.startTimeStringUnderEdit}
+                                />
                             </div>
                         </div>
                         <div>
                             <div className={"horizontal-align"}>
-                                <FormField {...formData.dueDate} />
-                                <FormField {...formData.dueTime} />
+                                <FormField 
+                                    name={`Due Date`}
+                                    required={false}
+                                    inputProps={
+                                        { 
+                                            value: taskToCreate.dueDateStringUnderEdit,
+                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDueDateStringUnderEdit(e.target.value); }
+            
+                                        }
+                                    }
+                                    errors={taskToCreate.validationErrors.due.concat(taskToCreate.validationErrors.workInterval, taskToCreate.validationErrors.dueDateStringUnderEdit)}
+                                />
+                                <FormField  
+                                    name={`Due Time`}
+                                    required={false}
+                                    inputProps={
+                                        { 
+                                            value: taskToCreate.dueTimeStringUnderEdit,
+                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDueTimeStringUnderEdit(e.target.value); }
+            
+                                        }
+                                    }
+                                    errors={ taskToCreate.validationErrors.dueTimeStringUnderEdit}
+                                  
+                                />
                             </div>
                         </div>
                     </div>
@@ -144,5 +161,3 @@ const AddNewTaskPopUp = observer(({close, taskToCreate}:
         </div>
     )
 })
-
-export default AddNewTaskPopUp;

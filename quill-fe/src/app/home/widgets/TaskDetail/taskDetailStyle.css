@@ -28,8 +28,8 @@
   font-size: var(--p-size);
 }
 
-.show-wrapper .complete s,
-.show-wrapper .complete input {
+.show-wrapper .task-wrapper.complete s,
+.show-wrapper .task-wrapper.complete input {
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 3px ;
 } 

@@ -53,11 +53,12 @@
     text-align: left;
   }
 
-  #list-wrapper label {
+  #list-wrapper .title-date-wrapper label {
     flex: 1 0 0px;
     width: 100%;
     height: 100%;
   }
+  
   #list-wrapper time {
     flex: 0 1 0px;
   }

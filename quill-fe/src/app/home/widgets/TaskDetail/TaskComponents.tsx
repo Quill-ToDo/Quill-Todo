@@ -1,28 +1,33 @@
 import { PositionedPopupAndReferenceElement } from "@/app/@util/FloatingUiHelpers";
 import { ErrorsList } from "@/app/@util/FormComponents";
 import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
-import { UseDismissProps, UseFloatingOptions, shift, offset } from "@floating-ui/react";
+import { UseDismissProps, UseFloatingOptions, shift, offset, autoPlacement } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, HTMLProps, LegacyRef, useCallback, useRef, useState } from "react";
+import { ComponentProps, HTMLProps, LegacyRef, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
 
 
 //#region Checkbox
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
-    return <div className="check-box-wrapper">
+    return <label 
+            className="check-box-wrapper"
+            htmlFor={checkboxId}
+            title={`Mark task ${task.complete ? "uncomplete" : "complete"}`}
+            aria-label="task checkbox"
+            tabIndex={0}
+        >
         <input 
             type="checkbox" 
-            title={`Mark task ${task.complete ? "uncomplete" : "complete"}`}
             aria-label="task checkbox"
             id={checkboxId}
             onChange={() => {task.toggleComplete()}}
             checked={task.complete}
             >
         </input>
-        {type === "due" ? <TaskDueCheckbox task={task} /> : <WorkCheckbox task={task} />}
-    </div>;
+        {type === "due" ? <TaskCheckbox task={task} form="due" /> : <TaskCheckbox task={task} form="work" />}
+    </label>;
 });
 
 const TaskCheckbox = observer(({task, form}: {task: TaskModel, form: "work" | "due"}) => {
@@ -42,48 +47,45 @@ const checkboxIconOptions = {
     }
 };
 
-const TaskDueCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="due" />);
-
-const WorkCheckbox = observer(({task}: {task: TaskModel}) => <TaskCheckbox task={task} form="work" />);
 //#endregion 
 //#region Color Picker
 const ColorGridPicker = observer(({task, closePicker}: {
     task: TaskModel, 
     closePicker: () => void, 
 }) => {
+    const errorId = `color-${task.id}-errors`;
+    const inputRef = useRef(null);
     const finalTaskColor = useRef(task.color);
     const startingTaskColor = useRef(task.color);
-    const closeProcedure = useCallback(() => {
+
+    useEffect(() => {
+        inputRef.current && (inputRef.current as HTMLInputElement).select();
+    })
+
+    const close = useCallback(() => {
         task.setColor(finalTaskColor.current);
-        if (finalTaskColor.current !== startingTaskColor.current) {
-            task.saveToServer({color: task.color});
+        if (finalTaskColor.current != startingTaskColor.current) {
+            task.saveToServer({color: finalTaskColor.current});
         }
         closePicker();
     }, [finalTaskColor, startingTaskColor]);
-    const errorId = `color-${task.id}-errors`;
 
     return <div 
-                className="color-picker popup" 
-                onMouseLeave={() => 
-                {
-                    // Stay open as long as the user is hovering over the picker
-                    closeProcedure();
-                }}
+                className="color-picker popup"
+                onMouseLeave={() => task.setColorStringUnderEdit(finalTaskColor.current)}
         > <div className="colors">
             { TaskColorCodes.map((colorCol: {key: string, data: string[]}) => <div className="color-picker-col" key={`${colorCol.key}`}> 
                     { colorCol.data.map((color: string) => 
                         <div
                             className="color-square" 
-                            style={{backgroundColor: `#${color}`}} 
+                            style={{backgroundColor: color}} 
                             key={color} 
                             onMouseEnter={() => {
-                                task.setColor(`#${color}`);
+                                task.setColorStringUnderEdit(color);
                             }}
                             onClick={() => {
-                                if (!task.validationErrors.colorStringUnderEdit.length) {
-                                    finalTaskColor.current = `#${color}`;
-                                    closeProcedure();
-                                }
+                                finalTaskColor.current = color;
+                                close();
                             }}
                         ></div>
                     )}
@@ -92,8 +94,13 @@ const ColorGridPicker = observer(({task, closePicker}: {
         </div>
         <div className="name-and-errors">
             <input 
-                value={task.color} 
-                readOnly
+                value={task.colorStringUnderEdit} 
+                onChange={(e) => {
+                    if (task.setColorStringUnderEdit(e.target.value)) {
+                        finalTaskColor.current = e.target.value;
+                    };
+                }}
+                ref={inputRef}
                 aria-invalid={!!task.validationErrors.colorStringUnderEdit.length}
                 aria-describedby={errorId}
             >    
@@ -117,7 +124,7 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
     };
     const dismissOptions: UseDismissProps = {
         outsidePress: true,
-        // referencePress: true,
+        referencePress: true,
         bubbles: false,
     }
 
@@ -129,7 +136,7 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
                 className="color-bubble-wrapper" 
                 ref={ref}
                 onClick={(e) => {
-                    e.preventDefault();
+                    // e.preventDefault();
                     setShowPicker(true);
                 }}
                 title="Change task color"
@@ -165,11 +172,10 @@ const PlainTaskTitle = observer((
     const taskDetailsPopupPositioning: UseFloatingOptions = {
         open: showDetails,
         onOpenChange: setShowDetails,
-        placement: "right",
-        middleware: [offset(20), shift()],
+        middleware: [offset(20), autoPlacement()],
     };
     const dismissOptions: UseDismissProps = {
-        outsidePress: false,
+        outsidePress: true,
         referencePress: false,
     }
 
@@ -208,10 +214,10 @@ const EditableTaskTitle = observer((
         props: ComponentProps<"input">,
     }
 ) => {
-    const startingText = useRef(task.title);
+    const startingText: RefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const editInputRef: LegacyRef<HTMLInputElement> = useRef(null);
+    const editInputRef: RefObject<HTMLInputElement> = useRef(null);
     const finishEditing = () => {
         if (editInputRef.current && editInputRef.current.value !== startingText.current) {
             task.saveToServer({title: editInputRef.current.value});
@@ -225,7 +231,7 @@ const EditableTaskTitle = observer((
             <input 
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
                 value={task.title}
-                aria-labelabel={"Title"}
+                aria-label={"Title"}
                 aria-invalid={!!task.validationErrors.title.length}
                 aria-describedby={errorId}
                 title={"Edit Title"}

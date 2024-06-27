@@ -32,15 +32,14 @@ const NestablePopup = observer(({
     useDismissParams?: UseDismissProps,
     focusManagerProps?: FloatingFocusManagerProps,
   }) => {
-   
     // Subscribe this component to the <FloatingTree> wrapper:
     const nodeId = useFloatingNodeId();
    
     // Pass the subscribed `nodeId` to `useFloating`:
-    const {refs, floatingStyles, context} = useFloating(useFloatingParams);
+    const { refs, floatingStyles, context } = useFloating(useFloatingParams);
     const interactions: ElementProps[] = [];
     if (useDismissParams) {
-        interactions.push(useDismiss(context, useDismissParams))
+      interactions.push(useDismiss(context, useDismissParams));
     }
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
    
@@ -48,15 +47,15 @@ const NestablePopup = observer(({
     // passing in the subscribed `nodeId`:
     return (
       <>
-        { renderRef(refs.setReference, getReferenceProps())} 
+        { renderRef(refs.setReference, getReferenceProps()) } 
         <FloatingNode id={nodeId}>
-        {useFloatingParams.open && (
-            <FloatingPortal id={ALERT_CAPTURE_ID}>
-                <FloatingFocusManager context={context} {...focusManagerProps}>
-                <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
-            </FloatingFocusManager>
-            </FloatingPortal>
-        )}
+        { useFloatingParams.open && (
+          <FloatingPortal id={"portal-holder"}>
+              <FloatingFocusManager context={context} {...focusManagerProps}>
+              <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
+          </FloatingFocusManager>
+          </FloatingPortal>
+        ) }
         </FloatingNode>
       </>
     );
@@ -89,11 +88,11 @@ export const PositionedPopupAndReferenceElement = observer(({
     // This is a root, so we wrap it with the tree
     if (parentId === null) {
       return (
-        <FloatingTree>
+        // <FloatingTree>
           <NestablePopup 
             {...props}
           />
-        </FloatingTree>
+        // </FloatingTree>
       );
     }
    

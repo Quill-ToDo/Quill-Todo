@@ -8,6 +8,7 @@ import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
 import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle} from "@/widgets/TaskDetail/TaskComponents";
+import { makeDraggable } from "@/app/@util/Draggable";
 
 const WIDGET_NAME = "show-wrapper";
 
@@ -26,8 +27,8 @@ const TaskDetail = observer(({
         previouslyFocused.current = document.activeElement as HTMLElement;
         const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
         taskCheckbox && taskCheckbox.focus();
-        // const popup = refs.floating.current
-        // popup && makeDraggableUsingFloating({containerRef: popup});
+        const popup = document.querySelector(`detail-${task.id}`);
+        !!popup && makeDraggable(popup as HTMLElement);
         return () => {
             // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
@@ -50,7 +51,6 @@ const TaskDetail = observer(({
                             className="btn small square"
                             title="Close"
                             onClick={() => {
-                                console.log("triggied")
                                 close();
                             }}>
                             { ICONS.X }
@@ -59,6 +59,7 @@ const TaskDetail = observer(({
 
     return (
         <section 
+            id={`detail-${task.id}`}
             className={`popup draggable ${WIDGET_NAME}`}
         > 
             <div>
