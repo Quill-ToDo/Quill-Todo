@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
-import { ICONS } from '@/util/constants';
+import { ALERT_CAPTURE_ID, ICONS } from '@/util/constants';
 
 /**
  * One Alert.
@@ -15,16 +15,7 @@ const Alert = (props) => {
     const labelId = alert.id + "-label";
     const btnId = alert.id + "-close";
     
-    var closeBtnClass = "no-shadow btn small square";
-    if (alert.type === SUCCESS_ALERT) {
-        closeBtnClass += " btn-green";
-    }
-    else if (alert.type === ERROR_ALERT) {
-        closeBtnClass += " btn-red";
-    }
-    else if (alert.type === NOTICE_ALERT) {
-        closeBtnClass += " btn-light-grey";
-    }
+    var closeBtnClass = "no-shadow btn small square";   
 
     const closeBtn = 
         <button 
@@ -83,7 +74,6 @@ const Alert = (props) => {
                 id={alert.id}
                 key={`alert-${alert.id}`}
                 role="alertdialog"
-                open=""
                 aria-live='assertive'
                 aria-describedby={descId}
                 aria-labelledby={labelId}
@@ -155,7 +145,7 @@ const AlertBox = (props) => {
     
     const removeCallback = props.removeCallback;
     
-    const animationStop = (alert) => {
+    const animationStop = (alert: Event) => {
         toRemove.current.add(alert);
         alert.detail.removed = true;
         const alertInPage = document.getElementById(alert.detail.id);
@@ -165,12 +155,12 @@ const AlertBox = (props) => {
         ongoingAnimations.current.delete(alert);
     }
     
-    const animationStart = (alert) => {
+    const animationStart = (alert: Event) => {
         ongoingAnimations.current.add(alert);
     }
 
     const dismissAlert = useCallback(
-        (alert) => {
+        (alert: Event) => {
             // If there are no animations currently happening then remove every task that has finished its animation cycle
 
             const alertInPage = document.getElementById(alert.detail.id);
@@ -187,7 +177,7 @@ const AlertBox = (props) => {
 
     return (
         <section 
-            id="alert-wrapper" 
+            id= "alert-wrapper"
             data-testid="alert-wrapper" 
             role="log" 
             aria-atomic="false"
@@ -213,7 +203,7 @@ const AlertWrapper = (props) => {
     useEffect(() => {
         // Add listener for when you add a new alert
         const wrapper = document.getElementById("alert-capture");
-        wrapper.addEventListener("alert", (event) => setAlerts(alerts.concat([event])));
+        wrapper.addEventListener("alert", (event) => setAlerts(alerts.concat([event])), {once: true});
         return () => {
             wrapper.removeEventListener("alert",  (event) => setAlerts(alerts.concat([event])));
         }
@@ -221,10 +211,10 @@ const AlertWrapper = (props) => {
 
 
     return (         
-        <div id="alert-capture">
+        <div id={ALERT_CAPTURE_ID}>
             <AlertBox 
                 alerts={alerts} 
-                removeCallback={(alertsToRemove) => {
+                removeCallback={(alertsToRemove: Event[]) => {
                     setAlerts(alerts.filter(a => !alertsToRemove.has(a)));
                 }} 
             />

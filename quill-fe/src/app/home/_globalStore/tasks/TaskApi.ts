@@ -12,19 +12,19 @@ export class TaskApi {
         return axios.get(this.url);
     }
 
-    async detail(id) {
+    async detail(id: string) {
         return axios.get(this.url + id);
     }
 
-    async updateTask(id, data) {
+    async updateTask(id: string, data: any) {
         return axios.patch(this.url + id, data);
     }
     
-    async deleteTask(id) {
+    async deleteTask(id: string) {
         return axios.delete(this.url + id);
     }
 
-    async createTask(taskData) {
+    async createTask(taskData: any) {
         return axios.post(this.url, taskData);
+        }
     }
-}

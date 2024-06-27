@@ -13,6 +13,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
   - [Front-end](#front-end)
     - [Front-End Notes](#front-end-notes)
   - [Testing](#testing)
+    - [Debugging](#debugging)
     - [Front-end Testing](#front-end-testing)
       - [Running Tests](#running-tests)
       - [Writing Tests](#writing-tests)
@@ -294,6 +295,10 @@ You may consider install PgAdmin to make working with databases easier.
 
 ### Testing
 
+#### Debugging
+
+To debug using VS Code, use the "Debug FE Firefox" Run and Debug Profile.
+
 #### Front-end Testing
 
 The test files are stored near the code they test, for most components, in [quill-fe/src/components/__tests__/](./quill-fe/src/components/__tests__/).
@@ -347,6 +352,8 @@ Helpfully, [Luxon](https://moment.github.io/luxon/api-docs/index.html#settings) 
 #### Back-End Testing
 
 *To-do!*
+
+To debug the server/back-end/Django, run the "Debug BE" Run and Debug profile.
 
 ## Commits, Branches, and Pull Requests
 

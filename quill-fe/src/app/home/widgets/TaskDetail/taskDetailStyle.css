@@ -1,62 +1,54 @@
-#show-wrapper {
+.show-wrapper.popup {
+  width: max-content;
+  max-width: 40vw;
+  min-width: 20vw;
+  overflow: visible;
+}
+
+.show-wrapper .checkbox-color {
   display: flex;
-  width: 100%;
-  height: 100vh;
-  position: absolute;
-  z-index: 2;
+  gap: 13px;
   align-items: center;
   justify-content: center;
-  flex-direction: column;
-  row-gap: 15px;
+  min-width: fit-content;
+  min-height: fit-content;
 }
 
-#show-wrapper .mid-section {
-  width: 35%;
-  z-index: 5;
-  margin-bottom: 100px;
-}
-
-#show-wrapper h2 {
-  opacity: .8;
-}
-
-#show-wrapper h3 {
-  font-size: var(--h4-size);
-}
-
-/* Tasks */
-#show-wrapper .task-wrapper .title {
-  font-family: "Secular One", sans-serif;
+.show-wrapper .title {
   font-size: 30px;
   text-align: left;
 }
 
-#show-wrapper .task-wrapper {
-  display: flex;
-  padding-left: 10px;
-  align-items: baseline;
-  overflow: hidden;
+.show-wrapper input.title.blank::placeholder {
+  color: var(--g6);
 }
 
-#show-wrapper .check-box-wrapper {
-  transform: scale(1.3);
+.show-wrapper label {
+  color: var(--g3);
+  font-size: var(--p-size);
 }
 
-#show-wrapper .title-wrapper {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.show-wrapper .task-wrapper.complete s,
+.show-wrapper .task-wrapper.complete input {
+  color: var(--g7);
+  text-decoration: line-through solid var(--g7) 3px ;
+} 
+
+.show-wrapper .task-wrapper.complete .checkmark
+{
+  color: var(--g7);
+} 
+
+.show-wrapper .check-box-wrapper {
+  scale: 1.3;
+  height: 18px;
 }
 
-#show-wrapper .date-wrapper {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  align-items: flex-start;
-  gap: 10%;
+.show-wrapper .header-container {
+  min-width: fit-content;
 }
 
-#show-wrapper .date-wrapper > div {
+.show-wrapper .date-wrapper > div {
   display: flex;
   gap: 5px;
   text-align: center;
@@ -65,19 +57,7 @@
   align-items: center;
 }
 
-#show-wrapper .date-wrapper p.bold {
-  font-size: 22px;
-  font-weight: bold;
-}
-
-#show-wrapper .task-wrapper .date-wrapper p {
-  font-size: 18px;
-}
-
-#show-wrapper .date-wrapper p.date {
-  font-size: var(--p-size);
-}
-
-#show-wrapper .date-wrapper p.time {
+.show-wrapper .date-wrapper p.date,
+.show-wrapper .date-wrapper p.time {
   font-size: var(--p-size);
 }
