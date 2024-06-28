@@ -17,6 +17,7 @@ export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, ty
             title={`Mark task ${task.complete ? "uncomplete" : "complete"}`}
             aria-label="task checkbox"
             tabIndex={0}
+            onClick={() => task.toggleComplete()}
         >
         <input 
             type="checkbox" 
