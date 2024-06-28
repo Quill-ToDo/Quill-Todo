@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 import { END_OF_WEEK_WEEKDAY, START_OF_WEEK_WEEKDAY } from "@/util/constants";
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
-import { Checkbox, TaskTitle } from "../TaskDetail/TaskComponents";
+import { Checkbox, TaskTitle, TaskWrapper } from "../TaskDetail/TaskComponents";
 import { Fragment } from "react";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
@@ -116,17 +116,20 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                             <p>{day.date.day}</p>
                                             <div className=" dark-section">
                                                 { day.tasksToday &&  day.tasksToday.scheduled && day.tasksToday.scheduled.map((task) => {
-                                                    return <Fragment key={`${day.date}-${task.id}`}>
+                                                    return <TaskWrapper task={task} properties={{key: `${day.date}-${task.id}`}}>
                                                             <Checkbox task={task} type={'work'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                             <TaskTitle task={task} />
-                                                        </Fragment>
+                                                        </TaskWrapper>
                                                     })
                                                 }
                                                 { day.tasksToday && day.tasksToday.due && day.tasksToday.due.map((task) => {
-                                                    return <Fragment key={`${day.date}-${task.id}`}>
+                                                    return <TaskWrapper 
+                                                        task={task}
+                                                        keyOverride={`${day.date}-${task.id}`}
+                                                        >
                                                         <Checkbox task={task} type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                         <TaskTitle task={task} />
-                                                    </Fragment>
+                                                    </TaskWrapper>
                                                 })}
                                             </div>
                                         </div>    

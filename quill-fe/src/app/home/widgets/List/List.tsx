@@ -2,7 +2,7 @@ import React, { Fragment, useEffect, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
-import { DateTimeWrapper, Checkbox, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
+import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
@@ -234,10 +234,9 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const dateForm = DateTime.DATE_SHORT;
 
     const taskWrapper = (
-    <div 
-        className={`task-wrapper ${task.complete && "complete"}`} 
-        id={id} 
-        key={`list-task-${task.id}`}
+    <TaskWrapper 
+        task={task}
+        properties={{id: id}}
     >
         <Checkbox
             task={task}
@@ -261,7 +260,8 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
                 dateFormat={dateForm} 
             />
         </div>
-    </div>);
+    </TaskWrapper>
+    );
 
     return taskWrapper;
 })

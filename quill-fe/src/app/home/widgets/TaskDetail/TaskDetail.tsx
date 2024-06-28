@@ -7,7 +7,7 @@ import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
-import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle} from "@/widgets/TaskDetail/TaskComponents";
+import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
 import { makeDraggable } from "@/app/@util/Draggable";
 
 const WIDGET_NAME = "show-wrapper";
@@ -63,7 +63,14 @@ const TaskDetail = observer(({
             className={`popup draggable ${WIDGET_NAME}`}
         > 
             <div>
-                <div className={`task-wrapper header-container aligned draggable-handle ${task.complete && "complete"}`} data-testid={`taskwrapper-${task.title}`} >
+                <TaskWrapper 
+                    task={task}
+                    properties={
+                        {
+                            className: "header-container aligned draggable-handle",
+                        }}
+
+                    >
                     <div className="checkbox-color">
                         <ColorBubble task={task} />
                         <Checkbox 
@@ -74,7 +81,7 @@ const TaskDetail = observer(({
                     </div>
                     <TaskTitle task={task} editAllowed={true} />   
                     {buttons}             
-                </div>
+                </TaskWrapper>
                 <section 
                     className="mid-section" 
                     role="dialog"

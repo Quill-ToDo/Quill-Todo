@@ -4,10 +4,31 @@ import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
 import { UseDismissProps, UseFloatingOptions, shift, offset, autoPlacement } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, HTMLProps, LegacyRef, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentProps, ComponentPropsWithoutRef, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
 
+export const TaskWrapper = observer((
+    {
+        task, 
+        properties, 
+        keyOverride,
+        children
+    } : {
+        task: TaskModel, 
+        properties?: ComponentPropsWithoutRef<"div">
+        keyOverride?: string,
+        children: ReactNode, 
+    }) => {
+    return <div 
+        key={keyOverride ? keyOverride : task.id}
+        data-task-id={task.id}
+        {...properties}
+        className={`task-wrapper ${task.complete && "complete"}${properties && properties.className ? " " + properties.className : ""}`}
+        >
+        {children}
+    </div>
+})
 
 //#region Checkbox
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
@@ -173,7 +194,7 @@ const PlainTaskTitle = observer((
     const taskDetailsPopupPositioning: UseFloatingOptions = {
         open: showDetails,
         onOpenChange: setShowDetails,
-        middleware: [offset(20), autoPlacement()],
+        middleware: [offset(20), autoPlacement(), shift()],
     };
     const dismissOptions: UseDismissProps = {
         outsidePress: true,
