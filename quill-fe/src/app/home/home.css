@@ -179,6 +179,7 @@ p.time {
 /*#region Sections*/
 .header-container {
     display: flex;
+    padding: var(--section-gap);
     column-gap: var(--section-gap);
     justify-content: space-between;
     align-items: center;
@@ -326,7 +327,7 @@ button:focus {
 
 .btn:focus
 {
-    box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
+    outline: auto;
 }
 
 .btn:hover, .btn:focus{
@@ -352,6 +353,7 @@ button:focus {
 input,
 textarea {
     padding: 8px;
+    width: 100%;
     background-color: var(--g10);
     border: none;
     border-radius: 10px;
@@ -362,6 +364,7 @@ textarea {
 
 :focus-visible {
     outline: var(--focus-highlight) solid var(--focus-border-width);
+    outline: auto;
 }
 
 form input,
@@ -389,7 +392,7 @@ input[aria-invalid="true"]:focus,
 input[aria-invalid="true"]:focus-visible,
 textarea[aria-invalid="true"]:focus,
 textarea[aria-invalid="true"]:focus-visible {
-    outline: var(--failure-outline) solid var(--focus-border-width);;
+    outline: var(--failure-outline) solid var(--focus-border-width);
 }
 
 form .sublabel label,
@@ -449,7 +452,6 @@ hr {
 
 .popup .header-container {
     background-color: var(--g4);
-    padding: 7px var(--inner-box-padding) 7px;
     border-radius: var(--box-corner-rounding) var(--box-corner-rounding) 0 0;
 }
 /*#endregion Pop-Ups*/

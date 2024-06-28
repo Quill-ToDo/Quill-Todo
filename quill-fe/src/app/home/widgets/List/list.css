@@ -31,7 +31,7 @@
   }
 
   #list-wrapper .dark-section button:focus {
-    box-shadow:inset 0px 0px 0px var(--focus-border-width) var(--focus-highlight);
+    outline: auto;
   }
 
     
