@@ -26,14 +26,6 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
     useEffect(() => {
         const popup = document.querySelector(OUTER_WRAPPER_ID);
         popup && makeDraggable(popup as HTMLElement);
-        const firstInput = formRef.current.querySelector(`[name="Title"]`);
-        firstInput && firstInput.focus();
-        
-        // return (() => {
-        //     if (taskToCreate && taskToCreate.isNewAndUnsubmitted) {
-        //         taskToCreate.abortTaskCreation();
-        //     }
-        // })
     }, [])
 
 

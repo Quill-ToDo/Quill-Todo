@@ -8,6 +8,7 @@ export function makeDraggable(divToDrag : HTMLElement) {
     }
 
     dragHandle.addEventListener('mousedown', function(e) {
+        divToDrag.style.position = "abosolute;";
         isDown = true;
         offset = [
             divToDrag.offsetLeft - e.clientX,
@@ -30,12 +31,15 @@ export function makeDraggable(divToDrag : HTMLElement) {
             };
             let newX = mousePosition.x + offset[0];
             let newY = mousePosition.y + offset[1];
-            if (newX > 0 && newX < window.innerWidth-50) {
+            // These checks are supposed to stop the thing from being
+            // drqagged out of bounds but it's not working with floating UI
+            // because it creates a subwindow
+            // if (newX > 0 && newX < window.innerWidth-50) {
                 divToDrag.style.left = newX + 'px';
-            }
-            if (newY > 0 && newY < window.innerHeight-50) {
+            // }
+            // if (newY > 0 && newY < window.innerHeight-50) {
                 divToDrag.style.top  = newY + 'px';
-            }
+            // }
         }
     }, true);
 }

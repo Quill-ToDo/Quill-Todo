@@ -27,7 +27,7 @@ const TaskDetail = observer(({
         previouslyFocused.current = document.activeElement as HTMLElement;
         const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
         taskCheckbox && taskCheckbox.focus();
-        const popup = document.querySelector(`detail-${task.id}`);
+        const popup = document.querySelector(`#detail-${task.id}`);
         !!popup && makeDraggable(popup as HTMLElement);
         return () => {
             // return focus to previous point after the popup closes

@@ -236,7 +236,7 @@ section.more-padding {
 /* Show a transition for focusing on elements */
 .check-box-wrapper input:focus~i,
 #list-wrapper button.title:focus,
-.color-bubble-wrapper:focus,
+.color-bubble-input:focus + .color-bubble,
 :focus-visible {
     transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
     transition: border 0.2s, box-shadow 0.2s, color .2s, outline 0.2s;

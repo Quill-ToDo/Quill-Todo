@@ -132,11 +132,6 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
 
     var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} tasks` : `Expand ${title.toLowerCase()} tasks`;
 
-    useEffect(() => {
-        if (sectionOpen) {
-            // handleSectionToggle(sectionNum);
-        }
-    }, [])
     
     return (
         <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
@@ -148,6 +143,7 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                         aria-expanded={sectionOpen}
                         onClick={(e) => {
                             setSectionOpen(!sectionOpen);
+                            handleSectionToggle(sectionNum);
                         }}
                     >
                         <i 

@@ -29,7 +29,6 @@ export const TaskWrapper = observer((
         {children}
     </div>
 })
-
 //#region Checkbox
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
     return <label 
@@ -68,7 +67,6 @@ const checkboxIconOptions = {
         notComplete: `fa-square`,
     }
 };
-
 //#endregion 
 //#region Color Picker
 const ColorGridPicker = observer(({task, closePicker}: {
@@ -99,7 +97,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
             { TaskColorCodes.map((colorCol: {key: string, data: string[]}) => <div className="color-picker-col" key={`${colorCol.key}`}> 
                     { colorCol.data.map((color: string) => 
                         <div
-                            className="color-square" 
+                            className="color-square"
                             style={{backgroundColor: color}} 
                             key={color} 
                             onMouseEnter={() => {
@@ -154,21 +152,29 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
         popupPositioningOptions={colorPickerGridPositioning}
         dismissPopupOptions={dismissOptions}
         renderRef={(ref, props) => {
-            return <button
-                className="color-bubble-wrapper" 
-                ref={ref}
-                onClick={(e) => {
-                    // e.preventDefault();
-                    setShowPicker(true);
-                }}
-                title="Change task color"
-                aria-label="Task color changer"
-                {...props}
-            >
-                <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+            return <div
+                        className="color-bubble-wrapper">
+                <input
+                    type="color"
+                    className="color-bubble-input" 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        setShowPicker(true);
+                    }}
+                    title="Change task color"
+                    aria-label="Task color changer"
+                    {...props}
+                    >
+                </input>
+                <svg 
+                    ref={ref}
+                    className="color-bubble" 
+                    viewBox="0 0 100 100" 
+                    xmlns="http://www.w3.org/2000/svg"
+                >
                     <circle cx="50" cy="50" r="50" fill={task.color}/>
                 </svg>
-            </button>
+            </div>
         }}
         popupElement={
             <ColorGridPicker 
@@ -207,16 +213,19 @@ const PlainTaskTitle = observer((
                 popupPositioningOptions={taskDetailsPopupPositioning}
                 dismissPopupOptions={dismissOptions}
                 renderRef={(ref, floatProps) => {
-                    return <button
+                    return (
+                        <button
+                        type="button"
                             ref={ref}
                             onClick={() => {setShowDetails(true);}}
                             className={props.className}
                             {...floatProps} 
                         >
-                        <p style={props.style}> 
-                            { task.complete ? <s>{displayTitle}</s> : displayTitle } 
-                        </p>
-                    </button>
+                            <p style={props.style}> 
+                                { task.complete ? <s>{displayTitle}</s> : displayTitle } 
+                            </p>
+                        </button>
+                    )
                 }}
                 popupElement={
                     <TaskDetail 
@@ -246,12 +255,12 @@ const EditableTaskTitle = observer((
         }
     }
 
-    // const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
     const errorId = `detail-${task.id}-title-errors`;
 
     return <div>
             <input 
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
+                autoFocus={true}
                 value={task.title}
                 aria-label={"Title"}
                 aria-invalid={!!task.validationErrors.title.length}
@@ -285,7 +294,7 @@ export const TaskTitle = observer((
     const props: HTMLProps<any> = {
         className: `title${overdue ? " overdue" : ""}${!!!task.title.length ? " blank" : "" }`,
         style: {
-            color: !task.complete && !overdue ? task.color : undefined,
+            color: !task.complete && !overdue && !!task.title.length ? task.color : undefined,
         },
     };
 
@@ -302,7 +311,7 @@ export const TaskTitle = observer((
             props={props as ComponentProps<"input">}
         />
     }
-})
+});
 //#endregion 
 //#region Date / Time
 /**
@@ -318,5 +327,5 @@ export const DateTimeWrapper = observer(({task, type, dateFormat=DateTime.DATE_S
             <p className="time">{date.toLocaleString(DateTime.TIME_SIMPLE)}</p>
         </time>
     );
-})
+});
 //#endregion 
