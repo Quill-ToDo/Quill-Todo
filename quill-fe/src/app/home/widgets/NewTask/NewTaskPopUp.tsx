@@ -96,7 +96,8 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                                     inputProps={
                                         { 
                                             value: taskToCreate.startDateStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value);}
+                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value);},
+                                            onFocus: function () {},
                                         }
                                     }
                                     errors={taskToCreate.validationErrors.startDateStringUnderEdit}

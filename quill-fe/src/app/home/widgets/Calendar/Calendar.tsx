@@ -5,9 +5,10 @@ import { END_OF_WEEK_WEEKDAY, START_OF_WEEK_WEEKDAY } from "@/util/constants";
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle, TaskWrapper } from "../TaskDetail/TaskComponents";
-import { Fragment } from "react";
+import { Fragment, LegacyRef, useEffect, useLayoutEffect, useRef } from "react";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
+const NUM_MONTHS_LOOKBEHIND = 3;
 const NUM_WEEKDAYS = 7;
 
 type MonthData =
@@ -24,18 +25,21 @@ type DayData =
     {
         date: DateTime;
         tasksToday: TaskDataOnDay | undefined;
-        monthBorder: number[];
+        dayBorder: number[];
+        classNames: string[];
     };
-
-const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
-    const monthBorderIndexToClassName = new Map<number, string>();
-    monthBorderIndexToClassName.set(0, "border-top");
-    monthBorderIndexToClassName.set(1, "border-right");
-    monthBorderIndexToClassName.set(2, "border-left");
-    monthBorderIndexToClassName.set(3, "border-bottom");
+    
+export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
+    const dayBorderClassNames = [
+        "border-top",
+        "border-right",
+        "border-left",
+        "border-bottom",
+    ];
+    const currentDayEle = useRef(null);
 
     const today : DateTime = START_OF_DAY();
-    let start = today.startOf('month').startOf('day');
+    let start = today.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND});
     while (start.weekdayLong !== START_OF_WEEK_WEEKDAY) {
         start = start.minus({days:1})
     }
@@ -74,12 +78,17 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
         const newDay = {
             date: day,
             tasksToday: taskStore.taskTimeline.get(dayKey),
-            monthBorder: [paintingMonthVisualSeparatorLine ? 1 : 0, 0, paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? 1 : 0, 0],
+            dayBorder: [paintingMonthVisualSeparatorLine ? 1 : 0, 0, paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? 1 : 0, 0],
+            classNames: [ day < today ? "past" : ""]
         };
         // Add a day object for each day
         if (paintingMonthVisualSeparatorLine) {borderPaintingCountdownFromSeven--};
         mostRecentWeekLoaded.days.push(newDay);
     }
+
+    useEffect(() => {
+        currentDayEle.current && currentDayEle.current.scroll();
+    })
     
     const loading = 
         <div className="loading-wrapper take-full-space">
@@ -91,6 +100,19 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
 
     const content = 
             <div className="calendar-body mid-section">
+                <nav className="aligned">
+                    <button className="btn">
+                        <i className="fa-solid fa-square-caret-left"></i>
+                    </button>
+                    <button className="btn"
+                        onClick={() => {currentDayEle.current && currentDayEle.current.scroll()}}
+                    >
+                        <i className="fa-solid fa-calendar-day"></i>
+                    </button>
+                    <button className="btn">
+                        <i className="fa-solid fa-square-caret-right"></i>
+                    </button>
+                </nav>
                 <div className="week-days-header">
                     <h3>M</h3>
                     <h3>T</h3>
@@ -109,9 +131,11 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                     <Fragment key={`${weekData.weekNum}`}>
                                         { weekData.days.map(day =>  
                                         <div 
-                                            className={"day-container" + day.monthBorder.reduce((accumulator, currentValue, currentIndex) => 
-                                                accumulator + (currentValue ? " " + monthBorderIndexToClassName.get(currentIndex) : ""), " ")}
+                                            className={`day-container ${day.dayBorder.reduce((accumulator, currentValue, currentIndex) => 
+                                                accumulator + (!!currentValue ? " " + dayBorderClassNames[currentIndex] : ""), " ")} ${day.classNames.join(" ")} ${today.hasSame(day.date, 'day') ? "current" : undefined}`}
                                             key={`day-${monthData.monthName}-${day.date}`}
+                                            ref={today.hasSame(day.date, 'day') ? currentDayEle : undefined}
+                                            suppressHydrationWarning
                                             >
                                             <p>{day.date.day}</p>
                                             <div className=" dark-section">
@@ -147,4 +171,4 @@ const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
     </section>;
 });
 
-export default Calendar;
+export const ShowSelectableCalendarDays = () => {};

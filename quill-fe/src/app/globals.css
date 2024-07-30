@@ -39,7 +39,8 @@
     --btn-red-shadow: #520606;
     --btn-light-grey-bg: #888888;
     --btn-light-grey-shadow: #363636;
-  
+    --color-picker-square-size: 20px;
+
     /* Sizing */
     --section-gap: 15px;
     --inner-box-padding: 17px;

@@ -42,7 +42,7 @@ const NestablePopup = observer(({
       interactions.push(useDismiss(context, useDismissParams));
     }
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
-   
+    
     // Wrap the rendered floating element in a `<FloatingNode>`,
     // passing in the subscribed `nodeId`:
     return (
@@ -52,7 +52,14 @@ const NestablePopup = observer(({
         { useFloatingParams.open && (
           <FloatingPortal id={"portal-holder"}>
               <FloatingFocusManager context={context} {...focusManagerProps}>
-              <div ref={refs.setFloating} style={floatingStyles} {...getFloatingProps()}>{floatingElement}</div>
+              <div 
+                className='floating'
+                ref={refs.setFloating} 
+                style={floatingStyles} 
+                {...getFloatingProps()}
+              >
+                  {floatingElement}
+              </div>
           </FloatingFocusManager>
           </FloatingPortal>
         ) }
@@ -88,11 +95,11 @@ export const PositionedPopupAndReferenceElement = observer(({
     // This is a root, so we wrap it with the tree
     if (parentId === null) {
       return (
-        // <FloatingTree>
+        <FloatingTree>
           <NestablePopup 
             {...props}
           />
-        // </FloatingTree>
+        </FloatingTree>
       );
     }
    

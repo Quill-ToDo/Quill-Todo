@@ -34,11 +34,6 @@
     outline: auto;
   }
 
-    
-  #list-wrapper .title:hover {
-    background-color: var(--list-hover);
-  }
-
   #list-wrapper .title {
     transition: background-color .1s, color .4s;
     border-radius: 12px;

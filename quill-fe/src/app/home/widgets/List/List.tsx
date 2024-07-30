@@ -78,48 +78,54 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 
     return (
         <Fragment>
-            <Section 
-                title="Overdue"
-                sectionNum={0}
-                content={
-                    [{
-                        "tasks": overdue,
-                        "type": "due",
-                        "emptyText": "No overdue tasks"
-                    }]
-                }
-            />
-            <Section 
-                title="Today"
-                sectionNum={1}
-                content={
-                    [
-                        {
-                            "title": "Due",
-                            "tasks": todayDue,
+            { !!overdue.length && 
+                <Section 
+                    title="Overdue"
+                    sectionNum={0}
+                    content={
+                        [{
+                            "tasks": overdue,
                             "type": "due",
-                            "emptyText": "No tasks due today",
-                        },
-                        {
-                            "title": "Work",
-                            "tasks": todayWork,
-                            "type": "work",
-                            "emptyText": "No tasks to work on today",
-                        }
-                    ]
-                }
-            />
-            <Section 
-                title="Upcoming"
-                sectionNum={2}
-                content={
-                    [{
-                        "tasks": upcoming,
-                        "type": "due",
-                        "emptyText": "No upcoming tasks"
-                    }]
-                }
-            />
+                            "emptyText": "No overdue tasks"
+                        }]
+                    }
+                /> 
+            }
+            { (!!todayDue.length || !!todayWork.length) &&
+                <Section 
+                    title="Today"
+                    sectionNum={1}
+                    content={
+                        [
+                            {
+                                "title": "Due",
+                                "tasks": todayDue,
+                                "type": "due",
+                                "emptyText": "No tasks due today",
+                            },
+                            {
+                                "title": "Work",
+                                "tasks": todayWork,
+                                "type": "work",
+                                "emptyText": "No tasks to work on today",
+                            }
+                        ]
+                    }
+                />
+            }
+            { !!upcoming.length && 
+                <Section 
+                    title="Upcoming"
+                    sectionNum={2}
+                    content={
+                        [{
+                            "tasks": upcoming,
+                            "type": "due",
+                            "emptyText": "No upcoming tasks"
+                        }]
+                    }
+                />
+            }
         </Fragment>
     )
 });
