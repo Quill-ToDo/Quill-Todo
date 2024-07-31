@@ -1,6 +1,6 @@
 # Contributing
 
-If there are any issues with these instructions or if anything is unclear, please let us know in Slack!
+If there are any issues with these instructions or if anything is unclear, please let us know!
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -26,19 +26,18 @@ If there are any issues with these instructions or if anything is unclear, pleas
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+> 📌 **Note:** After the initial set-up instructions are followed once, you can start the back-end server and front-end with: 
+>
+> **Windows:**
+> ```cmd
+> $ dev-startup-scripts\startQuillDevEnv.cmd
+> ```
+> **Mac/Unix:**
+> ```bash
+> $ source dev-startup-scripts/startQuillUnix.bash
+> ```
+
 ## Setting up the development environment
-
-After the initial set-up instructions are followed to set everything up, you can start the backebnd server and front-end with: 
-
-**Windows:**
-```cmd
-$ dev-startup-scripts\startQuilDevEnv.cmd
-```
-
-**Mac/Unix:**
-```bash
-$ source dev-startup-scripts/startQuillUnix.bash
-```
 
 ### Back-End
 

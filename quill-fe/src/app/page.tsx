@@ -5,7 +5,7 @@ import { ListWidget } from '@/widgets/List/List';
 import AlertWrapper from '@/alerts/AlertWrapper';
 import {useTaskStore, StoreProvider} from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import Calendar from '@/widgets/Calendar/Calendar';
+import { Calendar } from '@/widgets/Calendar/Calendar';
 import TaskStore from './home/_globalStore/tasks/TaskStore';
 
 const Home = observer(() => {

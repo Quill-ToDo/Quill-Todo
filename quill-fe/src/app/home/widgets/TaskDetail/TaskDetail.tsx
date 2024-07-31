@@ -45,7 +45,7 @@ const TaskDetail = observer(({
                                 close();
                             }
                         }>
-                            <i className="far fa-trash-alt fa-fw fa"></i>
+                            { ICONS.TRASH }
                         </button>
                         <button 
                             className="btn small square"

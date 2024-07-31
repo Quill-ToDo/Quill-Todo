@@ -25,6 +25,13 @@ dl {
 li:not(:last-child) {
 margin-bottom: 2px;
 }
+
+.floating {
+    width: max-content;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
 /*#endregion Global Styling*/
 /*#region Home Layout*/
 #home-wrapper {

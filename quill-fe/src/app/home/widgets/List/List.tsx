@@ -1,6 +1,7 @@
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
+import Sortable, { MultiDrag } from 'sortablejs';
 import { TaskModel } from "@/store/tasks/TaskModel";
 import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
@@ -8,6 +9,7 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
+import { ICONS } from "@/app/@util/constants";
 
 const SECTION_TOGGLE_DURATION = 100;
 
@@ -27,7 +29,7 @@ export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     const loading = 
         <div className="loading-wrapper take-full-space">
             <div>
-                <i className="fas fa-list-alt loading-icon fa-4x"></i>
+                { ICONS.LIST }
                 <p className="">Loading list...</p>
             </div>
         </div>;
@@ -78,48 +80,54 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 
     return (
         <Fragment>
-            <Section 
-                title="Overdue"
-                sectionNum={0}
-                content={
-                    [{
-                        "tasks": overdue,
-                        "type": "due",
-                        "emptyText": "No overdue tasks"
-                    }]
-                }
-            />
-            <Section 
-                title="Today"
-                sectionNum={1}
-                content={
-                    [
-                        {
-                            "title": "Due",
-                            "tasks": todayDue,
+            { !!overdue.length && 
+                <Section 
+                    title="Overdue"
+                    sectionNum={0}
+                    content={
+                        [{
+                            "tasks": overdue,
                             "type": "due",
-                            "emptyText": "No tasks due today",
-                        },
-                        {
-                            "title": "Work",
-                            "tasks": todayWork,
-                            "type": "work",
-                            "emptyText": "No tasks to work on today",
-                        }
-                    ]
-                }
-            />
-            <Section 
-                title="Upcoming"
-                sectionNum={2}
-                content={
-                    [{
-                        "tasks": upcoming,
-                        "type": "due",
-                        "emptyText": "No upcoming tasks"
-                    }]
-                }
-            />
+                            "emptyText": "No overdue tasks"
+                        }]
+                    }
+                /> 
+            }
+            { (!!todayDue.length || !!todayWork.length) &&
+                <Section 
+                    title="Today"
+                    sectionNum={1}
+                    content={
+                        [
+                            {
+                                "title": "Due",
+                                "tasks": todayDue,
+                                "type": "due",
+                                "emptyText": "No tasks due today",
+                            },
+                            {
+                                "title": "Work",
+                                "tasks": todayWork,
+                                "type": "work",
+                                "emptyText": "No tasks to work on today",
+                            }
+                        ]
+                    }
+                />
+            }
+            { !!upcoming.length && 
+                <Section 
+                    title="Upcoming"
+                    sectionNum={2}
+                    content={
+                        [{
+                            "tasks": upcoming,
+                            "type": "due",
+                            "emptyText": "No upcoming tasks"
+                        }]
+                    }
+                />
+            }
         </Fragment>
     )
 });
@@ -131,7 +139,6 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
     const [sectionOpen, setSectionOpen] = useState(true);
 
     var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} tasks` : `Expand ${title.toLowerCase()} tasks`;
-
     
     return (
         <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
@@ -146,9 +153,7 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                             handleSectionToggle(sectionNum);
                         }}
                     >
-                        <i 
-                        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
-                        ></i>
+                        { ICONS.DOWN }
                     </button>
                     <h2 id={`section-${sectionNum}-title`}>{title}</h2>
                 </div>
@@ -207,7 +212,27 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
  * The list of tasks, separated to a different method for performance
  */
 const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
-    return <ul role="group">
+    const listRef = useRef(null);
+
+    useEffect(() => {
+        Sortable.create(listRef.current, {
+            group: {
+                name: "list",
+                pull: ["list", "calendar", "trash"],
+                put: ["list", "calendar"],
+            },
+            animation: 120,
+            setData: (dataTransfer, dragEl) => {
+                const task = dragEl.querySelector(".task-wrapper")
+                const taskId = task.attributes["data-task-id"].value ;
+                const taskName = task.querySelector(".title").innerText;
+                dataTransfer.setData("text/plain", taskName);
+                dataTransfer.setData("taskId", taskId);
+            }
+        });
+    })
+
+    return <ul role="group" ref={listRef}>
         { tasks.map((task) => {
             return ( 
                 <li className="task" key={`task-li-${task.id}`}>
@@ -232,7 +257,9 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const taskWrapper = (
     <TaskWrapper 
         task={task}
-        properties={{id: id}}
+        properties={{
+            id: id,
+        }}
     >
         <Checkbox
             task={task}

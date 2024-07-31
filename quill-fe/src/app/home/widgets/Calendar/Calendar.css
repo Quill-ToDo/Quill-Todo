@@ -5,9 +5,9 @@
 .calendar-body {
     display: grid;
     grid-template-areas: 
-    "... weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
+    "nav weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
     "monthNames calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays";
-    grid-template-columns: minmax(30px, min-content) repeat(7, 1fr);
+    grid-template-columns: minmax(80px, min-content) repeat(7, 1fr);
     grid-template-rows: minmax(min-content, 50px) 100%;
     align-items: start;
     gap: 0;
@@ -20,6 +20,22 @@
     grid-template-columns: subgrid;
     overflow: scroll;
     max-height: 100%;
+    position: relative;
+    overscroll-behavior: contain;
+}
+
+.calendar-wrapper .header {
+    position: sticky;
+    grid-column: nav / weekDays;
+    grid-template-columns: subgrid;
+    display: grid;
+}
+
+.calendar-wrapper nav {
+    grid-area: nav;
+    align-items: center;
+    justify-content: center;
+    column-gap: 5px;
 }
 
 /* M T W R F ... */
@@ -79,21 +95,33 @@
     border-right: 2px solid var(--g4);
 }
 
+.day-container.past .dark-section {
+    background-color: #32323356;
+}
+
+.day-container.current .dark-section {
+    border: 3px solid var(--g6);
+}
+
 .day-container p {
     color: var(--g4);
+}
+
+.day-container .dark-section p {
+    font-size: medium;
+} 
+
+.day-container .dark-section i {
+    font-size: medium;
 }
 
 .day-container .dark-section {
     display: flex;
     flex-direction: column;
-    align-items: center;
-    padding: var(--section-gap);
+    align-items: start;
+    padding: 5px 5px 10px 5px;
     margin: 0;
-    padding: 5px;
     min-height: 70px;
     height: 100%;
     width: 100%;
-}
-.day-container .dark-section > * {
-    margin: 5px;
 }

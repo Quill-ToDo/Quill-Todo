@@ -16,12 +16,32 @@ export const ICONS = {
                 <path d="M11 20L11 2"/>
             </svg>
         </i>,
+    LIST: 
+        <i className="fas fa-list-alt loading-icon fa-4x" title="List"></i>,
+    CALENDAR:
+        <i className="fa-solid fa-calendar loading-icon fa-4x" title="Calendar"></i>,
     X: 
-        <i>
-            <svg viewBox="0 0 30 30"  width="100%" xmlns="http://www.w3.org/2000/svg">
+        <i
+           title="Close" 
+        >
+            <svg role="img" viewBox="0 0 30 30" width="100%" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 4L25 25"/>
             <path d="M4 25L25 4"/>
             </svg>
         </i>,
+    LOG_OUT: 
+        <i className="fas fa-power-off fa-fw"></i>,
+    TRASH:
+        <i className="fa-regular fa-trash-can"></i>,
+    JUMP_TO_DAY: 
+        <i className="fa-solid fa-arrows-down-to-line"></i>,
+    NEXT: 
+        <i className="fa-solid fa-chevron-right"></i>,
+    PREVIOUS: 
+        <i className="fa-solid fa-chevron-left"></i>,
+    DOWN: 
+        <i 
+        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
+        ></i>,
 } 
 

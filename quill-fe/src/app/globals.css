@@ -21,7 +21,7 @@
   
     --focus-highlight: #d8d8d8;
     --overdue: #d33636;
-    --list-hover: rgba(255, 255, 255, 0.197);
+    --list-hover: rgba(255, 255, 255, 0.103);
   
     /* Alerts */
     --alert-bg: #444444;
@@ -39,7 +39,8 @@
     --btn-red-shadow: #520606;
     --btn-light-grey-bg: #888888;
     --btn-light-grey-shadow: #363636;
-  
+    --color-picker-square-size: 20px;
+
     /* Sizing */
     --section-gap: 15px;
     --inner-box-padding: 17px;

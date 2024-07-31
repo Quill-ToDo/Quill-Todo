@@ -2,6 +2,12 @@
   display: flex;
   gap: var(--section-gap);
   align-items: center;
+  padding: 0px 10px 0px 10px;
+  border-radius: 10px;
+}
+
+.task-wrapper.hover {
+  background-color: var(--list-hover);
 }
 
 .task-wrapper input.title {
@@ -137,9 +143,12 @@ i.checkmark {
 }
 
 .color-picker {
-  position: absolute;
-  width: fit-content;
-  padding: 10px;
+  padding: var(--color-picker-square-size);
+  width: max-content;
+  height: max-content;
+  min-width: unset;
+  min-height: unset;
+  max-width: unset;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -147,13 +156,14 @@ i.checkmark {
 
 .color-picker > * {
   flex: 1 1 0px;
+  width: max-content;
 }
 
 .color-picker .colors {
   display: flex;
   align-items: center;
   flex-direction: row;
-  width: min-content;
+  width: max-content;
 }
 
 .color-picker .name-and-errors input {
@@ -164,11 +174,12 @@ i.checkmark {
 .color-picker-col {
   display: flex;
   flex-direction: column;
+  width: max-content;
 }
 
 .color-picker .color-square {
   aspect-ratio: 1 / 1;
-  width: 20px;
+  width: var(--color-picker-square-size);
   transition: transform .1s;
 }
 

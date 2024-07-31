@@ -101,12 +101,13 @@ export default class TaskStore {
                 }
             });
         }).catch(e => {
+            let error = `Could not load tasks: ${e.message}`;
             if (retry === 0) {
-                connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, `Could not load tasks - ${e}`);
+                connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, error);
                 console.error(e);
             }
             else if (connectionAlertIdselectorForFieldElementstring) {
-                updateAlertText(connectionAlertIdselectorForFieldElementstring, `Could not load tasks - ${e} - Retry #${retry+1}`)
+                updateAlertText(connectionAlertIdselectorForFieldElementstring, `${error}. Retry #${retry+1}`)
             }
             setTimeout(() => {this.loadTasks({retry: retry + 1, connectionAlertIdselectorForFieldElementstring: connectionAlertIdselectorForFieldElementstring})}, 3000);
         })
@@ -138,9 +139,9 @@ export default class TaskStore {
         const timeline: Timeline = new Map();
         let dayKey: string, firstDayInRange: DateTime, lastDayInRange: DateTime, tasksThisDay; 
         this.tasks.forEach(task => {
-            firstDayInRange = task.start.startOf('day');
+            firstDayInRange = task.start.startOf('day').minus({days: 1});
             lastDayInRange = task.due.endOf('day');
-            for (let dayItr = firstDayInRange.startOf('day'); dayItr <= lastDayInRange.endOf('day'); dayItr = dayItr.plus({days:1})) {
+            for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
                 dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
                 if (!timeline.has(dayKey)) { 
                     timeline.set(dayKey, 
@@ -151,16 +152,14 @@ export default class TaskStore {
                         })
                 }
                 tasksThisDay = timeline.get(dayKey);
-                if (tasksThisDay) {
-                    if (dayItr.hasSame(lastDayInRange, 'day')) {
-                        tasksThisDay.due.push(task);
-                    }
-                    if (dayItr.hasSame(firstDayInRange, 'day')) {
-                        tasksThisDay.start.push(task);
-                    }
-                    if (!dayItr.hasSame(lastDayInRange, 'day') && !dayItr.hasSame(firstDayInRange, 'day')) {
-                       tasksThisDay.scheduled.push(task);
-                    }
+                if (dayItr.hasSame(lastDayInRange, 'day')) {
+                    tasksThisDay.due.push(task);
+                }
+                else if (dayItr.hasSame(firstDayInRange, 'day')) {
+                    tasksThisDay.start.push(task);
+                }
+                else {
+                    tasksThisDay.scheduled.push(task);
                 }
             }
         });

@@ -4,9 +4,12 @@ import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
 import { UseDismissProps, UseFloatingOptions, shift, offset, autoPlacement } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, ComponentPropsWithoutRef, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentProps, ComponentPropsWithoutRef, DragEvent, DragEventHandler, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
+import { NOTICE_ALERT, addAlert } from "../Alerts/alertEvent";
+
+const HOVER_CLASS = "hover";
 
 export const TaskWrapper = observer((
     {
@@ -23,11 +26,21 @@ export const TaskWrapper = observer((
     return <div 
         key={keyOverride ? keyOverride : task.id}
         data-task-id={task.id}
+        onMouseEnter={() => {
+            document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
+                element.classList.add(HOVER_CLASS);
+            });
+        }}
+        onMouseLeave={() => {
+            document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
+                element.classList.remove(HOVER_CLASS);
+            });
+        }}
         {...properties}
-        className={`task-wrapper ${task.complete && "complete"}${properties && properties.className ? " " + properties.className : ""}`}
+        className={`task-wrapper${task.complete ? " complete" : ""}${properties && properties.className ? " " + properties.className : ""}`}
         >
         {children}
-    </div>
+    </div>;
 })
 //#region Checkbox
 export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
@@ -125,10 +138,10 @@ const ColorGridPicker = observer(({task, closePicker}: {
                 aria-describedby={errorId}
             >    
             </input>
-            <ErrorsList 
+            { !!task.validationErrors.color.length && <ErrorsList 
                 errors={task.validationErrors.colorStringUnderEdit}
                 id={errorId}
-            />
+            />}
         </div>
     </div>
 })
@@ -140,7 +153,14 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
     const colorPickerGridPositioning: UseFloatingOptions = {
         open: showPicker,
         onOpenChange: setShowPicker,
-        placement: "right-start",
+        placement: "bottom",
+        middleware: [
+            offset(({rects}) => {
+                return (
+                  -rects.floating.height / 2
+                );
+              }),
+              shift()],
     };
     const dismissOptions: UseDismissProps = {
         outsidePress: true,
@@ -153,27 +173,27 @@ export const ColorBubble = observer(({task}: {task: TaskModel}) => {
         dismissPopupOptions={dismissOptions}
         renderRef={(ref, props) => {
             return <div
-                        className="color-bubble-wrapper">
-                <input
-                    type="color"
-                    className="color-bubble-input" 
-                    onClick={(e) => {
-                        e.preventDefault();
-                        setShowPicker(true);
-                    }}
-                    title="Change task color"
-                    aria-label="Task color changer"
-                    {...props}
+                    className="color-bubble-wrapper">
+                    <input
+                        type="color"
+                        className="color-bubble-input" 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            setShowPicker(true);
+                        }}
+                        title="Change task color"
+                        aria-label="Task color changer"
+                        {...props}
+                        >
+                    </input>
+                    <svg 
+                        ref={ref}
+                        className="color-bubble" 
+                        viewBox="0 0 100 100" 
+                        xmlns="http://www.w3.org/2000/svg"
                     >
-                </input>
-                <svg 
-                    ref={ref}
-                    className="color-bubble" 
-                    viewBox="0 0 100 100" 
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <circle cx="50" cy="50" r="50" fill={task.color}/>
-                </svg>
+                        <circle cx="50" cy="50" r="50" fill={task.color}/>
+                    </svg>
             </div>
         }}
         popupElement={
