@@ -4,11 +4,14 @@
   "description": "A better todo app",
   "main": "quill-fe\\build\\index.html",
   "scripts": {
-    "init-be-unix": "workon quill && pip install -r requirements.txt && psql -d postgres -a -f setup.sql && python3 manage.py makemigrations && python3 manage.py migrate",
-    "start-fe": "workon quill && cd quill-fe && npm install && npm dev",
-    "start-be": "cd ./scripts && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
-    "start-be-unix": "workon quill && pip install -r requirements.txt && python3 manage.py makemigrations && python3 manage.py migrate && python3 manage.py runserver",
-    "fe-tests": "workon quill && cd quill-fe && npm run test"
+    "dev-win": "call dev-startup-scripts/startQuillWin.cmd",
+    "dev-unix": "source dev-startup-scripts/startQuillUnix.bash",
+    "fe-win": "start call dev-startup-scripts/startFEWin.cmd",
+    "fe-unix": "source dev-startup-scripts/startFEUnix.bash",
+    "be-win": "start call dev-startup-scripts/startBEWin.cmd",
+    "be-unix": "source dev-startup-scripts/startBEUnix.bash",
+    "init-win": "start call dev-startup-scripts/initDBWin.cmd",
+    "init-unix": "source dev-startup-scripts/initDBUnix.bash"
   },
   "repository": {
     "type": "git",

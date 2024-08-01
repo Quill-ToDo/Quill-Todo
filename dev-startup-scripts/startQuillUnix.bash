@@ -1,7 +1,21 @@
-# Run me to install python dependencies and start the Django server.
-# This assumes that the postgres server is running.
-# You can verify that it is running with `$ pg_ctl status`
+# Run me to start the Quill development environment on a Unix OS. Assuming Postgres server is running,
+# starts the back-end server (Django)and front-end development server (NextJS).
+#
+# You can verify that the Postgres server is running using `$ pg_ctl status`.
 # start it with `$ pg_ctl start` and stop it with `$ pg_ctl stop`
+# (See CONTRIBUTING.md for more info)
+#
+# Navigate to URL specified in front-end terminal to see development assets
+#
+# Example console output and URL:
+# > quill-fe@0.1.0 dev
+# > next dev
+#
+#  ▲ Next.js 14.2.3
+#  - Local:  --->  http://localhost:3000 <--- HERE
+#
+# ✓ Starting...
+# ✓ Ready in 19.5s
 source .quill-venv/bin/activate 
 source dev-startup-scripts/startBEUnix.bash &
 source dev-startup-scripts/startFEUnix.bash

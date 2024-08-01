@@ -1,4 +1,4 @@
-# Run me once to set up the Database for Unix machines
+# Run once to set up the Database on Unix OS
 source .quill-venv/bin/activate 
 pip install -r requirements.txt 
 pg_ctl start 

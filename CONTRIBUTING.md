@@ -30,11 +30,11 @@ If there are any issues with these instructions or if anything is unclear, pleas
 >
 > **Windows:**
 > ```cmd
-> $ dev-startup-scripts\startQuillDevEnv.cmd
+> $ npm run dev-win
 > ```
 > **Mac/Unix:**
 > ```bash
-> $ source dev-startup-scripts/startQuillUnix.bash
+> $ npm run dev-unix
 > ```
 
 ## Setting up the development environment
@@ -59,11 +59,16 @@ If there are any issues with these instructions or if anything is unclear, pleas
     ```
 
     Use the environment 
-    
-    ```Bash
-    .quill-venv/bin/activate
-    ```
 
+    **Windows:**
+    ```cmd
+    $ .quill-venv/bin/activate
+    ```
+    **Mac/Unix:**
+    ```bash
+    $ source .quill-venv/bin/activate
+    ```
+    
     You can tell it's active because the environment name will prefix the command line surrounded by parentheses 
     similar to the following:
 
@@ -125,7 +130,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
         - Create database and user for Quill
 
             ```cmd
-            dev-startup-scripts\initBEWin.cmd
+            dev-startup-scripts\initDBWin.cmd
             ```
 
     - **Mac/Unix:**
@@ -138,7 +143,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
         - Create database and user for Quill
 
             ```Bash
-            source dev-startup-scripts/initUnix.bash
+            source dev-startup-scripts/initDBUnix.bash
             ```
 
 8. Verify success
@@ -229,13 +234,13 @@ If there are any issues with these instructions or if anything is unclear, pleas
 #### Back-End Notes
 
 - After this initial setup, you can use the appropriate script for your OS to start the database and server
-  - **Windows:** You can use `$ dev-startup-scripts\startBEWin.cmd` to just start the API, or `$ dev-startup-scripts\startQuilDevEnv.cmd` to start the FE and BE at once
-  - **Mac/Unix**: `$ npm run start-be-unix`
+  - **Windows:** You can use `$ npm run be-win` to just start the API, or `$ npm run dev-win` to start the FE and BE at once
+  - **Mac/Unix**: `$ npm run dev-unix`
   - Or just run `$ pg_ctl start` to start the database and `$ py manage.py runserver` to start the server (make sure your virtual environment is active)
 
 - If you follow the url the server is running on you will get an error until you build the front-end app for production. To do that, follow the instructions in front-end and run `npm build`.
-- To access the API navigate to [http://localhost:[server port number]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
-You may consider install PgAdmin to make working with databases easier.
+- To access the API navigate to [http://localhost:[SERVER PORT NUMBER]/api/tasks/]() in a browser. It will say the port it's running on in the terminal the sever is running in.
+You may consider installing PgAdmin to make working with databases using an UI.
 - > **Important:** If you install more Python dependencies during development, please run `pip3 freeze > requirements.txt` and commit any changes to this file to keep dependencies up to date for everyone else
 
 ### Front-end
