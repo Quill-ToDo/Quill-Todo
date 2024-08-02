@@ -7,8 +7,9 @@ import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
 import { offset, UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
 import { ICONS } from "../@util/constants";
 import { PositionedPopupAndReferenceElement } from "../@util/FloatingUiHelpers";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
+import Sortable from 'sortablejs';
 
 
 const DashboardLayout = observer(({
@@ -17,6 +18,8 @@ const DashboardLayout = observer(({
     children: React.ReactNode
 }) => {
     const [showNewTaskPopupFromMenuButton, setShowNewTaskPopupFromMenuButton] = useState(false);
+    const taskStore = useRef(useTaskStore());
+    const trashBtnRef = useRef(null);
     const newTaskPopupPositioning: UseFloatingOptions = {
         open: showNewTaskPopupFromMenuButton,
         onOpenChange: setShowNewTaskPopupFromMenuButton,
@@ -29,7 +32,22 @@ const DashboardLayout = observer(({
         bubbles: false,
     }
 
-    const taskStore = useRef(useTaskStore());
+    useEffect(() => {
+        Sortable.create(trashBtnRef.current, {
+            group: {
+                name: "trash",
+                pull: false,
+                put: true,
+            },
+            onAdd: (evt) => {
+                if (evt.originalEvent.dataTransfer.types.includes("taskId")) {
+                    const id = evt.originalEvent.dataTransfer.getData("taskId");
+                    const task = taskStore.current.getTaskWithId(id);
+                    task && taskStore.current.delete(task);
+                }
+            }
+        });
+    })
     
     return ( 
             <div id="home-wrapper" data-testid="home">
@@ -62,8 +80,37 @@ const DashboardLayout = observer(({
                             />
                         }
                     />
+                    <button 
+                        ref={trashBtnRef}
+                        role="menuitem" 
+                        className="btn small square bg" 
+                        title="Trash" 
+                        type="button" 
+                        onClick={() => addAlert(document.querySelector("#left-menu button[title='Trash']"), ERROR_ALERT, "We haven't implemented clicking on trash")}
+                        // onDragOver={(ev) => {
+                        //     ev.preventDefault();
+                        //     ev.dataTransfer.dropEffect = "move";
+                        //     const tasksOnPage = document.querySelectorAll(`[data-task-id="${ev.dataTransfer.getData("taskId")}"]`);
+                        //     tasksOnPage.forEach((element) => { element.classList.add("hidden")});
+                        // }}
+                        // onDragLeave={(ev) => {
+                        //     ev.preventDefault();
+                        //     const tasksOnPage = document.querySelectorAll(`[data-task-id="${ev.dataTransfer.getData("taskId")}"]`);
+                        //     tasksOnPage.forEach((element) => { element.classList.remove("hidden")});
+                        // }}
+                        // onDrop={(ev) => {
+                        //     if (ev.dataTransfer.types.includes("taskId")) {
+                        //         ev.preventDefault();
+                        //         const id = ev.dataTransfer.getData("taskId");
+                        //         const task = taskStore.current.getTaskWithId(id);
+                        //         task && taskStore.current.delete(task);
+                        //     }
+                        // }}
+                    >
+                        { ICONS.TRASH }
+                    </button>
                     <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
-                        <i className="fas fa-power-off fa-fw"></i>
+                        { ICONS.LOG_OUT }
                     </button>
                 </menu>
                 {children}
