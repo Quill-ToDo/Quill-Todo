@@ -7,7 +7,7 @@ import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskModel} from "@/store/tasks/TaskModel";
-import {Checkbox, ColorBubble, DateTimeWrapper, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
+import {Checkbox, ColorBubble, DateTimeWrapper, TaskDescription, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
 import { makeDraggable } from "@/app/@util/Draggable";
 
 const WIDGET_NAME = "show-wrapper";
@@ -111,10 +111,7 @@ const TaskDetail = observer(({
                             </div>
                         </div>
                     </div>
-                    {task.description &&
-                        <div className="dark-section"> 
-                            <p className="centered">{task.description}</p>            
-                        </div>
+                    {task.description && <TaskDescription task={task} editAllowed={true} />
                     }
                 </section>
             </div>

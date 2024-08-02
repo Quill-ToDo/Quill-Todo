@@ -97,6 +97,10 @@ p {
     color: var(--g2);
 }
 
+.keep-whitespace {
+    white-space: pre-line;
+}
+
 .date-time-wrapper p {
     display: flex;
     align-items: baseline;
@@ -359,6 +363,7 @@ button:focus {
 /*#region Forms*/
 input,
 textarea {
+    font-size: var(--p-size);
     padding: 8px;
     width: 100%;
     background-color: var(--g10);

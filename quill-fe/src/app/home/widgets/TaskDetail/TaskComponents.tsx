@@ -4,10 +4,9 @@ import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
 import { UseDismissProps, UseFloatingOptions, shift, offset, autoPlacement } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, ComponentPropsWithoutRef, DragEvent, DragEventHandler, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useRef, useState } from "react";
+import { ComponentProps, ComponentPropsWithoutRef, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useId, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
-import { NOTICE_ALERT, addAlert } from "../Alerts/alertEvent";
 
 const HOVER_CLASS = "hover";
 
@@ -331,6 +330,74 @@ export const TaskTitle = observer((
             props={props as ComponentProps<"input">}
         />
     }
+});
+
+export const TaskDescription = observer((
+    {
+        task, 
+        editAllowed=false,
+    }: {
+        task: TaskModel, 
+        editAllowed?: boolean,
+    }) => {
+
+    const props: HTMLProps<any> = {
+        className: `description dark-section keep-whitespace`,
+    };
+
+    // Use p element if not editable
+    if (!editAllowed) {
+        <div {...props}> 
+            <p>{task.description}</p>            
+        </div>;
+    }
+    else {
+        return <EditableTaskDescription
+            task={task}
+            props={props as ComponentProps<"textarea">}
+        />
+    }
+});
+
+const EditableTaskDescription = observer((
+    {
+        task,
+        props,
+    }: {
+        task: TaskModel,
+        props: ComponentProps<"textarea">,
+    }
+) => {
+    const startingText: RefObject<string> = useRef(task.title);
+    
+    // Use input elements if editable to try and get a sort of inline effect
+    const editInputRef = useRef(null);
+    const errorId = useId();
+    const finishEditing = () => {
+        if (editInputRef.current && editInputRef.current.value !== startingText.current) {
+            task.saveToServer({description: editInputRef.current.value});
+        }
+    }
+
+    return <div>
+            <textarea 
+                value={task.description}
+                aria-label={"Description"}
+                title={"Edit Description"}
+                aria-invalid={!!task.validationErrors.description.length}
+                aria-describedby={errorId}
+                ref={editInputRef}
+                onChange={(e) => task.setDescription(e.target.value)}
+                onBlur={finishEditing}
+                {...props}
+            />
+            {
+                !!task.validationErrors.description.length && <ErrorsList
+                    errors={task.validationErrors.description}
+                    id={errorId}
+                />
+            }
+    </div>
 });
 //#endregion 
 //#region Date / Time

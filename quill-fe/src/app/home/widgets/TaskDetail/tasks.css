@@ -186,3 +186,7 @@ i.checkmark {
 .color-picker .color-square:hover {
   transform: scale(1.5);  
 }
+
+.description {
+  min-height: min-content;
+}
