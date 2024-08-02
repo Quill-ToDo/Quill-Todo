@@ -70,7 +70,7 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                         <FormField
                             name="Title"
                             required={true}
-                            element={<TaskTitle task={taskToCreate} editAllowed={true}/>}
+                            element={<TaskTitle task={taskToCreate} editAllowed={true} props={{autoFocus: true}}/>}
                         />
                     </div>
                     <FormField 

@@ -7,7 +7,6 @@ export const END_OF_WEEK_WEEKDAY = "Sunday";
 export const ALERT_CAPTURE_ID: string = "alert-capture";
 export const UNSET_TASK_TITLE_PLACEHOLDER = "title";
 // SVG Icons
-
 export const ICONS = {
     PLUS:   
         <i>
@@ -34,7 +33,7 @@ export const ICONS = {
     TRASH:
         <i className="fa-regular fa-trash-can"></i>,
     JUMP_TO_DAY: 
-        <i className="fa-solid fa-arrows-down-to-line"></i>,
+        <i className="fa-solid fa-calendar-day"></i>,
     NEXT: 
         <i className="fa-solid fa-chevron-right"></i>,
     PREVIOUS: 

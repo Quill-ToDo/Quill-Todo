@@ -279,7 +279,6 @@ const EditableTaskTitle = observer((
     return <div>
             <input 
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
-                autoFocus={true}
                 value={task.title}
                 aria-label={"Title"}
                 aria-invalid={!!task.validationErrors.title.length}
@@ -304,30 +303,35 @@ export const TaskTitle = observer((
     {
         task, 
         editAllowed=false,
+        props,
     }: {
         task: TaskModel, 
         editAllowed?: boolean,
+        props?: HTMLProps<any>,
     }) => {
     const overdue = task.overdue();
 
-    const props: HTMLProps<any> = {
-        className: `title${overdue ? " overdue" : ""}${!!!task.title.length ? " blank" : "" }`,
+    const defaultColorLogic = !task.complete && !overdue && !!task.title.length ? task.color : undefined;
+    const formattedProps: HTMLProps<any> = {
+        ...props,
+        className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}${props&&props.className?" "+props.className:""}`,
         style: {
-            color: !task.complete && !overdue && !!task.title.length ? task.color : undefined,
-        },
+            color: defaultColorLogic,
+            ...(props&&props.style?props.style:undefined),
+        }
     };
 
     // Use p element if not editable
     if (!editAllowed) {
         return <PlainTaskTitle 
             task={task}
-            props={props as ComponentProps<"p">}
+            props={formattedProps as ComponentProps<"p">}
         />;
     }
     else {
         return <EditableTaskTitle
             task={task}
-            props={props as ComponentProps<"input">}
+            props={formattedProps as ComponentProps<"input">}
         />
     }
 });
