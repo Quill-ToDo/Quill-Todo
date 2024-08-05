@@ -84,7 +84,10 @@ export default class TaskStore {
             runInAction(() => {
                 fetchedTasks.data.forEach((json : {[index : string]: any}) => {
                     if (refresh && this.taskMap && this.taskMap.has(json.id)) {
-                        this.getTaskWithId(json.id) && this.getTaskWithId(json.id).setJson(json);
+                        let task = this.getTaskWithId(json.id); 
+                        if (task) { 
+                            task.json = json;
+                        }
                     }
                     else {
                         new TaskModel(json);
@@ -194,7 +197,9 @@ export default class TaskStore {
      */
     setNewTask (task : TaskModel | null) {
         this.taskBeingCreated = task;
-        task && task.turnOffAutosaveToDb();
+        if (task) {
+            task.autoSave = false;
+        };
     }
 
     /**

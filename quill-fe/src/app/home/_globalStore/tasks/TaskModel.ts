@@ -104,13 +104,10 @@ export const TaskColorCodes = [
 ]
 
 /**
- * #A Task model where changes are automatically synced to the DB.
+ * A Task model where changes are automatically synced to the DB.
  * 
- * Use setters to change values, even internally. 
  *  - Fields must have defaults set in CLASS FIELDS region to be observable. 
- *  - Use setter methods as defined in CLASS FIELD GETTERS AND SETTERS region
- *    to change fields, even internally in this file. They may have side-effects... 
- *  - Define Getters, setters, and validation errors for each class field in 
+ *  - Define getter, setter, and validation errors for each class field in 
  *    the appropriate region or method.
  *      - Getters and setters in CLASS FIELD GETTERS AND SETTERS region
  *      - Validation errors in `get ValidationErrors()`. Name the class field key
@@ -120,35 +117,27 @@ export const TaskColorCodes = [
  *    to the database.  
  */
 export class TaskModel {
-//#region CLASS FIELDS AND CONSTRUCTOR
-    // "name" : Type : Description
-    // ----------------------------------------------------
-    // ---- Public ----
-            id : string = -1;
-            title : string = "";
-            start : DateTime = null;
-            due : DateTime = null;
-            description : string = "";
-            complete : boolean = false;
-            store : TaskStore;
-            createdDate : DateTime;
-            color : string = "#ffffff";
-    // ---- Fields that may be used while editing the task ----
+    //#region CLASS FIELDS AND CONSTRUCTOR
+            private _id : string = "";
+            private _title : string = "";
+            private _start : DateTime = null;
+            private _due : DateTime = null;
+            private _description : string = "";
+            private _complete : boolean = false;
+            private _createdDate : DateTime;
+            private _color : string = "#ffffff";
+            private _store : TaskStore;
+            autoSave : boolean = true;
             startTimeStringUnderEdit : string = ""; 
             startDateStringUnderEdit : string = "";
             dueTimeStringUnderEdit : string = "";
             dueDateStringUnderEdit : string = "";
             colorStringUnderEdit: string = "";
-    // ---- Private ----
-            autoSave : boolean = true;
-    // ----------------------------------------------------
+
     /**
      * An object to represent one task in the database. It has the same 
      * fields as the task in the database and handles updating the task in the DB
      * when any relevant fields change. 
-     * 
-     * **Important:** Use setter methods to change any values, even internally. 
-     * They may have side-effects.
      * 
      * @param {uuid} id V4 UUID id of the task. If one is not passed in, one 
      * is generated upon init.
@@ -156,33 +145,33 @@ export class TaskModel {
     constructor (taskJsonData?: object) {
         makeObservable(this, {
             /// --- Task data --- 
-            autoSave: observable, // Whether or not changes to this task are synced to the database. Turn on or off with `saveToServer()` and `turnOffAutosaveToDb`
-            saveToServer: false,
-            patchToServer: false,
-            turnOffAutosaveToDb: action,
-            turnOnAutosaveToDb: action,
-            /// --- Task data --- 
-            title: observable, // Task name.
-            setTitle: action,
-            description: observable, // A String which describes the task
-            setDescription: action,
-            complete: observable, // Whether or not this task is complete.
-            setComplete: action,
-            toggleComplete: action,
-            workRange: computed,
-            start: observable, // The DateTime when the user wants to start working on this task
-            setStart: action,
-            due: observable, // The DateTime by which the user wants to complete the task
-            overdue: false,
-            setDue: action,
-            json: computed,
-            setJson: action,
-            setColor: action,
-            color: observable, // The color of the task
+            _id: false, // This ID of this task
+            id: computed,
+            _store: false, // The store which holds and syncronizes all tasks 
+            _createdDate: false, // The DateTime when this task was created
+            _title: observable, // Task name
+            title: computed,
+            _description: observable, // A string that describes the task
+            description: computed,
+            _complete: observable, // Whether or not this task is complete
+            complete: computed,
+            toggleComplete: action, // Flip the completion status of the task
+            workRange: computed, // Range of the start to due date of this task
+            _start: observable, // The DateTime when the user wants to start working on this task
+            start: computed,
+            _due: observable, // The DateTime by which the user wants to complete the task by
+            due: computed,
+            overdue: false, // Is the current time and date past the due time and date
+            _color: observable, // The color of the task
+            color: computed,
+            json: computed, // This tasks data in JSON form
             // --- Editing mode ---
-            submitNewTask: action,
-            abortTaskCreation: action,
-            isNewAndUnsubmitted: computed,
+            submitNewTask: action, // Submit this task to the server (if new)
+            isNewAndUnsubmitted: computed, // Is this a new task being created?
+            /// vvv all fields that are for display purposes during editing. For example, 
+            // if the user enters a string "3cshjaklfdhsa" for the startDateStringUnderEdit, 
+            // this value can be displayed as needed in form fields to show the user typing but
+            // will not change the underlying start DateTime because it can't be parsed. 
             startDateStringUnderEdit: observable,
             setStartDateStringUnderEdit: action,
             startTimeStringUnderEdit: observable,
@@ -193,40 +182,45 @@ export class TaskModel {
             setDueTimeStringUnderEdit: action,
             colorStringUnderEdit: observable,
             setColorStringUnderEdit: action,
-            // ---
+            abortTaskCreation: action, // Abandon the task being created
+            deleteSelf: false, // Delete this task from the server
+            // --- Server Syncing ---
+            autoSave: observable, // Whether or not changes to this task are synced to the 
+            // database. Turn on or off with `saveToServer()` and `turnOffAutosaveToDb`.
+            saveToServer: false, // Update all task properties to server. Can still be called if autosave is off.
+            patchToServer: false, // Save specific properties of the task to the server. Can still be called even if autosave is off.
+            // --- Validation ---
             validationTests: computed,
             validationErrors: computed, // A list of validation errors of this task.
             isValid: computed, // This task has no validation errors and is safe to sync to the database
-            id: false, // This ID of this Task.
-            store: false, // The store which holds and syncronizes all tasks. 
-            createdDate: false, // The DateTime when this task was created
-            deleteSelf: false,
         });
         // Initialize all class fields not using setters
-        // If there was Task data passed in as JSON, update this object give
+        // If there was Task data passed in as JSON, update this object given
         // passed data
+        this.autoSave = false;
         if (taskJsonData) {
-            this.setJson(taskJsonData);
+            this.json = taskJsonData;
         }
         else {
-            this.id = v4();
+            this._id = v4();
             this.title = "";
             this.description = "";
             this.complete = false;
             this.start = DEFAULT_START_DATETIME();
             this.due =  DEFAULT_DUE_DATETIME();
-            this.createdDate = null;
+            this._createdDate = null;
             let allColorCodes: string[] = TaskColorCodes.flatMap((item: {key: string, data: string[]}) => item.data); 
             this.color = `${(allColorCodes[Math.floor(Math.random() * (allColorCodes.length))])}`;
         }
         // Add self to the TaskStore
-        this.store = TaskStore.taskStoreSingletonInstance;
-        this.store.add(this);
+        this._store = TaskStore.taskStoreSingletonInstance;
+        this._store.add(this);
         this.startDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.start);
         this.startTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
         this.dueDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
         this.dueTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
         this.colorStringUnderEdit = this.color;
+        this.autoSave = true;
     }
 //#endregion
 //#region LOGICAL METHODS     
@@ -234,28 +228,37 @@ export class TaskModel {
      * Delete this task
      */
     deleteSelf() {
-        this.store.delete(this);
+        this._store.delete(this);
     }
 //#endregion
 //#region CLASS FIELD GETTERS AND SETTERS
+//#region id
+    get id () { return this._id; }
+//#endregion
+//#region created date
+    get createdDate () { return this._createdDate; }
+//#endregion
 //#region title
-    setTitle (title : string) { this.title = title; }
+    set title (title : string) { this._title = title; }
+    get title () { return this._title; }
 //#endregion
 //#region description
-    setDescription (desc : string) { this.description = desc; }
+    get description () { return this._description; }
+    set description (desc : string) { this._description = desc; }
 //#endregion
 //#region complete
-    setComplete(complete : boolean) { 
-        this.complete = complete;
+    set complete(complete : boolean) { 
+        this._complete = complete;
         if (this.autoSave) {
             this.patchToServer({complete: complete}); 
         }
     }
+    get complete() { return this._complete; }
     /**
      * Toggle this tasks completion status between true and false.
      */
     toggleComplete () {
-        this.setComplete(!this.complete);
+        this.complete = !this.complete;
     }
 //#endregion
 //#region workRange
@@ -271,16 +274,17 @@ export class TaskModel {
      * 
      * @param {string} dateTime 
      */
-    setStart(dateTime : DateTime) {
+    set start(dateTime : DateTime) {
         try {
             const converted = dateTimeHelper(dateTime);
-            this.start = converted;
+            this._start = converted;
         }
         catch (e) {
             addAlert(document.getElementById('home-wrapper'), 
             ERROR_ALERT, `Could not set task start: ${e}`);
         }
     }
+    get start () { return this._start; }
 //#endregion
 //#region due
     /**
@@ -289,16 +293,17 @@ export class TaskModel {
      * dateTime must be valid to set it. 
      * @param {string} dateTime 
      */
-    setDue (dateTime : DateTime) {
+    set due (dateTime : DateTime) {
         try {
             const converted = dateTimeHelper(dateTime);
-            this.due = converted;
+            this._due = converted;
         }
         catch (e) {
             addAlert(document.getElementById('home-wrapper'), 
             ERROR_ALERT, `Could not set task deadline: ${e}`);
         }
     }
+    get due () { return this._due; }
 
     /**
      * 
@@ -310,23 +315,22 @@ export class TaskModel {
     }
 //#endregion
 //#region color
+
+    get color () { return this._color; }
     /**
      * Set the color of the task to a hex code string
      */
-    setColor (color : string) {
+    set color (color : string) {
         const errors = this.getValidationErrorsForField({field: "color", paramsForTestMethod: {color}}); 
         if (!!errors.length) {
-            addAlert(document.getElementById('home-wrapper'), 
-            ERROR_ALERT, `Could not set task color ${color}: ${errors.join(", ")}`);
-            return false;
+            throw new Error(`Could not set task color ${color}: ${errors.join(", ")}`);
+        } else {
+            this._color = color;
+            this.colorStringUnderEdit = color;
         }
-        this.color = color;
-        this.colorStringUnderEdit = color;
-        return true;
     }
 //#endregion
 //#region autoSave
-
     /**
      * Internal method to sync all of this tasks fields with its DB model
      */
@@ -338,14 +342,14 @@ export class TaskModel {
         description?: string,
         color?: string,
     }=this.json) {
-        this.store.API.updateTask(this.id, data).then(
+        this._store.API.updateTask(this.id, data).then(
             result => result,
             reason => {
                 addAlert(document.querySelector('#home-wrapper'), 
                 ERROR_ALERT, 
                 `Task could not be updated - ${getLegibleErrors(reason.response.data)}`);
                 // Revert changes
-                this.store.loadTasks({refresh: true});
+                this._store.loadTasks({refresh: true});
                 return reason;
             }
         );
@@ -364,22 +368,10 @@ export class TaskModel {
         color?: string,
     }=this.json) {
         // If has been initialized and this is not a task not yet posted to the server
-        if (this.store && !this.isNewAndUnsubmitted) {
-            this.turnOnAutosaveToDb();
+        if (this._store && !this.isNewAndUnsubmitted) {
+            this.autosave = true;
             this.patchToServer(data);
         }
-    }
-
-    turnOnAutosaveToDb () {
-        this.autoSave = true;
-    }
-
-    /**
-     * Turn off autosave for this task, so that any changes to this TaskModel's fields will 
-     * NOT be synced with the DB model
-     */
-    turnOffAutosaveToDb () {
-        this.autoSave = false;
     }
 //#endregion
 //#region JSON
@@ -397,28 +389,27 @@ export class TaskModel {
             color: this.color,
         };
     } 
-
     /**
-     * Update this TaskModel with info pulled from a passed JSON.
+     * Update this TaskModel with info pulled from a passed JSON
      * @param {object} json 
      */
-    setJson(json : {[index : string]: any}) {
-        this.turnOffAutosaveToDb();
-        this.id = json.id;
-        this.setTitle(json.title);
-        this.setDescription(json.description);
-        this.setStart(json.start);
-        this.setDue(json.due);
-        this.setComplete(json.complete)
-        this.createdDate = dateTimeHelper(json.created_at);
-        this.setColor(json.color);
-        this.turnOnAutosaveToDb();
+    set json(json : {[index : string]: any}) {
+        this.autoSave = false;
+        this._id = json.id;
+        this.title = json.title;
+        this.description = json.description;
+        this.start = json.start;
+        this.due = json.due;
+        this.complete = json.complete
+        this._createdDate = dateTimeHelper(json.created_at);
+        this.color = json.color;
+        this.autoSave = true;
     }
 
 //#endregion JSON
 //#region NEW TASK CREATION
     get isNewAndUnsubmitted() {
-        return this.store.taskBeingCreated === this;
+        return this._store.taskBeingCreated === this;
     }
 
     /**
@@ -437,9 +428,9 @@ export class TaskModel {
         }
         
         // Post to server
-        return this.store.API.createTask(this.json).then(
+        return this._store.API.createTask(this.json).then(
             (value) => {
-                this.store.setNewTask(null);
+                this._store.setNewTask(null);
                 return value;
             },
             (reason) => {
@@ -457,8 +448,8 @@ export class TaskModel {
      * and delete task from the TaskStore.
      */
     abortTaskCreation () {
-        this.store.setNewTask(null);
-        this.store.remove(this);
+        this._store.setNewTask(null);
+        this._store.remove(this);
     }
 
     /**
@@ -470,7 +461,7 @@ export class TaskModel {
      */
     setStartDateStringUnderEdit = (dateString : string)  =>  { 
         this.startDateStringUnderEdit = dateString;
-        this.setStart(`${dateString}, ${this.startTimeStringUnderEdit}`);
+        this.start = `${dateString}, ${this.startTimeStringUnderEdit}`;
     }
     /**
      * Set the time portion of the DateTime as a string. 
@@ -482,7 +473,7 @@ export class TaskModel {
     setStartTimeStringUnderEdit = (timeString : string)  =>  { 
         this.startTimeStringUnderEdit = timeString;
         if (this.validationErrors.startTimeStringUnderEdit.length === 0 && this.validationErrors.start.length === 0) {
-            this.setStart(`${this.startDateStringUnderEdit}, ${timeString}`);
+            this.start = `${this.startDateStringUnderEdit}, ${timeString}`;
         }
     }
     /**
@@ -495,7 +486,7 @@ export class TaskModel {
     setDueDateStringUnderEdit (dateString : string) {
         this.dueDateStringUnderEdit = dateString;
         if (this.validationErrors.dueDateStringUnderEdit.length === 0 && this.validationErrors.due.length === 0) {
-            this.setDue(`${dateString}, ${this.dueTimeStringUnderEdit}`);
+            this.due(`${dateString}, ${this.dueTimeStringUnderEdit}`);
         }
     }
     /**
@@ -508,23 +499,28 @@ export class TaskModel {
     setDueTimeStringUnderEdit (timeString : string) { 
         this.dueTimeStringUnderEdit = timeString;
         if (this.validationErrors.dueTimeStringUnderEdit.length === 0 && this.validationErrors.due.length === 0) {
-            this.setDue(`${this.dueDateStringUnderEdit}, ${timeString}`);
+            this.due = `${this.dueDateStringUnderEdit}, ${timeString}`;
         }
     }
     /**
      * Set the string value that the user entered as they're editing the color. 
      * It does not need to be valid, if it is not, validation errors will be generated.
-     * If it is valid, update the actual color used as well. 
-     * DateTime. 
+     * If it is valid, update the actual color used as well and return true.
+     * 
      * @param input The hex code with the # included at the front. Should accept
      * 3 and 6 digit codes 
+     * @returns True if the underlying task color was changed, false if not
      */
-    setColorStringUnderEdit (input : string) { 
+    setColorStringUnderEdit (input : string): boolean { 
         this.colorStringUnderEdit = input.trim();
-        if (!this.validationErrors.colorStringUnderEdit.length) {
-            return this.setColor(input);
+        try {
+            this.color = input;
         }
-    }
+        catch {
+            return false;
+        }
+        return true;
+    };
 
 //#endregion NEW TASK CREATION
 //#endregion CLASS FIELD GETTERS AND SETTERS
