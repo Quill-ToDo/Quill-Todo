@@ -1,3 +1,5 @@
+import { ComponentPropsWithoutRef } from "react";
+
 // URLs
 export const API_URL = "http://localhost:8000/api/tasks/";
 // Date and time -- more in DateTimeHelper.ts
@@ -40,7 +42,16 @@ export const ICONS = {
         <i className="fa-solid fa-chevron-left"></i>,
     DOWN: 
         <i 
-        className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
+            className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
         ></i>,
+    SETTINGS: <i className="fa-solid fa-gear"></i>,
 } 
+
+/**
+ * 
+ * @returns a string of the passed className and any className from the passed props
+ */
+export const combineClassNamePropAndString = ({className, props}: {className: string, props: ComponentPropsWithoutRef<any>}): string => {
+    return `${className}${props && props.className ? " " + props.className : ""}`;
+}
 

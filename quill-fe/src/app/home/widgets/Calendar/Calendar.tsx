@@ -169,16 +169,9 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
             return (monthRect.y < calendarBottom) && (monthRect.y + monthRect.height > calendarTop)
         }); 
     }
-    
-    const loading = 
-        <div className="loading-wrapper take-full-space">
-            <div>
-                { ICONS.CALENDAR }
-                <p>Loading calendar...</p>
-            </div>
-        </div>;
-
-    const content = 
+    }
+ 
+    return <PlaceableWidget widgetName="calendar" icon={ICONS.CALENDAR} doneLoading={allLoadedMonthData != undefined}>
             <div className="calendar-body mid-section" ref={thisCalendarRef}>
                 <div className="header" ref={thisCalendarHeaderRef}>
                     <nav className="aligned">
@@ -238,7 +231,10 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                             aria-label={monthData.key} 
                             ref={monthData.closeToBeginningOfDataRange ? earlyMonthRef : (monthData.closeToEndOfDataRange ? lateMonthRef : undefined)}    
                         >
+                            <div className="month-title"> 
                             <h2>{monthData.monthName}</h2>
+                                <h3>{monthData.year}</h3>
+                            </div>
                             <div className="day-grid"> 
                                 { monthData.weeks.map((weekData, i) =>
                                     <Fragment key={weekData.key}>
@@ -275,11 +271,8 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                         </div>
                     )}
                 </div>
-            </div>;
-
-    return <section className="calendar-wrapper">
-        {taskStore.isLoaded ? content : loading}
-    </section>;
+            </div>
+        </PlaceableWidget>;
 });
 
 export const ShowSelectableCalendarDays = () => {};

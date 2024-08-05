@@ -1,4 +1,4 @@
-#list-wrapper {
+.list.widget {
     grid-area: list;
     margin: 0;
     display: grid;
@@ -8,12 +8,12 @@
 }
 
 /* Hide scrollbar for Chrome, Safari and Opera */
-#list-wrapper::-webkit-scrollbar {
+.list.widget::-webkit-scrollbar {
     display: none;
   }
   
   /* Hide scrollbar for IE, Edge and Firefox */
-  #list-wrapper {
+  .list.widget {
     -ms-overflow-style: none;
     /* IE and Edge */
     scrollbar-width: none;
@@ -21,26 +21,26 @@
     /* Firefox */
   }
   
-  #list-wrapper>section {
+  .list.widget>section {
     margin: var(--section-gap) 0 0 var(--section-gap);
     position: relative;
   }
   
-  #list-wrapper>section:last-child {
+  .list.widget>section:last-child {
     margin-bottom: var(--section-gap);
   }
 
-  #list-wrapper .dark-section button:focus {
+  .list.widget .dark-section button:focus {
     outline: auto;
   }
 
-  #list-wrapper .title {
+  .list.widget .title {
     transition: background-color .1s, color .4s;
     border-radius: 12px;
     padding: 8px 8px 8px 8px;
   }
 
-  #list-wrapper .title {
+  .list.widget .title {
     border-radius: 12px;
     width: 100%;
     height: 100%;
@@ -48,24 +48,24 @@
     text-align: left;
   }
 
-  #list-wrapper .title-date-wrapper label {
+  .list.widget .title-date-wrapper label {
     flex: 1 0 0px;
     width: 100%;
     height: 100%;
   }
   
-  #list-wrapper time {
+  .list.widget time {
     flex: 0 1 0px;
   }
 
-  #list-wrapper .task-wrapper.complete:hover p,
-  #list-wrapper .task-wrapper.complete .title:focus p,
-  #list-wrapper .task-wrapper.complete:hover s,
-  #list-wrapper .task-wrapper.complete .title:focus s {
+  .list.widget .task-wrapper.complete:hover p,
+  .list.widget .task-wrapper.complete .title:focus p,
+  .list.widget .task-wrapper.complete:hover s,
+  .list.widget .task-wrapper.complete .title:focus s {
     color: var(--g2);
 }
 
-#list-wrapper .task-wrapper.complete:hover s,
-#list-wrapper .task-wrapper.complete .title:focus s {
+.list.widget .task-wrapper.complete:hover s,
+.list.widget .task-wrapper.complete .title:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }

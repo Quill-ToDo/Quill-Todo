@@ -10,6 +10,7 @@ import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 import { ICONS } from "@/app/@util/constants";
+import { PlaceableWidget } from "../generic-widgets/Widget";
 
 const SECTION_TOGGLE_DURATION = 100;
 
@@ -18,27 +19,21 @@ const SECTION_TOGGLE_DURATION = 100;
  * The list view for tasks.
  */
 export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
-    // How long sections should take to collapse in millis
-
     // All possible views for the list
     const possibleListFormats = {
         "by-status": <ByStatusThreeSection store={taskStore}/>
     };
-
     const listFormat = "by-status";
-    const loading = 
-        <div className="loading-wrapper take-full-space">
-            <div>
-                { ICONS.LIST }
-                <p className="">Loading list...</p>
-            </div>
-        </div>;
 
     // Before content is loaded show placeholder
     return (
-        <section id="list-wrapper" aria-label="Task list">
-            {taskStore.isLoaded ? possibleListFormats[listFormat] : loading}
-        </section>
+        <PlaceableWidget 
+            widgetName="list" 
+            icon={ICONS.LIST} 
+            doneLoading={taskStore.isLoaded}    
+        >
+            { possibleListFormats[listFormat] }
+        </PlaceableWidget>
     );
 });
 

@@ -1,4 +1,4 @@
-.calendar-wrapper .calendar-body {
+.calendar.widget .calendar-body {
     padding-bottom: 0;
 }
 
@@ -24,14 +24,14 @@
     overscroll-behavior: contain;
 }
 
-.calendar-wrapper .header {
+.calendar.widget .header {
     position: sticky;
     grid-column: nav / weekDays;
     grid-template-columns: subgrid;
     display: grid;
 }
 
-.calendar-wrapper nav {
+.calendar.widget nav {
     grid-area: nav;
     align-items: center;
     justify-content: center;
@@ -57,13 +57,20 @@
 }
 
 /* Month titles */
-.month-container h2 {
+.month-container .month-title {
     grid-area: monthNames;
     justify-self: flex-start;
     width: 100%;
     border-top: 2px solid var(--g4);
     padding: calc(var(--section-gap)/2) calc(var(--section-gap)/2) 0 0;
+}
+
+.month-container .month-title h2 {
     font-size: 30px;
+}
+
+.month-container .month-title h3 {
+    color: var(--g4);
 }
 
 /* Actual grid of days  */

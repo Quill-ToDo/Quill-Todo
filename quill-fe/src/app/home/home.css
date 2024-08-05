@@ -42,7 +42,7 @@ margin-bottom: 2px;
     grid-template-rows: 100vh;
 }
 
-.calendar-wrapper {
+.calendar.widget {
     grid-area: calendar;
     margin: var(--section-gap) var(--section-gap) var(--section-gap) 0;
 }
@@ -175,7 +175,7 @@ p.time {
 }
 
 .take-full-space {
-    height: 100vh;
+    height: 100%;
     width: 100%;
 }
 
@@ -246,7 +246,7 @@ section.more-padding {
 
 /* Show a transition for focusing on elements */
 .check-box-wrapper input:focus~i,
-#list-wrapper button.title:focus,
+.list.widget button.title:focus,
 .color-bubble-input:focus + .color-bubble,
 :focus-visible {
     transition-timing-function: cubic-bezier(0.075, 0.82, 0.165, 1);
@@ -273,13 +273,19 @@ input:focus {
 }
 .btn.large {
     min-width: 250px;
-    height: 50px;
+    min-height: 50px;
+    height: fit-content;
     font-weight: bold;
     font-size: 35px;
 }
 
 .btn.large.text {
     font-size: 23px;
+}
+
+.btn.large i {
+    height: 35px;
+    margin: 5px;
 }
 /*#region Colors*/
 
@@ -353,6 +359,7 @@ button:focus {
     display: flex;
     justify-content: center;
     align-items: center;
+    max-height: 90%;
 } 
 .btn i svg {
     stroke: var(--g2);
@@ -462,7 +469,7 @@ hr {
     z-index: 5;
   }
 
-.popup .header-container {
+.popup header {
     background-color: var(--g4);
     border-radius: var(--box-corner-rounding) var(--box-corner-rounding) 0 0;
 }
@@ -481,12 +488,12 @@ hr {
     background-color: rgba(0, 0, 0, 0.226);
 }
 
-.loading-wrapper {
+.loading {
     display: flex;
     justify-content: center;
 }
 
-.loading-wrapper>div {
+.loading>div {
     display: flex;
     align-items: center;
     flex-direction: column;
@@ -496,11 +503,11 @@ hr {
     text-align: center;
 }
 
-.loading-wrapper>div p {
+.loading>div p {
     color: var(--g3)
 }
 
-.loading-wrapper>div i {
+.loading>div i {
     animation: jiggle 3s 4s infinite;
 }
 /*#endregion Other Layers*/
