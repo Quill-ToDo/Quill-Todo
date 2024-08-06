@@ -4,6 +4,14 @@ export const SUCCESS_ALERT = "success";
 export const NOTICE_ALERT = "notice";
 export const ERROR_ALERT = "failure";
 
+export type AlertEvent = Omit<CustomEvent, "detail"> & {detail: AlertEventDetail};
+
+export type AlertEventDetail = {
+    id: string;
+    type: string; 
+    body: string;
+}
+
 /**
  * Render an alert on the screen. Use sparingly as too many alerts can be annoying for users, but can be helpful for testing.
  * Ex: 

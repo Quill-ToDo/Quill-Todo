@@ -1,11 +1,11 @@
-.show-wrapper.popup {
+.task-detail.popup {
   width: max-content;
   max-width: 40vw;
   min-width: 20vw;
   overflow: visible;
 }
 
-.show-wrapper .checkbox-color {
+.task-detail .checkbox-color {
   display: flex;
   gap: 13px;
   align-items: center;
@@ -14,41 +14,46 @@
   min-height: fit-content;
 }
 
-.show-wrapper .title {
-  font-size: 30px;
+.task-detail .title {
+  font-size: 25px;
   text-align: left;
 }
 
-.show-wrapper input.title.blank::placeholder {
+.task-detail input.title.blank::placeholder {
   color: var(--g6);
 }
 
-.show-wrapper label {
+.task-detail label {
   color: var(--g3);
   font-size: var(--p-size);
 }
 
-.show-wrapper .task-wrapper.complete s,
-.show-wrapper .task-wrapper.complete input {
+.task-detail .task-wrapper.complete s,
+.task-detail .task-wrapper.complete input {
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 3px ;
 } 
 
-.show-wrapper .task-wrapper.complete .checkmark
+.task-detail header .task-wrapper.hover {
+  background-color: unset;
+}
+
+.task-detail .task-wrapper.complete .checkmark
 {
   color: var(--g7);
 } 
 
-.show-wrapper .check-box-wrapper {
+.task-detail .check-box-wrapper {
   scale: 1.3;
   height: 18px;
 }
 
-.show-wrapper .header-container {
+.task-detail header {
   min-width: fit-content;
+  width: 100%;
 }
 
-.show-wrapper .date-wrapper > div {
+.task-detail .date-wrapper > div {
   display: flex;
   gap: 5px;
   text-align: center;
@@ -57,7 +62,11 @@
   align-items: center;
 }
 
-.show-wrapper .date-wrapper p.date,
-.show-wrapper .date-wrapper p.time {
+.task-detail .date-wrapper p.date,
+.task-detail .date-wrapper p.time {
   font-size: var(--p-size);
+}
+
+.task-detail .add-field-btn {
+  margin-top: var(--section-gap);
 }

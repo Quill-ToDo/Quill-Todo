@@ -1,18 +1,18 @@
-export function makeDraggable(divToDrag : HTMLElement) {
+export function makeDraggable(eleToDrag : HTMLElement) {
     var mousePosition;
     var offset = [0,0];
     var isDown = false;
-    const dragHandle = divToDrag.querySelector(".draggable-handle");
+    const dragHandle = eleToDrag.querySelector(".draggable-handle");
     if (dragHandle === null) {
         throw new Error("");
     }
 
     dragHandle.addEventListener('mousedown', function(e) {
-        divToDrag.style.position = "abosolute;";
+        eleToDrag.style.position = "abosolute;";
         isDown = true;
         offset = [
-            divToDrag.offsetLeft - e.clientX,
-            divToDrag.offsetTop - e.clientY
+            eleToDrag.offsetLeft - e.clientX,
+            eleToDrag.offsetTop - e.clientY
         ];
     }, true);
 
@@ -35,10 +35,10 @@ export function makeDraggable(divToDrag : HTMLElement) {
             // drqagged out of bounds but it's not working with floating UI
             // because it creates a subwindow
             // if (newX > 0 && newX < window.innerWidth-50) {
-                divToDrag.style.left = newX + 'px';
+                eleToDrag.style.left = newX + 'px';
             // }
             // if (newY > 0 && newY < window.innerHeight-50) {
-                divToDrag.style.top  = newY + 'px';
+                eleToDrag.style.top  = newY + 'px';
             // }
         }
     }, true);

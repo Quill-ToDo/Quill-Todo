@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
+import { ComponentPropsWithoutRef, ComponentPropsWithRef, createContext, ForwardedRef, forwardRef, RefObject, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { AlertEvent, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
 import { ALERT_CAPTURE_ID, ICONS } from '@/util/constants';
 
@@ -145,7 +145,7 @@ const AlertBox = (props) => {
     
     const removeCallback = props.removeCallback;
     
-    const animationStop = (alert: Event) => {
+    const animationStop = (alert: AlertEvent) => {
         toRemove.current.add(alert);
         alert.detail.removed = true;
         const alertInPage = document.getElementById(alert.detail.id);
@@ -160,7 +160,7 @@ const AlertBox = (props) => {
     }
 
     const dismissAlert = useCallback(
-        (alert: Event) => {
+        (alert: AlertEvent) => {
             // If there are no animations currently happening then remove every task that has finished its animation cycle
 
             const alertInPage = document.getElementById(alert.detail.id);
@@ -186,9 +186,9 @@ const AlertBox = (props) => {
             {props.alerts.length ?
                 <AlertList 
                     alerts={props.alerts}
-                    animationStop={(alert) => animationStop(alert)}
-                    animationStart={(alert) => animationStart(alert)}
-                    removeCallback={(alert) => dismissAlert(alert)}
+                    animationStop={(alert: AlertEvent) => animationStop(alert)}
+                    animationStart={(alert: AlertEvent) => animationStart(alert)}
+                    removeCallback={(alert: AlertEvent) => dismissAlert(alert)}
                 />
                 :
                 null
@@ -197,28 +197,39 @@ const AlertBox = (props) => {
     )
 }
 
-const AlertWrapper = (props) => {
+export const AlertWrapperContext = createContext(null);
+
+const AlertWrapper = (props: ComponentPropsWithoutRef<any>) => {
     const [alerts, setAlerts] = useState([]);
+    const thisWrapperRef = useRef(null);
 
     useEffect(() => {
         // Add listener for when you add a new alert
-        const wrapper = document.getElementById("alert-capture");
-        wrapper.addEventListener("alert", (event) => setAlerts(alerts.concat([event])), {once: true});
+        if (thisWrapperRef.current) {
+            thisWrapperRef.current.addEventListener("alert", (event: AlertEvent) => setAlerts(alerts.concat([event])), {once: true});
+        }
         return () => {
-            wrapper.removeEventListener("alert",  (event) => setAlerts(alerts.concat([event])));
+            if (thisWrapperRef.current) {
+                thisWrapperRef.current.removeEventListener("alert",  (event: AlertEvent) => setAlerts(alerts.concat([event])));
+            }
         }
     }, [alerts])
 
 
     return (         
-        <div id={ALERT_CAPTURE_ID}>
-            <AlertBox 
-                alerts={alerts} 
-                removeCallback={(alertsToRemove: Event[]) => {
-                    setAlerts(alerts.filter(a => !alertsToRemove.has(a)));
-                }} 
-            />
-            {props.children}
+        <div 
+            id={ALERT_CAPTURE_ID}
+            ref={thisWrapperRef}
+            >
+                <AlertWrapperContext.Provider value={thisWrapperRef}>
+                    <AlertBox 
+                        alerts={alerts} 
+                        removeCallback={(alertsToRemove: CustomEvent[]) => {
+                            setAlerts(alerts.filter(a => !alertsToRemove.has(a)));
+                        }} 
+                    />
+                    {props.children}
+                </AlertWrapperContext.Provider>
         </div>
     );
 }
