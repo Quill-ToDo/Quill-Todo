@@ -1,12 +1,11 @@
-import { PositionedPopupAndReferenceElement } from "@/app/@util/FloatingUiHelpers";
-import { ErrorsList } from "@/app/@util/FormComponents";
+import { ErrorsList } from "@util/FormComponents";
 import { TaskColorCodes, TaskModel } from "@/store/tasks/TaskModel";
-import { UseDismissProps, UseFloatingOptions, shift, offset, autoPlacement } from "@floating-ui/react";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, ComponentPropsWithoutRef, HTMLProps, ReactNode, RefObject, useCallback, useEffect, useId, useRef, useState } from "react";
+import { ComponentProps, ComponentPropsWithoutRef, HTMLProps, PropsWithoutRef, PropsWithRef, ReactNode, RefObject, useCallback, useEffect, useId, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
-import { UNSET_TASK_TITLE_PLACEHOLDER } from "@/app/@util/constants";
+import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
+import { ContextMenuPopup, PopupOnClick } from "@/app/@util/Popup";
 
 const HOVER_CLASS = "hover";
 
@@ -36,16 +35,18 @@ export const TaskWrapper = observer((
             });
         }}
         {...properties}
-        className={`task-wrapper${task.complete ? " complete" : ""}${properties && properties.className ? " " + properties.className : ""}`}
+        className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}`, props: properties as HTMLProps<"any">})}
         >
         {children}
     </div>;
-})
+});
+
 //#region Checkbox
-export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId: string}) => {
+export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId?: string}) => {
+    const id = checkboxId ? checkboxId : useId();
     return <label 
             className="check-box-wrapper"
-            htmlFor={checkboxId}
+            htmlFor={id}
             title={`Mark task ${task.complete ? "uncomplete" : "complete"}`}
             aria-label="task checkbox"
             tabIndex={0}
@@ -54,7 +55,7 @@ export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, ty
         <input 
             type="checkbox" 
             aria-label="task checkbox"
-            id={checkboxId}
+            id={id}
             onChange={() => {task.toggleComplete()}}
             checked={task.complete}
             >
@@ -95,7 +96,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
     })
 
     const close = useCallback(() => {
-        task.setColor(finalTaskColor.current);
+        task.color = finalTaskColor.current;
         if (finalTaskColor.current != startingTaskColor.current) {
             task.saveToServer({color: finalTaskColor.current});
         }
@@ -103,7 +104,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
     }, [finalTaskColor, startingTaskColor]);
 
     return <div 
-                className="color-picker popup"
+                className="color-picker"
                 onMouseLeave={() => task.setColorStringUnderEdit(finalTaskColor.current)}
         > <div className="colors">
             { TaskColorCodes.map((colorCol: {key: string, data: string[]}) => <div className="color-picker-col" key={`${colorCol.key}`}> 
@@ -146,62 +147,34 @@ const ColorGridPicker = observer(({task, closePicker}: {
 })
 
 export const ColorBubble = observer(({task}: {task: TaskModel}) => {
-    const [showPicker, setShowPicker] = useState(false);
-    const closePicker = () => setShowPicker(false);
-
-    const colorPickerGridPositioning: UseFloatingOptions = {
-        open: showPicker,
-        onOpenChange: setShowPicker,
-        placement: "bottom",
-        middleware: [
-            offset(({rects}) => {
-                return (
-                  -rects.floating.height / 2
-                );
-              }),
-              shift()],
-    };
-    const dismissOptions: UseDismissProps = {
-        outsidePress: true,
-        referencePress: true,
-        bubbles: false,
-    }
-
-    return <PositionedPopupAndReferenceElement
-        popupPositioningOptions={colorPickerGridPositioning}
-        dismissPopupOptions={dismissOptions}
-        renderRef={(ref, props) => {
-            return <div
-                    className="color-bubble-wrapper">
-                    <input
-                        type="color"
-                        className="color-bubble-input" 
-                        onClick={(e) => {
-                            e.preventDefault();
-                            setShowPicker(true);
-                        }}
-                        title="Change task color"
-                        aria-label="Task color changer"
-                        {...props}
-                        >
-                    </input>
-                    <svg 
-                        ref={ref}
-                        className="color-bubble" 
-                        viewBox="0 0 100 100" 
-                        xmlns="http://www.w3.org/2000/svg"
+    return <PopupOnClick 
+            renderElementToClick={(open) => <div
+                className="color-bubble-wrapper">
+                <input
+                    type="color"
+                    className="color-bubble-input" 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        open();
+                    }}
+                    title="Change task color"
+                    aria-label="Task color changer"
                     >
-                        <circle cx="50" cy="50" r="50" fill={task.color}/>
-                    </svg>
+                </input>
+                <svg 
+                    className="color-bubble" 
+                    viewBox="0 0 100 100" 
+                    xmlns="http://www.w3.org/2000/svg"
+                >
+                    <circle cx="50" cy="50" r="50" fill={task.color}/>
+                </svg>
             </div>
-        }}
-        popupElement={
-            <ColorGridPicker 
-                task={task} 
-                closePicker={closePicker} 
-            />
         }
-    /> 
+        renderPopupContent={(close) => <ColorGridPicker 
+            task={task} 
+            closePicker={close} 
+        />}
+    ></PopupOnClick>;
 });
 //#endregion 
 //#region Title
@@ -211,49 +184,33 @@ const PlainTaskTitle = observer((
         props,
     }: {
         task: TaskModel,
-        props: ComponentProps<"p">,
+        props: ComponentPropsWithoutRef<"p">,
     }
 ) => {
-    const [showDetails, setShowDetails] = useState(false);
-    const close = () => setShowDetails(false);
-    const taskDetailsPopupPositioning: UseFloatingOptions = {
-        open: showDetails,
-        onOpenChange: setShowDetails,
-        middleware: [offset(20), autoPlacement(), shift()],
-    };
-    const dismissOptions: UseDismissProps = {
-        outsidePress: true,
-        referencePress: false,
-    }
-
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
 
-    return <PositionedPopupAndReferenceElement
-                popupPositioningOptions={taskDetailsPopupPositioning}
-                dismissPopupOptions={dismissOptions}
-                renderRef={(ref, floatProps) => {
-                    return (
-                        <button
-                        type="button"
-                            ref={ref}
-                            onClick={() => {setShowDetails(true);}}
-                            className={props.className}
-                            {...floatProps} 
-                        >
-                            <p style={props.style}> 
-                                { task.complete ? <s>{displayTitle}</s> : displayTitle } 
-                            </p>
-                        </button>
-                    )
-                }}
-                popupElement={
-                    <TaskDetail 
-                        task={task} 
-                        close={close} 
-                    />
-                }
-            />;
-});
+    return (
+    <PopupOnClick 
+        renderElementToClick={(openPopup) => 
+        <button
+                    type="button"
+                    onClick={openPopup}
+                    className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})} 
+                >
+                    <p style={props.style}> 
+                        { task.complete ? <s>{displayTitle}</s> : displayTitle } 
+                    </p>
+                </button>
+        }
+        renderPopupContent={(closePopup) => <TaskDetail 
+                task={task} 
+                close={closePopup} 
+            />}
+        placement="right"
+        alignment="middle"
+        {...{className: "task-detail"}}
+        ></PopupOnClick>
+)});
 
 const EditableTaskTitle = observer((
     {
@@ -285,7 +242,7 @@ const EditableTaskTitle = observer((
                 aria-describedby={errorId}
                 title={"Edit Title"}
                 ref={editInputRef}
-                onChange={(e) => task.setTitle(e.target.value)}
+                onChange={(e) => task.title = e.target.value}
                 onBlur={finishEditing}
                 {...props}
             />
@@ -307,12 +264,12 @@ export const TaskTitle = observer((
     }: {
         task: TaskModel, 
         editAllowed?: boolean,
-        props?: HTMLProps<any>,
+        props?: ComponentPropsWithoutRef<any>,
     }) => {
     const overdue = task.overdue();
 
     const defaultColorLogic = !task.complete && !overdue && !!task.title.length ? task.color : undefined;
-    const formattedProps: HTMLProps<any> = {
+    const formattedProps: ComponentPropsWithoutRef<any> = {
         ...props,
         className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}${props&&props.className?" "+props.className:""}`,
         style: {
@@ -325,13 +282,13 @@ export const TaskTitle = observer((
     if (!editAllowed) {
         return <PlainTaskTitle 
             task={task}
-            props={formattedProps as ComponentProps<"p">}
+            props={formattedProps as ComponentPropsWithoutRef<"p">}
         />;
     }
     else {
         return <EditableTaskTitle
             task={task}
-            props={formattedProps as ComponentProps<"input">}
+            props={formattedProps as ComponentPropsWithoutRef<"input">}
         />
     }
 });
@@ -391,7 +348,7 @@ const EditableTaskDescription = observer((
                 aria-invalid={!!task.validationErrors.description.length}
                 aria-describedby={errorId}
                 ref={editInputRef}
-                onChange={(e) => task.setDescription(e.target.value)}
+                onChange={(e) => task.description = e.target.value}
                 onBlur={finishEditing}
                 {...props}
             />

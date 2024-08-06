@@ -420,7 +420,7 @@ export class TaskModel {
         // Validate that there are no errors. If there are, raise an alert.
         if (!this.isValid) {
             const msg = `Task could not be saved, it still has errors - ${getLegibleErrors(this.validationErrors)}`;
-            addAlert(document.querySelector('#new-wrapper'), 
+            addAlert(document.querySelector('.new-wrapper'), 
                 ERROR_ALERT, 
                 msg
             );

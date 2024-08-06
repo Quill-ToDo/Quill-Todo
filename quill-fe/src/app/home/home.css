@@ -466,9 +466,53 @@ hr {
     z-index: 5;
   }
 
+  .popup {
+    min-width: min-content;
+    max-width: 95vw;
+    min-height: 10vh;
+    z-index: 5;
+    position: absolute;
+    background-color: var(--g8);
+    border-radius: var(--box-corner-rounding);
+    overflow: hidden;
+    outline: solid var(--g4) 3px;
+  }
+
 .popup header {
     background-color: var(--g4);
     border-radius: var(--box-corner-rounding) var(--box-corner-rounding) 0 0;
+}
+
+.popup.context-menu {
+    border-radius: 10px;
+    min-height: max-content;
+  }
+.popup.context-menu header {
+    border-radius: 10px 10px 0 0;
+    padding: 3px 10px 3px 10px;
+    color: var(--g1);
+} 
+.popup.context-menu li {
+    padding: 5px 10px 5px 10px;
+    margin: 0;
+}
+.popup.context-menu li i {
+    color: var(--g3);
+}
+.popup.context-menu button {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+}
+.popup.context-menu li:not(:last-of-type) {
+    border-bottom:  solid var(--g4) 3px;
+}
+.popup.context-menu li p {
+    text-align: start;
+    min-width: max-content;
+}
+.popup.context-menu li:hover {
+    background-color: var(--list-hover);
 }
 /*#endregion Pop-Ups*/
 /*#region Other Layers*/

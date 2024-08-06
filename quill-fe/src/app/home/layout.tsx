@@ -2,14 +2,14 @@
 
 import { observer } from "mobx-react-lite";
 import './home.css'
-import { addAlert, ERROR_ALERT } from '@/alerts/alertEvent';
+import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
 import { offset, UseDismissProps, UseFloatingOptions } from "@floating-ui/react";
-import { ICONS } from "../@util/constants";
-import { PositionedPopupAndReferenceElement } from "../@util/FloatingUiHelpers";
+import { ICONS } from "@util/constants";
 import { useEffect, useRef, useState } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
 import Sortable from 'sortablejs';
+import { PopupOnClick } from "@util/Popup";
 
 
 const DashboardLayout = observer(({
@@ -52,34 +52,27 @@ const DashboardLayout = observer(({
     return ( 
             <div id="home-wrapper" data-testid="home">
                 <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
-                    <PositionedPopupAndReferenceElement
-                        popupPositioningOptions={newTaskPopupPositioning}
-                        dismissPopupOptions={dismissOptions}
-                        renderRef={(ref, props) => {
-                        return <button 
-                            id="add-task"
-                            ref={ref} 
-                            role="menuitem" 
-                            className="btn small square bg" 
-                            title="Add task" 
-                            onClick={() => {
-                                taskStore.current.createNewTask();
-                                setShowNewTaskPopupFromMenuButton(true);
-                                }}
-                                {...props}
+                    <PopupOnClick
+                        renderElementToClick={(open) => <button 
+                                id="add-task"
+                                role="menuitem" 
+                                className="btn small square bg" 
+                                title="Add task" 
+                                onClick={() => {
+                                    taskStore.current.createNewTask();
+                                    open();
+                                    }}
                                 >
-                            { ICONS.PLUS }
-                        </button>
-                        }}
-                        popupElement={ 
-                            <AddNewTaskPopUp 
-                                close={() => {
-                                    setShowNewTaskPopupFromMenuButton(false);
-                                }}
-                                taskToCreate={taskStore.current.taskBeingCreated}
-                            />
+                                { ICONS.PLUS }
+                            </button>
                         }
-                    />
+                        renderPopupContent={(close) => <AddNewTaskPopUp 
+                            close={close}
+                            taskToCreate={taskStore.current.taskBeingCreated}
+                        />}
+                    >
+
+                    </PopupOnClick>
                     <button 
                         ref={trashBtnRef}
                         role="menuitem" 
@@ -108,6 +101,9 @@ const DashboardLayout = observer(({
                         // }}
                     >
                         { ICONS.TRASH }
+                    </button>
+                    <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), SUCCESS_ALERT, "clicky")}>
+                        { ICONS.SETTINGS }
                     </button>
                     <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
                         { ICONS.LOG_OUT }

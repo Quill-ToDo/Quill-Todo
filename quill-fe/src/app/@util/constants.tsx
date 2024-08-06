@@ -45,6 +45,8 @@ export const ICONS = {
             className="fas fa-chevron-down expand-symbol fa-fw fa-lg"
         ></i>,
     SETTINGS: <i className="fa-solid fa-gear"></i>,
+    DESCRIPTION: <i className="fa-solid fa-align-left"></i>,
+    PRIORITY: <i className="fa-solid fa-flag"></i>,
 } 
 
 /**
