@@ -70,33 +70,34 @@ const TaskDetail = observer(({
                     <div className="aligned end">
                         <ContextMenuPopup
                             renderAnchorElementToClick={(open) => <button 
-                                className="btn small square no-shadow"
-                                title="Pin window" 
-                                onClick={() => {
-                                    open();
-                                }}
-                            >
-                                { ICONS.MENU }
-                            </button>}
-                            labelsAndClickCallbacks={[
-                                {
-                                    label: "Delete",
-                                    content: <>{ ICONS.TRASH }<p>Delete task</p></>,
-                                    onClick: () => { task.deleteSelf(); close(); },
-                                    visible: true,
-                                }
-                            ]}
-                            placement={"right"}
-                            alignment={"start"}  />
-                                <button 
                                     className="btn small square no-shadow"
-                                    title="Close" 
+                                    title="Pin window" 
                                     onClick={() => {
-                                        close();
-                                    }}
-                                >
-                                    { ICONS.X }
-                                </button>
+                                            open();
+                                        }}
+                                    >
+                                        { ICONS.MENU }
+                                    </button>}
+                            labelsAndClickCallbacks={[
+                                    {
+                                        label: "Delete",
+                                        content: <>{ ICONS.TRASH }<p>Delete task</p></>,
+                                        onClick: () => { task.deleteSelf(); close(); },
+                                        visible: true,
+                                    }
+                                ]}
+                            placement={"right"}
+                            alignment={"middle"}  
+                        />
+                        <button 
+                            className="btn small square no-shadow"
+                            title="Close" 
+                            onClick={() => {
+                                close();
+                            }}
+                        >
+                            { ICONS.X }
+                        </button>
                     </div>
                 </TaskWrapper>
             </header>
@@ -158,9 +159,7 @@ const TaskDetail = observer(({
                                     { ICONS.PLUS }
                                 </button>
                         }
-                        placement="right"
-                        alignment="middle"
-                    ></ContextMenuPopup>
+                    />
                 </div> : undefined
                 }
         

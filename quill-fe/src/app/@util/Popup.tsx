@@ -37,30 +37,36 @@ export const PopupOnClick = observer((
         renderPopupContent: (closePopup: ()=>void) => ReactElement<any>,
         renderElementToClick: (openPopup: ()=>void) => ReactElement<any>,
         position?: "centered" | "positioned",
-        placement?: "left" | "bottom" | "right" | "top",
-        alignment?: "start" | "middle" | "end",
+        placement?: "left" | "bottom" | "right" | "top" | "centered",
+        alignment?: "start" | "middle" | "end" | "click",
         doneLoading?: boolean,
         draggable?: boolean,
         fullscreenable?: boolean,
     }) => {
-
     const [showPopup, setShowPopup] = useState(false);
     const close = () => setShowPopup(false);
     const open = () => setShowPopup(true);
+    const thisPopup = useRef(null);
 
     // useEffect(() => {
     //     if (draggable && popupRef.current !== null) {
     //         makeDraggable(popupRef.current)
     //     };
     // }, [popupRef])
+    useEffect(() => {
+        if (thisPopup.current) {
+            // thisPopup as.querySelector("input")[0].focus()
+        }
+    }, [])
 
     const loading = <div className="loading">
         <p>Loading...</p>
     </div>;
         
     let innerPopupContent = <section 
-        className={combineClassNamePropAndString({className: `popup`, props: props})}>
-        
+        className={combineClassNamePropAndString({className: `popup`, props: props})}
+        ref={thisPopup}
+        >
         { doneLoading ? renderPopupContent(close) : loading }
     </section>;
 
@@ -71,17 +77,28 @@ export const PopupOnClick = observer((
         </>;
     } 
     else if (position === "positioned") {
+        const middleware = [];
+        // Align to mouse click
+
+        // Center
+        if (placement === "centered") {
+            middleware.push(offset(({rects, elements}) => {
+                return (
+                -rects.floating.width / 2
+                );
+            }))
+        } else {
+            middleware.push(offset(10));
+        }
+
+        middleware.push(shift());
         const positioning: UseFloatingOptions = {
             open: showPopup,
             onOpenChange: setShowPopup,
-            placement: `${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement,
-            // middleware: [
-            //     offset(({rects}) => {
-            //         return (
-            //         -rects.floating.width / 2
-            //         );
-            //     }),
-            //     shift()],
+            // "centered" is a placement I made myself, other combos are Floating UI-specific 
+            // https://floating-ui.com/docs/useFloating#placement
+            placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
+            middleware: middleware,
         };
         const dismissOptions: UseDismissProps = {
             outsidePress: true,
@@ -106,22 +123,26 @@ export const PopupOnClick = observer((
     }
 });
 
+/**
+ * Simple popup menu containing a list of clickable items.
+ */
 export const ContextMenuPopup = observer((
     {   
-        header,
         labelsAndClickCallbacks,
         renderAnchorElementToClick,
-        placement,
-        alignment,
+        header,
+        placement="right",
+        alignment="middle",
         ...props
     } : {
-        header: ReactElement<"any">,
         labelsAndClickCallbacks: {
-            label: string,
-            content: ReactElement<any>, 
-            onClick: () => void 
+            label: string, // Accessibility, the name
+            content: ReactElement<any>,  // Content to render inside <li> and button. ex: <>{ICONS.TRASH}<p>Delete</p></>
+            onClick: () => void, 
+            visible: boolean, // Should this element appear in the content menu?
         }[],
-        renderAnchorElementToClick: (openPopup: ()=>void) => ReactElement<any>,
+        renderAnchorElementToClick: (openPopup: ()=>void) => ReactElement<any>, // Must stay a callback
+        header?: ReactElement<"any">, // Optional header content for the context menu
         placement?: "left" | "bottom" | "right" | "top",
         alignment?: "start" | "middle" | "end",
     }
@@ -131,10 +152,12 @@ export const ContextMenuPopup = observer((
         renderPopupContent={(close) => <>
         { header }
         <ul>
-            { labelsAndClickCallbacks.map(labelAndCallback => 
+            { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
+            .map(labelAndCallback =>
+
             <li key={labelAndCallback.label}>
                 <button
-                        onClick={labelAndCallback.onClick}
+                        onClick={() => {labelAndCallback.onClick(); close();}}
                         aria-label={labelAndCallback.label} 
                         title={labelAndCallback.label}
                         className={combineClassNamePropAndString({className: `item`, props: props})} 

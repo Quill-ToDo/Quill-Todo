@@ -167,6 +167,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
 
     return <div 
                 className="color-picker max-width-height"
+                onMouseLeave={() => task.color = startingTaskColor.current}
         > 
             <div className="colors max-width-height">
             { TaskColorCodes.map((colorCol: {key: string, data: string[]}) => 
@@ -188,61 +189,72 @@ const ColorGridPicker = observer(({task, closePicker}: {
                     )}
             </div>          
             )}
+            </div>
+            <div className="name-and-errors max-width-height">
+                <input 
+                    className="max-width-height"
+                    autoFocus={true}
+                    value={task.colorStringUnderEdit} 
+                    onChange={(e) => {
+                        task.colorStringUnderEdit = e.target.value;
+                    }}
+                    ref={inputRef}
+                    aria-invalid={!!task.validationErrors.colorStringUnderEdit.length}
+                    aria-describedby={errorId}
+                >    
+                </input>
+                { !!task.validationErrors.colorStringUnderEdit.length && <ErrorsList 
+                    errors={task.validationErrors.colorStringUnderEdit}
+                    id={errorId}
+                    {...{className: "max-width-height"}}
+                />}
+            </div>
         </div>
-        <div className="name-and-errors max-width-height">
-            <input 
-                className="max-width-height"
-                autoFocus={true}
-                value={task.colorStringUnderEdit} 
-                onChange={(e) => {
-                    task.colorStringUnderEdit = e.target.value;
-                }}
-                ref={inputRef}
-                aria-invalid={!!task.validationErrors.colorStringUnderEdit.length}
-                aria-describedby={errorId}
-            >    
-            </input>
-            { !!task.validationErrors.colorStringUnderEdit.length && <ErrorsList 
-                errors={task.validationErrors.colorStringUnderEdit}
-                id={errorId}
-                {...{className: "max-width-height"}}
-            />}
-        </div>
-    </div>
 })
 
-export const ColorBubble = observer(({passedTask}: {passedTask?: TaskModel}) => {
+export const ColorBubble = observer(({
+    passedTask,
+    openColorPicker=true,
+}: {
+    passedTask?: TaskModel,
+    openColorPicker?: boolean,
+}) => {
     const task = useTaskContextOrPassedTask(passedTask);
 
-    return <PopupOnClick 
-            renderElementToClick={(open) => <div
-                className="color-bubble-wrapper">
-                <input
-                    type="color"
-                    className="color-bubble-input" 
-                    onClick={(e) => {
-                        e.preventDefault();
-                        open();
-                    }}
-                    title="Change task color"
-                    aria-label="Task color changer"
-                    >
-                </input>
-                <svg 
-                    className="color-bubble" 
-                    viewBox="0 0 100 100" 
-                    xmlns="http://www.w3.org/2000/svg"
-                >
-                    <circle cx="50" cy="50" r="50" fill={task.color}/>
-                </svg>
-            </div>
-        }
-        renderPopupContent={(close) => <ColorGridPicker 
-            task={task} 
-            closePicker={close} 
-        {...{className: "max-width-height"}}    
-        />}
-    ></PopupOnClick>;
+    const colorBubble = <svg 
+            className="color-bubble-wrapper color-bubble" 
+            viewBox="0 0 100 100" 
+            xmlns="http://www.w3.org/2000/svg"
+        >
+            <circle cx="50" cy="50" r="50" fill={task.color}/>
+        </svg>;
+
+    return openColorPicker ? <PopupOnClick 
+                renderElementToClick={(open) => <div
+                    className="color-bubble-wrapper">
+                    <input
+                        type="color"
+                        className="color-bubble-input" 
+                        onClick={(e) => {
+                            e.preventDefault();
+                            open();
+                        }}
+                        title="Change task color"
+                        aria-label="Task color changer"
+                        >
+                    </input>
+                    {colorBubble}
+                    </div>}
+                renderPopupContent={(close) => <ColorGridPicker 
+                    task={task} 
+                    closePicker={close} 
+                    {...{className: "max-width-height"}}
+                    />}
+                position={"positioned"} 
+                placement={"bottom"}
+            />
+            : 
+            colorBubble;
 });
 //#endregion 
 //#region Title

@@ -473,11 +473,7 @@ hr {
 /*#region Other Elements*/
 /*#region Pop-Ups*/
 .popup {
-    min-width: max-content;
-    max-width: 95vw;
-    min-height: 10vh;
     z-index: 5;
-    position: absolute;
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);
     overflow: hidden;
