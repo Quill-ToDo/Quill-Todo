@@ -5,10 +5,9 @@ import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
 import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
 import { FormField } from "@util/FormComponents";
-import { TaskModel } from "../../_globalStore/tasks/TaskModel";
+import { TaskContext, TaskModel } from "@/store/tasks/TaskModel";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
-const OUTER_WRAPPER_ID = `#${OUTER_WRAPPER_NAME}`;
 
 /**
  * A form to create a new task. 
@@ -24,13 +23,14 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
     const formRef = useRef(null);
 
     useEffect(() => {
-        const popup = document.querySelector(OUTER_WRAPPER_ID);
+        const popup = document.querySelector(OUTER_WRAPPER_NAME);
         popup && makeDraggable(popup as HTMLElement);
     }, [])
 
 
-    return (!taskToCreate ? <></> : <div id={OUTER_WRAPPER_NAME} className="popup draggable">
-            <div className="header-container draggable-handle">
+    return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
+        <div className={OUTER_WRAPPER_NAME}>
+            <header className="draggable-handle">
                 <h2 id="popup-title">New Task</h2>
                 <div className="aligned end">
                     <button className="btn small square" title="Close" onClick={() => {
@@ -40,7 +40,7 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                         { ICONS.X }
                     </button>
                 </div>
-            </div>
+            </header>
             <section className="mid-section" aria-labelledby="popup-title">
                 <form 
                     id="add-taskToCreate" 
@@ -61,16 +61,16 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                         }
                     }}
                 >
-                    <div id="title-color">
+                    <div id="title-color" className="rows gap">
                         <FormField 
                             name="Color"
                             required={true}
-                            element={<ColorBubble task={taskToCreate} />}
+                            element={<ColorBubble />}
                             />
                         <FormField
                             name="Title"
                             required={true}
-                            element={<TaskTitle task={taskToCreate} editAllowed={true} props={{autoFocus: true}}/>}
+                            element={<TaskTitle editAllowed={true} props={{autoFocus: true}}/>}
                         />
                     </div>
                     <FormField 
@@ -81,15 +81,15 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                             { 
                                 // TODO figure out what happens if I set this : required: true,
                                 value: taskToCreate.description,
-                                onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDescription((e.target as HTMLTextAreaElement).value);}
+                                onChange: function (e: ChangeEvent) { e.target && (taskToCreate.description = (e.target as HTMLTextAreaElement).value);}
 
                             }
                         }
                         errors={taskToCreate.validationErrors.description}
                     />
-                    <div className={"start-due-wrapper horizontal-align"}> 
+                    <div className={"start-due-wrapper rows"}> 
                         <div>
-                            <div className={"horizontal-align"}>
+                            <div className={"columns gap"}>
                                 <FormField 
                                     name={`Start Date`}
                                     required={false}
@@ -116,7 +116,7 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                             </div>
                         </div>
                         <div>
-                            <div className={"horizontal-align"}>
+                            <div className={"columns gap"}>
                                 <FormField 
                                     name={`Due Date`}
                                     required={false}
@@ -140,7 +140,7 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                                         }
                                     }
                                     errors={ taskToCreate.validationErrors.dueTimeStringUnderEdit}
-                                  
+                                    
                                 />
                             </div>
                         </div>
@@ -151,5 +151,6 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
                 </form>
             </section>
         </div>
+    </TaskContext.Provider>
     )
 })

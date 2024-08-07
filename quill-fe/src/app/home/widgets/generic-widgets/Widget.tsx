@@ -18,7 +18,6 @@ export const Widget = observer((
         icon, 
         doneLoading,
         loadingContent,
-        // ref,
         children,
         ...props 
     } : WidgetProps) => {

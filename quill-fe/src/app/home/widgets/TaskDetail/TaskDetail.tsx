@@ -2,15 +2,17 @@ import React, {
     useEffect,
     useRef,
     MutableRefObject,
+    useState,
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
-import {TaskModel} from "@/store/tasks/TaskModel";
-import {Checkbox, ColorBubble, DateTimeWrapper, TaskDescription, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
+import {TaskContext, TaskModel} from "@/store/tasks/TaskModel";
+import { Checkbox, ClearFieldButton, ColorBubble, DateTimeWrapper, TaskComponentAndHeader, TaskComponentHeader, TaskDescription, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
 import { makeDraggable } from "@/app/@util/Draggable";
-
-const WIDGET_NAME = "show-wrapper";
+import { ContextMenuPopup } from "@/app/@util/Popup";
+import { addAlert, NOTICE_ALERT } from "../Alerts/alertEvent";
+import { createContext } from "vm"; 
 
 const TaskDetail = observer(({
         task, 
@@ -20,102 +22,150 @@ const TaskDetail = observer(({
         close: () => void,
 }) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
-    const checkboxId = `${WIDGET_NAME}-checkbox-${task.id}`;
+    const focus = useRef(null);
+
+    const [showDescription, setShowDescription] = useState(task.description ? true : false);
+    const descRef = useRef(null);
+    const addFieldButton = useRef(null);
+    const contextMenuData = [
+        {
+            label: "Add description",
+            key: "add description",
+            content: <>{ICONS.DESCRIPTION}<p>Description</p></>,
+            onClick: () => { 
+                setShowDescription(true); 
+            },
+            visible: !showDescription,
+        },
+        {
+            label: "Add priority",
+            key: "add description",
+            content: <>{ICONS.PRIORITY}<p>Priority</p></>,
+            onClick: () => addAlert(addFieldButton.current, NOTICE_ALERT, "We haven't implemented priority yet. Oopsies"),
+            visible: false,
+        },
+    ]
 
     useEffect(() => {
         // Keep track of the previously focused element and
         previouslyFocused.current = document.activeElement as HTMLElement;
-        const taskCheckbox  : HTMLElement | null = document.getElementById(checkboxId);
-        taskCheckbox && taskCheckbox.focus();
-        const popup = document.querySelector(`#detail-${task.id}`);
-        !!popup && makeDraggable(popup as HTMLElement);
         return () => {
             // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
         }
-    }, [task.id])
-
-    const buttons = <div className="aligned end">
-                        <button 
-                            id="btn-delete"
-                            className="btn small square no-shadow"
-                            title="Delete task" 
-                            onClick={() => {
-                                task.store.delete(task);
-                                close();
-                            }
-                        }>
-                            { ICONS.TRASH }
-                        </button>
-                        <button 
-                            className="btn small square"
-                            title="Close"
-                            onClick={() => {
-                                close();
-                            }}>
-                            { ICONS.X }
-                        </button>
-                    </div>;
+    }, [])
 
     return (
-        <section 
-            id={`detail-${task.id}`}
-            className={`popup draggable ${WIDGET_NAME}`}
-        > 
-            <div>
-                <TaskWrapper 
-                    task={task}
-                    properties={
-                        {
-                            className: "header-container aligned draggable-handle",
-                        }}
-
-                    >
+        <TaskContext.Provider value={task}>
+            <header className="draggable-handle">
+                <TaskWrapper task={task}>
                     <div className="checkbox-color">
-                        <ColorBubble task={task} />
+                        <ColorBubble />
                         <Checkbox 
                             task={task}
                             type={"due"}
-                            checkboxId={checkboxId}
                         />
                     </div>
-                    <TaskTitle task={task} editAllowed={true} />   
-                    {buttons}             
+                    <TaskTitle editAllowed={true} />   
+                    <div className="aligned end">
+                        <ContextMenuPopup
+                            renderAnchorElementToClick={(open) => <button 
+                                className="btn small square no-shadow"
+                                title="Pin window" 
+                                onClick={() => {
+                                    open();
+                                }}
+                            >
+                                { ICONS.MENU }
+                            </button>}
+                            labelsAndClickCallbacks={[
+                                {
+                                    label: "Delete",
+                                    content: <>{ ICONS.TRASH }<p>Delete task</p></>,
+                                    onClick: () => { task.deleteSelf(); close(); },
+                                    visible: true,
+                                }
+                            ]}
+                            placement={"right"}
+                            alignment={"start"}  />
+                                <button 
+                                    className="btn small square no-shadow"
+                                    title="Close" 
+                                    onClick={() => {
+                                        close();
+                                    }}
+                                >
+                                    { ICONS.X }
+                                </button>
+                    </div>
                 </TaskWrapper>
-                <section 
-                    className="mid-section" 
-                    role="dialog"
-                    aria-labelledby="task-show-title"
-                >
-                    <div className="dark-section">
-                        <div className="date-wrapper aligned even">
-                            <div>
-                                <h3>Start</h3>
+            </header>
+            <section 
+                className="mid-section" 
+                role="dialog"
+                aria-labelledby="task-show-title"
+            >
+                <div className="columns gap same-size">
+                    <div>
+                        <h3>Start</h3>
+                        <div className="dark-section">
+                            <div className="date-wrapper aligned even">
                                 {task.start ? 
                                     <DateTimeWrapper 
-                                        task={task} 
                                         type="start" 
                                     /> : 
                                     <p className="subtle"> Not set </p>
                                 }
                             </div>
-                            <div> 
-                                <h3>Due</h3>
-                                {task.due ? 
-                                <DateTimeWrapper 
-                                        task={task} 
-                                        type="due" 
-                                    /> :
-                                    <p className="subtle"> Not set </p>
-                                }
-                            </div>
                         </div>
                     </div>
-                    {task.description && <TaskDescription task={task} editAllowed={true} />
-                    }
-                </section>
-            </div>
-        </section>
+                    <div>
+                        <h3>Due</h3>
+                        <div className="dark-section">
+                            {task.due ? 
+                            <DateTimeWrapper  
+                            type="due" 
+                            /> :
+                            <p className="subtle"> Not set </p>
+                        }
+                        </div>
+                    </div>
+                </div>
+                { showDescription && <TaskComponentAndHeader
+                    fieldName={"description"}
+                    labelElement={<h3>Description</h3>}
+                    optional={true}
+                    onCloseClick={() => { task.description = ""; setShowDescription(false); }}
+                >
+                    <TaskDescription 
+                        editAllowed={true} 
+                        ref={descRef} 
+                    />
+                </TaskComponentAndHeader>
+                }
+                {
+                    contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
+                    <ContextMenuPopup
+                        header={<header>Add field</header>}
+                        labelsAndClickCallbacks={contextMenuData}
+                        renderAnchorElementToClick={(openPopup) => <button 
+                                ref={addFieldButton}
+                                onClick={openPopup}
+                                aria-label="Add task field" 
+                                title="Add task field" 
+                                className={`add-field-btn btn large centered`} 
+                                > 
+                                    { ICONS.PLUS }
+                                </button>
+                        }
+                        placement="right"
+                        alignment="middle"
+                    ></ContextMenuPopup>
+                </div> : undefined
+                }
+        
+            </section>
+        </TaskContext.Provider>
 )})
 
 export default TaskDetail;

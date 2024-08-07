@@ -14,8 +14,7 @@ import {
     FloatingFocusManagerProps,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
-import { ComponentPropsWithoutRef, forwardRef, MutableRefObject, ReactElement, RefObject, useContext } from 'react';
-import { ALERT_CAPTURE_ID } from './constants';
+import {  ReactElement, RefObject, useContext } from 'react';
 import { AlertWrapperContext } from '../home/widgets/Alerts/AlertWrapper';
 
 // This code is from: https://floating-ui.com/docs/FloatingTree

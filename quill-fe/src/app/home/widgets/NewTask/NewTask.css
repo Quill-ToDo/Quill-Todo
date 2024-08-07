@@ -1,105 +1,51 @@
-  .row {
-    width: 100%;
-  }
-  
-  .form-group {
-    text-align: center;
-    color: var(--g1);
-    justify-content: center;
-    padding-bottom: 7px;
-  }
-  
-  .form-control {
-    width: 250px;
-    border-radius: 6px;
-    background: var(--g10);
-    color: var(--g1);
-    border: solid var(--g10);
-  }
-  
-  .text-center-head {
-    color: var(--g1);
-    text-align: center;
-    font-family: "Secular One", sans-serif;
-  }
-  
-  .new-wrapper {
+.new-wrapper {
     min-width: 400px;
+    width: 40vh;
   }
 
-  .new-wrapper form input,
-  .new-wrapper form textarea {
-    color: var(--g1);
-    font-size: var(--p-size);
-  }
-
-  .new-wrapper form label {
-    font-size: var(--p-size);
-  }
-
-  .new-wrapper form label.color .name-and-errors input {
-    font-size: initial;
-  }
-
-  .new-wrapper form .start-due-wrapper .default input {
-    color: var(--g4);
-  }
-  
-  .new-wrapper form label.date {
-    min-width: 200px;
-  }
-  
-  .new-wrapper form label.time {
-    width: min-content;
-  }
-  
-  .new-wrapper form .start-due-wrapper .time input {
-    width: 100px;
-  }
-  
-  .new-wrapper form .horizontal-align button {
-    display: block;
-  }
-  
-  .new-wrapper form label>* {
-    margin-top: 5px;
-  }
-  
-  .new-wrapper .horizontal-align {
+  .new-wrapper form {
     display: flex;
-    flex-direction: row;
-    column-gap: 10px;
+    flex-direction: column;
+    gap: var(--section-gap);
   }
-  
+
+    .new-wrapper form input,
+    .new-wrapper form textarea {
+      color: var(--g1);
+      font-size: var(--p-size);
+    }
+
+    .new-wrapper form label {
+      font-size: var(--p-size);
+    }
+
+    .new-wrapper form label.color .name-and-errors input {
+      font-size: initial;
+    }
+    
+    .new-wrapper form .start-due-wrapper .time input {
+      width: 100px;
+    }
+
   .new-wrapper .start-due-wrapper {
     flex-wrap: wrap;
   }
 
-  #title-color {
-    column-gap: 10px;
+  #title-color .color {
+    flex: 1 0 0px;
     display: flex;
+    flex-direction: column;
   }
 
-  #title-color .title {
-    flex: 10 0 0px;
+  #title-color .color-bubble-wrapper {
+    width: minmax(15px, 50%);
+    min-width: 50%;
+  }
+
+  #title-color .popup-anchor {
     width: 100%;
-  }
-
-#title-color .color {
-  flex: 1 0 0px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-#title-color .color-bubble-wrapper {
-  min-width: 50%;
-}
-
-#title-color .popup-anchor {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  } 

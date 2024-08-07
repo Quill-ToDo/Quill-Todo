@@ -1,7 +1,6 @@
-import { ComponentPropsWithoutRef, ComponentPropsWithRef, createContext, ForwardedRef, forwardRef, RefObject, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { ComponentPropsWithoutRef, createContext, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertEvent, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
-import { ALERT_CAPTURE_ID, ICONS } from '@/util/constants';
 
 /**
  * One Alert.
@@ -218,7 +217,6 @@ const AlertWrapper = (props: ComponentPropsWithoutRef<any>) => {
 
     return (         
         <div 
-            id={ALERT_CAPTURE_ID}
             ref={thisWrapperRef}
             >
                 <AlertWrapperContext.Provider value={thisWrapperRef}>

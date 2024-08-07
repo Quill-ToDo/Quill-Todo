@@ -10,6 +10,7 @@ import {
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
+import { createContext } from "react";
 
 const DEFAULT_START_DATETIME = () => DateTime.now();
 const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
@@ -132,7 +133,7 @@ export class TaskModel {
             startDateStringUnderEdit : string = "";
             dueTimeStringUnderEdit : string = "";
             dueDateStringUnderEdit : string = "";
-            colorStringUnderEdit: string = "";
+            _colorStringUnderEdit: string = "";
 
     /**
      * An object to represent one task in the database. It has the same 
@@ -180,8 +181,8 @@ export class TaskModel {
             setDueDateStringUnderEdit: action,
             dueTimeStringUnderEdit: observable,
             setDueTimeStringUnderEdit: action,
-            colorStringUnderEdit: observable,
-            setColorStringUnderEdit: action,
+            _colorStringUnderEdit: observable,
+            colorStringUnderEdit: computed,
             abortTaskCreation: action, // Abandon the task being created
             deleteSelf: false, // Delete this task from the server
             // --- Server Syncing ---
@@ -213,8 +214,10 @@ export class TaskModel {
             this.color = `${(allColorCodes[Math.floor(Math.random() * (allColorCodes.length))])}`;
         }
         // Add self to the TaskStore
-        this._store = TaskStore.taskStoreSingletonInstance;
-        this._store.add(this);
+        if (TaskStore.taskStoreSingletonInstance) {
+            this._store = TaskStore.taskStoreSingletonInstance;
+            this._store.add(this);
+        }
         this.startDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.start);
         this.startTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
         this.dueDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
@@ -321,12 +324,9 @@ export class TaskModel {
      * Set the color of the task to a hex code string
      */
     set color (color : string) {
-        const errors = this.getValidationErrorsForField({field: "color", paramsForTestMethod: {color}}); 
-        if (!!errors.length) {
-            throw new Error(`Could not set task color ${color}: ${errors.join(", ")}`);
-        } else {
+        const errors = this.getValidationErrorsForField({field: "color", paramsForTestMethod: {color}});
+        if (!errors.length) {
             this._color = color;
-            this.colorStringUnderEdit = color;
         }
     }
 //#endregion
@@ -369,7 +369,7 @@ export class TaskModel {
     }=this.json) {
         // If has been initialized and this is not a task not yet posted to the server
         if (this._store && !this.isNewAndUnsubmitted) {
-            this.autosave = true;
+            this.autoSave = true;
             this.patchToServer(data);
         }
     }
@@ -505,22 +505,17 @@ export class TaskModel {
     /**
      * Set the string value that the user entered as they're editing the color. 
      * It does not need to be valid, if it is not, validation errors will be generated.
-     * If it is valid, update the actual color used as well and return true.
+     * If it is valid, update the actual color used as well.
      * 
      * @param input The hex code with the # included at the front. Should accept
      * 3 and 6 digit codes 
-     * @returns True if the underlying task color was changed, false if not
      */
-    setColorStringUnderEdit (input : string): boolean { 
-        this.colorStringUnderEdit = input.trim();
-        try {
-            this.color = input;
-        }
-        catch {
-            return false;
-        }
-        return true;
+    set colorStringUnderEdit (input : string) { 
+        this._colorStringUnderEdit = input.trim();
+        this.color = this._colorStringUnderEdit;
     };
+
+    get colorStringUnderEdit (): string { return this._colorStringUnderEdit; };
 
 //#endregion NEW TASK CREATION
 //#endregion CLASS FIELD GETTERS AND SETTERS
@@ -534,7 +529,7 @@ export class TaskModel {
         const reUsedTests = {
             validHexCode: {
                 text: `Color must be formatted as a valid hex code (ex: #ffffff)`,
-                fail: ({test=this.color}: {test: string}) => !(/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(test)),
+                fail: ({color}: {color: string}) => !(/^#(?:[0-9a-fA-F]{3}){1,2}$/.test(color)),
             }
         }
 
@@ -574,12 +569,15 @@ export class TaskModel {
                 },
             ],
             color: [
-                reUsedTests.validHexCode,
+                {
+                    text: reUsedTests.validHexCode.text,
+                    fail: ({color=this.color}: {color: string}) => reUsedTests.validHexCode.fail({color: color}),
+                }
             ],
             colorStringUnderEdit: [
                 {
                     text: reUsedTests.validHexCode.text,
-                    fail: () => reUsedTests.validHexCode.fail({test: this.colorStringUnderEdit}),
+                    fail: ({color=this.colorStringUnderEdit}: {color: string}) => reUsedTests.validHexCode.fail({color: color}),
                 }
             ],
             startTimeStringUnderEdit: [
@@ -663,3 +661,5 @@ export class TaskModel {
 export module TaskModel {
     export type VisualStyles = "work" | "due";
 }
+
+export const TaskContext = createContext(new TaskModel());

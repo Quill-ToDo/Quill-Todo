@@ -31,7 +31,7 @@
   }
 
   .list.widget .dark-section button:focus {
-    outline: auto;
+    outline: var(--focus-highlight) solid var(--focus-border-width);
   }
 
   .list.widget .title {

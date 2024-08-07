@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithRef, ComponentPropsWithoutRef, ForwardedRef, Fragment, ReactNode, RefObject, forwardRef } from "react";
+import { ComponentPropsWithRef, ComponentPropsWithoutRef, ForwardedRef, Fragment, ReactNode } from "react";
+import { combineClassNamePropAndString } from "./constants";
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
 
@@ -9,10 +10,22 @@ const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLo
  * @param errorIdRef the errorIdRef of this list of errors. Make this the props.value of aria-describedby for the element that has errors. 
  * @returns 
  */
-export const ErrorsList = ({errors, id}: {errors: string[], id: string}) => {
+export const ErrorsList = ({
+    errors, 
+    id,
+    ...props
+}: {
+    errors: string[], 
+    id: string
+}) => {
     if (errors.length > 1) {
         return <Fragment> 
-            <ul id={id} className="error-list" aria-live="polite">
+            <ul 
+                id={id} 
+                className={combineClassNamePropAndString({className: "error-list", props: props})} 
+                aria-live="polite" 
+                {...props}
+            >
             { 
                 errors.map((errorText) => 
                     <li key={`error-${errorText}-${id}`}>
@@ -58,6 +71,7 @@ export const FormField = observer((
         errors
     } 
     : FormFieldParams) => {
+    const areErrors = errors && !!errors.length;
     if (inputProps === undefined && element === undefined) {
          throw new Error("Either an element or inputProps must be defined for FormField.");
     }
@@ -77,12 +91,12 @@ export const FormField = observer((
     const moreInputProps: ComponentPropsWithoutRef<"textarea"> | ComponentPropsWithoutRef<"input"> = {
         ...inputProps,
         "required": required,
-        "aria-invalid": errors && !!errors.length,
+        "aria-invalid": areErrors,
     }
     const moreLabelProps: ComponentPropsWithRef<"label"> = {
         ...labelProps,
     }
-    if (errors && !!errors.length) {
+    if (areErrors) {
         moreLabelProps["aria-describedby"] = errorId;
     }
     // If an input element eas provided, use that, otherwise choose between input and textarea inputs
@@ -94,6 +108,6 @@ export const FormField = observer((
     return <label className={`${safeName}`} {...moreLabelProps}>
         { name }
         { inputElement }
-        { errors && ErrorsList({errors: errors, id: errorId}) }
+        { areErrors ? ErrorsList({errors: errors, id: errorId}) : undefined }
     </label>
 });

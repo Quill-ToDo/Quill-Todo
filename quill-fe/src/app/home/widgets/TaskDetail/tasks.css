@@ -91,7 +91,7 @@ i.checkmark {
 .check-box-wrapper label:focus i,
 .color-bubble-input:focus + .color-bubble
  {
-  outline: auto;
+  outline: var(--focus-highlight) solid var(--focus-border-width);;
 }
 
 .checkmark.round {
@@ -108,7 +108,7 @@ i.checkmark {
 .color-bubble-wrapper {
   aspect-ratio: 1 / 1;
   min-width: 15px;
-  max-width: 30px;
+  max-width: max-content;
   position: relative;
 }
 
@@ -144,11 +144,6 @@ i.checkmark {
 
 .color-picker {
   padding: var(--color-picker-square-size);
-  width: max-content;
-  height: max-content;
-  min-width: unset;
-  min-height: unset;
-  max-width: unset;
   display: flex;
   flex-direction: column;
   gap: 10px;
