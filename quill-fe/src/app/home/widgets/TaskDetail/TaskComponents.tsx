@@ -2,10 +2,11 @@ import { ErrorsList } from "@util/FormComponents";
 import { TaskColorCodes, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentProps, ComponentPropsWithoutRef, forwardRef, HTMLProps, MouseEvent, MouseEventHandler, PropsWithoutRef, PropsWithRef, ReactNode, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+import { ComponentPropsWithoutRef, CSSProperties, forwardRef, HTMLProps, MouseEvent, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
-import { ContextMenuPopup, PopupOnClick } from "@/app/@util/Popup";
+import { PopupOnClick } from "@/app/@util/Popup";
+import './tasks.css';
 
 const HOVER_CLASS = "hover";
 
@@ -175,17 +176,17 @@ const ColorGridPicker = observer(({task, closePicker}: {
                     className="color-picker-col" 
                     key={`${colorCol.key}`}> 
                         { colorCol.data.map((color: string) => 
-                        <div
-                        className="color-square max-width-height"
-                        style={{backgroundColor: color}} 
-                        key={color} 
-                        onMouseEnter={() => {
-                            task.colorStringUnderEdit = color;
-                        }}
-                        onClick={() => {
-                            close();
-                        }}
-                        ></div>
+                        <button
+                            className="color-square max-width-height"
+                            style={{backgroundColor: color}} 
+                            key={color} 
+                            onMouseEnter={() => {
+                                task.colorStringUnderEdit = color;
+                            }}
+                            onClick={() => {
+                                close();
+                            }}
+                        ></button>
                     )}
             </div>          
             )}
@@ -234,6 +235,7 @@ export const ColorBubble = observer(({
                     className="color-bubble-wrapper">
                     <input
                         type="color"
+                        role="button"
                         className="color-bubble-input" 
                         onClick={(e) => {
                             e.preventDefault();
@@ -261,10 +263,11 @@ export const ColorBubble = observer(({
 const PlainTaskTitle = observer((
     {
         passedTask,
-        props,
+        ...props
     }: {
         passedTask?: TaskModel,
-        props?: ComponentPropsWithoutRef<"p">,
+        openTaskDetailPopup?: boolean,
+        style: CSSProperties,
     }
 ) => {
     const task = useTaskContextOrPassedTask(passedTask);
@@ -273,7 +276,7 @@ const PlainTaskTitle = observer((
     return (
     <PopupOnClick 
         renderElementToClick={(openPopup) => 
-        <button
+                <button
                     type="button"
                     onClick={openPopup}
                     className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})} 
@@ -289,24 +292,25 @@ const PlainTaskTitle = observer((
             />}
         placement="right"
         alignment="middle"
+        draggable={true}
         {...{className: "task-detail"}}
-        ></PopupOnClick>
+    />
 )});
 
-const EditableTaskTitle = observer((
-    {
-        passedTask,
-        props,
-    }: {
-        passedTask?: TaskModel,
-        props: ComponentProps<"input">,
-    }
-) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+type EditableTaskTitleProps = {
+    ref: RefObject<any>,
+    passedTask?: TaskModel,
+}
+
+const EditableTaskTitle = observer(forwardRef<RefObject<any>, EditableTaskTitleProps>(({
+    ref,
+    ...props 
+}: EditableTaskTitleProps) => {
+    const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: RefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const editInputRef: RefObject<HTMLInputElement> = useRef(null);
+    const editInputRef: RefObject<HTMLInputElement> = ref ? ref : useRef(null);
     const finishEditing = () => {
         if (editInputRef.current && editInputRef.current.value !== startingText.current) {
             task.saveToServer({title: editInputRef.current.value});
@@ -335,18 +339,16 @@ const EditableTaskTitle = observer((
                 />
             }
     </div>
-
-});
+}));
 
 export const TaskTitle = observer((
     {
         passedTask, 
         editAllowed=false,
-        props,
+        ...props
     }: {
         passedTask?: TaskModel, 
         editAllowed?: boolean,
-        props?: ComponentPropsWithoutRef<any>,
     }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const overdue = task.overdue();
@@ -364,65 +366,61 @@ export const TaskTitle = observer((
     // Use p element if not editable
     if (!editAllowed) {
         return <PlainTaskTitle 
-            task={task}
-            props={formattedProps as ComponentPropsWithoutRef<"p">}
+            {...formattedProps}
         />;
     }
     else {
         return <EditableTaskTitle
-            task={task}
-            props={formattedProps as ComponentPropsWithoutRef<"input">}
+            {...formattedProps}
         />
     }
 });
 
 //#endregion 
 //#region Description 
-export const TaskDescription = observer(forwardRef((
+export const TaskDescription = observer(forwardRef<RefObject, {
+    ref?: RefObject<any>,
+    passedTask?: TaskModel, 
+    editAllowed?: boolean,
+    autofocus?: boolean,
+} >((
     {
         ref,
-        passedTask, 
-        editAllowed=false,
-        autofocus=false,
+        ...props
     }: {
-        ref: RefObject<any>,
+        ref?: RefObject<any>,
         passedTask?: TaskModel, 
         editAllowed?: boolean,
         autofocus?: boolean,
     }) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const task = useTaskContextOrPassedTask(props.passedTask);
+    const refToUse = ref ? ref : useRef(null);
 
-    const props: HTMLProps<any> = {
+    const propsToUse: HTMLProps<any> = {
         className: `description dark-section keep-whitespace`,
-        autoFocus: autofocus,
+        autoFocus: props.autofocus ?  props.autofocus : false,
     };
 
-    // Use p element if not editable
-    if (!editAllowed) {
-        <div {...props}> 
-            <p>{task.description}</p>            
-        </div>;
+    return (props.editAllowed && props.editAllowed) 
+        ? 
+        <EditableTaskDescription ref={refToUse} {...propsToUse} /> 
+        : 
+        <div ref={refToUse} {...propsToUse}> 
+            <p>{task.description}</p>      
+        </div>
     }
-    else {
-        return <EditableTaskDescription
-            ref={ref}
-            props={props as ComponentProps<"textarea">}
-        />
-    }
-}));
+));
 
 const EditableTaskDescription = observer(forwardRef((
     {
         ref,
-        passedTask,
-        props,
+        ...props
     }: {
         ref: RefObject<any>,
         passedTask?: TaskModel,
-        props: ComponentProps<"textarea">,
     }
 ) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: RefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect

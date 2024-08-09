@@ -2,7 +2,7 @@ import { observer } from "mobx-react-lite";
 import { ReactElement } from "react";
 import { combineClassNamePropAndString } from "./constants";
 import { FloatingUiPopupImplementation } from "../3rd-party/FloatingUiHelpers";
-import { Draggable } from "./Draggable";
+import "./popup.css"
 
 export type PopupParams = {
     renderPopupContent: (closePopup: ()=>void) => ReactElement<any>,
@@ -36,23 +36,22 @@ export const PopupOnClick = observer((
         placement="right",
         alignment="middle",
         doneLoading=true, 
-        draggable=true, 
+        draggable=false, 
         fullscreenable=false, 
         ...props
     } : PopupParams) => {
-        const popup = <FloatingUiPopupImplementation 
-            position={position}
-            placement={placement}
-            alignment={alignment}
-            doneLoading={doneLoading}
+        const defaultProps = {
+            position: position,
+            placement: placement,
+            alignment: alignment,
+            doneLoading: doneLoading,
+            draggable: draggable,
+        }
+
+        return <FloatingUiPopupImplementation 
+            {...defaultProps}
             {...props}
         />;
-        // if (draggable) {
-        //     return <Draggable 
-        //         renderDraggableContent={(beingDragged) => popup}
-        //     />
-        // }
-        return popup;
 });
 
 /**

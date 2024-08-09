@@ -53,6 +53,7 @@ const DashboardLayout = observer(({
             <div id="home-wrapper" data-testid="home">
                 <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
                     <PopupOnClick
+                        draggable={true}
                         renderElementToClick={(open) => <button 
                                 id="add-task"
                                 role="menuitem" 

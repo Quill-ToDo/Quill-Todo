@@ -8,11 +8,18 @@ import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
 import { ICONS } from "@/util/constants";
 import {TaskContext, TaskModel} from "@/store/tasks/TaskModel";
-import { Checkbox, ClearFieldButton, ColorBubble, DateTimeWrapper, TaskComponentAndHeader, TaskComponentHeader, TaskDescription, TaskTitle, TaskWrapper} from "@/widgets/TaskDetail/TaskComponents";
-import { makeDraggable } from "@/app/@util/Draggable";
-import { ContextMenuPopup } from "@/app/@util/Popup";
-import { addAlert, NOTICE_ALERT } from "../Alerts/alertEvent";
-import { createContext } from "vm"; 
+import { 
+    Checkbox, 
+    ColorBubble, 
+    DateTimeWrapper, 
+    TaskComponentAndHeader, 
+    TaskDescription, 
+    TaskTitle, 
+    TaskWrapper
+} from "@/widgets/TaskDetail/TaskComponents";
+import { DRAGGABLE_HANDLE_CLASS} from "@/util/Draggable";
+import { ContextMenuPopup } from "@/util/Popup";
+import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
 
 const TaskDetail = observer(({
         task, 
@@ -57,7 +64,7 @@ const TaskDetail = observer(({
 
     return (
         <TaskContext.Provider value={task}>
-            <header className="draggable-handle">
+            <header className={DRAGGABLE_HANDLE_CLASS}>
                 <TaskWrapper task={task}>
                     <div className="checkbox-color">
                         <ColorBubble />

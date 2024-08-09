@@ -13,12 +13,14 @@ import {
     offset,
     shift,
     flip,
+    autoUpdate,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { RefObject, useContext, useRef, useState } from 'react';
 import { AlertWrapperContext } from '@/alerts/AlertWrapper';
 import { PopupParams } from '../@util/Popup';
 import { combineClassNamePropAndString } from '@util/constants';
+import { Draggable } from '../@util/Draggable';
 
 const loading = <div className="loading">
     <p>Loading...</p>
@@ -31,8 +33,8 @@ export const FloatingUiPopupImplementation = observer((
         placement,
         alignment,
         doneLoading, 
-        draggable, 
         fullscreenable, 
+        draggable,
         ...props
     } : PopupParams) => {
     const parentNodeId = useFloatingParentNodeId();
@@ -63,6 +65,7 @@ export const FloatingUiPopupImplementation = observer((
         // https://floating-ui.com/docs/useFloating#placement
         placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
         middleware: middleware,
+        // whileElementsMounted: autoUpdate,
     };
     // Configure interactions
     const { refs, floatingStyles, context } = useFloating(positioning);
@@ -73,6 +76,13 @@ export const FloatingUiPopupImplementation = observer((
         bubbles: false,
     }));
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
+
+    const innerContent = <section 
+            className={combineClassNamePropAndString({className: `popup`, props: props})}
+            ref={thisPopup}
+        >
+                { doneLoading ? renderPopupContent(close) : loading }
+        </section>;
 
     // This is a root, so we wrap it with the context
     const popupContent = <FloatingNode id={useFloatingNodeId()}>
@@ -89,12 +99,9 @@ export const FloatingUiPopupImplementation = observer((
                         style={floatingStyles} 
                         {...getFloatingProps()}
                     >
-                        <section 
-                            className={combineClassNamePropAndString({className: `popup`, props: props})}
-                            ref={thisPopup}
-                        >
-                                { doneLoading ? renderPopupContent(close) : loading }
-                        </section>
+                        { draggable ? <Draggable renderDraggableContent={(beingDragged) => innerContent} /> 
+                        : innerContent
+                        }
                     </div>
                 </FloatingFocusManager>
             </FloatingPortal>

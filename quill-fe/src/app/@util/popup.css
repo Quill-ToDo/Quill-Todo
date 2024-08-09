@@ -1,0 +1,64 @@
+.popup {
+    background-color: var(--g8);
+    border-radius: var(--box-corner-rounding);
+    overflow: hidden;
+    box-shadow: inset 0px 0px 0px 6px var(--popup-border);
+    padding: 0 6px 6px 6px;
+}
+
+.popup {
+    background-color: var(--g8);
+    border-radius: var(--box-corner-rounding);
+    overflow: hidden;
+    box-shadow: inset 0px 0px 0px 6px var(--popup-border);
+    padding: 6px;
+}
+
+.popup:has(header) {
+    padding-top: 0;
+}
+
+div[data-floating-ui-portal] > div {
+    z-index: 5;
+}
+
+.popup header {
+    background-color: var(--popup-border);
+}
+
+.popup.context-menu {
+    border-radius: 10px;
+    min-height: max-content;
+  }
+.popup.context-menu header {
+    border-radius: 10px 10px 0 0;
+    padding: 3px 10px 3px 10px;
+    color: var(--g1);
+} 
+.popup.context-menu li {
+    padding: 5px 10px 5px 10px;
+    margin: 0;
+}
+.popup.context-menu li i {
+    color: var(--g3);
+}
+.popup.context-menu button {
+    display: flex;
+    align-items: center;
+    column-gap: 10px;
+}
+.popup.context-menu li:not(:last-of-type) {
+    border-bottom:  solid var(--g4) 3px;
+}
+.popup.context-menu li p {
+    text-align: start;
+    min-width: max-content;
+}
+.popup.context-menu li:hover,
+.popup.context-menu li:focus-within {
+    background-color: var(--list-hover);
+}
+
+.popup.context-menu li:focus-within {
+    outline: var(--focus-highlight) solid var(--focus-border-width);
+}

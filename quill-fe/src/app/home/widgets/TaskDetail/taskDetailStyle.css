@@ -2,7 +2,6 @@
   width: max-content;
   max-width: 40vw;
   min-width: 20vw;
-  overflow: visible;
 }
 
 .task-detail .checkbox-color {
