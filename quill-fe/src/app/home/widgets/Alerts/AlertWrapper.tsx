@@ -8,56 +8,65 @@ import { ICONS } from '@/app/@util/constants';
  * @param {*} props Should pass in the alert
  * @returns
  */
-const Alert = (props) => {
-    const alert = props.alert.detail;
+const Alert = ({
+    ...props 
+}: {
+    alert: AlertEvent,
+    removeSelf: () => void,
+    animationStop: () => void,
+    animationStart: () => void,
+}) => {
+    const alert = props.alert;
     const previouslyFocused = useRef(null);
-    const descId = alert.id + "-desc";
-    const labelId = alert.id + "-label";
-    const btnId = alert.id + "-close";
+    const descId = alert.detail.id + "-desc";
+    const labelId = alert.detail.id + "-label";
+    const btnRef = useRef(null);
+    const alertRef = useRef(null);
     
     var closeBtnClass = "no-shadow btn small square";   
 
-    const closeBtn = 
+    const alertSlidesOut = alert.type === NOTICE_ALERT || alert.type === SUCCESS_ALERT;
+    
+    const commonBtnProperties = {
+        className: closeBtnClass, 
+        ref: btnRef,
+        title: "Close", 
+        onClick: () => {
+            props.removeSelf();
+        }
+    }
+
+    const closeBtn = alertSlidesOut ? 
         <button 
-            className={closeBtnClass} 
-            id={btnId} 
-            title="Close" 
-            onClick={ () => {
-                props.removeCallback();
+            onFocus={(e) => {
+                previouslyFocused.current = e.relatedTarget;
+                // Stop slide out animation on focus.
+                alertRef.current.classList.remove("slide-out");
+                props.animationStop();
+
             }}
+            onBlur={() => {
+                // Add slide out animation on leave
+                alertRef.current.classList.add("slide-out");
+
+            }}
+            {...commonBtnProperties}
+        >
+            { ICONS.X }
+        </button> 
+        : <button 
+            onFocus={(e) => {
+                previouslyFocused.current = e.relatedTarget;
+            }}
+            {...commonBtnProperties}
         >
             { ICONS.X }
         </button>
 
     useEffect(() => {
-        const alertInPage = document.getElementById(alert.id);
-        const closeBtnInPage = document.getElementById(btnId);
-
-        // On close button focus, save previously focused element to return focus to on alert dismount. 
-        closeBtnInPage.addEventListener("focus", (e) => {
-            previouslyFocused.current = e.relatedTarget;
-            // Also, stop animation on focus.
-            if (alert.type === NOTICE_ALERT || alert.type === SUCCESS_ALERT) {
-                alertInPage.classList.remove("slide-out");
-                props.animationStop();
-                closeBtnInPage.addEventListener("blur", () => {
-                    alertInPage.classList.add("slide-out");
-                })
-            }
-        })
-        
-        if (alert.type !== ERROR_ALERT) {
-            alertInPage.addEventListener('animationend', () => {
-                props.animationStop();
-                props.removeCallback();
-            }, false);
-            alertInPage.addEventListener('animationstart', () => {
-                props.animationStart();
-            })
-        }
         // Focus on error message close button on render
-        else if (alert.type === ERROR_ALERT) {
-            closeBtnInPage.focus();
+        if (alert.type === ERROR_ALERT) {
+            btnRef.current.focus();
         }
         
         return () => {
@@ -68,39 +77,46 @@ const Alert = (props) => {
         }
     })
 
-    if (alert.type === ERROR_ALERT) {
+    const commonAlertProps = {
+        id: alert.detail.id,
+        ref: alertRef,
+        key: `alert-${alert.detail.id}`,
+        "aria-describedby": descId,
+        "aria-labelledby": labelId,
+    }
+
+    if (alert.detail.type === ERROR_ALERT) {
         return (
             <li 
-                id={alert.id}
-                key={`alert-${alert.id}`}
+                {...commonAlertProps}
                 role="alertdialog"
                 aria-live='assertive'
-                aria-describedby={descId}
-                aria-labelledby={labelId}
-                className={"alert-pop-up " + alert.type}>
+                className={alert.detail.type}            
+            >
                 <div className='alert-cont-wrapper'>
                     <h3 id={labelId}>Aw snap :(</h3>
-                    <p id={descId}>{alert.body}</p>
+                    <p id={descId}>{alert.detail.body}</p>
                 </div>
                 {closeBtn}
             </li>
         )   
     }
-    else {
-        return (
-            <li 
-                id = {alert.id}
-                key={`alert-${alert.id}`}
-                aria-describedby={descId}
-                aria-labelledby={labelId}
-                className={"alert-pop-up slide-out " + alert.type}>
-                <div className='alert-cont-wrapper'>
-                    <p id={descId}>{alert.body}</p>
-                </div>
-                {closeBtn}
-            </li>
-        )  
-    }
+    return (
+        <li 
+            className={"slide-out " + alert.detail.type}
+            onAnimationEnd={() => {
+                props.animationStop();
+                props.removeSelf();
+            }}
+            onAnimationStart={() => { props.animationStart(); }}  
+            {...commonAlertProps}
+        >
+            <div className='alert-cont-wrapper'>
+                <p id={descId}>{alert.detail.body}</p>
+            </div>
+            {closeBtn}
+        </li>
+    )   
 }
 
 /**
@@ -109,7 +125,12 @@ const Alert = (props) => {
  * @param {*} props Should include array of alert objects.
  * @returns 
  */
-const AlertList = (props) => {
+const AlertList = ({...props}: {
+    alerts: AlertEvent[],
+    removeCallback: (alertsToRemove: AlertEvent) => void,
+    animationStart: (alert: AlertEvent) => void,
+    animationStop: (alert: AlertEvent) => void,
+}) => {
     return (
         <ul>
             {props.alerts.map((alert) => {
@@ -119,7 +140,7 @@ const AlertList = (props) => {
                         key={alert.detail.id}
                         animationStart={() => props.animationStart(alert)}
                         animationStop={() => props.animationStop(alert)}
-                        removeCallback={() => props.removeCallback(alert)}
+                        removeSelf={() => props.removeCallback(alert)}
                     />
                 }   
                 return null;
@@ -137,64 +158,62 @@ const AlertList = (props) => {
  * @param {*} props 
  * @returns 
  */
-const AlertBox = (props) => {
+const AlertBox = ({...props} :
+    {
+        alerts: AlertEvent[],
+        removeCallback: (alertIdsToRemove: Set<string>) => void,
+    }
+) => {
     // Ids of elements currently being animated
-    const ongoingAnimations = useRef(new Set());
+    const ongoingAnimations = useRef(new Set<string>());
     // Ids of elements who's animation cycles have finished and can be removed
-    const toRemove = useRef(new Set());
-    
-    const removeCallback = props.removeCallback;
-    
+    const toRemove = useRef(new Set<string>());
+
     const animationStop = (alert: AlertEvent) => {
-        toRemove.current.add(alert);
+        toRemove.current.add(alert.detail.id);
         alert.detail.removed = true;
         const alertInPage = document.getElementById(alert.detail.id);
         if (alertInPage) {
             alertInPage.style.display = "none";
         }
-        ongoingAnimations.current.delete(alert);
+        ongoingAnimations.current.delete(alert.detail.id);
     }
     
-    const animationStart = (alert: Event) => {
-        ongoingAnimations.current.add(alert);
+    const animationStart = (alert: AlertEvent) => {
+        ongoingAnimations.current.add(alert.detail.id);
     }
 
     const dismissAlert = useCallback(
         (alert: AlertEvent) => {
             // If there are no animations currently happening then remove every task that has finished its animation cycle
-
             const alertInPage = document.getElementById(alert.detail.id);
             if (alertInPage) {
                 animationStop(alert);
             }
             if (!ongoingAnimations.current.size) {
-                removeCallback(toRemove.current);
+                props.removeCallback(toRemove.current);
                 toRemove.current.clear();
             }
         },
-        [removeCallback],
+        [props.removeCallback],
     )
 
-    return (
+    return props.alerts.length ? 
         <section 
-            id= "alert-wrapper"
+            id="alert-wrapper"
             data-testid="alert-wrapper" 
             role="log" 
             aria-atomic="false"
             aria-label='Alerts'
+            className='alert-pop-up'
         >
-            {props.alerts.length ?
                 <AlertList 
                     alerts={props.alerts}
                     animationStop={(alert: AlertEvent) => animationStop(alert)}
                     animationStart={(alert: AlertEvent) => animationStart(alert)}
                     removeCallback={(alert: AlertEvent) => dismissAlert(alert)}
                 />
-                :
-                null
-            }
-        </section>
-    )
+        </section> : null;
 }
 
 export const AlertWrapperContext = createContext(null);
@@ -205,12 +224,13 @@ const AlertWrapper = (props: ComponentPropsWithoutRef<any>) => {
 
     useEffect(() => {
         // Add listener for when you add a new alert
+        const alert = (event: CustomEvent<AlertEvent>) => setAlerts(alerts.concat([event]));
         if (thisWrapperRef.current) {
-            thisWrapperRef.current.addEventListener("alert", (event: AlertEvent) => setAlerts(alerts.concat([event])), {once: true});
+            thisWrapperRef.current.addEventListener("alert", alert, {once: true});
         }
         return () => {
             if (thisWrapperRef.current) {
-                thisWrapperRef.current.removeEventListener("alert",  (event: AlertEvent) => setAlerts(alerts.concat([event])));
+                thisWrapperRef.current.removeEventListener("alert",  alert);
             }
         }
     }, [alerts])
@@ -219,16 +239,16 @@ const AlertWrapper = (props: ComponentPropsWithoutRef<any>) => {
     return (         
         <div 
             ref={thisWrapperRef}
-            >
-                <AlertWrapperContext.Provider value={thisWrapperRef}>
-                    <AlertBox 
-                        alerts={alerts} 
-                        removeCallback={(alertsToRemove: CustomEvent[]) => {
-                            setAlerts(alerts.filter(a => !alertsToRemove.has(a)));
-                        }} 
-                    />
-                    {props.children}
-                </AlertWrapperContext.Provider>
+        >
+            <AlertWrapperContext.Provider value={thisWrapperRef}>
+                <AlertBox 
+                    alerts={alerts} 
+                    removeCallback={(alertIdsToRemove: Set<string>) => {
+                        setAlerts(alerts.filter(alert => !alertIdsToRemove.has(alert)));
+                    }} 
+                />
+                {props.children}
+            </AlertWrapperContext.Provider>
         </div>
     );
 }
