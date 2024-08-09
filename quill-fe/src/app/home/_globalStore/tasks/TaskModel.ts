@@ -486,7 +486,7 @@ export class TaskModel {
     setDueDateStringUnderEdit (dateString : string) {
         this.dueDateStringUnderEdit = dateString;
         if (this.validationErrors.dueDateStringUnderEdit.length === 0 && this.validationErrors.due.length === 0) {
-            this.due(`${dateString}, ${this.dueTimeStringUnderEdit}`);
+            this.due = `${dateString}, ${this.dueTimeStringUnderEdit}`;
         }
     }
     /**

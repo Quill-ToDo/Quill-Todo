@@ -25,6 +25,7 @@
       "@/store/*": ["./home/_globalStore/*"],
       "@/alerts/*": ["./home/widgets/Alerts/*"],
       "@/util/*": ["./@util/*"],
+      "@/external/*": ["./3rd-party/*"],
     }
   },
   "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

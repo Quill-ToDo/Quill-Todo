@@ -1,7 +1,6 @@
 import { ChangeEvent, useEffect, useRef } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { makeDraggable } from "@/util/Draggable";
 import { ICONS } from "@/util/constants";
 import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
 import { FormField } from "@util/FormComponents";
@@ -21,12 +20,6 @@ export const AddNewTaskPopUp = observer(({close, taskToCreate}:
         taskToCreate: TaskModel | null, 
     }) => {
     const formRef = useRef(null);
-
-    useEffect(() => {
-        const popup = document.querySelector(OUTER_WRAPPER_NAME);
-        popup && makeDraggable(popup as HTMLElement);
-    }, [])
-
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <div className={OUTER_WRAPPER_NAME}>

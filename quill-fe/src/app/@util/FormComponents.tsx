@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithRef, ComponentPropsWithoutRef, ForwardedRef, Fragment, ReactNode } from "react";
+import { ComponentPropsWithRef, ComponentPropsWithoutRef, Fragment, ReactNode } from "react";
 import { combineClassNamePropAndString } from "./constants";
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
