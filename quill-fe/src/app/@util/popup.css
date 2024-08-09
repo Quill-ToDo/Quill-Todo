@@ -2,20 +2,16 @@
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);
     overflow: hidden;
-    box-shadow: inset 0px 0px 0px 6px var(--popup-border);
-    padding: 0 6px 6px 6px;
-}
-
-.popup {
-    background-color: var(--g8);
-    border-radius: var(--box-corner-rounding);
-    overflow: hidden;
-    box-shadow: inset 0px 0px 0px 6px var(--popup-border);
-    padding: 6px;
+    box-shadow: inset 0px 0px 0px var(--popup-border-width) var(--popup-border);
+    padding: calc(var(--popup-border-width) - 1px);
 }
 
 .popup:has(header) {
     padding-top: 0;
+}
+
+.popup .mid-section {
+    background-color: unset;
 }
 
 div[data-floating-ui-portal] > div {
