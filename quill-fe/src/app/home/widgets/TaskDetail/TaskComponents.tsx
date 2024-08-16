@@ -1,8 +1,12 @@
 import { ErrorsList } from "@util/FormComponents";
-import { TaskColorCodes, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
+import { 
+    TaskColorCodes, 
+    TaskContext,
+    TaskModel,
+} from "@/store/tasks/TaskModel";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithoutRef, CSSProperties, forwardRef, HTMLProps, MouseEvent, MutableRefObject, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+import { ComponentPropsWithoutRef, CSSProperties, ForwardedRef, forwardRef, HTMLProps, MouseEvent, MutableRefObject, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { PopupOnClick } from "@/app/@util/Popup";
@@ -21,39 +25,40 @@ const useTaskContextOrPassedTask = (passedTask?: TaskModel): TaskModel => {
     }
 }
 
+/**
+ * Provide context of a single task for all task-related components within
+ */
 export const TaskWrapper = observer((
     {
         task, 
-        properties, 
         keyOverride,
         children,
+        ...props
     } : {
         task: TaskModel, 
-        properties?: ComponentPropsWithoutRef<"div">
         keyOverride?: string,
         children: ReactNode, 
     }) => {
-
     return <TaskContext.Provider value={task}>
-    <div 
-        key={keyOverride ? keyOverride : task.id}
-        data-task-id={task.id}
-        onMouseEnter={() => {
-            document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
-                element.classList.add(HOVER_CLASS);
-            });
-        }}
-        onMouseLeave={() => {
-            document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
-                element.classList.remove(HOVER_CLASS);
-            });
-        }}
-        {...properties}
-        className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}`, props: properties as HTMLProps<"any">})}
+        <div 
+            key={keyOverride ? keyOverride : task.id}
+            data-task-id={task.id}
+            onMouseEnter={() => {
+                document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
+                    element.classList.add(HOVER_CLASS);
+                });
+            }}
+            onMouseLeave={() => {
+                document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
+                    element.classList.remove(HOVER_CLASS);
+                });
+            }}
+            {...props}
+            className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}`, props: props as HTMLProps<"any">})}
         >
-        {children}
-    </div>
-</TaskContext.Provider>;
+            {children}
+        </div>
+    </TaskContext.Provider>;
 });
 
 type updateParams = {
@@ -111,7 +116,17 @@ export const TaskComponentAndHeader = observer(({
 });
 
 //#region Checkbox
-export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, type: TaskModel.VisualStyles, checkboxId?: string}) => {
+export const Checkbox = observer(({
+    passedTask, 
+    type, 
+    checkboxId
+}: {
+    passedTask?: TaskModel, 
+    type: TaskModel.VisualStyles.AcceptedStyles, 
+    checkboxId?: string
+}) => {
+    const task = useTaskContextOrPassedTask(passedTask);
+
     const id = checkboxId ? checkboxId : useId();
     return <label 
             className="check-box-wrapper"
@@ -129,26 +144,32 @@ export const Checkbox = observer(({task, type, checkboxId}: {task: TaskModel, ty
             checked={task.complete}
             >
         </input>
-        {type === "due" ? <TaskCheckbox task={task} form="due" /> : <TaskCheckbox task={task} form="work" />}
+        <TaskCheckbox form={type} /> 
     </label>;
 });
 
-const TaskCheckbox = observer(({task, form}: {task: TaskModel, form: "work" | "due"}) => {
+const TaskCheckbox = observer(({
+    passedTask, 
+    form
+}: {
+    passedTask?: TaskModel, 
+    form: TaskModel.VisualStyles.AcceptedStyles
+}) => {
+    const task = useTaskContextOrPassedTask(passedTask);
     const styleText = !task.complete ? {color: task.color} : {};
-    const checkFormat = task.complete ? checkboxIconOptions[form].complete : checkboxIconOptions[form].notComplete;
+    let checkboxIcon;
+    switch (form) {
+        case TaskModel.VisualStyles.Due:
+            checkboxIcon = task.complete ? `fa-check-square` : `fa-square`;
+            break;
+        default:
+            checkboxIcon = task.complete ? `fa-check-circle round` : `fa-circle round`;
+            break;
+    }
+    const checkFormat = task.complete ? checkboxIcon : checkboxIcon;
     return <i className={`far fa-fw checkmark ${checkFormat}`} style={styleText}></i>;  
 });
 
-const checkboxIconOptions = {
-    work: {
-        complete: `fa-check-circle round`,
-        notComplete: `fa-circle round`
-    },
-    due: {
-        complete: `fa-check-square`,
-        notComplete: `fa-square`,
-    }
-};
 //#endregion 
 //#region Color Picker
 const ColorGridPicker = observer(({task, closePicker}: {
@@ -267,7 +288,7 @@ const PlainTaskTitle = observer((
     }: {
         passedTask?: TaskModel,
         openTaskDetailPopup?: boolean,
-        style: CSSProperties,
+        style?: CSSProperties,
     }
 ) => {
     const task = useTaskContextOrPassedTask(passedTask);
@@ -286,7 +307,7 @@ const PlainTaskTitle = observer((
                     </p>
                 </button>
         }
-        renderPopupContent={({closePopup, dragHandleProps}) => <TaskDetail 
+        renderPopupContent={({closePopup}) => <TaskDetail 
                 task={task} 
                 close={closePopup}
             />}
@@ -338,10 +359,12 @@ export const TaskTitle = observer((
     {
         passedTask, 
         editAllowed=false,
+        style,
         ...props
     }: {
         passedTask?: TaskModel, 
         editAllowed?: boolean,
+        style?: CSSProperties,
     }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const overdue = task.overdue();
@@ -352,7 +375,7 @@ export const TaskTitle = observer((
         className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}${props&&props.className?" "+props.className:""}`,
         style: {
             color: defaultColorLogic,
-            ...(props&&props.style?props.style:undefined),
+            ...(style?style:undefined),
         }
     };
 
@@ -377,7 +400,7 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     autofocus?: boolean,
 } >((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
-    const refToUse = ref ? ref : useRef(null);
+    const refToUse: MutableRefObject<HTMLObjectElement | null> | ForwardedRef<HTMLObjectElement> = ref ? ref : useRef(null);
 
     const propsToUse: HTMLProps<any> = {
         className: `description dark-section keep-whitespace`,
@@ -386,7 +409,7 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
 
     return (props.editAllowed && props.editAllowed) 
         ? 
-        <EditableTaskDescription ref={refToUse} {...propsToUse} /> 
+        <EditableTaskDescription ref={refToUse as ForwardedRef<any>} {...propsToUse} /> 
         : 
         <div ref={refToUse} {...propsToUse}> 
             <p>{task.description}</p>      
@@ -395,7 +418,7 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
 ));
 
 const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
-    ref: RefObject<any>,
+    ref: ForwardedRef<any>,
     passedTask?: TaskModel,
 }>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
@@ -421,10 +444,10 @@ const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
                 title={"Edit Description"}
                 aria-invalid={!!task.validationErrors.description.length}
                 aria-describedby={errorId}
-                ref={editInputRef}
                 onChange={(e) => task.description = e.target.value}
                 onBlur={finishEditing}
                 {...props}
+                ref={editInputRef}
             />
             {
                 !!task.validationErrors.description.length && <ErrorsList
@@ -450,8 +473,8 @@ export const DateTimeWrapper = observer(({
     dateFormat?: object
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
-    const date = type === "start" ? task.start : task.due;
-    const overdue = type === "due" && task.overdue();
+    const date = type === TaskModel.VisualStyles.Start ? task.start : task.due;
+    const overdue = type === TaskModel.VisualStyles.Due && task.overdue();
     return (
         <time dateTime={date} className={`date-time-wrapper${overdue ? " overdue" : ""}`} suppressHydrationWarning > 
             <p className="date">{date.toLocaleString(dateFormat)}</p>

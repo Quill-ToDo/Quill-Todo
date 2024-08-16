@@ -62,117 +62,112 @@ const TaskDetail = observer(({
         }
     }, [])
 
-    return (
-        <TaskContext.Provider value={task}>
-            <header className={DRAGGABLE_HANDLE_CLASS}>
-                <TaskWrapper task={task}>
-                    <div className="checkbox-color">
-                        {ICONS.DRAG}
-                        <ColorBubble />
-                        <Checkbox 
-                            task={task}
-                            type={"due"}
-                        />
-                        <TaskTitle editAllowed={true} />   
-                    </div>
-                    <div className="aligned end">
-                        <ContextMenuPopup
-                            renderAnchorElementToClick={(open) => <button 
-                                    className="btn small square no-shadow"
-                                    title="Pin window" 
-                                    onClick={() => {
-                                            open();
-                                        }}
-                                    >
-                                        { ICONS.MENU }
-                                    </button>}
-                            labelsAndClickCallbacks={[
-                                    {
-                                        label: "Delete",
-                                        content: <>{ ICONS.TRASH }<p>Delete task</p></>,
-                                        onClick: () => { task.deleteSelf(); close(); },
-                                        visible: true,
-                                    }
-                                ]}
-                            placement={"right"}
-                            alignment={"middle"}  
-                        />
-                        <button 
-                            className="btn small square no-shadow"
-                            title="Close" 
-                            onClick={() => {
-                                close();
-                            }}
-                        >
-                            { ICONS.X }
-                        </button>
-                    </div>
-                </TaskWrapper>
-            </header>
-            <section 
-                className="mid-section" 
-                role="dialog"
-                aria-labelledby="task-show-title"
-            >
-                <div className="columns gap same-size">
-                    <div>
-                        <h3>Start</h3>
-                        <div className="dark-section">
-                            <div className="date-wrapper aligned even">
-                                {task.start ? 
-                                    <DateTimeWrapper 
-                                        type="start" 
-                                    /> : 
-                                    <p className="subtle"> Not set </p>
+    return <TaskWrapper task={task}>
+        <header className={DRAGGABLE_HANDLE_CLASS}>
+                <div className="checkbox-color">
+                    {ICONS.DRAG}
+                    <ColorBubble />
+                    <Checkbox 
+                        type={TaskModel.VisualStyles.Due}
+                    />
+                    <TaskTitle editAllowed={true} />   
+                </div>
+                <div className="aligned end">
+                    <ContextMenuPopup
+                        renderAnchorElementToClick={(open) => <button 
+                                className="btn small square no-shadow"
+                                title="Pin window" 
+                                onClick={() => {
+                                        open();
+                                    }}
+                                >
+                                    { ICONS.MENU }
+                                </button>}
+                        labelsAndClickCallbacks={[
+                                {
+                                    label: "Delete",
+                                    content: <>{ ICONS.TRASH }<p>Delete task</p></>,
+                                    onClick: () => { task.deleteSelf(); close(); },
+                                    visible: true,
                                 }
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <h3>Due</h3>
-                        <div className="dark-section">
-                            {task.due ? 
-                            <DateTimeWrapper  
-                            type="due" 
-                            /> :
-                            <p className="subtle"> Not set </p>
-                        }
+                            ]}
+                        placement={"right"}
+                        alignment={"middle"}  
+                    />
+                    <button 
+                        className="btn small square no-shadow"
+                        title="Close" 
+                        onClick={() => {
+                            close();
+                        }}
+                    >
+                        { ICONS.X }
+                    </button>
+                </div>
+        </header>
+        <section 
+            className="mid-section" 
+            role="dialog"
+            aria-labelledby="task-show-title"
+        >
+            <div className="columns gap same-size">
+                <div>
+                    <h3>Start</h3>
+                    <div className="dark-section">
+                        <div className="date-wrapper aligned even">
+                            {task.start ? 
+                                <DateTimeWrapper 
+                                    type={TaskModel.VisualStyles.Start}
+                                /> : 
+                                <p className="subtle"> Not set </p>
+                            }
                         </div>
                     </div>
                 </div>
-                { showDescription && <TaskComponentAndHeader
-                    fieldName={"description"}
-                    labelElement={<h3>Description</h3>}
-                    optional={true}
-                    onCloseClick={() => { task.description = ""; setShowDescription(false); }}
-                >
-                    <TaskDescription 
-                        editAllowed={true} 
-                        ref={descRef} 
-                    />
-                </TaskComponentAndHeader>
-                }
-                {
-                    contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
-                    <ContextMenuPopup
-                        header={<header>Add field</header>}
-                        labelsAndClickCallbacks={contextMenuData}
-                        renderAnchorElementToClick={(openPopup) => <button 
-                                ref={addFieldButton}
-                                onClick={openPopup}
-                                aria-label="Add task field" 
-                                title="Add task field" 
-                                className={`add-field-btn btn large centered`} 
-                                > 
-                                    { ICONS.PLUS }
-                                </button>
-                        }
-                    />
-                </div> : undefined
-                }
-        
-            </section>
-        </TaskContext.Provider>
-)})
+                <div>
+                    <h3>Due</h3>
+                    <div className="dark-section">
+                        {task.due ? 
+                        <DateTimeWrapper  
+                            type={TaskModel.VisualStyles.Due}
+                        /> :
+                        <p className="subtle"> Not set </p>
+                    }
+                    </div>
+                </div>
+            </div>
+            { showDescription && <TaskComponentAndHeader
+                fieldName={"description"}
+                labelElement={<h3>Description</h3>}
+                optional={true}
+                onCloseClick={() => { task.description = ""; setShowDescription(false); }}
+            >
+                <TaskDescription 
+                    editAllowed={true} 
+                    ref={descRef} 
+                />
+            </TaskComponentAndHeader>
+            }
+            {
+                contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
+                <ContextMenuPopup
+                    header={<header>Add field</header>}
+                    labelsAndClickCallbacks={contextMenuData}
+                    renderAnchorElementToClick={(openPopup) => <button 
+                            ref={addFieldButton}
+                            onClick={openPopup}
+                            aria-label="Add task field" 
+                            title="Add task field" 
+                            className={`add-field-btn btn large centered`} 
+                            > 
+                                { ICONS.PLUS }
+                            </button>
+                    }
+                />
+            </div> : undefined
+            }
+        </section>
+    </TaskWrapper>
+})
 
 export default TaskDetail;

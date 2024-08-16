@@ -38,7 +38,7 @@
   text-decoration: line-through solid var(--g7) 3px ;
 } 
 
-.task-detail header .task-wrapper.hover {
+.task-detail .task-wrapper.hover {
   background-color: unset;
 }
 

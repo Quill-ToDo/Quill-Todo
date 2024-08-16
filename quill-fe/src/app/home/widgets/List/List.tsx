@@ -82,7 +82,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                     content={
                         [{
                             "tasks": overdue,
-                            "type": "due",
+                            "type": TaskModel.VisualStyles.Due,
                             "emptyText": "No overdue tasks"
                         }]
                     }
@@ -97,13 +97,13 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                             {
                                 "title": "Due",
                                 "tasks": todayDue,
-                                "type": "due",
+                                "type": TaskModel.VisualStyles.Due,
                                 "emptyText": "No tasks due today",
                             },
                             {
                                 "title": "Work",
                                 "tasks": todayWork,
-                                "type": "work",
+                                "type": TaskModel.VisualStyles.Scheduled,
                                 "emptyText": "No tasks to work on today",
                             }
                         ]
@@ -117,7 +117,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                     content={
                         [{
                             "tasks": upcoming,
-                            "type": "due",
+                            "type": TaskModel.VisualStyles.Due,
                             "emptyText": "No upcoming tasks"
                         }]
                     }
@@ -166,7 +166,12 @@ function getSectionId(sectionNum: number) {
     return "task-section-" + sectionNum;
 }
 
-type SubSectionContent = {title?: string, tasks: TaskModel[], type: TaskModel.VisualStyles, emptyText: string};
+interface SubSectionContent {
+    title?: string, 
+    tasks: TaskModel[], 
+    type: TaskModel.VisualStyles.AcceptedStyles, 
+    emptyText: string
+};
 /**
  * The contents of a subsection with a list section serparated out for performance
  */
@@ -206,9 +211,14 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
 /**
  * The list of tasks, separated to a different method for performance
  */
-const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
+const TaskList = observer(({
+    tasks, 
+    type
+}: {
+    tasks: TaskModel[], 
+    type: TaskModel.VisualStyles.AcceptedStyles
+}) => {
     const listRef = useRef(null);
-
     return <ul role="group" ref={listRef}>
         { tasks.map((task) => {
             return ( 
@@ -234,19 +244,25 @@ const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.V
 /**
  * One task within the list
  */
-const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.VisualStyles }) => {
+const ListViewTask = observer(({
+    task, 
+    type,
+}: {
+    task: TaskModel, 
+    type: TaskModel.VisualStyles.AcceptedStyles,
+}) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
     const dateForm = DateTime.DATE_SHORT;
 
     const taskWrapper = <TaskWrapper 
                 task={task}
-                properties={{
+                {...{
                     id: id,
+                    className: "inline"
                 }}
             >
                 <Checkbox
-                    task={task}
                     type={type}
                     checkboxId={checkboxId}
                 />
@@ -262,7 +278,7 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
                         <TaskTitle editAllowed={false} />
                     </label>
                     <DateTimeWrapper 
-                        type="due" 
+                        type={TaskModel.VisualStyles.Due} 
                         dateFormat={dateForm} 
                     />
                 </div>

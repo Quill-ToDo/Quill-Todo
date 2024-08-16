@@ -53,7 +53,7 @@ const FreeDrag =  ({
     return <div
         ref={setNodeRef} 
         style={{transform: translate(goToPosition.x, goToPosition.y )}}
-        className={useDragHandle ? DRAGGABLE_HANDLE_CLASS : undefined}
+        className={useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS}
         {...listeners}
         {...attributes}
     >
@@ -87,7 +87,7 @@ const PickUpAndMove = ({
     return <>
         <div
             ref={setNodeRef} 
-            className={useDragHandle ? DRAGGABLE_HANDLE_CLASS : undefined}
+            className={useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS}
             {...listeners}
             {...attributes}
         >

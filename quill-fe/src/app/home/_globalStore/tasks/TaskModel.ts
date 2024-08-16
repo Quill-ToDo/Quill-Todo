@@ -658,8 +658,11 @@ export class TaskModel {
 //#endregion
 }
 
-export module TaskModel {
-    export type VisualStyles = "work" | "due";
+export module TaskModel.VisualStyles {
+    export const Start =  "start";
+    export const Due = "due";
+    export const Scheduled = "scheduled";
+    export type AcceptedStyles = "start" | "due" | "scheduled";
 }
 
 export const TaskContext = createContext(new TaskModel());

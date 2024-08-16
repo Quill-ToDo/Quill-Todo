@@ -1,4 +1,5 @@
-.task-wrapper {
+.task-wrapper.inline,
+.task-wrapper .inline {
   display: flex;
   gap: var(--section-gap);
   align-items: center;

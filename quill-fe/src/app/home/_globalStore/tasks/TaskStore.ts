@@ -5,11 +5,9 @@ import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } f
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
 
-export type TaskDataOnDay = {
-    start: TaskModel[];
-    due: TaskModel[];
-    scheduled: TaskModel[];
-};
+export type TaskDataOnDay =  {
+    task: TaskModel, 
+    type: TaskModel.VisualStyles.AcceptedStyles}[];
 
 export type Timeline = Map<DateTime, TaskDataOnDay>;
 
@@ -147,22 +145,19 @@ export default class TaskStore {
             for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
                 dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
                 if (!timeline.has(dayKey)) { 
-                    timeline.set(dayKey, 
-                        {
-                            start: [],
-                            due: [],
-                            scheduled: [],
-                        })
+                    timeline.set(dayKey, [])
                 }
                 tasksThisDay = timeline.get(dayKey);
-                if (dayItr.hasSame(lastDayInRange, 'day')) {
-                    tasksThisDay.due.push(task);
-                }
-                else if (dayItr.hasSame(firstDayInRange, 'day')) {
-                    tasksThisDay.start.push(task);
-                }
-                else {
-                    tasksThisDay.scheduled.push(task);
+                if (tasksThisDay) {
+                    if (dayItr.hasSame(lastDayInRange, 'day')) {
+                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Due});
+                    }
+                    else if (dayItr.hasSame(firstDayInRange, 'day')) {
+                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Start});
+                    }
+                    else {
+                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Scheduled});
+                    }
                 }
             }
         });
