@@ -14,25 +14,24 @@ const OUTER_WRAPPER_NAME = "new-wrapper";
  * and is marked as "beingCreated"
  * in TaskStore.
  */
-export const AddNewTaskPopUp = observer(({close, taskToCreate}: 
+export const AddNewTaskPopUp = observer(({close, taskToCreate, dragHandleProps}: 
     {
-        close: () => void, 
+        close: () => void,
+        dragHandleProps: any,
         taskToCreate: TaskModel | null, 
     }) => {
     const formRef = useRef(null);
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <div className={OUTER_WRAPPER_NAME}>
-            <header className="draggable-handle">
+            <header {...dragHandleProps}>
                 <h2 id="popup-title">New Task</h2>
-                <div className="aligned end">
-                    <button className="btn small square" title="Close" onClick={() => {
-                        taskToCreate && taskToCreate.abortTaskCreation();
-                        close();
-                    }}>
-                        { ICONS.X }
-                    </button>
-                </div>
+                <button className="btn small square" title="Close" onClick={() => {
+                    taskToCreate && taskToCreate.abortTaskCreation();
+                    close();
+                }}>
+                    { ICONS.X }
+                </button>
             </header>
             <section className="mid-section" aria-labelledby="popup-title">
                 <form 

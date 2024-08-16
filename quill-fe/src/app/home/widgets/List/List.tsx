@@ -1,7 +1,6 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import Sortable, { MultiDrag } from 'sortablejs';
 import { TaskModel } from "@/store/tasks/TaskModel";
 import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
@@ -11,6 +10,7 @@ import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 import { ICONS } from "@/app/@util/constants";
 import { PlaceableWidget } from "../generic-widgets/Widget";
+import { Draggable } from "@/app/@util/Draggable";
 
 const SECTION_TOGGLE_DURATION = 100;
 
@@ -209,33 +209,22 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
 const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.VisualStyles}) => {
     const listRef = useRef(null);
 
-    useEffect(() => {
-        Sortable.create(listRef.current, {
-            group: {
-                name: "list",
-                pull: ["list", "calendar", "trash"],
-                put: ["list", "calendar"],
-            },
-            animation: 120,
-            setData: (dataTransfer, dragEl) => {
-                const task = dragEl.querySelector(".task-wrapper")
-                const taskId = task.attributes["data-task-id"].value ;
-                const taskName = task.querySelector(".title").innerText;
-                dataTransfer.setData("text/plain", taskName);
-                dataTransfer.setData("taskId", taskId);
-            }
-        });
-    })
-
     return <ul role="group" ref={listRef}>
         { tasks.map((task) => {
             return ( 
-                <li className="task" key={`task-li-${task.id}`}>
-                    <ListViewTask
-                        task={task}
-                        type={type}
-                        />
-                </li>
+                <Draggable
+                    droppable={true}
+                    renderDraggableContent={() => <li 
+                            className="task" 
+                            key={`task-li-${task.id}`}
+                        >
+                            <ListViewTask
+                                task={task}
+                                type={type}
+                                />
+                        </li>
+                    }
+                />
             )
         })}
     </ul>
@@ -249,38 +238,34 @@ const ListViewTask = observer(({task, type}: {task: TaskModel, type: TaskModel.V
     const checkboxId = `list-checkbox-${task.id}`;
     const dateForm = DateTime.DATE_SHORT;
 
-    const taskWrapper = (
-    <TaskWrapper 
-        task={task}
-        properties={{
-            id: id,
-        }}
-    >
-        <Checkbox
-            task={task}
-            type={type}
-            checkboxId={checkboxId}
-        />
-        <div 
-            className="title-date-wrapper"
-        >
-            <label 
-                htmlFor={checkboxId} 
-                onClick={(e) => {
-                    e.preventDefault();
+    const taskWrapper = <TaskWrapper 
+                task={task}
+                properties={{
+                    id: id,
                 }}
             >
-                <TaskTitle task={task} />
-            </label>
-            <DateTimeWrapper 
-                task={task} 
-                type="due" 
-                dateFormat={dateForm} 
-            />
-        </div>
-    </TaskWrapper>
-    );
-
+                <Checkbox
+                    task={task}
+                    type={type}
+                    checkboxId={checkboxId}
+                />
+                <div 
+                    className="title-date-wrapper"
+                >
+                    <label 
+                        htmlFor={checkboxId} 
+                        onClick={(e) => {
+                            e.preventDefault();
+                        }}
+                    >
+                        <TaskTitle editAllowed={false} />
+                    </label>
+                    <DateTimeWrapper 
+                        type="due" 
+                        dateFormat={dateForm} 
+                    />
+                </div>
+            </TaskWrapper>;
     return taskWrapper;
 })
 

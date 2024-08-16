@@ -35,6 +35,7 @@ export const FloatingUiPopupImplementation = observer((
         doneLoading, 
         fullscreenable, 
         draggable,
+        useDragHandle,
         ...props
     } : PopupParams) => {
     const parentNodeId = useFloatingParentNodeId();
@@ -77,13 +78,6 @@ export const FloatingUiPopupImplementation = observer((
     }));
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
 
-    const innerContent = <section 
-            className={combineClassNamePropAndString({className: `popup`, props: props})}
-            ref={thisPopup}
-        >
-                { doneLoading ? renderPopupContent(close) : loading }
-        </section>;
-
     // This is a root, so we wrap it with the context
     const popupContent = <FloatingNode id={useFloatingNodeId()}>
         {/* Portal this shit away */}
@@ -99,9 +93,27 @@ export const FloatingUiPopupImplementation = observer((
                         style={floatingStyles} 
                         {...getFloatingProps()}
                     >
-                        { draggable ? <Draggable renderDraggableContent={(beingDragged) => innerContent} /> 
-                        : innerContent
-                        }
+                        { draggable ? 
+                            <Draggable 
+                                droppable={false} 
+                                useHandle={useDragHandle}
+                                renderDraggableContent={(dragHandleProps) => 
+                                    <section 
+                                        className={combineClassNamePropAndString({className: `popup`, props: props})}
+                                        ref={thisPopup}
+                                    >
+                                        { doneLoading ? renderPopupContent({dragHandleProps: dragHandleProps, closePopup: close}) : loading }
+                                    </section>
+                                } 
+                            /> 
+                            : 
+                            <section 
+                                className={combineClassNamePropAndString({className: `popup`, props: props})}
+                                ref={thisPopup}
+                            >
+                                { doneLoading ? renderPopupContent({closePopup: close}) : loading }
+                            </section> 
+                        } 
                     </div>
                 </FloatingFocusManager>
             </FloatingPortal>

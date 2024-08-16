@@ -4,14 +4,23 @@ import { combineClassNamePropAndString } from "./constants";
 import { FloatingUiPopupImplementation } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 
+export type RenderPopUpContent = ({
+    closePopup, 
+    dragHandleProps
+}: {
+    closePopup: ()=>void,
+    dragHandleProps?: any,
+}) => ReactElement<any>;
+
 export type PopupParams = {
-    renderPopupContent: (closePopup: ()=>void) => ReactElement<any>,
+    renderPopupContent: RenderPopUpContent,
     renderElementToClick: (openPopup: ()=>void) => ReactElement<any>,
     position?: "centered" | "positioned",
     placement?: "left" | "bottom" | "right" | "top" | "centered",
     alignment?: "start" | "middle" | "end",
     doneLoading?: boolean,
     draggable?: boolean,
+    useDragHandle?: boolean,
     fullscreenable?: boolean
 }
 
@@ -24,9 +33,8 @@ export type PopupParams = {
  * wider popup context and show popup when the state
  * value specified in UseFloatingOptions is called.
  * 
- * If draggable=true, at least one element should have a ".draggable-handle" class
- * To apply header styling, make the first element in the renderPopUpContent 
- * a header element
+ * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
+ * have dragHandleProps spread into it to specify which element should be used as the handle.
  * 
  * @returns the rendered anchor element for the popup
  */
@@ -37,7 +45,8 @@ export const PopupOnClick = observer((
         alignment="middle",
         doneLoading=true, 
         draggable=false, 
-        fullscreenable=false, 
+        fullscreenable=false,
+        useDragHandle=false, 
         ...props
     } : PopupParams) => {
         const defaultProps = {
@@ -46,11 +55,12 @@ export const PopupOnClick = observer((
             alignment: alignment,
             doneLoading: doneLoading,
             draggable: draggable,
+            useDragHandle: useDragHandle,
         }
 
         return <FloatingUiPopupImplementation 
-            {...defaultProps}
             {...props}
+            {...defaultProps}
         />;
 });
 
@@ -80,7 +90,7 @@ export const ContextMenuPopup = observer((
 ) => {
     return <PopupOnClick
         renderElementToClick={renderAnchorElementToClick}
-        renderPopupContent={(close) => <>
+        renderPopupContent={({closePopup}) => <>
         { header }
         <ul>
             { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
@@ -88,7 +98,7 @@ export const ContextMenuPopup = observer((
 
             <li key={labelAndCallback.label}>
                 <button
-                        onClick={() => {labelAndCallback.onClick(); close();}}
+                        onClick={() => {labelAndCallback.onClick(); closePopup();}}
                         aria-label={labelAndCallback.label} 
                         title={labelAndCallback.label}
                         className={combineClassNamePropAndString({className: `item`, props: props})} 

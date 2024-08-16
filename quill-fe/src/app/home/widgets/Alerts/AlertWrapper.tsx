@@ -1,4 +1,4 @@
-import { ComponentPropsWithoutRef, createContext, useCallback, useEffect, useRef, useState } from 'react';
+import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertEvent, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
 import { ICONS } from '@/app/@util/constants';
@@ -29,7 +29,6 @@ const Alert = ({
     
     const commonBtnProperties = {
         className: closeBtnClass, 
-        ref: btnRef,
         title: "Close", 
         onClick: () => {
             props.removeSelf();
@@ -50,6 +49,7 @@ const Alert = ({
                 alertRef.current.classList.add("slide-out");
 
             }}
+            ref={btnRef}
             {...commonBtnProperties}
         >
             { ICONS.X }
@@ -58,6 +58,7 @@ const Alert = ({
             onFocus={(e) => {
                 previouslyFocused.current = e.relatedTarget;
             }}
+            ref={btnRef}
             {...commonBtnProperties}
         >
             { ICONS.X }
@@ -80,7 +81,6 @@ const Alert = ({
     const commonAlertProps = {
         id: alert.detail.id,
         ref: alertRef,
-        key: `alert-${alert.detail.id}`,
         "aria-describedby": descId,
         "aria-labelledby": labelId,
     }
@@ -90,6 +90,7 @@ const Alert = ({
             <li 
                 {...commonAlertProps}
                 role="alertdialog"
+                key={`li-${alert.detail.id}`}
                 aria-live='assertive'
                 className={alert.detail.type}            
             >
@@ -108,7 +109,8 @@ const Alert = ({
                 props.animationStop();
                 props.removeSelf();
             }}
-            onAnimationStart={() => { props.animationStart(); }}  
+            onAnimationStart={() => { props.animationStart(); }}
+            key={`li-${alert.detail.id}`}
             {...commonAlertProps}
         >
             <div className='alert-cont-wrapper'>
@@ -137,7 +139,7 @@ const AlertList = ({...props}: {
                 if (!alert.detail.removed) {
                     return <Alert 
                         alert={alert}
-                        key={alert.detail.id}
+                        key={`alertlist-${alert.detail.id}`}
                         animationStart={() => props.animationStart(alert)}
                         animationStop={() => props.animationStop(alert)}
                         removeSelf={() => props.removeCallback(alert)}
@@ -218,7 +220,9 @@ const AlertBox = ({...props} :
 
 export const AlertWrapperContext = createContext(null);
 
-const AlertWrapper = (props: ComponentPropsWithoutRef<any>) => {
+const AlertWrapper = ({...props}: {
+    children: ReactNode<any>,
+}) => {
     const [alerts, setAlerts] = useState([]);
     const thisWrapperRef = useRef(null);
 

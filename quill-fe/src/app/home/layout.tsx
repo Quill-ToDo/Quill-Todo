@@ -50,10 +50,14 @@ const DashboardLayout = observer(({
     })
     
     return ( 
-            <div id="home-wrapper" data-testid="home">
+            <div 
+                id="home-wrapper" 
+                data-testid="home"
+            >
                 <menu role="menubar" aria-orientation="vertical" id="left-menu" className="bg-green">
                     <PopupOnClick
                         draggable={true}
+                        useDragHandle={true}
                         renderElementToClick={(open) => <button 
                                 id="add-task"
                                 role="menuitem" 
@@ -67,13 +71,12 @@ const DashboardLayout = observer(({
                                 { ICONS.PLUS }
                             </button>
                         }
-                        renderPopupContent={(close) => <AddNewTaskPopUp 
-                            close={close}
+                        renderPopupContent={({closePopup, dragHandleProps}) => <AddNewTaskPopUp 
+                            close={closePopup}
+                            dragHandleProps={dragHandleProps}
                             taskToCreate={taskStore.current.taskBeingCreated}
                         />}
-                    >
-
-                    </PopupOnClick>
+                    />
                     <button 
                         ref={trashBtnRef}
                         role="menuitem" 
@@ -81,25 +84,6 @@ const DashboardLayout = observer(({
                         title="Trash" 
                         type="button" 
                         onClick={() => addAlert(document.querySelector("#left-menu button[title='Trash']"), ERROR_ALERT, "We haven't implemented clicking on trash")}
-                        // onDragOver={(ev) => {
-                        //     ev.preventDefault();
-                        //     ev.dataTransfer.dropEffect = "move";
-                        //     const tasksOnPage = document.querySelectorAll(`[data-task-id="${ev.dataTransfer.getData("taskId")}"]`);
-                        //     tasksOnPage.forEach((element) => { element.classList.add("hidden")});
-                        // }}
-                        // onDragLeave={(ev) => {
-                        //     ev.preventDefault();
-                        //     const tasksOnPage = document.querySelectorAll(`[data-task-id="${ev.dataTransfer.getData("taskId")}"]`);
-                        //     tasksOnPage.forEach((element) => { element.classList.remove("hidden")});
-                        // }}
-                        // onDrop={(ev) => {
-                        //     if (ev.dataTransfer.types.includes("taskId")) {
-                        //         ev.preventDefault();
-                        //         const id = ev.dataTransfer.getData("taskId");
-                        //         const task = taskStore.current.getTaskWithId(id);
-                        //         task && taskStore.current.delete(task);
-                        //     }
-                        // }}
                     >
                         { ICONS.TRASH }
                     </button>

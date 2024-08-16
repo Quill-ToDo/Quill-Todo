@@ -2,7 +2,7 @@ import { ErrorsList } from "@util/FormComponents";
 import { TaskColorCodes, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithoutRef, CSSProperties, forwardRef, HTMLProps, MouseEvent, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+import { ComponentPropsWithoutRef, CSSProperties, forwardRef, HTMLProps, MouseEvent, MutableRefObject, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
 import TaskDetail from "./TaskDetail";
 import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { PopupOnClick } from "@/app/@util/Popup";
@@ -247,9 +247,9 @@ export const ColorBubble = observer(({
                     </input>
                     {colorBubble}
                     </div>}
-                renderPopupContent={(close) => <ColorGridPicker 
+                renderPopupContent={({closePopup}) => <ColorGridPicker 
                     task={task} 
-                    closePicker={close} 
+                    closePicker={closePopup} 
                     {...{className: "max-width-height"}}
                     />}
                 position={"positioned"} 
@@ -286,31 +286,25 @@ const PlainTaskTitle = observer((
                     </p>
                 </button>
         }
-        renderPopupContent={(closePopup) => <TaskDetail 
+        renderPopupContent={({closePopup, dragHandleProps}) => <TaskDetail 
                 task={task} 
-                close={closePopup} 
+                close={closePopup}
+                dragHandleProps={dragHandleProps}
             />}
         placement="right"
         alignment="middle"
         draggable={true}
+        useDragHandle={true}
         {...{className: "task-detail"}}
     />
 )});
 
-type EditableTaskTitleProps = {
-    ref: RefObject<any>,
-    passedTask?: TaskModel,
-}
-
-const EditableTaskTitle = observer(forwardRef<RefObject<any>, EditableTaskTitleProps>(({
-    ref,
-    ...props 
-}: EditableTaskTitleProps) => {
+const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskModel}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
-    const startingText: RefObject<string> = useRef(task.title);
+    const startingText: MutableRefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const editInputRef: RefObject<HTMLInputElement> = ref ? ref : useRef(null);
+    const editInputRef: MutableRefObject<HTMLInputElement> = ref ? ref : useRef(null);
     const finishEditing = () => {
         if (editInputRef.current && editInputRef.current.value !== startingText.current) {
             task.saveToServer({title: editInputRef.current.value});
@@ -378,21 +372,11 @@ export const TaskTitle = observer((
 
 //#endregion 
 //#region Description 
-export const TaskDescription = observer(forwardRef<RefObject, {
-    ref?: RefObject<any>,
+export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     passedTask?: TaskModel, 
     editAllowed?: boolean,
     autofocus?: boolean,
-} >((
-    {
-        ref,
-        ...props
-    }: {
-        ref?: RefObject<any>,
-        passedTask?: TaskModel, 
-        editAllowed?: boolean,
-        autofocus?: boolean,
-    }) => {
+} >((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const refToUse = ref ? ref : useRef(null);
 
@@ -411,15 +395,10 @@ export const TaskDescription = observer(forwardRef<RefObject, {
     }
 ));
 
-const EditableTaskDescription = observer(forwardRef((
-    {
-        ref,
-        ...props
-    }: {
-        ref: RefObject<any>,
-        passedTask?: TaskModel,
-    }
-) => {
+const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
+    ref: RefObject<any>,
+    passedTask?: TaskModel,
+}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: RefObject<string> = useRef(task.title);
     
