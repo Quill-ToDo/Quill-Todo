@@ -1,12 +1,10 @@
 import { observer } from "mobx-react-lite";
-import { ReactElement, } from "react";
+import { ReactNode, } from "react";
 import "./draggable.css";
 import { DraggableDndKitImplementation } from "@/external/DndKit";
 
-
-export type RenderDraggableContent = (handleProps?: any) => ReactElement<any>;
 export type DraggableParams = {
-    renderDraggableContent: RenderDraggableContent,
+    children: ReactNode,
     useHandle?: boolean,
     droppable?: boolean,
     dropTargetTypes?: string[],
@@ -18,18 +16,21 @@ export const DRAGGABLE_HANDLE_CLASS = "draggable-handle";
 * 3rd party libraries.
 * 
 * Droppable specifies whether the element should be free drag and remain 
-* in it's last dropped position or return to its origin
+* in it's last dropped position or return to its origin.
+* @param useHandle Whether to use a specific element within the droppable content as a drag handle or use any point
+* as a drag handle. If true, one element within the draggable content should have the class DRAGGABLE_HANDLE_CLASS
 */
 export const Draggable = observer((
     {
         useHandle=false,
         droppable=false,
-        ...props
+        children,
     } : DraggableParams) => {
         return <DraggableDndKitImplementation 
             useHandle={useHandle}
             droppable={droppable}
-            {...props}
-        />
+        >
+            {children}
+        </DraggableDndKitImplementation>
     })
 

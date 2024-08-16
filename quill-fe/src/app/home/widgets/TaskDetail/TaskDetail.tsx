@@ -19,15 +19,14 @@ import {
 } from "@/widgets/TaskDetail/TaskComponents";
 import { ContextMenuPopup } from "@/util/Popup";
 import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
+import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 
 const TaskDetail = observer(({
         task, 
         close,
-        dragHandleProps,
     }: {
         task: TaskModel,  
         close: () => void,
-        dragHandleProps: any,
 }) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
     const focus = useRef(null);
@@ -65,7 +64,7 @@ const TaskDetail = observer(({
 
     return (
         <TaskContext.Provider value={task}>
-            <header {...dragHandleProps}>
+            <header className={DRAGGABLE_HANDLE_CLASS}>
                 <TaskWrapper task={task}>
                     <div className="checkbox-color">
                         <ColorBubble />

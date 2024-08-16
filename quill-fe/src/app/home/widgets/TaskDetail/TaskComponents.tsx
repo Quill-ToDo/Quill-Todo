@@ -289,7 +289,6 @@ const PlainTaskTitle = observer((
         renderPopupContent={({closePopup, dragHandleProps}) => <TaskDetail 
                 task={task} 
                 close={closePopup}
-                dragHandleProps={dragHandleProps}
             />}
         placement="right"
         alignment="middle"

@@ -71,9 +71,8 @@ const DashboardLayout = observer(({
                                 { ICONS.PLUS }
                             </button>
                         }
-                        renderPopupContent={({closePopup, dragHandleProps}) => <AddNewTaskPopUp 
+                        renderPopupContent={({closePopup}) => <AddNewTaskPopUp 
                             close={closePopup}
-                            dragHandleProps={dragHandleProps}
                             taskToCreate={taskStore.current.taskBeingCreated}
                         />}
                     />

@@ -5,6 +5,7 @@ import { ICONS } from "@/util/constants";
 import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
 import { FormField } from "@util/FormComponents";
 import { TaskContext, TaskModel } from "@/store/tasks/TaskModel";
+import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 
@@ -14,17 +15,18 @@ const OUTER_WRAPPER_NAME = "new-wrapper";
  * and is marked as "beingCreated"
  * in TaskStore.
  */
-export const AddNewTaskPopUp = observer(({close, taskToCreate, dragHandleProps}: 
-    {
+export const AddNewTaskPopUp = observer(({
+    close, 
+    taskToCreate
+}: {
         close: () => void,
-        dragHandleProps: any,
         taskToCreate: TaskModel | null, 
     }) => {
     const formRef = useRef(null);
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <div className={OUTER_WRAPPER_NAME}>
-            <header {...dragHandleProps}>
+            <header className={DRAGGABLE_HANDLE_CLASS}>
                 <h2 id="popup-title">New Task</h2>
                 <button className="btn small square" title="Close" onClick={() => {
                     taskToCreate && taskToCreate.abortTaskCreation();

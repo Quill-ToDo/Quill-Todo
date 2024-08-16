@@ -34,7 +34,7 @@ export type PopupParams = {
  * value specified in UseFloatingOptions is called.
  * 
  * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
- * have dragHandleProps spread into it to specify which element should be used as the handle.
+ * have the class DRAGGABLE_HANDLE_CLASS to specify which element should be used as the handle.
  * 
  * @returns the rendered anchor element for the popup
  */

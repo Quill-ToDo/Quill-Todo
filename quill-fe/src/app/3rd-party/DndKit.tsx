@@ -14,11 +14,11 @@ import {
 } from '@dnd-kit/core';
 import type {Transform} from '@dnd-kit/utilities';
 import { MutableRefObject, ReactNode, useId, useRef, useState } from 'react';
-import { DRAGGABLE_HANDLE_CLASS, DraggableParams, RenderDraggableContent } from '../@util/Draggable';
+import { DRAGGABLE_HANDLE_CLASS, DraggableParams } from '@util/Draggable';
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 
 interface DragOptions {
-    renderDraggableContent: RenderDraggableContent,
+    children: ReactNode,
     useDragHandle?: boolean,
 }
 
@@ -27,8 +27,8 @@ interface DragOptions {
  * @returns 
  */
 const FreeDrag =  ({
-    renderDraggableContent,
     useDragHandle,
+    children,
 }: DragOptions
 ) => {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
@@ -49,25 +49,16 @@ const FreeDrag =  ({
         goToPosition.x += transform.x;
         goToPosition.y += transform.y;
     }
-
-    const innerContent = useDragHandle 
-        ? <div
-                ref={setNodeRef} 
-                style={{transform: translate(goToPosition.x, goToPosition.y )}}
-            >
-                { renderDraggableContent({...{className: DRAGGABLE_HANDLE_CLASS}, ...listeners, ...attributes}) }
-            </div>
-        : <div
-                ref={setNodeRef} 
-                style={{transform: translate(goToPosition.x, goToPosition.y )}}
-                {...{className: DRAGGABLE_HANDLE_CLASS}}
-                {...listeners}
-                {...attributes}
-            >
-                { renderDraggableContent() }
-            </div>
     
-    return innerContent;
+    return <div
+        ref={setNodeRef} 
+        style={{transform: translate(goToPosition.x, goToPosition.y )}}
+        className={useDragHandle ? DRAGGABLE_HANDLE_CLASS : undefined}
+        {...listeners}
+        {...attributes}
+    >
+        { children }
+    </div>;
 }
 
 /**
@@ -75,7 +66,7 @@ const FreeDrag =  ({
  * @returns 
  */
 const PickUpAndMove = ({
-    renderDraggableContent,
+    children,
     useDragHandle,
 }: DragOptions) => {
     const {attributes, listeners, setNodeRef} = useDraggable({
@@ -92,31 +83,21 @@ const PickUpAndMove = ({
             setIsDragging(false);
         }
     });
-
-    const innerContent = useDragHandle 
-    ? <div
-        ref={setNodeRef} 
-        {...attributes} 
-        {...listeners}
-    >
-            { renderDraggableContent({...{className: DRAGGABLE_HANDLE_CLASS}}) }
-    </div>
-        : <div
-        ref={setNodeRef} 
-        {...{className: DRAGGABLE_HANDLE_CLASS}}
-        {...listeners}
-        {...attributes}
-    >
-        { renderDraggableContent() }
-    </div>;
     
     return <>
-        {innerContent}
+        <div
+            ref={setNodeRef} 
+            className={useDragHandle ? DRAGGABLE_HANDLE_CLASS : undefined}
+            {...listeners}
+            {...attributes}
+        >
+            { children }
+        </div>
         {/* This is the content rendered on the drag preview layer/overlay. Drag overlay should
         always be mounted */}
         <DragOverlay>
             { isDragging 
-                ? renderDraggableContent()
+                ? children
                 : null
             }
         </DragOverlay> 
@@ -124,12 +105,13 @@ const PickUpAndMove = ({
 }
 
 /**
- * DND Kit implementation of a draggable element. If useHandle=true, some 
+ * DND Kit implementation of a draggable element. If useHandle=true, some element within the draggable content should have the class
+ * DRAGGABLE_HANDLE_CLASS
  * @returns 
  */
 export const DraggableDndKitImplementation = ({ 
     droppable, 
-    renderDraggableContent,
+    children,
     useHandle,
 } : DraggableParams) => {
     const modifiers: Modifier[] = [];
@@ -154,13 +136,15 @@ export const DraggableDndKitImplementation = ({
         {
             droppable 
             ? <PickUpAndMove 
-                renderDraggableContent={renderDraggableContent}
                 useDragHandle={useHandle}
-                /> 
+                >
+                { children }
+            </PickUpAndMove> 
             : <FreeDrag 
-                renderDraggableContent={renderDraggableContent}
                 useDragHandle={useHandle}
-                />
+                > 
+                { children }
+            </FreeDrag>
         }
     </WrapWithContext>
 }
@@ -284,24 +268,6 @@ function restrictToBoundingRect(
   }
 
   const hasHandleClass = (target: HTMLElement) => {
-    // TODO: Figure out how to handle rendering a handle. I have a feeling it might have to be done in a callback
-    // passing listeners and attributes because you add those to the handle. Currently implementing it that way but dnd kit still
-    // intercepts and stops propagation of click element in the div with the listener. I guess maybe try stopping propagation of the drag events 
-    // after clicking close?
-    // might also be able to do it as children content with modifier
-    // todo: either try moving buttons from instide header / drag handle element or 
-    // run "enter" event on clickable parent elements from inside using this
-        // let traverse=target, i=0;
-        // const limit = 1000;
-        // while (!traverse.onclick && i < limit) {
-        //     traverse = traverse.parentNode;
-        //     i++;
-        // }
-        // if (traverse.onclick) {
-        //     traverse.click(); 
-        // }
-        //   = target.closest("button") ?  target.closest("button") : target.closest("input");
     return target.classList.contains(DRAGGABLE_HANDLE_CLASS);
-    
   }
   //#endregionSensors

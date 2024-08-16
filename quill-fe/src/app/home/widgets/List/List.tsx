@@ -214,17 +214,18 @@ const TaskList = observer(({tasks, type}: {tasks: TaskModel[], type: TaskModel.V
             return ( 
                 <Draggable
                     droppable={true}
-                    renderDraggableContent={() => <li 
-                            className="task" 
-                            key={`task-li-${task.id}`}
-                        >
-                            <ListViewTask
-                                task={task}
-                                type={type}
-                                />
-                        </li>
-                    }
-                />
+                > 
+                    <li 
+                        className="task" 
+                        key={`task-li-${task.id}`}
+                    >
+                        <ListViewTask
+                            task={task}
+                            type={type}
+                            />
+                    </li>
+                
+                </Draggable>
             )
         })}
     </ul>

@@ -13,7 +13,6 @@ import {
     offset,
     shift,
     flip,
-    autoUpdate,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { RefObject, useContext, useRef, useState } from 'react';
@@ -96,16 +95,15 @@ export const FloatingUiPopupImplementation = observer((
                         { draggable ? 
                             <Draggable 
                                 droppable={false} 
-                                useHandle={useDragHandle}
-                                renderDraggableContent={(dragHandleProps) => 
-                                    <section 
-                                        className={combineClassNamePropAndString({className: `popup`, props: props})}
-                                        ref={thisPopup}
-                                    >
-                                        { doneLoading ? renderPopupContent({dragHandleProps: dragHandleProps, closePopup: close}) : loading }
-                                    </section>
-                                } 
-                            /> 
+                                useHandle={useDragHandle} 
+                            > 
+                                <section 
+                                    className={combineClassNamePropAndString({className: `popup`, props: props})}
+                                    ref={thisPopup}
+                                >
+                                    { doneLoading ? renderPopupContent({closePopup: close}) : loading }
+                                </section>
+                            </Draggable> 
                             : 
                             <section 
                                 className={combineClassNamePropAndString({className: `popup`, props: props})}
