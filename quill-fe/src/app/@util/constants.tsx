@@ -1,4 +1,5 @@
 import { ComponentPropsWithoutRef } from "react";
+import { DRAGGABLE_HANDLE_CLASS } from "./Draggable";
 
 // URLs
 export const API_URL = "http://localhost:8000/api/tasks/";
@@ -46,6 +47,7 @@ export const ICONS = {
     DESCRIPTION: <i className="fa-solid fa-align-left"></i>,
     PRIORITY: <i className="fa-solid fa-flag"></i>,
     MENU: <i className="fa-solid fa-ellipsis-vertical"></i>,
+    DRAG: <i className={`fa-solid fa-up-down-left-right ${DRAGGABLE_HANDLE_CLASS}`}></i>,
 } 
 
 /**

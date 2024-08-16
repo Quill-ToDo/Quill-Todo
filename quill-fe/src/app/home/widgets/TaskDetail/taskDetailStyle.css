@@ -27,6 +27,11 @@
   font-size: var(--p-size);
 }
 
+.task-detail .task-wrapper {
+  justify-content: space-between;
+  width: 100%;
+}
+
 .task-detail .task-wrapper.complete s,
 .task-detail .task-wrapper.complete input {
   color: var(--g7);
@@ -35,6 +40,11 @@
 
 .task-detail header .task-wrapper.hover {
   background-color: unset;
+}
+
+.task-detail header {
+  padding-left: 0;
+  padding-right: 0;
 }
 
 .task-detail .task-wrapper.complete .checkmark

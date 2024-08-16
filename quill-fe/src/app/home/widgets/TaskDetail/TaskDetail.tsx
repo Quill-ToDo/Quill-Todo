@@ -67,13 +67,14 @@ const TaskDetail = observer(({
             <header className={DRAGGABLE_HANDLE_CLASS}>
                 <TaskWrapper task={task}>
                     <div className="checkbox-color">
+                        {ICONS.DRAG}
                         <ColorBubble />
                         <Checkbox 
                             task={task}
                             type={"due"}
                         />
+                        <TaskTitle editAllowed={true} />   
                     </div>
-                    <TaskTitle editAllowed={true} />   
                     <div className="aligned end">
                         <ContextMenuPopup
                             renderAnchorElementToClick={(open) => <button 

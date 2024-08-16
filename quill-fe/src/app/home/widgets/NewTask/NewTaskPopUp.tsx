@@ -27,8 +27,11 @@ export const AddNewTaskPopUp = observer(({
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <div className={OUTER_WRAPPER_NAME}>
             <header className={DRAGGABLE_HANDLE_CLASS}>
-                <h2 id="popup-title">New Task</h2>
-                <button className="btn small square" title="Close" onClick={() => {
+                <div className="aligned columns gap">
+                    {ICONS.DRAG}
+                    <h2 id="popup-title">New Task</h2>
+                </div>
+                <button className="btn small square end" title="Close" onClick={() => {
                     taskToCreate && taskToCreate.abortTaskCreation();
                     close();
                 }}>
@@ -64,7 +67,7 @@ export const AddNewTaskPopUp = observer(({
                         <FormField
                             name="Title"
                             required={true}
-                            element={<TaskTitle editAllowed={true} props={{autoFocus: true}}/>}
+                            element={<TaskTitle editAllowed={true} {...{autoFocus: true}}/>}
                         />
                     </div>
                     <FormField 
@@ -73,7 +76,6 @@ export const AddNewTaskPopUp = observer(({
                         type={`textarea`}
                         inputProps={
                             { 
-                                // TODO figure out what happens if I set this : required: true,
                                 value: taskToCreate.description,
                                 onChange: function (e: ChangeEvent) { e.target && (taskToCreate.description = (e.target as HTMLTextAreaElement).value);}
 
