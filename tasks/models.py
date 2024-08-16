@@ -10,7 +10,7 @@ class Task(models.Model):
     created_at = models.DateTimeField(editable=False, auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     title = models.CharField(max_length=100, null=True, blank=True)
-    description = models.TextField(null=True, blank=True, max_length=1000)
+    description = models.TextField(null=True, blank=True, max_length=10000)
     start = models.DateTimeField(blank=True, null=True)
     due = models.DateTimeField(blank=True, null=True)
     complete = models.BooleanField(default=False)

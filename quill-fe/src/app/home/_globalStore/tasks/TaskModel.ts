@@ -16,7 +16,7 @@ const DEFAULT_START_DATETIME = () => DateTime.now();
 const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 
 const MAX_TITLE_LENGTH = 100;
-const MAX_DESCRIPTION_LENGTH = 1000;
+const MAX_DESCRIPTION_LENGTH = 10000;
 
 type ValidationTest = {
     text: string;
