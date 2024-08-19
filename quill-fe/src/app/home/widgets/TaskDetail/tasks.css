@@ -11,12 +11,17 @@
   background-color: var(--list-hover);
 }
 
-.task-wrapper input.title {
+.task-wrapper .title {
   background-color: unset;
 }
 
-.task-wrapper input.title:focus-within {
-  background-color: var(--g6);
+.task-wrapper .title:focus-within {
+  background-color: var(--g8);
+}
+
+.task-wrapper.complete .title:focus-within {
+  color: var(--g3);
+  text-decoration: line-through solid var(--g3) 2px;
 }
 
 .title-date-wrapper {
@@ -34,14 +39,9 @@
   color: var(--g4);
 }
 
-.task-wrapper.complete s {
-  color: var(--g4);
-  text-decoration: line-through solid var(--g4) 2px ;
-} 
-
-.task-wrapper.complete input {
-  text-decoration: line-through solid var(--g4) 2px;
-  width: 100%;
+.task-wrapper.complete .title {
+  color: var(--g7);
+  text-decoration: line-through solid var(--g7) 2px;
 } 
 
 .title p,
@@ -57,9 +57,9 @@
 
 .title.blank p,
 .title.blank.overdue p,
-input.title.blank::placeholder {
+.title.blank::placeholder {
   font-style: italic;
-  color: var(--g4);
+  color: var(--g3);
 }
 
 .title-date-wrapper>label>p {

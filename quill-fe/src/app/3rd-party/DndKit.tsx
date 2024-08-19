@@ -158,10 +158,10 @@ const WrapWithContext = ({
     modifiers?: Modifier[],
     sensors?: SensorDescriptor<any>[]
 }) => {
-    const parentContext = useDndContext().active;
-    if (parentContext) {
-        return children;
-    } else {
+    // const parentContext = useDndContext().active;
+    // if (parentContext) {
+    //     return children;
+    // } else {
         return <DndContext 
             modifiers={modifiers}
             sensors={sensors}
@@ -169,7 +169,7 @@ const WrapWithContext = ({
         >
             { children }
         </DndContext>;
-    }
+    // }
 }
 //#region Modifers
 function restrictToDragHandleClass(args): Transform {

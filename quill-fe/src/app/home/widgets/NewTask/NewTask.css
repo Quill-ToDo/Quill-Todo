@@ -9,6 +9,10 @@
     gap: var(--section-gap);
   }
 
+  .new-wrapper form .title {
+    width: 100%;
+  }
+
     .new-wrapper form input,
     .new-wrapper form textarea {
       color: var(--g1);

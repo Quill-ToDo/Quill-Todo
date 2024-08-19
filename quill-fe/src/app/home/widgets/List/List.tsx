@@ -234,7 +234,6 @@ const TaskList = observer(({
                             type={type}
                             />
                     </li>
-                
                 </Draggable>
             )
         })}

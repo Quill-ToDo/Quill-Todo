@@ -49,7 +49,7 @@ const TaskDetail = observer(({
             key: "add description",
             content: <>{ICONS.PRIORITY}<p>Priority</p></>,
             onClick: () => addAlert(addFieldButton.current, NOTICE_ALERT, "We haven't implemented priority yet. Oopsies"),
-            visible: false,
+            visible: true,
         },
     ]
 

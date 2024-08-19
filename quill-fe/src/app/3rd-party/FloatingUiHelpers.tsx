@@ -90,6 +90,7 @@ export const FloatingUiPopupImplementation = observer((
                         className='floating'
                         ref={refs.setFloating} 
                         style={floatingStyles} 
+                        {...props}
                         {...getFloatingProps()}
                     >
                         { draggable ? 
@@ -122,8 +123,7 @@ export const FloatingUiPopupImplementation = observer((
         {/* Anchor element  */}
         <div 
             ref={refs.setReference}
-            className={combineClassNamePropAndString({className: "popup-anchor", props: {...props, ...getReferenceProps()}})}
-            {...props}
+            className={"popup-anchor"}
             {...getReferenceProps()}
         >
             { renderElementToClick(open) } 

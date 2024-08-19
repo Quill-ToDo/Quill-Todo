@@ -1,6 +1,6 @@
 .task-detail.popup {
-  width: max-content;
-  max-width: 40vw;
+  width: 800px;
+  max-width: 50vw;
   min-width: 20vw;
 }
 
@@ -9,18 +9,17 @@
   gap: 13px;
   align-items: center;
   justify-content: center;
-  min-width: fit-content;
   min-height: fit-content;
 }
 
-.task-detail .title {
+.task-detail .title-sizing {
   font-size: 25px;
   text-align: left;
+  white-space: break-spaces;
+  overflow: visible;
+  height: 100%;
 }
 
-.task-detail input.title.blank::placeholder {
-  color: var(--g6);
-}
 
 .task-detail label {
   color: var(--g3);
@@ -29,22 +28,15 @@
 
 .task-detail .task-wrapper {
   justify-content: space-between;
-  width: 100%;
 }
 
-.task-detail .task-wrapper.complete s,
-.task-detail .task-wrapper.complete input {
+.task-detail .task-wrapper.complete .title {
   color: var(--g7);
-  text-decoration: line-through solid var(--g7) 3px ;
+  text-decoration: line-through solid var(--g7) 2px ;
 } 
 
 .task-detail .task-wrapper.hover {
   background-color: unset;
-}
-
-.task-detail header {
-  padding-left: 0;
-  padding-right: 0;
 }
 
 .task-detail .task-wrapper.complete .checkmark

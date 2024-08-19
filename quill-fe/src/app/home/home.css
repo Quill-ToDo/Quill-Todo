@@ -202,6 +202,48 @@ p.time {
     opacity: 0;
 }
 
+.input-sizer {
+    display: inline-grid;
+    align-items: center;
+    justify-content: flex-start;
+    grid-auto-flow: column;
+    position: relative;
+}
+
+.input-sizer.stacked {
+        grid-auto-flow: row;
+        align-items: stretch;
+        grid-template-columns: 1;
+        grid-auto-rows: fit;
+    }
+        .input-sizer.stacked::after,
+        input,
+        textarea {
+          grid-area: 1 / 1;
+        }
+
+    .input-sizer::after,
+    .input-sizer input,
+    .input-sizer textarea {
+        grid-area: 1 / 1;
+        width: 100%;
+        min-width: 1em;
+        height: 100%;
+        font: inherit;
+        padding: 0.25em;
+        margin: 0;
+        resize: none;
+    }
+
+    .input-sizer input {
+        width: auto;
+    }
+
+  .input-sizer::after {
+    content: attr(data-expand-content) ' ';
+    visibility: hidden;
+  }
+
 /*#endregion Layout/Style Helpers*/
 /*#region Re-Usable Elements*/
 /*#region Inline Elements*/

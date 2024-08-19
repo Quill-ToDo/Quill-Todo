@@ -39,17 +39,22 @@ export const TaskWrapper = observer((
         keyOverride?: string,
         children: ReactNode, 
     }) => {
+    const taskWrapperClass = "task-wrapper";
+    const allTaskWrapperSelector = `[data-task-id="${task.id}"].${taskWrapperClass}`;
     return <TaskContext.Provider value={task}>
         <div 
             key={keyOverride ? keyOverride : task.id}
             data-task-id={task.id}
-            onMouseEnter={() => {
-                document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
-                    element.classList.add(HOVER_CLASS);
+            onPointerOver={(e) => {
+                console.debug(e)
+                document.querySelectorAll(allTaskWrapperSelector).forEach((element: Element) => {
+                    // if ((e.target as HTMLElement).classList.contains(taskWrapperClass)) {
+                        element.classList.add(HOVER_CLASS);
+                    // }
                 });
             }}
             onMouseLeave={() => {
-                document.querySelectorAll(`[data-task-id="${task.id}"]`).forEach((element: Element) => {
+                document.querySelectorAll(`${allTaskWrapperSelector}.${HOVER_CLASS}`).forEach((element: Element) => {
                     element.classList.remove(HOVER_CLASS);
                 });
             }}
@@ -60,22 +65,6 @@ export const TaskWrapper = observer((
         </div>
     </TaskContext.Provider>;
 });
-
-type updateParams = {
-    task: TaskModel; 
-    update: any;
-};
-
-const taskFields = {
-    "title": {
-        name: "Title",
-        update: ({task, update}: updateParams) => {task.title = update;},
-    },
-    "color": {
-        name: "Color",
-        update: ({task, update}: updateParams) => {task.color = update;},
-    },
-}
 
 export const TaskComponentAndHeader = observer(({
     labelElement,
@@ -324,25 +313,32 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
     const startingText: MutableRefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const editInputRef: MutableRefObject<HTMLInputElement> = ref ? ref : useRef(null);
     const finishEditing = () => {
-        if (editInputRef.current && editInputRef.current.value !== startingText.current) {
-            task.saveToServer({title: editInputRef.current.value});
+        if (task.title && task.title !== startingText.current) {
+            task.saveToServer({title: task.title});
         }
     }
 
     const errorId = `detail-${task.id}-title-errors`;
 
-    return <div>
-            <input 
+    return <label 
+            className="input-sizer stacked title-sizing"
+            data-expand-content={task.title}
+            >
+            <textarea 
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
                 value={task.title}
                 aria-label={"Title"}
                 aria-invalid={!!task.validationErrors.title.length}
                 aria-describedby={errorId}
                 title={"Edit Title"}
-                ref={editInputRef}
-                onChange={(e) => task.title = e.target.value}
+                rows={1}
+                onChange={(e) => {
+                    if (e.target) {
+                        let inputText = e.target.value;
+                        task.title = inputText;
+                    }
+                }}
                 onBlur={finishEditing}
                 {...props}
             />
@@ -352,7 +348,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
                     id={errorId}
                 />
             }
-    </div>
+    </label>
 }));
 
 export const TaskTitle = observer((
@@ -409,7 +405,10 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
 
     return (props.editAllowed && props.editAllowed) 
         ? 
-        <EditableTaskDescription ref={refToUse as ForwardedRef<any>} {...propsToUse} /> 
+        <EditableTaskDescription 
+            ref={refToUse as ForwardedRef<any>} 
+            {...propsToUse} 
+        /> 
         : 
         <div ref={refToUse} {...propsToUse}> 
             <p>{task.description}</p>      

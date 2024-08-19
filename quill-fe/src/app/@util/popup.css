@@ -44,7 +44,7 @@ div[data-floating-ui-portal] > div {
     column-gap: 10px;
 }
 .popup.context-menu li:not(:last-of-type) {
-    border-bottom:  solid var(--g4) 3px;
+    border-bottom: solid var(--g4) 3px;
 }
 .popup.context-menu li p {
     text-align: start;
@@ -53,6 +53,7 @@ div[data-floating-ui-portal] > div {
 .popup.context-menu li:hover,
 .popup.context-menu li:focus-within {
     background-color: var(--list-hover);
+    border-radius: 4px;
 }
 
 .popup.context-menu li:focus-within {
