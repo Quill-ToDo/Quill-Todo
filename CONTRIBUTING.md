@@ -309,7 +309,7 @@ The test files are stored near the code they test, for most components, in [quil
 
 ##### Running Tests
 
-To run existing tests, from the main directory after switching into your virtual environment (see step 7 in back-end), run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `quill-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+To run existing tests, from the main directory run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `quill-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
 
 The tests should re-run automatically every time you save.
 Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
@@ -318,7 +318,7 @@ You can also isolate the execution of tests to a single test by adding `only` af
 **Ex:**
 ```JS
 it.only("should load tasks in the list", async () => {
-    render(<App />);
+    render(<Home />);
     expect(screen.getByRole("region", {name: "Task list"}))
     .toContainElement(await screen.findByLabelText("Overdue incomplete"));
 })

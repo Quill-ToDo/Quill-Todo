@@ -221,7 +221,7 @@ const AlertBox = ({...props} :
 export const AlertWrapperContext = createContext(null);
 
 const AlertWrapper = ({...props}: {
-    children: ReactNode<any>,
+    children: ReactNode,
 }) => {
     const [alerts, setAlerts] = useState([]);
     const thisWrapperRef = useRef(null);

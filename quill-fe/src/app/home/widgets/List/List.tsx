@@ -28,9 +28,10 @@ export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     // Before content is loaded show placeholder
     return (
         <PlaceableWidget 
-            widgetName="list" 
+            widgetName="List"
+            title="Task List" 
             icon={ICONS.LIST} 
-            doneLoading={taskStore.isLoaded}    
+            doneLoading={taskStore &&taskStore.isLoaded}    
         >
             { possibleListFormats[listFormat] }
         </PlaceableWidget>
