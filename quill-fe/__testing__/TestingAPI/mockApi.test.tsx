@@ -10,7 +10,6 @@ describe("should init with", () => {
     const newDateOverride = DateTime.utc(2022, 5, 22, 10, 30);
     const defaultStartOverride = newDateOverride.set({hour:0, minute: 0, second:0,  millisecond:0});
 
-
     describe.each([
         {title: "Overdue incomplete", complete: false, start: defaultBaseDate.minus({months: 1}), due: defaultBaseDate.minus({days: 7}), description: "Task description"},
         {title: "Overdue complete", complete: true, start: defaultBaseDate.minus({months: 1}), due: defaultBaseDate.minus({weeks: 3}), description: ""},
@@ -26,10 +25,12 @@ describe("should init with", () => {
             const handler = new MockTaskApiHandler();
             const dbTask = handler.tasks.find((task) => t.title === task.title);
             expect(dbTask).toBeDefined();
-            expect(dbTask.complete).toEqual(t.complete);
-            expect(dbTask.start).toEqual(t.start);
-            expect(dbTask.due).toEqual(t.due);
-            expect(dbTask.description).toEqual(t.description);
+            if (dbTask) {
+                expect(dbTask.complete).toEqual(t.complete);
+                expect(dbTask.start).toEqual(t.start);
+                expect(dbTask.due).toEqual(t.due);
+                expect(dbTask.description).toEqual(t.description);
+            }
         });
     });
 
@@ -48,10 +49,12 @@ describe("should init with", () => {
             const handler = new MockTaskApiHandler({date: newDateOverride});
             const dbTask = handler.tasks.find((task) => task.title === t.title);
             expect(dbTask).toBeDefined();
-            expect(dbTask.complete).toEqual(t.complete);
-            expect(dbTask.start).toEqual(t.start);
-            expect(dbTask.due).toEqual(t.due);
-            expect(dbTask.description).toEqual(t.description);
+            if (dbTask) {
+                expect(dbTask.complete).toEqual(t.complete);
+                expect(dbTask.start).toEqual(t.start);
+                expect(dbTask.due).toEqual(t.due);
+                expect(dbTask.description).toEqual(t.description);
+            }
         });
     });
 
@@ -61,7 +64,7 @@ describe("should init with", () => {
         const handler2 = new MockTaskApiHandler({tasks: [
             {
                 title: "Wash pupper",
-                complete: false
+                complete: false,
             }
         ]});
         expect(handler2.tasks[0].title).toEqual("Wash pupper");
@@ -77,7 +80,7 @@ it("should set tasks properly", () => {
         {
             title: "Bing bong",
             complete: true,
-            id: 1
+            id: "1",
         }
     ]);
     expect(handler.tasks[0].title).toEqual("Bing bong");
@@ -86,18 +89,17 @@ it("should set tasks properly", () => {
 
 it("should not add tasks with duplicate ids", () => {
     const handler = new MockTaskApiHandler();
+    const dupeId = "ding dong";
     handler.setup.addTask(
         {
             title: "Bing bong",
-            complete: true,
-            id: 1
+            id: dupeId,
         });
 
     expect(() => {
         handler.setup.addTask({
                 title: "BONG",
-                complete: true,
-                id: 1
+                id: dupeId,
             });
     }).toThrow("already exists");
 })
@@ -120,7 +122,7 @@ it("should set a new server", () => {
 describe("should intercept network call", () => {
     const api = new TaskApi();
 
-    it("fetch", async () => {
+    it("should intercept fetch", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
         const res = await api.fetchTasks();
@@ -130,7 +132,7 @@ describe("should intercept network call", () => {
         })
     })
 
-    it("detail", async () => {
+    it("should intercept detail", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
         const id = handler.tasks[0].id;
@@ -139,7 +141,7 @@ describe("should intercept network call", () => {
         expect(handler.tasks[0].title).toEqual(res.data.title);
     })
     
-    it("delete", async () => {
+    it("should intercept delete", async () => {
         const handler = new MockTaskApiHandler();
         handler.server.listen();
         const id = handler.tasks[0].id;

@@ -29,7 +29,7 @@ export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     return (
         <PlaceableWidget 
             widgetName="List"
-            title="Task List" 
+            aria-label="Task List" 
             icon={ICONS.LIST} 
             doneLoading={taskStore &&taskStore.isLoaded}    
         >

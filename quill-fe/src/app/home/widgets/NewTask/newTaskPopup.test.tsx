@@ -1,4 +1,5 @@
 import {
+    act,
     render,
     screen,
     within
@@ -12,7 +13,6 @@ import MockTaskApiHandler from '../../API/MockTaskApiHandler';
 
 import App from "../../App";
 import { DATE_FORMAT, MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH, taskCreationErrors, TIME_FORMAT } from '../../constants';
-import { act } from 'react-dom/test-utils';
 
 const baseDate = DateTime.utc(2021, 6, 6, 6);
 const mockServerHandler = new MockTaskApiHandler({date: baseDate});

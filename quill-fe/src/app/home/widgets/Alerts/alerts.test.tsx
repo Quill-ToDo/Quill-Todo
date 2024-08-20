@@ -4,9 +4,9 @@ import {
     screen,
     within,
     configure,
+    act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { act } from 'react-dom/test-utils';
 import { addAlert, NOTICE_ALERT } from "./alertEvent";
 import {
     rest

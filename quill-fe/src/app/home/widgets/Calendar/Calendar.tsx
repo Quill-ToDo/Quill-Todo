@@ -4,8 +4,9 @@ import { DateTime } from "luxon";
 import { END_OF_WEEK_WEEKDAY, ICONS, START_OF_WEEK_WEEKDAY } from "@/util/constants";
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
-import { Checkbox, TaskTitle, TaskWrapper } from "../TaskDetail/TaskComponents";
-import { Fragment, PropsWithRef, useEffect, useRef, useState } from "react";
+import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
+import { ComponentProps, useEffect, useRef, useState} from "react";
+import { PlaceableWidget } from "../generic-widgets/Widget";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
@@ -15,6 +16,7 @@ const NUM_WEEKDAYS = 7;
 type MonthData =
     {
         monthName: string;
+        year: string;
         key: string,
         weeks: WeekData[];
         closeToBeginningOfDataRange: boolean;
@@ -30,7 +32,7 @@ type DayData =
         key: string,
         date: DateTime;
         tasksToday: TaskDataOnDay | undefined;
-        props: PropsWithRef<"div">;
+        props: ComponentProps<"div">;
     };
 
 const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTime, taskStore: TaskStore}) => {
@@ -65,6 +67,7 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
             allLoadedMonthData.push({
                 key: day.toLocaleString({year: "2-digit", month: "2-digit"}),
                 monthName: day.monthLong, 
+                year: day.year, 
                 weeks: [],
                 closeToBeginningOfDataRange: monthNearBeginning.hasSame(day, "month") || day < monthNearBeginning,
                 closeToEndOfDataRange: monthNearEnd.hasSame(day, "month") || day > monthNearEnd,
@@ -73,7 +76,7 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
         mostRecentMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-1];
         if (itIsANewWeekday) {
             // Add a new WeekData to MonthData
-            mostRecentMonthLoaded.weeks.push({days: [], key: day.toISOWeekDate});
+            mostRecentMonthLoaded.weeks.push({days: [], key: day.toISOWeekDate()});
         }
         previousMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-2];
         mostRecentWeekLoaded = mostRecentMonthLoaded.weeks.length ? mostRecentMonthLoaded.weeks[mostRecentMonthLoaded.weeks.length-1] : previousMonthLoaded.weeks[previousMonthLoaded.weeks.length-1];
@@ -91,7 +94,7 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
                     paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? "border-left" : undefined,
         
                 ].join(" "),
-                ariaLabel: day.toISODate(),
+                "aria-label": day.toISODate(),
             },
         };
         // Add a day object for each day
@@ -157,21 +160,29 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                 laterMonthAppearsObserver.unobserve(lateMonthRef.current);
             }
         };
-    })
+    }, [allLoadedMonthData]);
+
+    useEffect(() => {
+        // Scroll to the current day only on first load
+        currentDayRef.current && scrollToEle(currentDayRef.current);
+    }, [thisCalendarRef.current]);
 
     const getMonthsInView = () => {
-        const calendarClientRect = thisCalendarRef.current && thisCalendarRef.current.getBoundingClientRect(); 
-        const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
-        const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
-        const calendarBottom = calendarTop + calendarClientRect.height;
-        return [...thisCalendarRef.current.querySelectorAll(".month-container")].filter((entry) => {
-            let monthRect = entry.getBoundingClientRect(); 
-            return (monthRect.y < calendarBottom) && (monthRect.y + monthRect.height > calendarTop)
-        }); 
-    }
+        if (thisCalendarRef.current && thisCalendarHeaderRef.current) {
+            const calendar = thisCalendarRef.current.getBoundingClientRect(); 
+            const header = thisCalendarHeaderRef.current.getBoundingClientRect(); 
+            return [...thisCalendarRef.current.querySelectorAll(".month-container")].filter((entry) => {
+                let month = entry.getBoundingClientRect(); 
+                return (month.top < calendar.bottom) && (month.bottom > header.bottom+1)
+            }); 
+        }
     }
  
-    return <PlaceableWidget widgetName="calendar" icon={ICONS.CALENDAR} doneLoading={allLoadedMonthData != undefined}>
+    return <PlaceableWidget 
+                widgetName="calendar" 
+                icon={ICONS.CALENDAR} 
+                doneLoading={taskStore.isLoaded && allLoadedMonthData != undefined}
+            >
             <div className="calendar-body mid-section" ref={thisCalendarRef}>
                 <div className="header" ref={thisCalendarHeaderRef}>
                     <nav className="aligned">
@@ -232,12 +243,12 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                             ref={monthData.closeToBeginningOfDataRange ? earlyMonthRef : (monthData.closeToEndOfDataRange ? lateMonthRef : undefined)}    
                         >
                             <div className="month-title"> 
-                            <h2>{monthData.monthName}</h2>
+                                <h2>{monthData.monthName}</h2>
                                 <h3>{monthData.year}</h3>
                             </div>
                             <div className="day-grid"> 
                                 { monthData.weeks.map((weekData, i) =>
-                                    <Fragment key={weekData.key}>
+                                    <div key={weekData.key} className={"week-container"}>
                                         { weekData.days.map(day =>  
                                         <div 
                                             ref={today.current.hasSame(day.date, 'day') ? currentDayRef : undefined}
@@ -246,10 +257,17 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                             >
                                             <p><time dateTime={day.date.toISODate()}>{day.date.day}</time></p>
                                             <div className="dark-section">
-                                                { day.tasksToday &&  day.tasksToday.scheduled && day.tasksToday.scheduled.map((task) => {
-                                                    return <TaskWrapper task={task} keyOverride={`${day.key}-${task.id}`}>
-                                                            <Checkbox task={task} type={'work'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
-                                                            <TaskTitle task={task} />
+                                                { day.tasksToday && day.tasksToday.map((taskData) => {
+                                                    const taskWrapperProps = {
+                                                        task: taskData.task,
+                                                        keyOverride: `${day.key}-${taskData.task.id}`,
+                                                        ...{className: "inline"}
+                                                    }
+                                                    return <TaskWrapper 
+                                                            {...taskWrapperProps}
+                                                        >
+                                                            <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
+                                                            <TaskTitle />
                                                         </TaskWrapper>
                                                     })
                                                 }
@@ -259,13 +277,13 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                                         keyOverride={`${day.date}-${task.id}`}
                                                         >
                                                         <Checkbox task={task} type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
-                                                        <TaskTitle task={task} />
+                                                        <TaskTitle />
                                                     </TaskWrapper>
                                                 })}
                                             </div>
                                         </div>    
                                     )}
-                                    </Fragment>
+                                    </div>
                                 )}
                             </div>
                         </div>

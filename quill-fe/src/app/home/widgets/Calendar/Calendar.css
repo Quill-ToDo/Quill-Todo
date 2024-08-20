@@ -53,7 +53,9 @@
     display: inherit;
     grid-column: inherit;
     grid-template-columns: subgrid;
+    grid-template-rows: repeat(auto-fill, max-height);
     align-items: flex-start;
+    height: fit-content;
 }
 
 /* Month titles */
@@ -74,12 +76,16 @@
 }
 
 /* Actual grid of days  */
-.day-grid {
+.month-container .day-grid {
     grid-area: calendarDays;
     display: grid;
-    grid-auto-flow: row;
-    grid-template-columns: inherit;
-    align-content: flex-start;
+    grid-template-columns: subgrid;
+}
+
+.month-container .week-container {
+    display: grid;
+    grid-column: 1 / -1;
+    grid-template-columns: subgrid;
 }
 
 .day-container {

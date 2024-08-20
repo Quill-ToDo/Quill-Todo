@@ -9,6 +9,30 @@ import {
 } from 'msw/node'
 import { v4 as uuidv4 } from 'uuid';
 
+interface PassedTask {
+        title: string,
+        due?: DateTime,
+        id?: string,
+        complete?: boolean,
+        completed_at?: DateTime | null;
+        start?: DateTime,
+        description?: string,
+        created_at?: DateTime,
+        updated_at?: DateTime,
+}
+
+interface Task {
+        id: string,
+        title: string,
+        complete: boolean,
+        completed_at: DateTime | null;
+        start: DateTime,
+        due: DateTime,
+        description: string,
+        created_at: DateTime,
+        updated_at: DateTime,
+}
+
 function DuplicateIdException (id) {
     this.message = `id ${id} already exists as a fake task`;
     this.name = "DuplicateIdException"; 
@@ -26,14 +50,15 @@ function DuplicateIdException (id) {
  */
 export default class MockTaskApiHandler {
     // List of tasks in "DB"
-    tasks = [];
+    tasks: Task[] = [];
     // This base "current" date to base computations of off
-    date = "";
-    defaultStart = null;
+    date: DateTime = null;
+    defaultStart: DateTime = null;
+    defaultDue: DateTime = null;
     // The MSW server
     server = null;
     // API_URL = "/api/tasks/";
-    API_URL = "*/api/tasks/";
+    API_URL: string = "*/api/tasks/";
     // THIS IS BAD! ^^^ Should be using it without the wildcard
 
     /**
@@ -41,9 +66,16 @@ export default class MockTaskApiHandler {
      * @param {*} overrides Optional overrides. Takes properties `date` (to make tasks relative to) 
      * and `tasks` (to add to DB relative to `dateOverride`)
      */
-    constructor({date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), tasks=null}={}) {
+    constructor({
+        date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), 
+        tasks=[],
+    }: {
+        date?: DateTime, 
+        tasks?:PassedTask[],
+    }={}) {
         this.date = date;
-        this.defaultStart = date.set({hour:0, minute: 0, second:0,  millisecond:0});
+        this.defaultStart = date.startOf("day");
+        this.defaultDue = date.endOf("day");
 
         // If you change these hard-coded tasks, please just add to them or make sure you don't break a lot of
         // tests by removing any.
@@ -65,7 +97,7 @@ export default class MockTaskApiHandler {
 
         initTasks() {
             this.handler.tasks = [];
-            const tasks = [{
+            const tasks: PassedTask[] = [{
                     title: "Overdue incomplete",
                     complete: false,
                     start: this.handler.date.minus({
@@ -217,31 +249,14 @@ export default class MockTaskApiHandler {
             tasks.forEach((taskData) => {
                 this.addTask(taskData);
             })
-
-
         },
 
         /**
          * Set the tasks for this object if you would like to override them.
          * 
-         *  **Task format:** 
-         *   
-         * {
-         * 
-         *       "id": {int/omit field to be auto assigned},
-         *       "title": {str},
-         *       "complete": {bool},
-         *       "completed_at": {null/DateTime depending on the value of complete},
-         *       "start": {DateTime/omit field for null},
-         *       "due": {DateTime},
-         *       "description": {str},
-         *       "created_at":  {DateTime/omit field to be auto assigned},
-         *       "updated_at": {Datetime/omit field to be auto assigned},
-         * 
-         *   }
          * @param {[Object]} tasks 
          */
-        setTasks(tasks) {
+        setTasks(tasks: PassedTask[]) {
             this.handler.tasks = [];
             tasks.forEach((task) => {this.addTask(task)});
         },
@@ -250,51 +265,31 @@ export default class MockTaskApiHandler {
          * Add one task to the mock DB. For any of the DateTime fields, use offsets from `this.date` as seen in the
          * constructor. No validations are run.
          * 
-         * **Task format:** 
-         *   
-         * {
-         * 
-         *       title: {str},
-         *       due: {DateTime},
-         *       id: {int/omit field to be auto assigned},
-         *       start: {DateTime/omit field for null},
-         *       complete: {bool/omitted for false},
-         *       completed_at: {null/DateTime depending on the value of complete or omitted to be auto assigned},
-         *       description: {str/omit for ""},
-         *       created_at: {DateTime/omit field to be auto assigned},
-         *       updated_at: {Datetime/omit field to be auto assigned},
-         * 
-         *   }
-         * @param {object} task The task to add. Formatted as: 
          */
-        addTask(task) {
-            var newTask = {};
-            // Required
-            newTask.title = task.title;
-            newTask.due = task.due;
-            // Optional
-            if (task.id === undefined) {
-                newTask.id = uuidv4();    
+        addTask(task: PassedTask) {
+            let idToUse;
+            if (!task.id) {
+                idToUse = uuidv4();    
             } 
             else {
                 if (this.handler.tasks.find(t => t.id === task.id)) {
                     throw new DuplicateIdException(task.id);
                 }
-                else {
-                    newTask.id = task.id;
-                }
+                idToUse = task.id;
             }
-            newTask.description = task.description ? task.description : "";
-            newTask.complete = task.complete ? task.complete : false; 
-            if (task.completed_at) {
-                newTask.completed_at = task.completed_at;
-            }
-            else {
-                newTask.completed_at = newTask.complete ? DateTime.fromISO(newTask.due).minus({days: 3}) :  null;
-            }
-            newTask.start = task.start ? task.start : this.handler.defaultStart;
-            newTask.created_at = task.created_at ? task.created_at : DateTime.fromISO(newTask.due).minus({weeks: 1});
-            newTask.updated_at = task.updated_at ? task.updated_at : DateTime.fromISO(newTask.due).minus({days: 2}); 
+            var newTask: Task = {
+                // Required
+                title: task.title,
+                due: task.due ? task.due : this.handler.defaultDue,
+                // Optional
+                id: idToUse,
+                start: task.start ? task.start : this.handler.defaultStart,
+                description: task.description ? task.description : "",
+                complete: task.complete ? task.complete : false,
+                completed_at: task.completed_at ? task.completed_at : (task.complete ? DateTime.fromISO(task.due).minus({days: 3}) :  null),
+                created_at: task.created_at ? task.created_at : DateTime.fromISO(task.due).minus({weeks: 1}),
+                updated_at: task.updated_at ? task.updated_at : DateTime.fromISO(task.due).minus({days: 2}),
+            };
             this.handler.tasks.push(newTask);
         },
 
