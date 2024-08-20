@@ -294,3 +294,4 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
 });
 
 export const ShowSelectableCalendarDays = () => {};
+export const ShowSelectableCalendarDays = () => {};

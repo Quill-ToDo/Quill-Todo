@@ -9,6 +9,12 @@
 
 .task-wrapper.hover {
   background-color: var(--list-hover);
+  padding: 0px 10px 0px 10px;
+  border-radius: 10px;
+}
+
+.task-wrapper.hover {
+  background-color: var(--list-hover);
 }
 
 .task-wrapper .title {
@@ -153,12 +159,14 @@ i.checkmark {
 .color-picker > * {
   flex: 1 1 0px;
   width: max-content;
+  width: max-content;
 }
 
 .color-picker .colors {
   display: flex;
   align-items: center;
   flex-direction: row;
+  width: max-content;
   width: max-content;
 }
 
@@ -171,10 +179,12 @@ i.checkmark {
   display: flex;
   flex-direction: column;
   width: max-content;
+  width: max-content;
 }
 
 .color-picker .color-square {
   aspect-ratio: 1 / 1;
+  width: var(--color-picker-square-size);
   width: var(--color-picker-square-size);
   transition: transform .1s;
 }

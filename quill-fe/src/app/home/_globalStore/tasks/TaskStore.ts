@@ -140,7 +140,7 @@ export default class TaskStore {
         const timeline: Timeline = new Map();
         let dayKey: string, firstDayInRange: DateTime, lastDayInRange: DateTime, tasksThisDay; 
         this.tasks.forEach(task => {
-            firstDayInRange = task.start.startOf('day');
+            firstDayInRange = task.start.startOf('day').minus({days: 1});
             lastDayInRange = task.due.endOf('day');
             for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
                 dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
@@ -159,6 +159,7 @@ export default class TaskStore {
                         tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Scheduled});
                     }
                 }
+    
             }
         });
         return timeline;

@@ -20,22 +20,6 @@
     grid-template-columns: subgrid;
     overflow: scroll;
     max-height: 100%;
-    position: relative;
-    overscroll-behavior: contain;
-}
-
-.calendar.widget .header {
-    position: sticky;
-    grid-column: nav / weekDays;
-    grid-template-columns: subgrid;
-    display: grid;
-}
-
-.calendar.widget nav {
-    grid-area: nav;
-    align-items: center;
-    justify-content: center;
-    column-gap: 5px;
 }
 
 /* M T W R F ... */
