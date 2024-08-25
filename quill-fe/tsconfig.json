@@ -26,8 +26,9 @@
       "@/alerts/*": ["./home/widgets/Alerts/*"],
       "@/util/*": ["./@util/*"],
       "@/external/*": ["./3rd-party/*"],
+      "@/testing/*": ["./__testing__/*"],
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "MswResolver.js"],
   "exclude": ["node_modules"]
 }

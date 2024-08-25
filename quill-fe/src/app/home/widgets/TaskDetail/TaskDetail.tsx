@@ -21,6 +21,8 @@ import { ContextMenuPopup } from "@/util/Popup";
 import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
 import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 
+export const TASK_DETAIL_POPUP_NAME = "Task Detail";
+
 const TaskDetail = observer(({
         task, 
         close,
@@ -62,7 +64,7 @@ const TaskDetail = observer(({
         }
     }, [])
 
-    return <TaskWrapper task={task}>
+    return <TaskWrapper task={task} {...{"aria-label": TASK_DETAIL_POPUP_NAME, "role": "dialog"}}>
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
                     {ICONS.DRAG}
@@ -77,6 +79,7 @@ const TaskDetail = observer(({
                         renderAnchorElementToClick={(open) => <button 
                                 className="btn small square no-shadow"
                                 title="Pin window" 
+                                aria-haspopup="menu"
                                 onClick={() => {
                                         open();
                                     }}
@@ -156,7 +159,8 @@ const TaskDetail = observer(({
                     renderAnchorElementToClick={(openPopup) => <button 
                             ref={addFieldButton}
                             onClick={openPopup}
-                            aria-label="Add task field" 
+                            aria-label="Add task field"
+                            aria-haspopup="menu"
                             title="Add task field" 
                             className={`add-field-btn btn large centered`} 
                             > 

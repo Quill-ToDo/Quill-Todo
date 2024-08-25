@@ -1,26 +1,28 @@
 'use client'
 
-import DashboardLayout from './home/layout';
-import { ListWidget } from '@/widgets/List/List';
+import DashboardLayout from './home/dashboardLayout';
 import AlertWrapper from '@/alerts/AlertWrapper';
-import {useTaskStore, StoreProvider} from '@/store/StoreProvider';
+import { StoreProvider } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
-import { Calendar } from '@/widgets/Calendar/Calendar';
-import TaskStore from './home/_globalStore/tasks/TaskStore';
+import { ReactNode } from 'react';
+import RootStore from './home/_globalStore/RootStore';
 
-const Home = observer(() => {
-  const taskStore: TaskStore = useTaskStore();
-
+const QuillContext = observer(({
+  widgets,
+  rootStore,
+}:{
+  widgets?: ReactNode,
+  rootStore?: RootStore,
+}) => {
   return (
-    <StoreProvider>
+    <StoreProvider rootStore={rootStore}>
       <AlertWrapper>
           <DashboardLayout>
-            <ListWidget taskStore={taskStore} />
-            <Calendar taskStore={taskStore} />
+            {widgets}
           </DashboardLayout>
       </AlertWrapper>
     </StoreProvider>
   )
 })
 
-export default Home;
+export default QuillContext;

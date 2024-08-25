@@ -3,6 +3,7 @@ import { AlertEvent, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/a
 import './alerts.css'
 import { ICONS } from '@/app/@util/constants';
 
+export const ERROR_TEXT = "Aw snap :(";
 /**
  * One Alert.
  * @param {*} props Should pass in the alert
@@ -25,7 +26,7 @@ const Alert = ({
     
     var closeBtnClass = "no-shadow btn small square";   
 
-    const alertSlidesOut = alert.type === NOTICE_ALERT || alert.type === SUCCESS_ALERT;
+    const alertSlidesOut = alert.detail.type === NOTICE_ALERT || alert.detail.type === SUCCESS_ALERT;
     
     const commonBtnProperties = {
         className: closeBtnClass, 
@@ -66,8 +67,8 @@ const Alert = ({
 
     useEffect(() => {
         // Focus on error message close button on render
-        if (alert.type === ERROR_ALERT) {
-            btnRef.current.focus();
+        if (alert.detail.type === ERROR_ALERT) {
+            btnRef.current && btnRef.current.focus();
         }
         
         return () => {
@@ -95,7 +96,7 @@ const Alert = ({
                 className={alert.detail.type}            
             >
                 <div className='alert-cont-wrapper'>
-                    <h3 id={labelId}>Aw snap :(</h3>
+                    <h3 id={labelId}>{ERROR_TEXT}</h3>
                     <p id={descId}>{alert.detail.body}</p>
                 </div>
                 {closeBtn}

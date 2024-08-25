@@ -8,6 +8,8 @@ import { TaskContext, TaskModel } from "@/store/tasks/TaskModel";
 import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
+export const NEW_TASK_POPUP_TITLE = "New Task";
+export const ADD_BUTTON_TEXT = "Add";
 
 /**
  * A form to create a new task. 
@@ -25,11 +27,17 @@ export const AddNewTaskPopUp = observer(({
     const formRef = useRef(null);
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
-        <div className={OUTER_WRAPPER_NAME}>
-            <header className={DRAGGABLE_HANDLE_CLASS}>
+        <section 
+            className={OUTER_WRAPPER_NAME}
+            aria-labelledby="new-task-title"
+            >
+            <header 
+                className={DRAGGABLE_HANDLE_CLASS}
+                title="Drag task"    
+            >
                 <div className="aligned columns gap">
                     {ICONS.DRAG}
-                    <h2 id="popup-title">New Task</h2>
+                    <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
                 </div>
                 <button className="btn small square end" title="Close" onClick={() => {
                     taskToCreate && taskToCreate.abortTaskCreation();
@@ -142,11 +150,11 @@ export const AddNewTaskPopUp = observer(({
                         </div>
                     </div>
                     <div className="centered">
-                        <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>Add</button>
+                        <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>{ADD_BUTTON_TEXT}</button>
                     </div>
                 </form>
             </section>
-        </div>
+        </section>
     </TaskContext.Provider>
     )
 })

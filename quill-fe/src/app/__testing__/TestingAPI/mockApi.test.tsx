@@ -1,8 +1,9 @@
-import MockTaskApiHandler from "./MockTaskApiHandler";
+import { MockTaskApiHandler, PassedTask } from "./MockTaskApiHandler";
 import { DateTime } from "luxon";
-import { setupServer } from 'msw/node'
-import { rest } from "msw";
-import { TaskApi } from "../../src/app/home/_globalStore/tasks/TaskApi"
+import { TaskApi } from "@/store/tasks/TaskApi"
+import { MOCK_SERVER_HANDLER } from "@/testing/jest.setup";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 
 describe("should init with", () => {
     const defaultBaseDate = DateTime.utc(2069, 6, 6, 6, 4, 2, 0);
@@ -73,31 +74,29 @@ describe("should init with", () => {
 })
 
 it("should set tasks properly", () => {
-    const handler = new MockTaskApiHandler();
-    handler.setup.setTasks([]);
-    expect(handler.tasks).toEqual([]);
-    handler.setup.setTasks([
+    MOCK_SERVER_HANDLER.setup.setTasks([]);
+    expect(MOCK_SERVER_HANDLER.tasks).toEqual([]);
+    MOCK_SERVER_HANDLER.setup.setTasks([
         {
             title: "Bing bong",
             complete: true,
             id: "1",
         }
     ]);
-    expect(handler.tasks[0].title).toEqual("Bing bong");
-    expect(handler.tasks.length).toEqual(1);
+    expect(MOCK_SERVER_HANDLER.tasks[0].title).toEqual("Bing bong");
+    expect(MOCK_SERVER_HANDLER.tasks.length).toEqual(1);
 })
 
 it("should not add tasks with duplicate ids", () => {
-    const handler = new MockTaskApiHandler();
     const dupeId = "ding dong";
-    handler.setup.addTask(
+    MOCK_SERVER_HANDLER.setup.addTask(
         {
             title: "Bing bong",
             id: dupeId,
         });
 
     expect(() => {
-        handler.setup.addTask({
+        MOCK_SERVER_HANDLER.setup.addTask({
                 title: "BONG",
                 id: dupeId,
             });
@@ -106,48 +105,49 @@ it("should not add tasks with duplicate ids", () => {
 
 
 it("should set a new server", () => {
-    const handler = new MockTaskApiHandler();
-    const server1 = handler.server;
-    const mock = () => {
-        rest.get("/", (req, res, ctx) => {
-            return rest(ctx.status(200))
-        })
-    }
+    const server1 = MOCK_SERVER_HANDLER.server;
+    const mock = http.get("/", () => new HttpResponse(null, { status: 200 }));
     const server2 = setupServer(mock);
-    handler.setup.setServer(server2);
-    expect(server1).not.toBe(handler.server);
+    MOCK_SERVER_HANDLER.setup.setServer(server2);
+    expect(MOCK_SERVER_HANDLER.server).not.toBe(server1);
 })
 
 
 describe("should intercept network call", () => {
     const api = new TaskApi();
 
-    it("should intercept fetch", async () => {
-        const handler = new MockTaskApiHandler();
-        handler.server.listen();
+    it("fetch", async () => {
         const res = await api.fetchTasks();
-        handler.server.close();
-        handler.tasks.forEach(task => {
+        MOCK_SERVER_HANDLER.tasks.forEach(task => {
             expect(res.data.find((resTask) => resTask.title === task.title)).toBeDefined();
         })
     })
 
-    it("should intercept detail", async () => {
-        const handler = new MockTaskApiHandler();
-        handler.server.listen();
-        const id = handler.tasks[0].id;
+    it("detail", async () => {
+        const id = MOCK_SERVER_HANDLER.tasks[0].id;
         const res = await api.detail(id);
-        handler.server.close();
-        expect(handler.tasks[0].title).toEqual(res.data.title);
+        expect(MOCK_SERVER_HANDLER.tasks[0].title).toEqual(res.data.title);
+    })
+
+    it("post", async () => {
+        const task: PassedTask = { title: "bing bong" };
+        const res = await api.createTask(task);
+        expect(res.status === 201)
+        expect(MOCK_SERVER_HANDLER.tasks.some(task => task.title === res.data.title)).toBeTruthy();
     })
     
-    it("should intercept delete", async () => {
-        const handler = new MockTaskApiHandler();
-        handler.server.listen();
-        const id = handler.tasks[0].id;
-        const title = handler.tasks[0].title;
+    it("delete", async () => {
+        const id = MOCK_SERVER_HANDLER.tasks[0].id;
+        const title = MOCK_SERVER_HANDLER.tasks[0].title;
         await api.deleteTask(id);
-        handler.server.close();
-        expect(handler.tasks.find(t => t.title === title)).toBeUndefined();
+        expect(MOCK_SERVER_HANDLER.tasks.find(t => t.title === title)).toBeUndefined();
+    })
+
+    it("should return updated task data with overrides", async () =>{
+        if (MOCK_SERVER_HANDLER.server) {
+            MOCK_SERVER_HANDLER.setup.setTasks([]);
+        }
+        const res = await api.fetchTasks();
+        expect(res.data).toEqual([]);
     })
 });

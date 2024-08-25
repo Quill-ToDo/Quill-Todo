@@ -27,7 +27,12 @@ export default function RootLayout({
           {/* Font awesome */}
           <script src="https://kit.fontawesome.com/fd95a77a02.js" crossOrigin="anonymous"></script>
       </head>
-      <body className={`${inter.className} bg-red`}>{children}</body>
+      <body 
+        className={`${inter.className}`}
+        role="none"
+      >
+          {children}
+      </body>
     </html>
   )
 }

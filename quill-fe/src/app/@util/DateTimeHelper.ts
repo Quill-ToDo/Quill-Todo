@@ -1,4 +1,4 @@
-import { DateTime } from "luxon";
+import { DateTime, DateTimeFormatOptions } from "luxon";
 
 // Date and Time Constants
 // Make sure you call these inside of a hook in a React component to avoid hydration errors!
@@ -6,18 +6,21 @@ export const END_OF_DAY = () => DateTime.now().endOf('day');
 export const START_OF_DAY = () => DateTime.now().startOf('day');
 
 type DateXOrTimeFormat = {
-    token: string;
+    token: DateTimeFormatOptions;
     readable: string;
     serializer: Function;
     deserializer: Function;
 }
 
 type DateFormat = {
-    token: string;
+    token: DateTimeFormatOptions;
     serializer: Function;
     deserializer: Function;
 }
-export const PARTIAL_DATETIME_FORMATS: {D: DateXOrTimeFormat, t: DateXOrTimeFormat, [index : string] : DateXOrTimeFormat } = {
+export const PARTIAL_DATETIME_FORMATS: {
+    D: DateXOrTimeFormat, 
+    t: DateXOrTimeFormat, 
+    [index : string] : DateXOrTimeFormat } = {
     D: {
         token: DateTime.DATE_SHORT,
         readable: "M/d/yyyy",
@@ -35,7 +38,7 @@ export const PARTIAL_DATETIME_FORMATS: {D: DateXOrTimeFormat, t: DateXOrTimeForm
         serializer: function (dateTime: DateTime) { 
             return dateTime.toLocaleString(this.token); 
         },
-        deserializer: function (string: DateTime) {
+        deserializer: function (string: string) {
             return DateTime.fromFormat(string, "t");
         }
     },
@@ -77,7 +80,7 @@ export const stringToDateTimeHelper = (dtString: string, timeString?: string) =>
         return date;
     };
 
-export const dateTimeHelper = (maybeDateTime: String | DateTime ) => {
+export const dateTimeHelper = (maybeDateTime: string | DateTime ) => {
     var validatedDate;
     switch (typeof(maybeDateTime)) {
         case "string":

@@ -309,29 +309,33 @@ The test files are stored near the code they test, for most components, in [quil
 
 ##### Running Tests
 
-To run existing tests, from the main directory run `npm run fe-tests`. Alternatively, run the commands manually: After `cd`ing into `quill-fe`, run all tests with `npm test a` or run tests for files that have changed since your last commit with `npm test`.
+To run tests, `cd` into `quill-fe` and run 
+- all tests one time with `npm test` 
+- all tests in watch mode with `npm test -- --watch`
+- tests in one file with `npm test -- <filename>`
+- a single test by adding `only` to the test declaration
+    **Ex:**
+    ```JS
+    it.only("should load tasks in the list", async () => {
+        render(<Home />);
+        expect(screen.getByRole("region", {name: "Task list"}))
+        .toContainElement(await screen.findByLabelText("Overdue incomplete"));
+    })
+    ```
 
-The tests should re-run automatically every time you save.
-Notice that in watch mode, you can press `w` to show options to filter the tests that you run.
-You can also isolate the execution of tests to a single test by adding `only` after the test.
+To run tests in debug mode, open a Javascript debug terminal in VSCode and run any of the previous commands. 
 
-**Ex:**
-```JS
-it.only("should load tasks in the list", async () => {
-    render(<Home />);
-    expect(screen.getByRole("region", {name: "Task list"}))
-    .toContainElement(await screen.findByLabelText("Overdue incomplete"));
-})
-```
-
-Additionally, you can mark a test as not yet implemented by adding `todo`.
-
-**Ex:** `it.quill-be-proj("should do something cool");`
+You can also install the VsCode Jest extension and navigate and run tests that way.
 
 ##### Writing Tests
+
+You can mark a test as not yet implemented by adding `todo`.
+
+**Ex:** `it.todo("should do something cool");`
+
 ###### Mocking Network Calls
 
-We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns and error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./quill-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
+We mock all of our calls to the back-end using declarative statements using [Mock Service Worker](https://mswjs.io/docs/). If you don't need to test any special cases (i.e. making sure things behave appropriately if the server returns an error code), feel free to import a default mock server configuration with some dummy tasks from [mockHandlers.js](./quill-fe/src/API/mockHandlers.js). Pay special attention to the optional setup methods. If you want to override one of the mock handlers, I believe it's as simple as adding your function to the beginning of the `mocks` array and marking it as [only needing to be run once](https://mswjs.io/docs/api/response/once).
 
 An example of the default server being used can be seen in [the tests for the list feature](./quill-fe/src/components/__tests__/list.js#L18).
 

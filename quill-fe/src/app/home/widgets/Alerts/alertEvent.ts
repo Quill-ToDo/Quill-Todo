@@ -24,7 +24,7 @@ export type AlertEventDetail = {
  *      - `ERROR_ALERT`: Red, errors/danger/alert, has "Error:" header, requires immediate user attention and must be manually closed. **Use sparingly!**
  * @param {string} body The content of the alert.
  */
-export const addAlert = (target : Element | null, type : string, body : string) => {
+export const addAlert = (target : Element | null, type : "success" | "notice" | "failure", body : string) => {
     if (target === null) {
         throw new TypeError("Target element for alert event bubble cannot be null when you call addAlert().");
     }

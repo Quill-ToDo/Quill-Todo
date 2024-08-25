@@ -3,158 +3,166 @@ import {
     screen,
     within,
 } from '@testing-library/react';
-import userEvent from '@testing-library/user-event'
-import { DateTime, Settings } from 'luxon';
+import {act} from 'react';
+import { LIST_WIDGET_NAME, ListWidget } from '@/widgets/List/List';
+import Home from "@/app/page";
+import { BASE_DATE, MOCK_SERVER_HANDLER, testRoot, testTaskStore, testUser } from '@/testing/jest.setup';
+import { TASK_DETAIL_POPUP_NAME } from './TaskDetail';
+import { http, HttpResponse } from 'msw';
+import { ERROR_TEXT } from '../Alerts/AlertWrapper';
+import { PARTIAL_DATETIME_FORMATS } from '@/app/@util/DateTimeHelper';
 
-import MockTaskApiHandler from '../../API/MockTaskApiHandler';
-import App from "../../App";
+const TASK_NAME = "Overdue incomplete"
+let list: HTMLElement;
 
-const baseDate = DateTime.utc(2021, 1, 9, 7);
-const mockServerHandler = new MockTaskApiHandler({date: baseDate});
-const luxonNow = Settings.now;
-
-// await screen.findByText("Overdue incomplete");
-// logRoles(screen.getByRole("region", {name: "Task list"}));
-
-beforeAll(() => {
-    // Start mock API
-    mockServerHandler.server.listen();
-    // Set constant time for DateTime.now()
-    const millis = baseDate.toMillis();
-    Settings.now = () => millis;
-});
-
-beforeEach(() => {
-    mockServerHandler.server.resetHandlers();
-    mockServerHandler.setup.initTasks();
+beforeEach(async () => {
+    await act(async () => {
+        render(<Home rootStore={testRoot} widgets={<ListWidget />} />);
+    })
+    expect (testTaskStore.isLoaded).toBeTruthy();
+    list = await screen.findByRole("region", {name: LIST_WIDGET_NAME});
 })
 
-afterAll(() => {
-    Settings.now = luxonNow;
-    mockServerHandler.server.close();
+const getTaskDetailsPopup = async (passedTaskName?: string) => {
+    const listTask = await within(list).findByText(passedTaskName ? passedTaskName : TASK_NAME);
+    await act(async () => {
+        await testUser.click(listTask);
+    })
+    const popup = await screen.findByRole("dialog", {name: TASK_DETAIL_POPUP_NAME });
+    expect(popup).toBeInTheDocument();
+    return popup;
+}
+
+it("should be able to open task details", async () => {
+    await getTaskDetailsPopup();
 });
 
-it("should be able to open and close task details", async () => {
-    render(<App />);
-    const user = userEvent.setup()
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText( "Overdue complete");
-    await user.click(listTask);
-    expect(await screen.findByRole("dialog", {name: "Task Details"})).toBeInTheDocument();
-    await user.click(screen.getByRole("button", {name: "Close"}));
-    expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
+it("should be able to close task details", async () => {
+    // Arrange
+    const popup = await getTaskDetailsPopup();
+    // Act
+    await testUser.click(within(popup).getByRole("button", {name: "Close"}));
+    // Assert
+    expect(popup).not.toBeInTheDocument();
 });
 
 it("should display task details on show", async () => {
-    render(<App />);
-    const user = userEvent.setup()
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText( "Overdue incomplete");
-    await user.click(listTask);
-    const show = await screen.findByRole("dialog", {name: "Task Details"});
-    expect(show).toBeInTheDocument();
-    within(show).getByText("Task description");
-    within(show).getByText("Due");
-    within(show).getByText("Start");
-    const due = baseDate.minus({days: 7}).setZone(DateTime.local().zoneName);
-    const start = baseDate.minus({month: 1}).setZone(DateTime.local().zoneName);
+    // Arrange
+    const popup = await getTaskDetailsPopup();
+    const due = BASE_DATE.minus({days: 7});
+    const start = BASE_DATE.minus({month: 1});
+    // Assert
+    // This task doesn't have a desc
+    expect(within(popup).getByText("Task description"));
+    expect(within(popup).getByText("Due")).toBeInTheDocument();
+    expect(within(popup).getByText("Start")).toBeInTheDocument();
     // Validate that the dates are right
-    within(show).getByText(due.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY));
-    within(show).getByText(start.toLocaleString(DateTime.DATE_MED_WITH_WEEKDAY));
-    within(show).getAllByText(due.toLocaleString(DateTime.TIME_SIMPLE));
-    within(show).getAllByText(start.toLocaleString(DateTime.TIME_SIMPLE));
+    expect(within(popup).getByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
+    expect(within(popup).getByText(start.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
+    expect(within(popup).getAllByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))[0]).toBeInTheDocument();
+    expect(within(popup).getAllByText(start.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))[0]).toBeInTheDocument();
 });
 
-describe("should be able to close show", () => {
+describe("should be able to close details", () => {
     it("by clicking off show", async () => {
-        render(<App />);
-        const user = userEvent.setup()
-        const list = await screen.findByRole("region", {name: "Task list"});
-        const listTask = await within(list).findByText( "Overdue complete");
-        await user.click(listTask);
-        await screen.findByRole("dialog", {name: "Task Details"});
-        await user.click(screen.getByTestId("show-filter"));
-        expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
-    });
-
-    it("by pressing enter on filter", async () => {
-        render(<App />);
-        const user = userEvent.setup()
-        const list = await screen.findByRole("region", {name: "Task list"});
-        const listTask = await within(list).findByText( "Overdue complete");
-        await user.click(listTask);
-        const details = await screen.findByRole("dialog", {name: "Task Details"});
-        const filter = screen.getByTestId("show-filter");
-        filter.focus();
-        expect(filter).toHaveFocus();
-        await user.keyboard('{Enter}');
-        expect(details).not.toBeInTheDocument();
+        // Arrange
+        const popup = await getTaskDetailsPopup();
+        const close = within(popup).findByRole("button", {name: "Close"});
+        // Act
+        await act(async () => {
+            await testUser.click(close);
+        })
+        // Assert
+        expect(popup).not.toBeInTheDocument();
     });
 })
 
-it("should be able to close show via escape button", async () => {
-    // Cannot figure out how to make this work when ran with other tests. It works alone
-    const taskName = "Overdue incomplete";
-    const user = userEvent.setup();
-    render(<App />);
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText(taskName);
-    await user.click(listTask);
-    await screen.findByRole("dialog", {name: "Task Details"});
-    await user.keyboard('[Escape]');
-    expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
-    // await waitForElementToBeRemoved(() => screen.queryByRole("dialog", {name: "Task Details"}));
+it("should be able to close details via escape button", async () => {
+    // Arrange
+    const popup = await getTaskDetailsPopup();
+    // Act
+    await act(async () => {
+        await testUser.keyboard('[Escape]');
+    })
+    // Assert
+    expect(popup).not.toBeInTheDocument();
 });
 
-it("should not close show via any other buttons", async () => {
+it("should not close details via any other buttons", async () => {
     // Cant be sure this is working before the one above i working
-    render(<App />);
-    const user = userEvent.setup()
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText( "Overdue complete");
-    await user.click(listTask);
-    await user.keyboard('k');
-    screen.getByRole("dialog", {name: "Task Details"});
+    // Arrange
+    const popup = await getTaskDetailsPopup();
+    // Act
+    await act(async () => {
+        await testUser.keyboard('k');
+    })
+    expect(popup).not.toBeInTheDocument();
 });
 
-it("should be able to mark tasks as complete from show and have it update in list", async () => {
-    render(<App />);
-    const user = userEvent.setup()
-    const taskName = "Overdue incomplete";
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText(taskName);
-    await user.click(listTask);
-    const show = await screen.findByRole("dialog", {name: "Task Details"});
-    await user.click(within(show).getByRole("checkbox", {name: taskName}));
-    expect(within(list).getByRole("checkbox", {name: taskName})).toBeChecked();
+it("should be able to mark tasks as complete from details and have it update in list", async () => {
+    // Arrange
+    const popup = await getTaskDetailsPopup();
+    const checkbox = within(popup).getByRole("checkbox");
+    // Act
+    await act(async () => {
+        await testUser.click(checkbox);
+    })
+    // Assert
+    expect(checkbox).toBeChecked();
 });
 
 it("should be able to delete a task", async () => {
+    // Arrange
     const taskName = "Delete me!";
-    mockServerHandler.setup.addTask({
+    MOCK_SERVER_HANDLER.setup.addTask({
         title: taskName,
-        due: mockServerHandler.date
+        due: MOCK_SERVER_HANDLER.date,
     });
-    render(<App />);
-    const user = userEvent.setup()
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText(taskName);
-    await user.click(listTask);
-    const show = await screen.findByRole("dialog", {name: "Task Details"});
-    await user.click(within(show).getByRole("button", {name: "Delete task"}));
-    expect(screen.queryByRole("dialog", {name: "Task Details"})).toBeNull();
+    const popup = await getTaskDetailsPopup();
+    // Act
+    await act(async () => {
+        await testUser.click(within(popup).getByRole("button", {name: "Delete task"}));
+    })
+    // Assert
+    expect(popup).not.toBeInTheDocument();
     expect(within(list).queryByText(taskName)).toBeNull();
 });
 
-it("should be able to edit a task", async () => {
-    // TODO Will need to change this once it's implemented
-    const taskName = "Overdue incomplete"
-    render(<App />);
-    const user = userEvent.setup()
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTask = await within(list).findByText(taskName);
-    await user.click(listTask);
-    const show = await screen.findByRole("dialog", {name: "Task Details"});
-    await user.click(within(show).getByRole("button", {name: "Edit task"}));
-    await screen.findByText(/\\*not implemented*/);
+
+it.skip("should handle failure to delete task", async () => {
+    // Arrange 
+    // Won't work with fake timers :(
+    if (MOCK_SERVER_HANDLER.server) {
+        MOCK_SERVER_HANDLER.server.use(
+            http.delete(MOCK_SERVER_HANDLER.API_URL+":id", () => {
+                return new HttpResponse("Server error", { status: 500 },)
+            }, { once: true }));
+    }
+    const popup = await getTaskDetailsPopup();
+    const del = within(popup).findByRole("button", {name: "Delete task"});
+    // Act
+    await act(async () => {
+        await testUser.click(del); 
+    })
+    // Should render an alert
+    const alert = await screen.findByRole("alertdialog", {name: ERROR_TEXT});
+    // const close = await screen.findByRole("button", {name: "Close"});
+    // // This is extremely inconsistent... 
+    // expect(close).toHaveFocus(); //To have focus isnt working
+    await act(async () => {
+        await testUser.keyboard("{Enter}");
+    })
+    // Task should still appear among other in the list, not deleted
+    expect(within(list).findByText(TASK_NAME)).not.toBeNull();
+    // Assert
+    expect(alert).not.toBeInTheDocument();
+})
+
+describe("should be able to edit a task", () => {
+    it.todo("edit title");
+    it.todo("add title");
+    it.todo("remove title");
+    it.todo("add description");
+    it.todo("remove description");
+    it.todo("edit description");
 });

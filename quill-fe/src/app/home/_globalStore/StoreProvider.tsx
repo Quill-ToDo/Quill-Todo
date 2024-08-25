@@ -9,10 +9,12 @@ export const useTaskStore = () => useRootStore().taskStore;
 // Provide context via this component
 export const StoreProvider = ({
     children,
+    rootStore,
 }: {
-    children: React.ReactNode
+    children: React.ReactNode,
+    rootStore?: RootStore,
 }) => {
     return (
-        <StoreContext.Provider value={useRootStore()}>{children}</StoreContext.Provider>
+        <StoreContext.Provider value={rootStore ? rootStore : useRootStore()}>{children}</StoreContext.Provider>
     );
 }

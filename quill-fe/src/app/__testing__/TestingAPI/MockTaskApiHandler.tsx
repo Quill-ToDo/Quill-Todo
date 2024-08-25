@@ -1,15 +1,18 @@
 import {
-    rest
+    http,
+    HttpResponse,
+    SharedOptions,
 } from 'msw'
 import {
     DateTime
 } from "luxon";
-import {
-    setupServer
-} from 'msw/node'
 import { v4 as uuidv4 } from 'uuid';
+import {
+    setupServer,
+    SetupServerApi
+} from 'msw/node';
 
-interface PassedTask {
+export interface PassedTask {
         title: string,
         due?: DateTime,
         id?: string,
@@ -33,6 +36,8 @@ interface Task {
         updated_at: DateTime,
 }
 
+export type MswServer = SetupServerApi;
+
 function DuplicateIdException (id) {
     this.message = `id ${id} already exists as a fake task`;
     this.name = "DuplicateIdException"; 
@@ -48,7 +53,7 @@ function DuplicateIdException (id) {
  * - Methods to mock successful REST calls are provided under `mocks` attribute. To add a new mock, use 
  *      `setup.addMock` or `setup.addTemporaryMock`.
  */
-export default class MockTaskApiHandler {
+export class MockTaskApiHandler {
     // List of tasks in "DB"
     tasks: Task[] = [];
     // This base "current" date to base computations of off
@@ -56,7 +61,7 @@ export default class MockTaskApiHandler {
     defaultStart: DateTime = null;
     defaultDue: DateTime = null;
     // The MSW server
-    server = null;
+    server:  MswServer | null = null;
     // API_URL = "/api/tasks/";
     API_URL: string = "*/api/tasks/";
     // THIS IS BAD! ^^^ Should be using it without the wildcard
@@ -68,7 +73,7 @@ export default class MockTaskApiHandler {
      */
     constructor({
         date=DateTime.utc(2069, 6, 6, 6, 4, 2, 0), 
-        tasks=[],
+        tasks,
     }: {
         date?: DateTime, 
         tasks?:PassedTask[],
@@ -264,9 +269,9 @@ export default class MockTaskApiHandler {
         /**
          * Add one task to the mock DB. For any of the DateTime fields, use offsets from `this.date` as seen in the
          * constructor. No validations are run.
-         * 
+         * @returns the created task
          */
-        addTask(task: PassedTask) {
+        addTask(task: PassedTask): PassedTask {
             let idToUse;
             if (!task.id) {
                 idToUse = uuidv4();    
@@ -291,6 +296,7 @@ export default class MockTaskApiHandler {
                 updated_at: task.updated_at ? task.updated_at : DateTime.fromISO(task.due).minus({days: 2}),
             };
             this.handler.tasks.push(newTask);
+            return newTask;
         },
 
         /**
@@ -307,22 +313,16 @@ export default class MockTaskApiHandler {
     }
 
     mocks = [
-        rest.get(this.API_URL, (req, res, ctx) => {
+        http.get(this.API_URL, async (info) => {
             // Only works with full url or regex for some reason... You aren't supposed to use wildcard though
             // https://mswjs.io/docs/basics/request-matching
-            return res(
-                ctx.status(200),
-                ctx.json(this.tasks)
-                );
+            return HttpResponse.json(this.tasks, { status: 200, });
         }),
-        rest.post(this.API_URL, (req, res, ctx) => {
-            this.setup.addTask(req.body);
-            return res(
-                ctx.status(201),
-                ctx.json(req)
-            )
+        http.post(this.API_URL, async ({request}) => {
+            const task = this.setup.addTask((await request.json()) as PassedTask);
+            return HttpResponse.json(task, { status: 201 })
         }),
-        rest.patch(this.API_URL + ":id", (req, res, ctx) => {
+        http.patch(this.API_URL + ":id", (req, res, ctx) => {
             // I'm not going to bother with validations. If there is a
             // test that requires an error that test should write a handler
             // for that particular situation and make it a one-time thing
@@ -338,22 +338,20 @@ export default class MockTaskApiHandler {
                 ctx.json(req)
             )
         }),
-        rest.get(this.API_URL + ":id", (req, res, ctx) => {
-            const task = this.tasks.find((t) => t.id === req.params.id);
-            return res(
-                ctx.status(200),
-                ctx.json(task)
-            )
+        http.get(this.API_URL + ":id", ({params}) => {
+            const task = this.tasks.find((t) => t.id === params.id);
+            if (task) {
+                return HttpResponse.json(task, { status: 200 })
+            }
+            return new HttpResponse(`Task not in "database"`, { status: 404 })
         }),
-        rest.delete(this.API_URL + ":id", (req, res, ctx) => {
-            this.tasks.forEach((task, i) => {
-                if (task.id === req.params.id) {
-                    this.tasks.splice(i, 1);
-                }
-            }) 
-            return res(
-                ctx.status(204)
-            )
+        http.delete(this.API_URL + ":id", ({params}) => {
+            const index = this.tasks.findIndex(task => task.id === params.id);
+            if (index === -1) {
+                return new HttpResponse(`Task not in "database"`, { status: 404 });
+            }
+            this.tasks.splice(index, 1); 
+            return new HttpResponse(null, { status: 204 })
         })
     ]
 }

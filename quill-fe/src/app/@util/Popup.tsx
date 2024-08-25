@@ -36,6 +36,9 @@ export type PopupParams = {
  * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
  * have the class DRAGGABLE_HANDLE_CLASS to specify which element should be used as the handle.
  * 
+ * Also, add the property aria-haspopup="dialog" to the element returned by renderElementToClick
+ * for accessibility
+ * 
  * @returns the rendered anchor element for the popup
  */
 export const PopupOnClick = observer((
@@ -65,7 +68,9 @@ export const PopupOnClick = observer((
 });
 
 /**
- * Simple popup menu containing a list of clickable items.
+ * Simple popup menu containing a list of clickable items. Add the property:
+ * aria-haspopup="menu"
+ * to the element returned by renderAnchorElementToClick for accessibility
  */
 export const ContextMenuPopup = observer((
     {   
@@ -90,25 +95,28 @@ export const ContextMenuPopup = observer((
 ) => {
     return <PopupOnClick
         renderElementToClick={renderAnchorElementToClick}
-        renderPopupContent={({closePopup}) => <>
-        { header }
-        <ul>
-            { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
-            .map(labelAndCallback =>
+        renderPopupContent={({closePopup}) => 
+            <menu
+                role="menu"
+            >
+                { header }
+                <ul>
+                    { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
+                    .map(labelAndCallback =>
 
-            <li key={labelAndCallback.label}>
-                <button
-                        onClick={() => {labelAndCallback.onClick(); closePopup();}}
-                        aria-label={labelAndCallback.label} 
-                        title={labelAndCallback.label}
-                        className={combineClassNamePropAndString({className: `item`, props: props})} 
-                        > 
-                        { labelAndCallback.content }
-                    </button>
-            </li>
-        )}
-        </ul>
-        </>
+                    <li key={labelAndCallback.label}>
+                        <button
+                                onClick={() => {labelAndCallback.onClick(); closePopup();}}
+                                aria-labelledby={labelAndCallback.label} 
+                                title={labelAndCallback.label}
+                                className={combineClassNamePropAndString({className: `item`, props: props})} 
+                                > 
+                                { labelAndCallback.content }
+                            </button>
+                    </li>
+                )}
+                </ul>
+        </menu>
         }
         placement={placement}
         alignment={alignment}

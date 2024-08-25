@@ -123,7 +123,7 @@ const config: Config = {
   // resetModules: false,
 
   // A path to a custom resolver
-  // resolver: undefined,
+  resolver: "./MswResolver.js",
 
   // Automatically restore mock state and implementation before every test
   // restoreMocks: false,
@@ -133,17 +133,15 @@ const config: Config = {
 
   // A list of paths to directories that Jest should use to search for files in
   // roots: [
-  //   "<rootDir>"
   // ],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
 
   // The paths to modules that run some code to configure or set up the testing environment before each test
-  // setupFiles: [],
-
+  setupFiles: ['./jest.polyfills.js'],
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  // setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ["<rootDir>/src/app/__testing__/jest.setup.tsx"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,

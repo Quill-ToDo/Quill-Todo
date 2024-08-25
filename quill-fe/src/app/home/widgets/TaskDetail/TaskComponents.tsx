@@ -46,7 +46,6 @@ export const TaskWrapper = observer((
             key={keyOverride ? keyOverride : task.id}
             data-task-id={task.id}
             onPointerOver={(e) => {
-                console.debug(e)
                 document.querySelectorAll(allTaskWrapperSelector).forEach((element: Element) => {
                     // if ((e.target as HTMLElement).classList.contains(taskWrapperClass)) {
                         element.classList.add(HOVER_CLASS);
@@ -117,19 +116,23 @@ export const Checkbox = observer(({
     const task = useTaskContextOrPassedTask(passedTask);
 
     const id = checkboxId ? checkboxId : useId();
+    const text = `Mark task ${task.complete ? "uncomplete" : "complete"}`;
     return <label 
             className="check-box-wrapper"
             htmlFor={id}
-            title={`Mark task ${task.complete ? "uncomplete" : "complete"}`}
-            aria-label="task checkbox"
+            title={text}
+            aria-label={text}
             tabIndex={0}
-            onClick={() => task.toggleComplete()}
+            onClick={() => {
+                task.toggleComplete();
+            }}
         >
         <input 
             type="checkbox" 
-            aria-label="task checkbox"
             id={id}
-            onChange={() => {task.toggleComplete()}}
+            onChange={() => {
+                task.toggleComplete();
+            }}
             checked={task.complete}
             >
         </input>
@@ -253,6 +256,7 @@ export const ColorBubble = observer(({
                         }}
                         title="Change task color"
                         aria-label="Task color changer"
+                        aria-haspopup="dialog"
                         >
                     </input>
                     {colorBubble}
@@ -289,6 +293,7 @@ const PlainTaskTitle = observer((
                 <button
                     type="button"
                     onClick={openPopup}
+                    aria-haspopup="dialog"
                     className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})} 
                 >
                     <p style={props.style}> 

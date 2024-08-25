@@ -15,8 +15,8 @@ import { createContext } from "react";
 const DEFAULT_START_DATETIME = () => DateTime.now();
 const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 
-const MAX_TITLE_LENGTH = 100;
-const MAX_DESCRIPTION_LENGTH = 10000;
+export const MAX_TITLE_LENGTH = 100;
+export const MAX_DESCRIPTION_LENGTH = 10000;
 
 type ValidationTest = {
     text: string;
@@ -214,15 +214,23 @@ export class TaskModel {
             this.color = `${(allColorCodes[Math.floor(Math.random() * (allColorCodes.length))])}`;
         }
         // Add self to the TaskStore
-        if (TaskStore.taskStoreSingletonInstance) {
-            this._store = TaskStore.taskStoreSingletonInstance;
-            this._store.add(this);
+        try {
+            if (TaskStore.taskStoreSingletonInstance) {
+                this._store = TaskStore.taskStoreSingletonInstance;
+                this._store.add(this);
+            }
+        }
+        catch {
+            // Doing nothing... Shouldn't really be able to create a task if there's not a store but maybe it's ok for 
+            // now
         }
         this.startDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.start);
         this.startTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.start);
         this.dueDateStringUnderEdit = PARTIAL_DATETIME_FORMATS.D.serializer(this.due);
         this.dueTimeStringUnderEdit = PARTIAL_DATETIME_FORMATS.t.serializer(this.due);
-        this.colorStringUnderEdit = this.color;
+        if (this.color) {
+            this.colorStringUnderEdit = this.color;
+        }
         this.autoSave = true;
     }
 //#endregion

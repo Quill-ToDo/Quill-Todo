@@ -1,3 +1,5 @@
+import {LIST_WIDGET_NAME, ListWidget, OVERDUE, TODAY, UPCOMING} from "./List";
+import { DateTime, } from 'luxon';
 import {
     render,
     screen,
@@ -5,137 +7,127 @@ import {
     waitFor,
     logRoles,
 } from '@testing-library/react';
-import '@testing-library/jest-dom';
-import userEvent from '@testing-library/user-event'
-import { DateTime, Settings } from 'luxon';
-import MockTaskApiHandler from '../../../../../__testing__/TestingAPI/MockTaskApiHandler';
-import {ListWidget} from "./List";
-import RootStore from '../../_globalStore/RootStore';
+import {act} from 'react';
+import { testTaskStore, MOCK_SERVER_HANDLER, BASE_DATE, testUser } from "@/testing/jest.setup";
 
-const LIST_WIDGET_NAME = "Task List";
-
-
-const baseDate = DateTime.utc(2022, 5, 31, 6);
-const mockServerHandler = new MockTaskApiHandler({date: baseDate});
-const luxonNow = Settings.now;
-const root = new RootStore();
-const store = root.taskStore;
-
-beforeAll(() => {
-    // Start mock API
-    mockServerHandler.server && mockServerHandler.server.listen();
-    // Set constant time for DateTime.now()
-    const millis = baseDate.toMillis();
-    Settings.now = () => millis;
-})
+const TASK_NAME = "Overdue incomplete";
 
 beforeEach(() => {
-    mockServerHandler.server && mockServerHandler.server.resetHandlers();
-    mockServerHandler.setup.initTasks();
-    // IntersectionObserver isn't available in test environment
-    const mockIntersectionObserver = jest.fn();
-    mockIntersectionObserver.mockReturnValue({
-        observe: () => null,
-        unobserve: () => null,
-        disconnect: () => null
-    });
-    window.IntersectionObserver = mockIntersectionObserver;
-})
-
-afterAll(() => {
-    Settings.now = luxonNow;
-    mockServerHandler.server && mockServerHandler.server.close();
+    render(<ListWidget passedStore={testTaskStore}/>);
 })
 
 it("should render the list component", () => {
-
-    render(<ListWidget taskStore={store}/>);
-    // logRoles(screen.findByRole("region"))
     expect(screen.getByRole("region", {name:LIST_WIDGET_NAME})).toBeInTheDocument();
 })
 
-it("should show a loading message before tasks are loaded", () => {
-    // const root = new RootStore();
-    // const store = root.taskStore;
-    render(<ListWidget taskStore={store}/>);
-    expect(store.isLoaded).toBeFalsy();
+it("should show a loading message before tasks are loaded", async () => {
+    // Arrange
+    // Act
+    await act(async () => {
+        testTaskStore.setIsLoaded(false);
+    })
+    // Assert
+    expect(testTaskStore.isLoaded).toBeFalsy();
     expect(screen.getByRole("region", {name:LIST_WIDGET_NAME}))
     .toHaveTextContent(/loading/i);
 })
 
-it.only("should load tasks in the list", async () => {
-    // const root = new RootStore();
-    // const store = root.taskStore;
-    expect(store.isLoaded).toBeTruthy();
-    render(<ListWidget taskStore={store}/>);
-    expect(screen.getByRole("region", {name:LIST_WIDGET_NAME})).toContainElement(await screen.findByLabelText("Overdue incomplete"));
+it("should show loaded tasks in the list", async () => {
+    // Arrange
+    // Act
+    await act(async () => {
+        await testTaskStore.loadTasks();
+        expect(testTaskStore.isLoaded).toBeTruthy();
+        render(<ListWidget passedStore={testTaskStore} />);
+    })
+    const list = screen.getByRole("region", {name: OVERDUE}); 
+    // Assert
+    expect(within(list).getAllByRole('button', { name: TASK_NAME })).not.toBeNull();
 })
 
-
 it("should show a message on the list if no tasks are present", async () => {
-    mockServerHandler.setup.setTasks([]);
-    render(<ListWidget />);
-    await screen.findByText("You have no tasks to work on. Try adding one!");
+    // Arrange
+    MOCK_SERVER_HANDLER.setup.setTasks([]);
+    // Act
+    await act(async () => {
+        await testTaskStore.loadTasks();
+        expect(testTaskStore.isLoaded).toBeTruthy();
+    })
+    // Assert
+    expect(testTaskStore.tasks.length === 0).toBeTruthy();
+    expect(await screen.findByText("You have no tasks to work on. Try adding one!")).not.toBeNull();
 })
 
 it("should show the correct time and date in the list", async () => {
-    render(<ListWidget />);
-    const list = await screen.findByRole("region", {name: "Task list"});
-    const listTaskLink = await within(list).findByRole("link", {name: /^Overdue incomplete */, exact: false});
-    const due = baseDate.minus({days: 7}).setZone(DateTime.local().zoneName);
+    // Arrange
+    const list = await screen.findByRole("region", {name: LIST_WIDGET_NAME});
+    const listTaskLink = await within(list).findByRole("button", {name: TASK_NAME, exact: false});
+    const due = BASE_DATE.minus({days: 7}).setZone(DateTime.local().zoneName);
+    // Assert
     // Validate that the dates are right
-    within(listTaskLink).getByText(due.toLocaleString(DateTime.DATE_SHORT));
-    within(listTaskLink).getByText(due.toLocaleString(DateTime.TIME_SIMPLE));
+    expect(within(listTaskLink).getByText(due.toLocaleString(DateTime.DATE_SHORT))).not.toBeNull();
+    expect(within(listTaskLink).getByText(due.toLocaleString(DateTime.TIME_SIMPLE))).not.toBeNull();
 })
 
 describe("should show uncompleted tasks", () => {
     it("check boxes as unfilled", async () => {
-        render(<ListWidget />);
-        const checkbox = await screen.findByRole("checkbox", {name: "Overdue incomplete"});
+        // Arrange
+        const task = await screen.findAllByRole("button", {name: TASK_NAME, exact: false});
+        const checkbox = await within(task[0]).findByRole("checkbox", {name: `Mark task complete ${TASK_NAME}`, exact: false});
+        // Assert
         expect(checkbox).not.toBeChecked();
     })
 
     it("title without a line-through", async () => {
-        render(<ListWidget />);
-        const title = await screen.findByText("Overdue incomplete");
+        const title = await screen.findByText(TASK_NAME);
         expect(title).not.toHaveStyle("text-decoration: line-through")
     })
 
     it("as complete after clicking on its check box", async () => {
-        render(<ListWidget />);
-        const user = userEvent.setup()
-        const box = await screen.findByRole("checkbox", {name: "Overdue incomplete"});
-        await user.click(box);
+        // Arrange
+        const task = await screen.findByRole("button", {name: TASK_NAME, exact: false});
+        // logRoles(task);
+        const box = await within(task).findByRole("checkbox");
+        // Act
+        await act(async () => {
+            await testUser.click(box);
+        })
+        // Assert
         expect(box).toBeChecked();
     })
 })
 
 describe("should show complete tasks", () => {
+    const TASK_NAME = "Overdue complete";
+
     it("check boxes as filled", async () => {
-        render(<ListWidget />);
-        const taskName = "Overdue complete";
-        const checkbox = await screen.findByRole("checkbox", {name: taskName});
+        const task = await screen.findByRole("button", {name: TASK_NAME, exact: false});
+        const checkbox = await within(task).findByRole("checkbox");
         expect(checkbox).toBeChecked();
     })
 
     it("title with a line-through", async () => {
-        render(<ListWidget />);
-        const title = await screen.findByText("Overdue complete");
-        // expect(window.getComputedStyle(title).getPropertyValue('text-decoration') === "line-through").toBeTruthy();
+        // Arrange
+        const title = await screen.findByText(TASK_NAME);
+        // Act
         expect(title).toHaveStyle("text-decoration: line-through")
     })
     
     it("as incomplete after clicking on its check box", async () => {
-        const user = userEvent.setup()
-        render(<ListWidget />);
-        const box = await screen.findByRole("checkbox", {name: "Overdue complete"});
-        await user.click(box);
+        // Arrange
+        const task = await screen.findByRole("button", {name: TASK_NAME, exact: false});
+        const box = await within(task).findByRole("checkbox");
+        // Act
+        await act(async () => {
+            await testUser.click(box);
+        })
+        // Assert
         expect(box).not.toBeChecked();
     })
 })
 
 describe("should show tasks in the", () => {
-    const ensureTasksInSection = (tasks, section) => {
+    const ensureTasksInSection = (tasks: string[], section: HTMLElement) => {
         tasks.forEach((taskName) => {
             const locations = screen.getAllByText(taskName);
             locations.forEach((loc) => {
@@ -147,51 +139,50 @@ describe("should show tasks in the", () => {
     it("overdue section", async () => {
         // Tasks as defined in MockTaskApiHandler
         const overdueTaskNames = ["Overdue incomplete", "Overdue complete", "No start"];
-        render(<ListWidget />);
-        const section = await screen.findByRole("region", {name: "Overdue"});
+        const section = await screen.findByRole("region", {name: OVERDUE});
         ensureTasksInSection(overdueTaskNames, section)
     })
 
-    it.skip("upcoming section", async () => {
+    it("upcoming section", async () => {
         const upcomingTaskNames = ["Upcoming", "Upcoming span"];
-        render(<ListWidget />);
-        const section = await screen.findByRole("region", {name: "Upcoming"});
+        const section = await screen.findByRole("region", {name: UPCOMING});
         ensureTasksInSection(upcomingTaskNames, section)
     })
 
-    // BROKEN!!!!
-    it.skip("due today section", async () => {
+    it("due today section", async () => {
         const todayDue = ["Due today", "Due today span"];
-        render(<ListWidget />);
-        const today = await screen.findByRole("region", {name: "Today"});
+        const today = await screen.findByRole("region", {name: TODAY});
         const dueToday = await within(today).findByRole("region", {name: "Due"});
         ensureTasksInSection(todayDue, dueToday);
     })
 
-    it.skip("work on today section", async () => {
+    it("work on today section", async () => {
         const workTaskNames = ["Work on today", "Due tomorrow"];
-        render(<ListWidget />);
-        const today = await screen.findByRole("region", {name: "Today"});
+        const today = await screen.findByRole("region", {name: TODAY});
         const workToday = await within(today).findByRole("region", {name: "Work"});
         ensureTasksInSection(workTaskNames, workToday);
     })
 })
 
 it("should be able to toggle sections opened and closed", async () => {
-    render(<ListWidget />);
-    const user = userEvent.setup()
-    const todaySection = await screen.findByRole("region", {name: "Today"});
-    await user.click(within(todaySection).getByRole("button", {name: "Collapse today tasks"}));
+    // Arrange
+    const todaySection = await screen.findByRole("region", {name: TODAY});
+    //Act
+    await act (async() => {
+        await testUser.click(within(todaySection).getByRole("button", {name: `Collapse ${TODAY.toLocaleLowerCase()} section`, exact: false}));
+    })
+    // Assert
     await waitFor(() => {
         expect(within(todaySection).getByText("Due")).not.toBeVisible();
     })
     expect(within(todaySection).getByText("Work")).not.toBeVisible();
-    await user.click(within(todaySection).getByRole("button", {name: "Expand today tasks"}));
+    // Act
+    await act(async() => {
+        await testUser.click(within(todaySection).getByRole("button", {name: `Expand ${TODAY.toLocaleLowerCase()} section`, exact: false}));  
+    })
+    // Assert
     await waitFor(() => {
         expect(within(todaySection).getByText("Due")).toBeVisible();
     })
     expect(within(todaySection).getByText("Work")).toBeVisible();
 })
-
-// TODO
-it.todo("should add a task and find the same task in the calendar")
