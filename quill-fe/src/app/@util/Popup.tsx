@@ -106,7 +106,10 @@ export const ContextMenuPopup = observer((
 
                     <li key={labelAndCallback.label}>
                         <button
-                                onClick={() => {labelAndCallback.onClick(); closePopup();}}
+                                onClick={() => {
+                                    labelAndCallback.onClick(); 
+                                    closePopup();
+                                }}
                                 aria-labelledby={labelAndCallback.label} 
                                 title={labelAndCallback.label}
                                 className={combineClassNamePropAndString({className: `item`, props: props})} 

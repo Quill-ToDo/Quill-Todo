@@ -7,11 +7,13 @@ import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { ComponentProps, useEffect, useRef, useState} from "react";
 import { PlaceableWidget } from "../generic-widgets/Widget";
+import { useTaskStore } from "@/store/StoreProvider";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
 const NUM_MONTHS_TRIGGER_INFINITE_SCROLL = 2;
 const NUM_WEEKDAYS = 7;
+export const CALENDAR_WIDGET_NAME = "Calendar";
 
 type MonthData =
     {
@@ -87,14 +89,12 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
             key: day.toISODate(),
             props: {
                     className: [
-                    "day-container",
-                    day < today ? "past" : undefined,
-                    today.hasSame(day, 'day') ? "current" : undefined,
-                    paintingMonthVisualSeparatorLine ? "border-top" : undefined,
-                    paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? "border-left" : undefined,
-        
-                ].join(" "),
-                "aria-label": day.toISODate(),
+                        "day-container",
+                        day < today ? "past" : undefined,
+                        today.hasSame(day, 'day') ? "current" : undefined,
+                        paintingMonthVisualSeparatorLine ? "border-top" : undefined,
+                        paintingMonthVisualSeparatorLine && itIsTheFirstOfTheMonth && !itIsANewWeekday ? "border-left" : undefined,
+                    ].join(" "),
             },
         };
         // Add a day object for each day
@@ -104,7 +104,8 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
     return allLoadedMonthData;
 }
     
-export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
+export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}={}) => {
+    const taskStore: TaskStore = passedStore ? passedStore : useTaskStore();
     const thisCalendarRef = useRef(null);
     const thisCalendarHeaderRef = useRef(null);
     const currentDayRef = useRef(null);
@@ -179,12 +180,15 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
     }
  
     return <PlaceableWidget 
-                widgetName="calendar" 
+                widgetName={CALENDAR_WIDGET_NAME} 
                 icon={ICONS.CALENDAR} 
                 doneLoading={taskStore.isLoaded && allLoadedMonthData != undefined}
             >
             <div className="calendar-body mid-section" ref={thisCalendarRef}>
-                <div className="header" ref={thisCalendarHeaderRef}>
+                <header 
+                    ref={thisCalendarHeaderRef}
+                    title="Calendar header"
+                    >
                     <nav className="aligned">
                         <button className="btn small bg square"
                             title="Previous month"
@@ -225,24 +229,28 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                         </button>
                     </nav>
                     <div className="week-days-header">
-                        <h3>M</h3>
-                        <h3>T</h3>
-                        <h3>W</h3>
-                        <h3>R</h3>
-                        <h3>F</h3>
-                        <h3>S</h3>
-                        <h3>U</h3>
+                        <h3 title="Monday">M</h3>
+                        <h3 title="Tuesday">T</h3>
+                        <h3 title="Wednesday">W</h3>
+                        <h3 title="Thursday">R</h3>
+                        <h3 title="Friday">F</h3>
+                        <h3 title="Saturday">S</h3>
+                        <h3 title="Sunday">U</h3>
                     </div>
-                </div>
-                <div className="calendar-month-infinite-scroll-wrapper" ref={scrollContainerRef}>
+                </header>
+                <div 
+                    className="calendar-month-infinite-scroll-wrapper" 
+                    ref={scrollContainerRef}
+                    title="Calendar body"
+                    >
                     { allLoadedMonthData.map(monthData => 
                         <div 
                             className="month-container" 
                             key={monthData.key} 
-                            aria-label={monthData.key} 
+                            aria-labelledby={`${monthData.key}-header`} 
                             ref={monthData.closeToBeginningOfDataRange ? earlyMonthRef : (monthData.closeToEndOfDataRange ? lateMonthRef : undefined)}    
                         >
-                            <div className="month-title"> 
+                            <div className="month-title" id={`${monthData.key}-header`}> 
                                 <h2>{monthData.monthName}</h2>
                                 <h3>{monthData.year}</h3>
                             </div>
@@ -252,10 +260,16 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                         { weekData.days.map(day =>  
                                         <div 
                                             ref={today.current.hasSame(day.date, 'day') ? currentDayRef : undefined}
+                                            aria-labelledby={`${day.key}-header`}
+                                            title={`${day.date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
                                             suppressHydrationWarning
                                             {...day.props}
                                             >
-                                            <p><time dateTime={day.date.toISODate()}>{day.date.day}</time></p>
+                                            <h4 
+                                                id={`${day.key}-header`}
+                                            >
+                                                <time dateTime={day.date.toISODate()}>{day.date.day}</time>
+                                            </h4>
                                             <div className="dark-section">
                                                 { day.tasksToday && day.tasksToday.map((taskData) => {
                                                     const taskWrapperProps = {
@@ -276,7 +290,7 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
                                                         task={task}
                                                         keyOverride={`${day.date}-${task.id}`}
                                                         >
-                                                        <Checkbox task={task} type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
+                                                        <Checkbox type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                         <TaskTitle />
                                                     </TaskWrapper>
                                                 })}
@@ -293,5 +307,4 @@ export const Calendar = observer(({taskStore}: {taskStore: TaskStore}) => {
         </PlaceableWidget>;
 });
 
-export const ShowSelectableCalendarDays = () => {};
 export const ShowSelectableCalendarDays = () => {};

@@ -5,18 +5,18 @@ import { DateTime, DateTimeFormatOptions } from "luxon";
 export const END_OF_DAY = () => DateTime.now().endOf('day');
 export const START_OF_DAY = () => DateTime.now().startOf('day');
 
-type DateXOrTimeFormat = {
-    token: DateTimeFormatOptions;
-    readable: string;
-    serializer: Function;
-    deserializer: Function;
+
+export interface DateFormat {
+    token: DateTimeFormatOptions,
+    serializer: (dateTime: DateTime<boolean>) => string,
+    deserializer: (string: string, s2?: string) => DateTime<boolean>,
 }
 
-type DateFormat = {
-    token: DateTimeFormatOptions;
-    serializer: Function;
-    deserializer: Function;
+type DateXOrTimeFormat = DateFormat & {
+    readable: string;
+    deserializer: (string: string) => DateTime<boolean>,
 }
+
 export const PARTIAL_DATETIME_FORMATS: {
     D: DateXOrTimeFormat, 
     t: DateXOrTimeFormat, 
@@ -24,10 +24,10 @@ export const PARTIAL_DATETIME_FORMATS: {
     D: {
         token: DateTime.DATE_SHORT,
         readable: "M/d/yyyy",
-        serializer: function (dateTime: DateTime) {
+        serializer: function (dateTime) {
             return dateTime.toLocaleString(this.token); 
         },
-        deserializer: function (string: string)
+        deserializer: function (string)
         {
             return DateTime.fromFormat(string, "D");
         }
@@ -35,10 +35,10 @@ export const PARTIAL_DATETIME_FORMATS: {
     t: {
         token: DateTime.TIME_SIMPLE,
         readable: "h:mm P",
-        serializer: function (dateTime: DateTime) { 
+        serializer: function (dateTime) { 
             return dateTime.toLocaleString(this.token); 
         },
-        deserializer: function (string: string) {
+        deserializer: function (string) {
             return DateTime.fromFormat(string, "t");
         }
     },
@@ -47,15 +47,18 @@ export const DATETIME_FORMATS: {D_t: DateFormat, ISO: DateFormat, [index : strin
     // https://moment.github.io/luxon/#/parsing?id=table-of-tokens
     D_t: {
         token: DateTime.DATETIME_SHORT,
-        serializer: function (dateTime: DateTime) { return dateTime.toLocaleString(this.token)},
+        serializer: function (dateTime) { return dateTime.toLocaleString(this.token)},
         deserializer: function (string: string, s2?: string) { 
             return DateTime.fromFormat(`${string}${s2 === undefined ? "" : `, ${s2}`}`, "f");
         },
     },
     ISO: {
         token: DateTime.ISO,
-        serializer: function (dateTime: DateTime) { return dateTime.toISO(); },
-        deserializer: function (string: string, s2?: string) { return DateTime.fromISO(string); },
+        serializer: function (dateTime) {
+            const val = dateTime.toISO(); 
+            return val === null ? "" : val;
+        },
+        deserializer: function (string: string) { return DateTime.fromISO(string); },
     }
 };
 
@@ -80,7 +83,7 @@ export const stringToDateTimeHelper = (dtString: string, timeString?: string) =>
         return date;
     };
 
-export const dateTimeHelper = (maybeDateTime: string | DateTime ) => {
+export const dateTimeHelper = (maybeDateTime: string | DateTime<boolean>) => {
     var validatedDate;
     switch (typeof(maybeDateTime)) {
         case "string":
@@ -89,10 +92,10 @@ export const dateTimeHelper = (maybeDateTime: string | DateTime ) => {
         case "object":
             if (maybeDateTime.isLuxonDateTime) {
                 validatedDate = maybeDateTime;
-                break;
+            } else {
+                validatedDate = DateTime.fromObject(maybeDateTime);
             }
-            validatedDate = new DateTime(maybeDateTime);
-            if (validatedDate.valid) {
+            if (validatedDate.isValid) {
                 break;
             }
         default:

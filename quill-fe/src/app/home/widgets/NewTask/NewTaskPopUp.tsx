@@ -9,7 +9,7 @@ import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 export const NEW_TASK_POPUP_TITLE = "New Task";
-export const ADD_BUTTON_TEXT = "Add";
+export const ADD_BUTTON_TEXT = "Create Task";
 
 /**
  * A form to create a new task. 

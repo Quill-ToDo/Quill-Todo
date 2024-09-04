@@ -29,4 +29,3 @@ it("should load updates from the server", async () => {
     expect(testTaskStore.tasks.length === 0).toBeTruthy();
 })
 it.todo("should throw error when tasks cannot load");
-it.todo("should keep track of singleton instance");

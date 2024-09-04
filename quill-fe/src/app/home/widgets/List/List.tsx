@@ -2,8 +2,8 @@ import React, { Fragment, useRef, useState } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
-import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
-import { timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
+import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper, TaskDueDate } from "@/widgets/TaskDetail/TaskComponents";
+import { DATETIME_FORMATS, timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
@@ -11,14 +11,20 @@ import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 import { ICONS } from "@/app/@util/constants";
 import { PlaceableWidget } from "../generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
+import { useTaskStore } from "@/store/StoreProvider";
 
 const SECTION_TOGGLE_DURATION = 100;
+export const OVERDUE = "Overdue Tasks";
+export const TODAY = "Tasks Today";
+export const UPCOMING = "Upcoming Tasks";
+export const LIST_WIDGET_NAME = "List";
 
 //#region List 
 /**
  * The list view for tasks.
  */
-export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
+export const ListWidget = observer(({passedStore}: {passedStore?: TaskStore}={}) => {
+    const taskStore: TaskStore = passedStore ? passedStore : useTaskStore();
     // All possible views for the list
     const possibleListFormats = {
         "by-status": <ByStatusThreeSection store={taskStore}/>
@@ -28,8 +34,7 @@ export const ListWidget = observer(({taskStore}: {taskStore: TaskStore}) => {
     // Before content is loaded show placeholder
     return (
         <PlaceableWidget 
-            widgetName="List"
-            aria-label="Task List" 
+            widgetName={LIST_WIDGET_NAME}
             icon={ICONS.LIST} 
             doneLoading={taskStore &&taskStore.isLoaded}    
         >
@@ -47,24 +52,40 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
     const sorted = (taskList : TaskModel[]) => {
         return taskList.toSorted((a, b) => { 
             if (a.complete === b.complete) {
-                return a.due < b.due ? -1 : 1;
+                if (a.due && b.due) {
+                    return a.due < b.due ? -1 : 1;
+                }
+                else if (a.due) {
+                    return 1
+                }
+                else if (b.due) {
+                    return -1;
+                }
+                else {
+                    if (a.start && b.start) {
+                        return a.start < b.start ? -1 : 1;
+                    }
+                }
             } 
             return a.complete ? 1 : -1; 
         })
     };
-    const overdue = sorted(tasks.filter(task => task.due <= now));
-    const todayDue = sorted(tasks.filter(task => timeOccursBetweenNowAndEOD(task.due)));
+    const undated = sorted(tasks.filter(task => !task.due))
+    const overdue = sorted(tasks.filter(task => task.due && task.due <= now));
+    const todayDue = sorted(tasks.filter(task => task.due && timeOccursBetweenNowAndEOD(task.due)));
     const todayWork = sorted(tasks.filter(task => 
+        task.due &&
         (task.start && task.start <= now) 
         && (now < task.due)
         && !(timeOccursBetweenNowAndEOD(task.due))
         ));
     const upcoming = sorted(tasks.filter(task => 
-        (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
+        task.due 
+        && (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
         ));
 
 
-    if (!(overdue.length || todayDue.length || todayWork.length || upcoming.length)) {
+    if (!(overdue.length || todayDue.length || todayWork.length || upcoming.length || undated.length)) {
         return (
             <section>
                 <div className="mid-section">
@@ -78,7 +99,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
         <Fragment>
             { !!overdue.length && 
                 <Section 
-                    title="Overdue"
+                    title={OVERDUE}
                     sectionNum={0}
                     content={
                         [{
@@ -91,7 +112,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             }
             { (!!todayDue.length || !!todayWork.length) &&
                 <Section 
-                    title="Today"
+                    title={TODAY}
                     sectionNum={1}
                     content={
                         [
@@ -113,13 +134,26 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             }
             { !!upcoming.length && 
                 <Section 
-                    title="Upcoming"
+                    title={UPCOMING}
                     sectionNum={2}
                     content={
                         [{
                             "tasks": upcoming,
                             "type": TaskModel.VisualStyles.Due,
                             "emptyText": "No upcoming tasks"
+                        }]
+                    }
+                />
+            }
+            { !!undated.length && 
+                <Section 
+                    title={"Undated"}
+                    sectionNum={3}
+                    content={
+                        [{
+                            "tasks": undated,
+                            "type": TaskModel.VisualStyles.Due,
+                            "emptyText": "No undated tasks"
                         }]
                     }
                 />
@@ -131,15 +165,28 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 /**
  * A section of tasks within a list. May be divided into subsections.
  */
-const Section = observer(({title, sectionNum, content, classNames}: {title: string, sectionNum: number, content: SubSectionContent[], classNames?: string}) => {
+const Section = observer(({
+    title, 
+    sectionNum, 
+    content, 
+    classNames,
+}: {
+    title: string, 
+    sectionNum: number, 
+    content: SubSectionContent[], 
+    classNames?: string,
+}) => {
     const [sectionOpen, setSectionOpen] = useState(true);
 
-    var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} tasks` : `Expand ${title.toLowerCase()} tasks`;
+    var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} section` : `Expand ${title.toLowerCase()} section`;
     
     return (
         <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
-            <div className={`${classNames ? classNames : ""} mid-section`}>
-                <div className="header-container collapsible">
+            <div 
+                className={`mid-section${classNames ? " " + classNames : ""}`}
+                role="none"
+                >
+                <header className="header-container collapsible">
                     <button 
                         className="btn small square" 
                         title={collapseToolTip} 
@@ -151,11 +198,16 @@ const Section = observer(({title, sectionNum, content, classNames}: {title: stri
                     >
                         { ICONS.DOWN }
                     </button>
-                    <h2 id={`section-${sectionNum}-title`}>{title}</h2>
-                </div>
-                <div className="section-collapsible">
-                    <SubSection 
+                    <h2 
+                        id={`section-${sectionNum}-title`}
+                    >
+                        {title}
+                    </h2>
+                </header>
+                <div className="section-collapsible" role="none">
+                    <SubSection
                         sectionContent={content}
+                        // {...{"aria-labelled-by": `section-${sectionNum}-title`}}
                     />
                 </div>
             </div>
@@ -171,12 +223,17 @@ interface SubSectionContent {
     title?: string, 
     tasks: TaskModel[], 
     type: TaskModel.VisualStyles.AcceptedStyles, 
-    emptyText: string
+    emptyText: string,
 };
 /**
  * The contents of a subsection with a list section serparated out for performance
  */
-const SubSection = observer(({sectionContent}: {sectionContent: SubSectionContent[]}) => {
+const SubSection = observer(({
+    sectionContent,
+    ...props
+}: {
+    sectionContent: SubSectionContent[]
+}) => {
     return sectionContent.map((section) => {
         return ( 
             <TaskSectionContent 
@@ -194,8 +251,16 @@ const SubSection = observer(({sectionContent}: {sectionContent: SubSectionConten
 const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
     const sectionTitleId = `dark-section-title-${content.title}`;
     return (
-        <section aria-labelledby={content.title ? sectionTitleId : ""} key={`${content.title}-${content.type}`}>
-            {content.title && <h3 id={sectionTitleId} className="centered">{content.title}</h3>}
+        <section 
+            aria-labelledby={content.title ? sectionTitleId : ""} 
+            key={`${content.title}-${content.type}`}
+        >
+            {content.title && <h3 
+                id={sectionTitleId} 
+                className="centered"
+                >
+                    {content.title}
+                </h3>}
             <div className="dark-section">
                 {content.tasks.length ? 
                 <TaskList 
@@ -220,21 +285,26 @@ const TaskList = observer(({
     type: TaskModel.VisualStyles.AcceptedStyles
 }) => {
     const listRef = useRef(null);
-    return <ul role="group" ref={listRef}>
+    return <ul 
+            role="group" 
+            ref={listRef}
+        >
         { tasks.map((task) => {
             return ( 
                 <Draggable
                     droppable={true}
+                    key={`task-li-${task.id}`}
+                    actionTitle="Drag task"
+                    renderDraggableItem={(props) => <li 
+                            className="task"
+                            {...props}
+                        >
+                            <ListViewTask
+                                task={task}
+                                type={type}
+                                />
+                        </li>}
                 > 
-                    <li 
-                        className="task" 
-                        key={`task-li-${task.id}`}
-                    >
-                        <ListViewTask
-                            task={task}
-                            type={type}
-                            />
-                    </li>
                 </Draggable>
             )
         })}
@@ -277,10 +347,7 @@ const ListViewTask = observer(({
                     >
                         <TaskTitle editAllowed={false} />
                     </label>
-                    <DateTimeWrapper 
-                        type={TaskModel.VisualStyles.Due} 
-                        dateFormat={dateForm} 
-                    />
+                    <TaskDueDate format={DATETIME_FORMATS.D_t} editable={false}/>
                 </div>
             </TaskWrapper>;
     return taskWrapper;

@@ -12,7 +12,9 @@ class Task(models.Model):
     title = models.CharField(max_length=100, null=True, blank=True)
     description = models.TextField(null=True, blank=True, max_length=10000)
     start = models.DateTimeField(blank=True, null=True)
+    show_start_time = models.BooleanField(blank=False, default=True)
     due = models.DateTimeField(blank=True, null=True)
+    show_due_time = models.BooleanField(blank=False, default=True)
     complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(editable=False, null=True)
     color = models.CharField(

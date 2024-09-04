@@ -5,19 +5,18 @@ import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } f
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
 
+const ADD_ERROR_ALERT_SELECTOR = "#home-wrapper";
 export type TaskDataOnDay =  {
     task: TaskModel, 
     type: TaskModel.VisualStyles.AcceptedStyles}[];
 
-export type Timeline = Map<DateTime, TaskDataOnDay>;
+export type Timeline = Map<string, TaskDataOnDay>;
 
 export default class TaskStore {
 // !!! Fields must have defaults set here to be observable. 
-    static taskStoreSingletonInstance : TaskStore;
     API : TaskApi;
     rootStore : RootStore;
     taskSet : Set<TaskModel> = new Set();
-    // The singleton task currenbtly being created, has not synced to server
     taskBeingCreated : TaskModel | null = null;
     // Boolean : Whether the store has synced with server
     isLoaded : boolean = false;
@@ -46,16 +45,14 @@ export default class TaskStore {
             createNewTask: action,
             setNewTask: action,
             add: action,
+            setIsLoaded: action,
             remove: action, 
             delete: action,
+            clearTasks: action,
             getTaskWithId: false,
             loadTasks: false,
         }, {proxy: false})
         this.rootStore = rootStore;
-        if (TaskStore.taskStoreSingletonInstance !== undefined) {
-            throw new Error("You cannot create two TaskStores, access the global TaskStore with TaskStore.taskStoreSingletonInstance")
-        }
-        TaskStore.taskStoreSingletonInstance = this;
         this.API = API;
         this.taskSet = new Set<TaskModel>();
         this.loadTasks({});
@@ -76,10 +73,11 @@ export default class TaskStore {
         } : {
             retry?: number, 
             connectionAlertIdselectorForFieldElementstring?: string, 
-            refresh?: boolean}) {
-        this.isLoaded = false;
+            refresh?: boolean}={}) {
+        this.setIsLoaded(false);
         return this.API.fetchTasks().then(fetchedTasks => {
             runInAction(() => {
+                this.clearTasks();
                 fetchedTasks.data.forEach((json : {[index : string]: any}) => {
                     if (refresh && this.taskMap && this.taskMap.has(json.id)) {
                         let task = this.getTaskWithId(json.id); 
@@ -88,10 +86,10 @@ export default class TaskStore {
                         }
                     }
                     else {
-                        new TaskModel(json);
+                        new TaskModel({taskJsonData: json, store: this});
                     }
                 });
-                this.isLoaded = true;
+                this.setIsLoaded(true);
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
@@ -104,19 +102,32 @@ export default class TaskStore {
         }).catch(e => {
             let error = `Could not load tasks: ${e.message}`;
             if (retry === 0) {
-                connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector("#home-wrapper"), ERROR_ALERT, error);
-                console.error(e);
+                if (document.querySelector(ADD_ERROR_ALERT_SELECTOR)) {
+                    connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector(ADD_ERROR_ALERT_SELECTOR), ERROR_ALERT, error);
+                }
+                // TODO newTaskPopup is getting axios errors here
+                // throw e;
             }
             else if (connectionAlertIdselectorForFieldElementstring) {
-                updateAlertText(connectionAlertIdselectorForFieldElementstring, `${error}. Retry #${retry+1}`)
+                if (document.querySelector(ADD_ERROR_ALERT_SELECTOR)) {
+                    updateAlertText(connectionAlertIdselectorForFieldElementstring, `${error}. Retry #${retry+1}`);
+                }
+                // throw e;
             }
             setTimeout(() => {this.loadTasks({retry: retry + 1, connectionAlertIdselectorForFieldElementstring: connectionAlertIdselectorForFieldElementstring})}, 3000);
         })
     }
 
-    
+    setIsLoaded (val: boolean) {
+        this.isLoaded = val;
+    }
+
     get tasks () {
         return Array.from(this.taskSet);
+    }
+
+    clearTasks () {
+        this.taskSet = new Set();
     }
     
     get taskMap (): Map<string, TaskModel> {
@@ -138,28 +149,32 @@ export default class TaskStore {
 
     get taskTimeline () {
         const timeline: Timeline = new Map();
-        let dayKey: string, firstDayInRange: DateTime, lastDayInRange: DateTime, tasksThisDay; 
+        const getTasksOnDay = (day: DateTime<boolean>): TaskDataOnDay => {
+            let dayKey = day.toLocaleString(DateTime.DATE_SHORT);
+            if (!timeline.has(dayKey)) { 
+                timeline.set(dayKey, [])
+            }
+            return timeline.get(dayKey);
+        }
+
         this.tasks.forEach(task => {
-            firstDayInRange = task.start.startOf('day').minus({days: 1});
-            lastDayInRange = task.due.endOf('day');
-            for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
-                dayKey = dayItr.toLocaleString(DateTime.DATE_SHORT);
-                if (!timeline.has(dayKey)) { 
-                    timeline.set(dayKey, [])
+            let firstDayInRange: DateTime | null, lastDayInRange: DateTime | null;
+            firstDayInRange = null; 
+            lastDayInRange = null; 
+            if (task.due) {
+                getTasksOnDay(task.due).push({task: task, type: TaskModel.VisualStyles.Due});
+                lastDayInRange = task.due.endOf('day').minus({days: 1});
+            }
+            if (task.start) {
+                firstDayInRange = task.start.startOf('day').plus({days: 1});
+                if (!(task.due && task.start.hasSame(task.due, "day")) ){
+                    getTasksOnDay(task.start).push({task: task, type: TaskModel.VisualStyles.Start})
                 }
-                tasksThisDay = timeline.get(dayKey);
-                if (tasksThisDay) {
-                    if (dayItr.hasSame(lastDayInRange, 'day')) {
-                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Due});
-                    }
-                    else if (dayItr.hasSame(firstDayInRange, 'day')) {
-                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Start});
-                    }
-                    else {
-                        tasksThisDay.push({task: task, type: TaskModel.VisualStyles.Scheduled});
-                    }
+            }
+            if (firstDayInRange && lastDayInRange && firstDayInRange < lastDayInRange) {
+                for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
+                    getTasksOnDay(dayItr).push({task: task, type: TaskModel.VisualStyles.Scheduled});    
                 }
-    
             }
         });
         return timeline;
@@ -176,9 +191,8 @@ export default class TaskStore {
             return this.taskBeingCreated;
         } 
         else {
-            const taskBeingCreated = new TaskModel();
+            const taskBeingCreated = new TaskModel({store: this});
             this.setNewTask(taskBeingCreated);
-            this.add(taskBeingCreated);
             return taskBeingCreated;
         }
     } 

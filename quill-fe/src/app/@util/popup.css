@@ -1,5 +1,6 @@
 .popup {
     background-color: var(--g8);
+    width: fit-content;
     border-radius: var(--box-corner-rounding);
     overflow: hidden;
     box-shadow: inset 0px 0px 0px var(--popup-border-width) var(--popup-border);
@@ -26,6 +27,7 @@ div[data-floating-ui-portal] > div {
     border-radius: 10px;
     min-height: max-content;
   }
+  
 .popup.context-menu header {
     border-radius: 10px 10px 0 0;
     padding: 3px 10px 3px 10px;

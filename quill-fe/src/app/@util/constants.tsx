@@ -12,7 +12,7 @@ export const UNSET_TASK_TITLE_PLACEHOLDER = "title";
 export const ICONS = {
     PLUS:   
         <i>
-            <svg viewBox="0 0 22 22" width="100%" xmlns="http://www.w3.org/2000/svg">
+            <svg viewBox="0 0 22 22" width="100%" xmlns="http://www.w3.org/2000/svg" alt="">
                 <path d="M2 11H20"/>
                 <path d="M11 20L11 2"/>
             </svg>
@@ -49,6 +49,8 @@ export const ICONS = {
     MENU: <i className="fa-solid fa-ellipsis-vertical"></i>,
     DRAG: <i className={`fa-solid fa-up-down-left-right ${DRAGGABLE_HANDLE_CLASS}`}></i>,
 } 
+export const BTN_APPEAR_ON_HOVER_CLASS = "appear-on-hover";
+export const BTN_APPEAR_TARGET_CLASS = "btn-hover-target";
 
 /**
  * 

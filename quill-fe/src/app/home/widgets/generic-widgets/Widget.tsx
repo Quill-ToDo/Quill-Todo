@@ -28,7 +28,11 @@ export const Widget = observer((
         <p>Loading {widgetName}</p>
     </div>;
 
-    return <section title={widgetName} className={`${widgetName} widget`} {...props}>
+    return <section 
+        aria-label={widgetName} 
+        className={`${widgetName.toLocaleLowerCase().replace(" ", "-")} widget`} 
+        {...props}
+        >
         { doneLoading ? children : loading }
     </section>;
 });
