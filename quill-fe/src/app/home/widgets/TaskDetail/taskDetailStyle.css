@@ -12,12 +12,15 @@
   min-height: fit-content;
 }
 
-.task-detail .title-sizing {
-  font-size: 25px;
+.task-detail .input-sizer {
   text-align: left;
   white-space: break-spaces;
-  overflow: visible;
-  height: 100%;
+  overflow-y: visible;
+}
+
+.task-detail .input-sizer textarea,
+.task-detail .input-sizer textarea::after {
+  font: inherit;
 }
 
 
@@ -55,9 +58,8 @@
   gap: var(--section-gap);
 }
 
-
 .field:hover .field-btns,
-.field:focus-within .field-btns     {
+.field:focus-within .field-btns {
   visibility: visible;
   opacity: 100%;
 }
@@ -67,12 +69,24 @@
   transition: opacity .5s;
 }
 
+.description .dark-section {
+  padding: 0;
+}
+
+.description .input-sizer textarea,
+.description .input-sizer::after, 
+.description .input-sizer input  {
+  padding: var(--section-gap);
+  font-size: var(--p-size);
+}
+
 .task-detail header {
   min-width: fit-content;
   width: 100%;
 }
 
-.task-detail h3 {
+.task-detail h3, 
+.task-detail .title {
   font-size: 25px;
 }
 

@@ -23,10 +23,8 @@ margin-bottom: 2px;
 }
 
 .floating {
-    width: max-content;
     position: absolute;
-    top: 0;
-    left: 0;
+    right: 0px;
 }
 /*#endregion Global Styling*/
 /*#region Home Layout*/
@@ -83,7 +81,11 @@ h3 {
 }
 /*#endregion Headers*/
 /*#region Text*/
-p {
+p, 
+.date,
+.date input, 
+.time input,
+.time {
     font-family: "Quicksand", sans-serif;
     font-weight: 600;
     font-size: var(--p-size);
@@ -95,7 +97,10 @@ p {
     white-space: pre-line;
 }
 
-.date-time-wrapper p {
+.date-time-wrapper .date,
+.date-time-wrapper .date input,
+.date-time-wrapper .time input,
+.date-time-wrapper .time {
     display: flex;
     align-items: baseline;
     justify-content: center;
@@ -106,7 +111,8 @@ p {
     font-family: "Azeret Mono", monospace;
   }
 
-  li .date-time-wrapper p {
+  li .date-time-wrapper .date,
+  li .date-time-wrapper .time {
     justify-content: right;
   }
   
@@ -114,10 +120,6 @@ p {
 .date-time-wrapper {
   color: var(--g4);
   font-size: var(--smaller-p-size);
-}
-
-p.time {
-  font-size: calc(var(--smaller-p-size) - 3px);
 }
 
 .subtle {
@@ -204,43 +206,56 @@ p.time {
 
 .input-sizer {
     display: inline-grid;
-    align-items: center;
     justify-content: flex-start;
     grid-auto-flow: column;
     position: relative;
 }
 
-.input-sizer.stacked {
-        grid-auto-flow: row;
-        align-items: stretch;
-        grid-template-columns: 1;
-        grid-auto-rows: fit;
-    }
-        .input-sizer.stacked::after,
-        input,
-        textarea {
-          grid-area: 1 / 1;
+    .input-sizer.stacked {
+            grid-auto-flow: row;
+            align-items: stretch;
+            grid-template-columns: 1;
+            grid-auto-rows: fit;
         }
+            .input-sizer.stacked::after,
+            .input-sizer input,
+            .input-sizer textarea {
+            grid-area: 1 / 1;
+            }
 
     .input-sizer::after,
     .input-sizer input,
     .input-sizer textarea {
         grid-area: 1 / 1;
-        width: 100%;
-        min-width: 1em;
+        width: 10px;
+        min-width: 100%;
+        min-height: fit-content;
         height: 100%;
-        font: inherit;
         padding: 0.25em;
         margin: 0;
         resize: none;
     }
 
-    .input-sizer input {
-        width: auto;
+    .input-sizer.take-full-width,
+    .input-sizer.take-full-width::after {
+        width: 100%;
+    }
+
+    .input-sizer.take-full-width::after,
+    .input-sizer.take-full-width input,
+    .input-sizer.take-full-width textarea {
+        width: 100%;
+        max-width: 100%;
+        min-width: 100%;
+        resize: both;
     }
 
   .input-sizer::after {
+    min-width: 60px;
+    font: inherit;
+    width: fit-content;
     content: attr(data-expand-content) ' ';
+    background-color: rgb(0, 255, 255);
     visibility: hidden;
   }
 

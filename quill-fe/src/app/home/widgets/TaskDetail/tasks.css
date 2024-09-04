@@ -11,13 +11,60 @@
   background-color: var(--list-hover);
 }
 
-.task-wrapper .title {
-  background-color: unset;
+/*#region Time and date */
+.due.field .dark-section {
+  display: flex;
+  justify-content: center;
 }
 
-.task-wrapper .title:focus-within {
-  background-color: var(--g8);
+.time .aligned {
+  position: relative;
 }
+
+.time .input-sizer,
+.time {
+  font-size: var(--smaller-p-size);
+}
+
+  .time input,
+  .date input {
+    font-size: inherit;
+  }
+  
+.task-wrapper .date-time-wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--focus-border-width);
+}
+  .btn-hover-target:hover .appear-on-hover,
+  .btn-hover-target:focus-within .appear-on-hover {
+    opacity: 100%;
+  }
+  
+  .appear-on-hover {
+    opacity: 0%;
+    transition: opacity .5s;
+    position: absolute;
+    right: -35px;
+    top: 5px;
+  }
+
+  .task-wrapper .date-time-wrapper label.date {
+    display: flex;
+    justify-content: center;
+  }
+
+/*#endregion Time and date */
+/*#region Title */
+.task-wrapper .title {
+  background-color: unset;
+  text-align: left;
+}
+
+  .task-wrapper .title:focus-within {
+    background-color: var(--g8);
+  }
 
 .task-wrapper.complete .title:focus-within {
   color: var(--g3);
@@ -34,30 +81,25 @@
   width: 100%;
 }
 
-.task-wrapper.complete p,
-.task-wrapper.complete i.checkmark {
-  color: var(--g4);
-}
-
 .task-wrapper.complete .title {
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 2px;
 } 
 
-.title p,
-.task-detail .title p {
-  text-align: left;
-}
-
 .overdue.title,
 .overdue.title p,
-.overdue.date-time-wrapper p {
+.overdue.date-time-wrapper .date,
+.overdue.date-time-wrapper .date input,
+.overdue.date-time-wrapper .time,
+.overdue.date-time-wrapper .time input {
   color: var(--overdue);
 }
 
 .title.blank p,
 .title.blank.overdue p,
-.title.blank::placeholder {
+.title.blank::placeholder,
+.date input::placeholder,
+.time input::placeholder {
   font-style: italic;
   color: var(--g3);
 }
@@ -66,6 +108,11 @@
   overflow: hidden;
 }
 
+.task-wrapper.complete p,
+.task-wrapper.complete i.checkmark {
+  color: var(--g4);
+}
+/*#endregion Title */
 /*#region Checkbox*/
 label.check-box-wrapper {
   display: flex;
@@ -101,11 +148,7 @@ i.checkmark {
   width: calc(var(--check-box-size)-1);
 }
 /*#endregion Checkbox*/
-
-.task-wrapper .date-time-wrapper {
-  flex-direction: column;
-}
-
+/*#region Color picker*/
 .color-bubble-wrapper {
   aspect-ratio: 1 / 1;
   min-width: 15px;
@@ -183,6 +226,9 @@ i.checkmark {
   transform: scale(1.5);  
 }
 
+/*#endregion Color picker*/
+/*#region Description*/
 .description {
   min-height: min-content;
 }
+/*#endregion Color picker*/
