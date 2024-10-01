@@ -6,12 +6,13 @@ import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
 import { ICONS } from "@util/constants";
 import { useRef } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
-import { PopupOnClick } from "@util/Popup";
+import { TetheredPopupOnClick } from "@util/Popup";
 import { ListWidget } from "@/widgets/List/List";
 import { CalendarWidget } from "@/widgets//Calendar/Calendar";
+import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
 
 export const NEW_TASK_TEXT = "Add task";
-
+export const HOME_ID = "home-wrapper";
 
 const DashboardLayout = observer(({
     children,
@@ -26,9 +27,9 @@ const DashboardLayout = observer(({
         <CalendarWidget />
     </>
     
-    return ( 
+    return (<>
             <div 
-                id="home-wrapper" 
+                id={HOME_ID}
                 data-testid="home"
                 role="none"
             >
@@ -39,7 +40,7 @@ const DashboardLayout = observer(({
                     id="left-menu" 
                     className="bg-green"
                 >
-                    <PopupOnClick
+                    <TetheredPopupOnClick
                         draggable={true}
                         useDragHandle={true}
                         renderElementToClick={(open) => <button 
@@ -80,7 +81,8 @@ const DashboardLayout = observer(({
                 </menu>
                 {widgets}
             </div>
-    )
+            <div id={PORTAL_HOLDER_ID} className="take-full-space"></div>
+    </>)
 })
 
 export default DashboardLayout;

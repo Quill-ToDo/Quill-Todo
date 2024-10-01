@@ -14,9 +14,9 @@ import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
 
 const SECTION_TOGGLE_DURATION = 100;
-export const OVERDUE = "Overdue Tasks";
-export const TODAY = "Tasks Today";
-export const UPCOMING = "Upcoming Tasks";
+export const OVERDUE = "Overdue";
+export const TODAY = "Today";
+export const UPCOMING = "Upcoming";
 export const LIST_WIDGET_NAME = "List";
 
 //#region List 
@@ -47,7 +47,7 @@ export const ListWidget = observer(({passedStore}: {passedStore?: TaskStore}={})
  * A list format where tasks are separated into overdue, today, and upcoming sections.
  */ 
 const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
-    const tasks : TaskModel[] = store.tasksInRange({startTime: DateTime.now().minus({years:10}), endTime: DateTime.now().plus({years:10})});
+    const tasks : Set<TaskModel> = new Set(store.tasksInRange({startTime: DateTime.now().minus({years:10}), endTime: DateTime.now().plus({years:10})}));
     const now = DateTime.now();
     const sorted = (taskList : TaskModel[]) => {
         return taskList.toSorted((a, b) => { 
@@ -65,25 +65,51 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                     if (a.start && b.start) {
                         return a.start < b.start ? -1 : 1;
                     }
+                    else if (a.start) {
+                        return 1;
+                    }
+                    else {
+                        return -1;
+                    }
                 }
             } 
             return a.complete ? 1 : -1; 
         })
     };
-    const undated = sorted(tasks.filter(task => !task.due))
-    const overdue = sorted(tasks.filter(task => task.due && task.due <= now));
-    const todayDue = sorted(tasks.filter(task => task.due && timeOccursBetweenNowAndEOD(task.due)));
-    const todayWork = sorted(tasks.filter(task => 
-        task.due &&
-        (task.start && task.start <= now) 
-        && (now < task.due)
-        && !(timeOccursBetweenNowAndEOD(task.due))
-        ));
-    const upcoming = sorted(tasks.filter(task => 
-        task.due 
-        && (!task.start || now <= task.start) && !(timeOccursBeforeEOD(task.due))
-        ));
+    let complete : TaskModel[] = [];
+    let undated : TaskModel[] = [];
+    let overdue  : TaskModel[] = [];
+    let todayDue  : TaskModel[] = [];
+    let todayWork : TaskModel[] = [];
+    let upcoming : TaskModel[] = [];
+    tasks.forEach(task => {
+        let array = undated;
+        if (task.complete) {
+            array = complete;
+        }
+        else if (task.due == null && task.start == null) {
+            array = undated;
+        } else if (task.due && task.due <= now) {
+            array = overdue;
+        }
+        else if (task.due && timeOccursBetweenNowAndEOD(task.due)) {
+            array = todayDue;
+        }
+        else if (task.start && task.start <= now) {
+            array = todayWork;
+        }
+        else {
+            array = upcoming;
+        }
+        array.push(task);
+    })
 
+    complete = sorted(complete);
+    undated = sorted(undated);
+    overdue = sorted(overdue);
+    todayDue = sorted(todayDue);
+    todayWork = sorted(todayWork);
+    upcoming = sorted(upcoming);
 
     if (!(overdue.length || todayDue.length || todayWork.length || upcoming.length || undated.length)) {
         return (
@@ -123,7 +149,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                                 "emptyText": "No tasks due today",
                             },
                             {
-                                "title": "Work",
+                                "title": "In Progress",
                                 "tasks": todayWork,
                                 "type": TaskModel.VisualStyles.Scheduled,
                                 "emptyText": "No tasks to work on today",
@@ -152,6 +178,19 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                     content={
                         [{
                             "tasks": undated,
+                            "type": TaskModel.VisualStyles.Due,
+                            "emptyText": "No undated tasks"
+                        }]
+                    }
+                />
+            }
+            { !!complete.length && 
+                <Section 
+                    title={"Done"}
+                    sectionNum={4}
+                    content={
+                        [{
+                            "tasks": complete,
                             "type": TaskModel.VisualStyles.Due,
                             "emptyText": "No undated tasks"
                         }]
@@ -238,7 +277,7 @@ const SubSection = observer(({
         return ( 
             <TaskSectionContent 
                 content={section}
-                key={`${section.title}-${section.type}`}
+                key={`${section.emptyText}`}
             />
             )
         })
@@ -253,7 +292,6 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
     return (
         <section 
             aria-labelledby={content.title ? sectionTitleId : ""} 
-            key={`${content.title}-${content.type}`}
         >
             {content.title && <h3 
                 id={sectionTitleId} 

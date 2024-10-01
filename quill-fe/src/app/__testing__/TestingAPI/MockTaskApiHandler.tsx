@@ -306,10 +306,10 @@ export class MockTaskApiHandler {
         setServer(server) {
             this.handler.server = server;
         },
+    }
 
-        // addMock() {
-        //     this.server=const server = setupServer(...mockHandler.mocks);
-        // }
+    peekTasks() {
+        return this.tasks;
     }
 
     mocks = [

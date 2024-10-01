@@ -4,8 +4,8 @@ import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
+import { HOME_ID } from "../../dashboardLayout";
 
-const ADD_ERROR_ALERT_SELECTOR = "#home-wrapper";
 export type TaskDataOnDay =  {
     task: TaskModel, 
     type: TaskModel.VisualStyles.AcceptedStyles}[];
@@ -93,26 +93,26 @@ export default class TaskStore {
                 if (retry !== 0) {
                     Array.from(document.getElementsByClassName(ERROR_ALERT)).forEach(ele => {
                         ele.querySelector('button').click()})
-                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Re-established connection");
+                    addAlert(document.getElementById(HOME_ID), SUCCESS_ALERT, "Re-established connection");
                 }
                 if (refresh) {
-                    addAlert(document.querySelector("#home-wrapper"), SUCCESS_ALERT, "Reset all tasks to previous state");
+                    addAlert(document.getElementById(HOME_ID), SUCCESS_ALERT, "Reset all tasks to previous state");
                 }
             });
         }).catch(e => {
             let error = `Could not load tasks: ${e.message}`;
             if (retry === 0) {
-                if (document.querySelector(ADD_ERROR_ALERT_SELECTOR)) {
-                    connectionAlertIdselectorForFieldElementstring = addAlert(document.querySelector(ADD_ERROR_ALERT_SELECTOR), ERROR_ALERT, error);
+                if (document.getElementById(HOME_ID)) {
+                    connectionAlertIdselectorForFieldElementstring = addAlert(document.getElementById(HOME_ID), ERROR_ALERT, error);
                 }
                 // TODO newTaskPopup is getting axios errors here
-                // throw e;
+                throw e;
             }
             else if (connectionAlertIdselectorForFieldElementstring) {
-                if (document.querySelector(ADD_ERROR_ALERT_SELECTOR)) {
+                if (document.getElementById(HOME_ID)) {
                     updateAlertText(connectionAlertIdselectorForFieldElementstring, `${error}. Retry #${retry+1}`);
                 }
-                // throw e;
+                throw e;
             }
             setTimeout(() => {this.loadTasks({retry: retry + 1, connectionAlertIdselectorForFieldElementstring: connectionAlertIdselectorForFieldElementstring})}, 3000);
         })
@@ -144,7 +144,7 @@ export default class TaskStore {
     }
     
     tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {
-        return this.tasks.filter(task => (task.start <= endTime && task.start >= startTime) || (task.due <= endTime && task.due >= startTime));
+        return this.tasks.filter(task => (!task.start || (task.start <= endTime && task.start >= startTime)) || (!task.due || (task.due <= endTime && task.due >= startTime)));
     }
 
     get taskTimeline () {
@@ -227,11 +227,11 @@ export default class TaskStore {
         this.API.deleteTask(task.id)
         .then(() => {
             this.remove(task);
-            addAlert(document.getElementById('home-wrapper'), 
+            addAlert(document.getElementById(HOME_ID), 
             NOTICE_ALERT, `Deleted "${task.title}"`);
         })
         .catch(error => {
-            addAlert(document.getElementById('home-wrapper'), 
+            addAlert(document.getElementById(HOME_ID), 
             ERROR_ALERT, `${task.title} could not be deleted - ${error.toString()}`);
             this.add(task);
         });

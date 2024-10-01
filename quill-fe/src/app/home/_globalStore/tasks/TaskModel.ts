@@ -12,6 +12,7 @@ import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
 import { Context, createContext } from "react";
+import { HOME_ID } from "../../dashboardLayout";
 
 export const DEFAULT_START_DATETIME = () => DateTime.now();
 export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
@@ -22,11 +23,11 @@ export const MAX_DESCRIPTION_LENGTH = 10000;
 type ValidationTest = {
     text: string;
     fail: Function;
-}
+};
 
 const getLegibleErrors = (errors: { [index : string]: string[] }) => {
     return Object.keys(errors).map(key => errors[key].length ? `${key}: ${(errors[key]).join(", ")}` : "").join('\n');
-}
+};
 
 type TaskValidationTests = {
     [index : string] : ValidationTest[];
@@ -41,7 +42,8 @@ type TaskValidationTests = {
     dueTimeStringUnderEdit: ValidationTest[];
     dueDateStringUnderEdit: ValidationTest[];
     colorStringUnderEdit: ValidationTest[];
-}
+};
+
 type TaskValidationErrors = {
     [index : string] : string[];
     title: string[];
@@ -56,6 +58,7 @@ type TaskValidationErrors = {
     dueDateStringUnderEdit: string[];
     colorStringUnderEdit: string[];
 };
+
 type EditableTaskFields =  "title" | "complete" | "start" | "showStartTime" | "due" | "showDueTime" | "description" | "color";
 
 export const TaskColorCodes = [
@@ -131,12 +134,12 @@ export class TaskModel {
             private _createdDate : DateTime;
             private _color : string = "#ffffff";
             private _store : TaskStore | undefined;
+            private _startTimeStringUnderEdit : string = ""; 
+            private _startDateStringUnderEdit : string = "";
+            private _dueTimeStringUnderEdit : string = "";
+            private _dueDateStringUnderEdit : string = "";
+            private _colorStringUnderEdit: string = "";
             autoSave : boolean = true;
-            startTimeStringUnderEdit : string = ""; 
-            startDateStringUnderEdit : string = "";
-            dueTimeStringUnderEdit : string = "";
-            dueDateStringUnderEdit : string = "";
-            _colorStringUnderEdit: string = "";
 
     /**
      * An object to represent one task in the database. It has the same 
@@ -180,14 +183,14 @@ export class TaskModel {
             // if the user enters a string "3cshjaklfdhsa" for the startDateStringUnderEdit, 
             // this value can be displayed as needed in form fields to show the user typing but
             // will not change the underlying start DateTime because it can't be parsed. 
-            startDateStringUnderEdit: observable,
-            setStartDateStringUnderEdit: action,
-            startTimeStringUnderEdit: observable,
-            setStartTimeStringUnderEdit: action,
-            dueDateStringUnderEdit: observable,
-            setDueDateStringUnderEdit: action,
-            dueTimeStringUnderEdit: observable,
-            setDueTimeStringUnderEdit: action,
+            _startDateStringUnderEdit: observable,
+            startDateStringUnderEdit: computed,
+            _startTimeStringUnderEdit: observable,
+            startTimeStringUnderEdit: computed,
+            _dueDateStringUnderEdit: observable,
+            dueDateStringUnderEdit: computed,
+            _dueTimeStringUnderEdit: observable,
+            dueTimeStringUnderEdit: computed,
             _colorStringUnderEdit: observable,
             colorStringUnderEdit: computed,
             abortTaskCreation: action, // Abandon the task being created
@@ -287,6 +290,7 @@ export class TaskModel {
      * @param {string} dateTime 
      */
     set start(dateTime : DateTime | null) {
+        const originalStartTime = this._start;
         if (dateTime ===  null) {
             this._start = dateTime;
             return;
@@ -294,9 +298,12 @@ export class TaskModel {
         try {
             const converted = dateTimeHelper(dateTime);
             this._start = converted;
+            if (originalStartTime === null) {
+                this.setStartDateAndTimeStringsUnderEdit()
+            }
         }
         catch (e) {
-            addAlert(document.getElementById('home-wrapper'), 
+            addAlert(document.getElementById(HOME_ID), 
             ERROR_ALERT, `Could not set task start: ${e}`);
         }
     }
@@ -311,68 +318,77 @@ export class TaskModel {
         this._showStartTime = val;
     }
     setStartDateAndTimeStringsUnderEdit () {
-        this.setStartDateStringUnderEdit(this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : "");
-        this.setStartTimeStringUnderEdit(this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : ""); 
+        this._startDateStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : "";
+        this._startTimeStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : ""; 
     }
 
     /**
-         * Set the date portion of the DateTime as a string. 
-         * It does not need to be valid, if it is not, validation errors will be generated.
-         * If it is parseable with the time, update the actual Start 
-         * DateTime. 
-         * @param dateString The string the user submitted for the date portion.
-         */
-    setStartDateStringUnderEdit = (dateString : string)  =>  { 
-        this.startDateStringUnderEdit = dateString;
+     * Set the date portion of the DateTime as a string. 
+     * It does not need to be valid. If it is invalid, validation errors will be generated.
+     * If it is parseable with the time, update the actual Start 
+     * DateTime. 
+     * @param dateString The string the user submitted for the date portion.
+     */
+    set startDateStringUnderEdit (dateString : string)  { 
+        this._startDateStringUnderEdit = dateString;
         if (dateString === "") {
             this.start = null;
             return;
         }
         if (this.validationErrors.startDateStringUnderEdit.length === 0) {
-            // TODO: Fix this is breaking when there is no time string it cannot be pasrsed as the D_t format
             const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
                 this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : this.startTimeStringUnderEdit);
                 if (!newDate.invalid) {
-                    this.start = newDate;
+                    // If the datetime generated using the time part of the current start datetime and the 
+                    // date string under edit is valid, update underlying start datetime
+                    this._start = newDate;
                 }
         }
     }
+    get startDateStringUnderEdit () { return this._startDateStringUnderEdit; }
     /**
      * Set the time portion of the DateTime as a string. 
-     * It does not need to be valid, if it is not, validation errors will be generated.
+     * It does not need to be valid. If it is invalid, validation errors will be generated.
      * If it is parseable with the date, update the actual Start 
      * DateTime. 
      * @param timeString The string the user submitted for the time portion.
      */
-    setStartTimeStringUnderEdit = (timeString : string)  =>  { 
-        this.startTimeStringUnderEdit = timeString;
+    set startTimeStringUnderEdit (timeString : string) { 
+        this._startTimeStringUnderEdit = timeString;
         if (this.validationErrors.startTimeStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : this.startDateStringUnderEdit, 
                 timeString);
             if (!newDate.invalid) {
-                this.start = newDate;
+                // If the date generated using the date part of the current start datetime and the 
+                // time string under edit is valid, update underlying start datetime
+                this._start = newDate;
             }
         }
     }
+    get startTimeStringUnderEdit () { return this._startTimeStringUnderEdit; }
 //#endregion
 //#region due
     /**
      * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
-     * dateTime must be valid to set it. 
+     * dateTime must be valid. 
      * @param {string} dateTime 
      */
     set due (dateTime : DateTime | null) {
+        const originalDueTime = this._due;
         if (dateTime === null) {
-            this._due = dateTime;
+            this._due = null;
             return;
         } 
         try {
             const converted = dateTimeHelper(dateTime);
             this._due = converted;
+            if (originalDueTime === null) {
+                this.setDueDateAndTimeStringsUnderEdit();
+            }
         }
         catch (e) {
-            addAlert(document.getElementById('home-wrapper'), 
+            addAlert(document.getElementById(HOME_ID), 
             ERROR_ALERT, `Could not set task deadline: ${e}`);
         }
     }
@@ -383,57 +399,63 @@ export class TaskModel {
     get due () { return this._due; }
     get showDueTime () {return this._showDueTime; }
     set showDueTime (val) {
+        this._showDueTime = val;
         if (val === false && this.due) {
             this.due = this.due.endOf("day");
             this.saveEdits("due");
         }
-        this._showDueTime = val;
     }
 
     setDueDateAndTimeStringsUnderEdit() {
-        this.setDueDateStringUnderEdit(this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : "");
-        this.setDueTimeStringUnderEdit(this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : "");
+        this._dueDateStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : "";
+        this._dueTimeStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : "";
     }
 
     /**
      * Set the date portion of the DateTime as a string. 
-     * It does not need to be valid, if it is not, validation errors will be generated.
+     * It does not need to be valid. If it is invalid, validation errors will be generated.
      * If it is parseable with the time, update the actual Due 
      * DateTime. 
      * @param dateString The string the user submitted for the date portion.
      */
-    setDueDateStringUnderEdit (dateString : string) {
-        this.dueDateStringUnderEdit = dateString;
+    set dueDateStringUnderEdit (dateString : string) {
+        this._dueDateStringUnderEdit = dateString;
         if (dateString === "") {
-            this.due = null;
+            this._due = null;
             return;
         }
         if (this.validationErrors.dueDateStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
-                this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : this.dueTimeStringUnderEdit);
+                this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : this.dueTimeStringUnderEdit);
             if (!newDate.invalid) {
-                this.due = newDate;
+                // If the date generated using the time part of the current due datetime and the 
+                // date string under edit is valid, update underlying due datetime
+                this._due = newDate;
             }
         }
     }
+    get dueDateStringUnderEdit () { return this._dueDateStringUnderEdit; }
     /**
      * Set the time portion of the DateTime as a string. 
-     * It does not need to be valid, if it is not, validation errors will be generated.
+     * It does not need to be valid. If it is invalid, validation errors will be generated.
      * If it is parseable with the date, update the actual Due 
      * DateTime. 
      * @param timeString The string the user submitted for the time portion.
      */
-    setDueTimeStringUnderEdit (timeString : string) { 
-        this.dueTimeStringUnderEdit = timeString;
+    set dueTimeStringUnderEdit (timeString : string) { 
+        this._dueTimeStringUnderEdit = timeString;
         if (this.validationErrors.dueTimeStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(
                 this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : this.dueDateStringUnderEdit,
                 timeString);
             if (!newDate.invalid) {
-                this.due = newDate;
+                // If the date generated using the date part of the current due datetime and the 
+                // time string under edit is valid, update underlying due datetime
+                this._due = newDate;
             }
         }
     }
+    get dueTimeStringUnderEdit () { return this._dueTimeStringUnderEdit; }
 
     /**
      * @returns if this task is overdue at the moment this method
@@ -496,7 +518,7 @@ export class TaskModel {
             return this._store.API.updateTask(this.id, update).then(
                 result => result,
                 reason => {
-                    addAlert(document.querySelector('#home-wrapper'), 
+                    addAlert(document.getElementById(HOME_ID), 
                     ERROR_ALERT, 
                     `Task could not be updated - ${getLegibleErrors(reason.response.data)}`);
                     // Revert changes
@@ -614,7 +636,7 @@ export class TaskModel {
             },
             (reason) => {
                 addAlert(
-                    document.querySelector('#home-wrapper'), 
+                    document.getElementById(HOME_ID), 
                     ERROR_ALERT, 
                     `Could not add task - ${getLegibleErrors(reason.response.data.errors)}`
                 );
@@ -691,11 +713,11 @@ export class TaskModel {
             ],
             workInterval: [
                 {
-                    text: `Due time must be after start time`,
+                    text: `Start time must come before due time`,
                     fail: ({start=this.start, due=this.due}) => start && due && start >= due && start.hasSame(due, 'day'),
                 },
                 {
-                    text: `Due date must be on or after start date`,
+                    text: `Start must come before due`,
                     fail: ({start=this.start, due=this.due}) => start && due && start >= due && !start.hasSame(due, 'day'),
                 },
             ],

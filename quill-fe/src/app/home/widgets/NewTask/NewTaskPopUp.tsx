@@ -100,7 +100,11 @@ export const AddNewTaskPopUp = observer(({
                                     inputProps={
                                         { 
                                             value: taskToCreate.startDateStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartDateStringUnderEdit(e.target.value);},
+                                            onChange: function (e: ChangeEvent) { 
+                                                if (e.target) {
+                                                    taskToCreate.startDateStringUnderEdit = e.target.value;
+                                                }
+                                            },
                                         }
                                     }
                                     errors={taskToCreate.validationErrors.startDateStringUnderEdit}
@@ -111,8 +115,11 @@ export const AddNewTaskPopUp = observer(({
                                     inputProps={
                                         { 
                                             value: taskToCreate.startTimeStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setStartTimeStringUnderEdit(e.target.value); }
-            
+                                            onChange: function (e: ChangeEvent) { 
+                                                if (e.target) {
+                                                    taskToCreate.startTimeStringUnderEdit = e.target.value;
+                                                } 
+                                            }
                                         }
                                     }
                                     errors={taskToCreate.validationErrors.startTimeStringUnderEdit}
@@ -127,8 +134,11 @@ export const AddNewTaskPopUp = observer(({
                                     inputProps={
                                         { 
                                             value: taskToCreate.dueDateStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDueDateStringUnderEdit(e.target.value); }
-            
+                                            onChange: function (e: ChangeEvent) { 
+                                                if (e.target) {
+                                                    taskToCreate.dueDateStringUnderEdit = e.target.value;
+                                                }
+                                            }
                                         }
                                     }
                                     errors={taskToCreate.validationErrors.due.concat(taskToCreate.validationErrors.workInterval, taskToCreate.validationErrors.dueDateStringUnderEdit)}
@@ -139,7 +149,11 @@ export const AddNewTaskPopUp = observer(({
                                     inputProps={
                                         { 
                                             value: taskToCreate.dueTimeStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { e.target && taskToCreate.setDueTimeStringUnderEdit(e.target.value); }
+                                            onChange: function (e: ChangeEvent) { 
+                                                if (e.target) {
+                                                    taskToCreate.dueTimeStringUnderEdit = e.target.value;
+                                                } 
+                                            }
             
                                         }
                                     }

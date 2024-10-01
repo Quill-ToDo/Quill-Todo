@@ -37,24 +37,11 @@
   justify-content: center;
   gap: var(--focus-border-width);
 }
-  .btn-hover-target:hover .appear-on-hover,
-  .btn-hover-target:focus-within .appear-on-hover {
-    opacity: 100%;
-  }
-  
-  .appear-on-hover {
-    opacity: 0%;
-    transition: opacity .5s;
-    position: absolute;
-    right: -35px;
-    top: 5px;
-  }
 
   .task-wrapper .date-time-wrapper label.date {
     display: flex;
     justify-content: center;
   }
-
 /*#endregion Time and date */
 /*#region Title */
 .task-wrapper .title {
@@ -83,7 +70,7 @@
 
 .task-wrapper.complete .title {
   color: var(--g7);
-  text-decoration: line-through solid var(--g7) 2px;
+  text-decoration: line-through solid var(--g5) 2px;
 } 
 
 .overdue.title,

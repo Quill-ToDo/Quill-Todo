@@ -23,9 +23,13 @@ margin-bottom: 2px;
 }
 
 .floating {
-    position: absolute;
-    right: 0px;
+    float: right;
 }
+
+.floating .right {
+    right: -35px;
+}
+
 /*#endregion Global Styling*/
 /*#region Home Layout*/
 #home-wrapper {
@@ -426,6 +430,23 @@ button:focus {
     color: var(--focus-highlight);}
 .btn:hover i svg, .btn:focus i svg {
     stroke: var(--focus-highlight);
+}
+
+.btn-hover-target:hover .appear-on-hover,
+.btn-hover-target:focus-within .appear-on-hover {
+  opacity: 100%;
+}
+
+.btn-hover-target {
+  position: relative;
+}
+
+.appear-on-hover {
+  opacity: 0%;
+  transition: opacity .5s;
+  position: absolute;
+  right: 0px;
+  top: 5px;
 }
 /*#endregion Button States*/
 .btn i {

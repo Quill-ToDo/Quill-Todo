@@ -1,49 +1,46 @@
 import {
-    FloatingTree,
-    FloatingNode,
-    useFloatingNodeId,
-    FloatingPortal,
-    useFloating,
-    useFloatingParentNodeId,
+    FloatingFocusManager,
     UseFloatingOptions,
     useInteractions,
+    FloatingPortal,
     ElementProps,
+    useFloating,
     useDismiss,
-    FloatingFocusManager,
     offset,
     shift,
     flip,
+    ReferenceType,
+    size,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
-import { RefObject, useContext, useRef, useState } from 'react';
-import { AlertWrapperContext } from '@/alerts/AlertWrapper';
-import { PopupParams } from '../@util/Popup';
+import React, { Dispatch, ReactNode, SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
+import { TetheredPopupParams, StandalonePopupParams, SharedPopupProps } from '../@util/Popup';
 import { combineClassNamePropAndString } from '@util/constants';
-import { Draggable } from '../@util/Draggable';
+import { Draggable } from '@/util/Draggable';
+
+export const PORTAL_HOLDER_ID = "portal-holder";
 
 const loading = <div className="loading">
     <p>Loading...</p>
 </div>;
 
-export const FloatingUiPopupImplementation = observer((
-    {   
-        renderPopupContent,
-        renderElementToClick,
-        placement,
-        alignment,
-        doneLoading, 
-        fullscreenable, 
-        draggable,
-        useDragHandle,
-        ...props
-    } : PopupParams) => {
-    const parentNodeId = useFloatingParentNodeId();
-    const alertWrapperContext: RefObject<any> = useContext(AlertWrapperContext);
-    const [showPopup, setShowPopup] = useState(false);
-    const close = () => setShowPopup(false);
-    const open = () => setShowPopup(true);
-    const thisPopup = useRef(null);
-
+/**
+ * Return the "guts" of the popup with Floating UI content applied as needed
+ * 
+ * @returns 
+ */
+const getInnerPopupContent = ({
+    innerContent,
+    isOpen,
+    openChange,
+    placement,
+    alignment,
+    doneLoading, 
+    draggable,
+    useDragHandle,
+    ...props
+}: SharedPopupProps 
+& {innerContent: ReactNode, isOpen: boolean, openChange: Dispatch<SetStateAction<boolean>>}) => {
     // Configure middleware
     const middleware = [];
     if (placement === "centered") {
@@ -55,12 +52,18 @@ export const FloatingUiPopupImplementation = observer((
     } else {
         middleware.push(offset(10));
     }
-
+    
     middleware.push(shift());
     middleware.push(flip());
+    // TODO: Not sure if this is doing anything
+    middleware.push(size({apply: ({availableHeight, elements}) => {
+        elements.floating.style.maxHeight = availableHeight >= elements.floating.scrollHeight
+        ? ''
+        : `${availableHeight}px`;
+      }}));
     const positioning: UseFloatingOptions = {
-        open: showPopup,
-        onOpenChange: setShowPopup,
+        open: isOpen,
+        onOpenChange: openChange,
         // "centered" is a placement I made myself, other combos are Floating UI-specific 
         // https://floating-ui.com/docs/useFloating#placement
         placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
@@ -77,58 +80,146 @@ export const FloatingUiPopupImplementation = observer((
     }));
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
 
-    // This is a root, so we wrap it with the context
-    const popupContent = <FloatingNode id={useFloatingNodeId()}>
-        {/* Portal this shit away */}
-        { positioning.open && <FloatingPortal 
-                id={"portal-holder"}
-                root={alertWrapperContext.current}
+    // Apply focus manager to popup content
+    const innerPopupContent = <FloatingFocusManager context={context}>
+            <div 
+                ref={refs.setFloating} 
+                style={floatingStyles} 
+                {...props}
+                {...getFloatingProps()}
+                className={combineClassNamePropAndString({className: `floating popup`, props: {...props, ...getFloatingProps()}})}
             >
-                {/* Actual popup */}
-                <FloatingFocusManager context={context}>
-                    <div 
-                        className='floating'
-                        ref={refs.setFloating} 
-                        style={floatingStyles} 
-                        {...props}
-                        {...getFloatingProps()}
-                    >
-                        { draggable ? 
-                            <Draggable 
-                                droppable={false} 
-                                useHandle={useDragHandle} 
-                            > 
-                                <section 
-                                    className={combineClassNamePropAndString({className: `popup`, props: props})}
-                                    ref={thisPopup}
-                                >
-                                    { doneLoading ? renderPopupContent({closePopup: close}) : loading }
-                                </section>
-                            </Draggable> 
-                            : 
-                            <section 
-                                className={combineClassNamePropAndString({className: `popup`, props: props})}
-                                ref={thisPopup}
-                            >
-                                { doneLoading ? renderPopupContent({closePopup: close}) : loading }
-                            </section> 
-                        } 
-                    </div>
-                </FloatingFocusManager>
-            </FloatingPortal>
-        }
-    </FloatingNode>
+                { doneLoading ? innerContent : loading }
+            </div>
+    </FloatingFocusManager>;
 
+    // Make focus-managed inner content draggable if needed 
+    const possibleDraggableContent =  draggable ? <Draggable 
+        droppable={false} 
+        useHandle={useDragHandle} 
+        actionTitle='Move popup'
+        renderDraggableItem={(draggableProps) => 
+            <div 
+                    className={combineClassNamePropAndString({className: `popup`, props: {...draggableProps}})}
+                    role={"dialog"}
+                    {...draggableProps}
+                >
+                { innerPopupContent }
+            </div>
+        }/>   
+        : innerPopupContent;
+
+    // Portal this shit away
+    return {
+        content: <FloatingPortal 
+                        id={PORTAL_HOLDER_ID}
+                    >
+                        { possibleDraggableContent }
+                    </FloatingPortal>,
+        refs: refs,
+        referenceProps: getReferenceProps,
+    }
+}
+
+/** Use Floating UI to create a positioned popup */
+export const FloatingUiPopupImplementation = observer((
+    {   
+        renderPopupContent,
+        renderElementToClick,
+        placement,
+        alignment,
+        doneLoading, 
+        draggable,
+        useDragHandle,
+        ...props
+    } : TetheredPopupParams) => {
+    const [showPopup, setShowPopup] = useState(false);
+    const close = () => {
+        setShowPopup(false);
+    };
+    const open = () => {
+        setShowPopup(true);
+    };
+    
+    const popupSetup = getInnerPopupContent({
+        innerContent: renderPopupContent({closePopup: close}),
+        isOpen: showPopup,
+        openChange: setShowPopup,
+        placement: placement, 
+        alignment: alignment, 
+        doneLoading: doneLoading,
+        draggable: draggable,
+        useDragHandle: useDragHandle,
+        ...props
+    });
+    
     return <>
         {/* Anchor element  */}
         <div 
-            ref={refs.setReference}
+            ref={popupSetup.refs.setReference}
             className={"popup-anchor"}
-            {...getReferenceProps()}
+            {...popupSetup.referenceProps()}
         >
             { renderElementToClick(open) } 
         </div>  
         {/* Popup */}
-        { parentNodeId ? popupContent : <FloatingTree> {popupContent} </FloatingTree> }
+        { showPopup && popupSetup.content }
     </>
 })
+
+/**
+ * Render a popup positioned near a reference element that will persist even if the
+ * reference is unmounted.
+ * Returns a method so that the user can set the reference positioning element and
+ * a method that opens the popup and a method that closes the popup.
+ * Must be wrapped with StandalonePopupContextProvider.
+ */
+export const setUpFloatingUiStandalonePopup = (
+    {
+        children,
+        setPopupContent,
+        placement,
+        alignment,
+        doneLoading,
+        draggable,
+        useDragHandle,
+        ...props
+        
+    } : StandalonePopupParams & { setPopupContent: Dispatch<SetStateAction<any>>}  )
+    : { 
+        openPopup: () => void,
+        closePopup: () => void,
+        setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
+    } =>  {
+    const [showPopup, setShowPopup] = useState(false);
+    
+    const popupSetup = getInnerPopupContent({
+        innerContent: children,
+        isOpen: showPopup,
+        openChange: setShowPopup,
+        placement: placement, 
+        alignment: alignment, 
+        doneLoading: doneLoading,
+        draggable: draggable,
+        useDragHandle: useDragHandle,
+        ...props
+    });
+    if (showPopup) {
+        setPopupContent(popupSetup.content);
+    }
+    
+    const open = () => {
+        setShowPopup(true);
+    };
+    
+    const close = () => {
+        setShowPopup(false);
+        setPopupContent(null);
+    };
+
+    return {
+        openPopup: open,
+        closePopup: close,
+        setPopupPositioningAnchor: popupSetup.refs.setReference,
+    }
+}

@@ -57,14 +57,15 @@
     flex: 0 1 0px;
   }
 
-  .list.widget .task-wrapper.complete:hover p,
-  .list.widget .task-wrapper.complete .title:focus p,
-  .list.widget .task-wrapper.complete:hover s,
-  .list.widget .task-wrapper.complete .title:focus s {
+.task-wrapper.complete .title:focus *,
+.task-wrapper.complete:hover *,
+.task-wrapper.complete.hover *,
+.task-wrapper.complete.hover .checkmark {
     color: var(--g2);
 }
 
-.list.widget .task-wrapper.complete:hover s,
-.list.widget .task-wrapper.complete .title:focus s {
+.task-wrapper.complete:hover s,
+.task-wrapper.complete.hover s,
+.task-wrapper.complete .title:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }

@@ -1,10 +1,12 @@
 import { observer } from "mobx-react-lite";
-import { ReactNode, } from "react";
+import { ComponentPropsWithRef, ReactNode, } from "react";
 import "./draggable.css";
 import { DraggableDndKitImplementation } from "@/external/DndKit";
 
 export type DraggableParams = {
-    children: ReactNode,
+    // These props must be spread out onto the draggable item
+    renderDraggableItem: (props?: ComponentPropsWithRef<any>) => ReactNode,
+    actionTitle: string,
     useHandle?: boolean,
     droppable?: boolean,
     dropTargetTypes?: string[],
@@ -24,13 +26,14 @@ export const Draggable = observer((
     {
         useHandle=false,
         droppable=false,
-        children,
+        actionTitle="Drag item",
+        ...props
     } : DraggableParams) => {
         return <DraggableDndKitImplementation 
+            actionTitle={actionTitle}    
             useHandle={useHandle}
             droppable={droppable}
-        >
-            {children}
-        </DraggableDndKitImplementation>
+            {...props}
+        />
     })
 

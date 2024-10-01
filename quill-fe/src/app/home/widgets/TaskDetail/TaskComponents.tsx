@@ -4,13 +4,29 @@ import {
     TaskContext,
     TaskModel,
 } from "@/store/tasks/TaskModel";
-import { DateTime } from "luxon";
+import { DateTime, DateTimeFormatOptions } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithoutRef, CSSProperties, ForwardedRef, forwardRef, HTMLProps, MouseEvent, MutableRefObject, ReactNode, Ref, RefObject, useCallback, useContext, useEffect, useId, useRef, useState } from "react";
+import { 
+    ComponentPropsWithoutRef, 
+    CSSProperties, 
+    ForwardedRef, 
+    forwardRef, 
+    HTMLProps, 
+    MouseEvent, 
+    MutableRefObject, 
+    ReactNode, 
+    useCallback, 
+    useContext, 
+    useEffect, 
+    useId, 
+    useRef, 
+    useState, 
+} from "react";
 import TaskDetail from "./TaskDetail";
-import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
-import { PopupOnClick } from "@/app/@util/Popup";
+import { BTN_APPEAR_ON_HOVER_CLASS, BTN_APPEAR_TARGET_CLASS, combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
+import { setUpStandalonePopup, TetheredPopupOnClick } from "@/app/@util/Popup";
 import './tasks.css';
+import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 
 const HOVER_CLASS = "hover";
 
@@ -65,6 +81,29 @@ export const TaskWrapper = observer((
     </TaskContext.Provider>;
 });
 
+/**
+ * This will render a button that will clear <fieldName> provided an onClick method to do so. 
+ * Give a parent element the class BTN_APPEAR_TARGET_CLASS so that the clear button will appear when 
+ * that element is being hovered.
+ */
+const ClearTaskFieldButton = observer(({
+    fieldName,
+    onClick,
+    ...props
+} : {
+    fieldName: string,
+    onClick: (e: MouseEvent) => void,
+}) => {
+    return <button 
+        {...props}
+        title={`Clear ${fieldName}`}
+        className={combineClassNamePropAndString({className: `clear floating ${BTN_APPEAR_ON_HOVER_CLASS} btn x-small square`, props: props})}
+        onClick={(e) => {onClick(e)}}
+        >
+        {ICONS.X}
+    </button>
+})
+
 export const TaskComponentAndHeader = observer(({
     labelElement,
     fieldName,
@@ -73,31 +112,25 @@ export const TaskComponentAndHeader = observer(({
     children,
 }: {
     labelElement: ReactNode,
-    fieldName: "title" | "color" | "description" | "start time" | "start date" | "due time" | "due date",
+    fieldName: "title" | "color" | "description" | "start" | "due",
     optional?: boolean,
     onCloseClick: (e: MouseEvent) => void,
     children: ReactNode,
 }) => {
     return <div
-        className="field"
+        className={`field ${fieldName} ${BTN_APPEAR_TARGET_CLASS}`}
     >
         <div 
-            className="rows take-full-space space-between"
+            className="rows space-between"
         >
             { labelElement }
             <div className="field-btns">
                 { optional && 
-                    <button 
-                        title={`Clear ${fieldName}`}
-                        className={`btn x-small square`}
-                        onClick={(e: MouseEvent) => onCloseClick(e)}
-                        >
-                        {ICONS.X}
-                    </button>
+                    <ClearTaskFieldButton fieldName={fieldName} onClick={onCloseClick} />
                 }
             </div>
         </div>
-        <div>
+        <div className="dark-section">
             { children }
         </div>
     </div>
@@ -172,9 +205,12 @@ const ColorGridPicker = observer(({task, closePicker}: {
     const inputRef = useRef(null);
     const startingTaskColor = useRef(task.color);
 
-    const close = useCallback(() => {
+    const close = useCallback(async () => {
         if (task.color != startingTaskColor.current) {
-            task.saveToServer({color: task.color});
+            const edits = task.saveEdits("color");
+            edits && edits.then(() => {
+                startingTaskColor.current = task.color;
+            })
         }
         closePicker();
     }, [task.color, startingTaskColor]);
@@ -243,7 +279,7 @@ export const ColorBubble = observer(({
             <circle cx="50" cy="50" r="50" fill={task.color}/>
         </svg>;
 
-    return openColorPicker ? <PopupOnClick 
+    return openColorPicker ? <TetheredPopupOnClick 
                 renderElementToClick={(open) => <div
                     className="color-bubble-wrapper">
                     <input
@@ -274,6 +310,9 @@ export const ColorBubble = observer(({
 });
 //#endregion 
 //#region Title
+/** Render a task title that cannot be edited.
+ * If indicated by openTaskDetailPopup, will open details popup for that task on click.
+ */
 const PlainTaskTitle = observer((
     {
         passedTask,
@@ -284,50 +323,58 @@ const PlainTaskTitle = observer((
         style?: CSSProperties,
     }
 ) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const [task, setTask] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
+    const closePopupCallback = useRef((undefined as unknown) as (() => void));
 
-    return (
-    <PopupOnClick 
-        renderElementToClick={(openPopup) => 
-                <button
-                    type="button"
-                    onClick={openPopup}
-                    aria-haspopup="dialog"
-                    className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})} 
-                >
-                    <p style={props.style}> 
-                        { task.complete ? <s>{displayTitle}</s> : displayTitle } 
-                    </p>
-                </button>
-        }
-        renderPopupContent={({closePopup}) => <TaskDetail 
-                task={task} 
-                close={closePopup}
-            />}
-        placement="right"
-        alignment="middle"
-        draggable={true}
-        useDragHandle={true}
-        {...{className: "task-detail"}}
+    const taskDetailContent = <TaskDetail 
+        task={task} 
+        close={closePopupCallback.current}
     />
-)});
+    const popupControls = setUpStandalonePopup({
+        children: taskDetailContent,
+        placement: "right",
+        alignment: "middle",
+        draggable: true,
+        useDragHandle: true,
+        ...{className: "task-detail"},
+    });
+    closePopupCallback.current = (popupControls.closePopup);
 
+    return <button
+            type="button"   
+            onClick={popupControls.openPopup}
+            ref={popupControls.setPopupPositioningAnchor}
+            aria-haspopup="dialog"
+            className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})}
+        >
+        <p style={props.style}> 
+            { task.complete ? <s>{displayTitle}</s> : displayTitle } 
+        </p>
+    </button>
+});
+
+/**
+ *  Render a task title that can be edited on click.
+ */
 const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskModel}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: MutableRefObject<string> = useRef(task.title);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const finishEditing = () => {
+    const finishEditing = async () => {
         if (task.title && task.title !== startingText.current) {
-            task.saveToServer({title: task.title});
+            const edits = task.saveEdits("title");
+            edits && edits.then(() => {
+                startingText.current = task.title;
+            })
         }
     }
 
     const errorId = `detail-${task.id}-title-errors`;
 
     return <label 
-            className="input-sizer stacked title-sizing"
+            className="title input-sizer stacked title-sizing"
             data-expand-content={task.title}
             >
             <textarea 
@@ -356,6 +403,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
     </label>
 }));
 
+/** Render a task title. Can make editable on click with editAllowed=true */
 export const TaskTitle = observer((
     {
         passedTask, 
@@ -426,14 +474,17 @@ const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
     passedTask?: TaskModel,
 }>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
-    const startingText: RefObject<string> = useRef(task.title);
+    const startingText: MutableRefObject<string> = useRef(task.description);
     
     // Use input elements if editable to try and get a sort of inline effect
     const editInputRef = ref ? ref : useRef(null);
     const errorId = useId();
     const finishEditing = () => {
-        if (editInputRef.current && editInputRef.current.value !== startingText.current) {
-            task.saveToServer({description: editInputRef.current.value});
+        if (task.description !== startingText.current) {
+            const edits = task.saveEdits("description");
+            edits && edits.then(() => {
+                startingText.current = task.description;
+            })
         }
     }
 
@@ -441,7 +492,11 @@ const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
         editInputRef && editInputRef.current ? (editInputRef.current as HTMLElement).focus():null;
     }, [])
 
-    return <div>
+    return <>
+        <div 
+            className="input-sizer take-full-width"
+            data-expand-content={task.description}
+        >
             <textarea 
                 value={task.description}
                 aria-label={"Description"}
@@ -453,37 +508,249 @@ const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
                 {...props}
                 ref={editInputRef}
             />
+        </div>
             {
                 !!task.validationErrors.description.length && <ErrorsList
                     errors={task.validationErrors.description}
                     id={errorId}
                 />
             }
-    </div>
+    </>
 }));
 //#endregion 
 //#region Date / Time
+export const TaskDueDate = observer(({
+    format,
+    passedTask,
+    editable,
+} : {
+    format: DateFormat,
+    passedTask?: TaskModel,
+    editable?: boolean,
+}) => {
+    const task = useTaskContextOrPassedTask(passedTask);
+
+    return <TaskDate 
+        type={TaskModel.VisualStyles.Due}
+        passedTask={task}
+        editable={editable}
+    />
+})
+
+export const TaskStartDate = observer(({
+    format,
+    passedTask,
+    editable,
+} : {
+    format: DateFormat,
+    passedTask?: TaskModel,
+    editable?: boolean,
+
+}) => {
+    const task = useTaskContextOrPassedTask(passedTask);
+    return <TaskDate 
+        type={TaskModel.VisualStyles.Start}
+        passedTask={task}
+        editable={editable}
+    />
+})
+
 /**
  * Displays the date and time for a task
  * 
  */
-export const DateTimeWrapper = observer(({
+export const TaskDate = observer(({
     passedTask, 
     type, 
-    dateFormat=DateTime.DATE_SIMPLE
+    editable=false,
 }: {
-    passedTask?: TaskModel, 
     type: "start" | "due", 
-    dateFormat?: object
+    passedTask?: TaskModel, 
+    editable?: boolean
 }) => {
+    const dueType = TaskModel.VisualStyles.Due;
     const task = useTaskContextOrPassedTask(passedTask);
-    const date = type === TaskModel.VisualStyles.Start ? task.start : task.due;
-    const overdue = type === TaskModel.VisualStyles.Due && task.overdue();
-    return (
-        <time dateTime={date} className={`date-time-wrapper${overdue ? " overdue" : ""}`} suppressHydrationWarning > 
-            <p className="date">{date.toLocaleString(dateFormat)}</p>
-            <p className="time">{date.toLocaleString(DateTime.TIME_SIMPLE)}</p>
-        </time>
-    );
+    const isDueType = type === dueType;
+    const overdue = isDueType && task.overdue();
+    const wrapperClasses = `date-time-wrapper${overdue ? " overdue" : ""}`;
+    if (editable) {
+        return <EditableTaskDate 
+            task={task}
+            isDueType={isDueType}
+            wrapperClasses={wrapperClasses}
+            type={type}
+        />
+    }
+    return <PlainTaskDate 
+        task={task}
+        isDueType={isDueType}
+        wrapperClasses={wrapperClasses}
+    />;
 });
+
+type DateImplementationParams = {
+    task: TaskModel,
+    wrapperClasses: string,
+    isDueType: boolean,
+}
+
+const PlainTaskDate = observer(({
+    task, 
+    wrapperClasses, 
+    isDueType,
+}: DateImplementationParams) => {
+    const date = isDueType ? task.due : task.start;
+    return date ? <time dateTime={date.toISO()} className={wrapperClasses} suppressHydrationWarning > 
+        <p className="date">{date.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token)}</p>
+        <p className="time">{date.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token)}</p>
+    </time> : <></>
+});
+
+
+const EditableTaskDate = observer(({
+    task, 
+    isDueType,
+    type,
+    wrapperClasses,
+}: DateImplementationParams & {type: "start" | "due"}) => {
+    const dateField = isDueType ? task.due : task.start;
+    const startingDate = useRef(dateField);
+    const workIntervalErrorListId = useId();
+
+    return <div className={`${wrapperClasses}`}>
+        <EditableDatePortion
+            type={type}
+            task={task}
+            isDueType={isDueType}
+            dateField={dateField}
+            startingDate={startingDate}
+        />
+        <EditableTimePortion 
+            type={type}
+            task={task}
+            isDueType={isDueType}
+            dateField={dateField}
+            startingDate={startingDate}
+        />
+        { task.validationErrors.workInterval.length > 0 && 
+            <ErrorsList errors={task.validationErrors.workInterval} id={workIntervalErrorListId}/> 
+        }
+    </div>
+});
+
+const EditableDatePortion = observer(({
+    task,
+    isDueType,
+    dateField,
+    startingDate,
+    type,
+}: {
+    task: TaskModel,
+    isDueType: boolean,
+    dateField: DateTime<boolean> | null,
+    startingDate: MutableRefObject<DateTime<boolean> | null>,
+    type: "due" | "start",
+}) => {
+    const dateStringUnderEdit = isDueType ? task.dueDateStringUnderEdit : task.startDateStringUnderEdit;
+    const dateErrors = (isDueType ? task.validationErrors.dueDateStringUnderEdit : task.validationErrors.startDateStringUnderEdit);
+    const updateTaskDate = isDueType ? (val: string) => {task.dueDateStringUnderEdit = val} : (val: string) => {task.startDateStringUnderEdit = val};
+    const dateErrorListId = useId();
+
+    return <label
+        className="date"
+    >
+        <div className="input-sizer stacked" data-expand-content={dateStringUnderEdit}>
+            <input 
+                aria-invalid={dateErrors.concat(task.validationErrors.workInterval).length !== 0} 
+                value={dateStringUnderEdit}
+                aria-describedby={dateErrorListId}
+                placeholder="date e.g. 7/6/2024"
+                onChange={(e) => {
+                    if (e.target) {
+                        updateTaskDate(e.target.value);
+                    }
+                }}
+                onBlur={(e) => {
+                    if (dateField !== startingDate.current && task.isValid) {
+                        task.saveEdits(type);
+                    }
+                }}
+            />
+        </div>
+        { dateErrors.length > 0 && 
+            <ErrorsList errors={dateErrors} id={dateErrorListId}/> 
+        }
+    </label>
+})
+
+const EditableTimePortion = observer(({
+    task,
+    isDueType,
+    dateField,
+    startingDate,
+    type,
+}: {
+    task: TaskModel,
+    isDueType: boolean,
+    dateField: DateTime<boolean> | null,
+    startingDate: MutableRefObject<DateTime<boolean> | null>,
+    type: "due" | "start",
+}) => {
+    const showTime = isDueType ? task.showDueTime : task.showStartTime;
+    const timeStringUnderEdit = isDueType ? task.dueTimeStringUnderEdit : task.startTimeStringUnderEdit;
+    const timeErrors = isDueType ? task.validationErrors.dueTimeStringUnderEdit : task.validationErrors.startTimeStringUnderEdit;
+    const timeErrorListId = useId();
+    const updateTaskTime = isDueType ? (val: string) => {task.dueTimeStringUnderEdit = val;} : (val: string) => {task.startTimeStringUnderEdit = val;};
+    const setShowTaskTime = isDueType ? (val: boolean) => {
+        task.showDueTime = val;
+        task.saveEdits("showDueTime");
+    } : (val: boolean) => {
+        task.showStartTime = val;
+        task.saveEdits("showStartTime");
+    };
+
+    return showTime ?
+    <label
+        className="time" 
+        >
+                <div className={`aligned ${BTN_APPEAR_TARGET_CLASS}`}>
+                    <div className="input-sizer" data-expand-content={timeStringUnderEdit}>
+                        <input 
+                            aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
+                            value={timeStringUnderEdit} 
+                            placeholder="time e.g. 7:00"
+                            onChange={(e) => {updateTaskTime(e.target.value)}}
+                            onBlur={(e) => {
+                                if (startingDate && dateField !== startingDate.current) {
+                                    task.saveEdits(type);
+                                }
+                                else {
+                                    task.abortEdits(type);
+                                }
+                            }}
+                            />
+                    </div>
+                    <ClearTaskFieldButton 
+                        fieldName={`${type} time`}
+                        onClick={() => {
+                            setShowTaskTime(false);
+                        }}
+                        {...{className:"right"}}
+                        />
+                </div>
+                { timeErrors.length > 0 && 
+                    <ErrorsList errors={timeErrors} id={timeErrorListId}/>
+                } 
+            </label> 
+            : <button 
+            className="btn" 
+            style={{
+                fontSize: "inherit", 
+                color: "inherit"
+            }}
+            onClick={() => {setShowTaskTime(true);}}
+            >
+                Add time
+            </button> 
+})
 //#endregion 

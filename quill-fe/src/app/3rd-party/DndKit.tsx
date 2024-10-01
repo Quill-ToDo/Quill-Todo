@@ -6,20 +6,20 @@ import {
     PointerSensor,    
     SensorDescriptor,  
     TouchSensor,  
-    useDndContext,  
     useDndMonitor,  
     useDraggable,
     useSensor,
     useSensors,
 } from '@dnd-kit/core';
 import type {Transform} from '@dnd-kit/utilities';
-import { MutableRefObject, ReactNode, useId, useRef, useState } from 'react';
+import { ComponentPropsWithRef, MutableRefObject, ReactNode, useId, useRef, useState } from 'react';
 import { DRAGGABLE_HANDLE_CLASS, DraggableParams } from '@util/Draggable';
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 
 interface DragOptions {
-    children: ReactNode,
+    renderDraggableItem: (props?: ComponentPropsWithRef<any>) => ReactNode,
     useDragHandle?: boolean,
+    actionTitle: string,
 }
 
 /**
@@ -28,11 +28,15 @@ interface DragOptions {
  */
 const FreeDrag =  ({
     useDragHandle,
-    children,
+    renderDraggableItem,
+    actionTitle,
 }: DragOptions
 ) => {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
         id: useId(),
+        attributes: {
+            role: "generic",
+        }
     });
     let goToPosition = {x: 0, y: 0};
     const startingPosition: MutableRefObject<{x: number, y: number} | null> = useRef(null);
@@ -50,15 +54,16 @@ const FreeDrag =  ({
         goToPosition.y += transform.y;
     }
     
-    return <div
-        ref={setNodeRef} 
-        style={{transform: translate(goToPosition.x, goToPosition.y )}}
-        className={useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS}
-        {...listeners}
-        {...attributes}
-    >
-        { children }
-    </div>;
+    return renderDraggableItem({
+            ref: setNodeRef,
+            style: { 
+                transform: translate(goToPosition.x, goToPosition.y),
+            },
+            className: useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS,
+            ...listeners,
+            ...attributes,
+            "aria-label": actionTitle,
+        });
 }
 
 /**
@@ -66,11 +71,15 @@ const FreeDrag =  ({
  * @returns 
  */
 const PickUpAndMove = ({
-    children,
+    renderDraggableItem,
     useDragHandle,
+    actionTitle,
 }: DragOptions) => {
     const {attributes, listeners, setNodeRef} = useDraggable({
         id: useId(),
+        attributes: {
+            role: "button",
+        }
     });
     
     const [isDragging, setIsDragging] = useState(false);
@@ -85,19 +94,18 @@ const PickUpAndMove = ({
     });
     
     return <>
-        <div
-            ref={setNodeRef} 
-            className={useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS}
-            {...listeners}
-            {...attributes}
-        >
-            { children }
-        </div>
+        { renderDraggableItem({
+            ref: setNodeRef,
+            className: useDragHandle ? undefined : DRAGGABLE_HANDLE_CLASS,
+            ...listeners,
+            ...attributes,
+            "aria-label": actionTitle,
+        }) }
         {/* This is the content rendered on the drag preview layer/overlay. Drag overlay should
         always be mounted */}
         <DragOverlay>
             { isDragging 
-                ? children
+                ? renderDraggableItem()
                 : null
             }
         </DragOverlay> 
@@ -111,8 +119,9 @@ const PickUpAndMove = ({
  */
 export const DraggableDndKitImplementation = ({ 
     droppable, 
-    children,
+    renderDraggableItem,
     useHandle,
+    actionTitle,
 } : DraggableParams) => {
     const modifiers: Modifier[] = [];
     const dragHandleSensor = useSensor(UseDragHandleSensor);
@@ -137,14 +146,14 @@ export const DraggableDndKitImplementation = ({
             droppable 
             ? <PickUpAndMove 
                 useDragHandle={useHandle}
-                >
-                { children }
-            </PickUpAndMove> 
+                actionTitle={actionTitle}
+                renderDraggableItem={renderDraggableItem}
+            />
             : <FreeDrag 
                 useDragHandle={useHandle}
-                > 
-                { children }
-            </FreeDrag>
+                actionTitle={actionTitle}
+                renderDraggableItem={renderDraggableItem}
+            /> 
         }
     </WrapWithContext>
 }

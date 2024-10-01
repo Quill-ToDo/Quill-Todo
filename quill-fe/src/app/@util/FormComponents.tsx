@@ -10,7 +10,7 @@ const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLo
  * @param errorIdRef the errorIdRef of this list of errors. Make this the props.value of aria-describedby for the element that has errors. 
  * @returns 
  */
-export const ErrorsList = ({
+export const ErrorsList = observer(({
     errors, 
     id,
     ...props
@@ -39,7 +39,7 @@ export const ErrorsList = ({
     else {
         return <p id={id} className="error-list">{errors[0]}</p>
     }
-}
+})
 
 export type FormFieldParams = {
     name: string;
@@ -108,6 +108,6 @@ export const FormField = observer((
     return <label className={`${safeName}`} {...moreLabelProps}>
         { name }
         { inputElement }
-        { areErrors ? ErrorsList({errors: errors, id: errorId}) : undefined }
+        { areErrors && <ErrorsList errors={errors} id={errorId} />}
     </label>
 });
