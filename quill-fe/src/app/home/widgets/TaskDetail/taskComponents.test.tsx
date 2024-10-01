@@ -1,0 +1,6 @@
+it.todo("should be able to update field")
+it.todo("should not update task when the value is not changed")
+it.todo("should show errors when input is invalid")
+it.todo("should be able to select a color from color picker")
+it.todo("should be able to enter a color hex code to color picker")
+it.todo("should be able to navigate the color picker via keyboard controls")

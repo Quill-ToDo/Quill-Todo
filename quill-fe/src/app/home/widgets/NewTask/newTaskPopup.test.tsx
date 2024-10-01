@@ -190,7 +190,8 @@ describe("should allow the user to create a new task", () => {
         expectValidSubmission();
     })
 
-    it.todo("with a valid start time chosen from the timepicker")
+    // it.todo("with a valid datetime chosen from the calendar")
+    // it.todo("with a valid start time chosen from the timepicker")
 })
 
 describe("should not allow the user to create a new task", () => {

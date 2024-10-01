@@ -6,13 +6,13 @@ import {
 import {act} from 'react';
 import { LIST_WIDGET_NAME, ListWidget } from '@/widgets/List/List';
 import Home from "@/app/page";
-import { BASE_DATE, MOCK_SERVER_HANDLER, testRoot, testTaskStore, testUser } from '@/testing/jest.setup';
+import { MOCK_SERVER_HANDLER, testRoot, testTaskStore, testUser } from '@/testing/jest.setup';
 import { TASK_DETAIL_POPUP_NAME } from './TaskDetail';
 import { http, HttpResponse } from 'msw';
 import { ERROR_TEXT } from '../Alerts/AlertWrapper';
 import { PARTIAL_DATETIME_FORMATS } from '@/app/@util/DateTimeHelper';
 
-const TASK_NAME = "Overdue incomplete"
+const TASK_NAME = MOCK_SERVER_HANDLER.peekTasks()[0].title;
 let list: HTMLElement;
 
 beforeEach(async () => {
@@ -29,28 +29,20 @@ const getTaskDetailsPopup = async (passedTaskName?: string) => {
         await testUser.click(listTask);
     })
     const popup = await screen.findByRole("dialog", {name: TASK_DETAIL_POPUP_NAME });
-    expect(popup).toBeInTheDocument();
     return popup;
 }
 
 it("should be able to open task details", async () => {
-    await getTaskDetailsPopup();
-});
+    expect(await getTaskDetailsPopup()).toBeInTheDocument();
 
-it("should be able to close task details", async () => {
-    // Arrange
-    const popup = await getTaskDetailsPopup();
-    // Act
-    await testUser.click(within(popup).getByRole("button", {name: "Close"}));
-    // Assert
-    expect(popup).not.toBeInTheDocument();
 });
 
 it("should display task details on show", async () => {
     // Arrange
     const popup = await getTaskDetailsPopup();
-    const due = BASE_DATE.minus({days: 7});
-    const start = BASE_DATE.minus({month: 1});
+    expect(popup).toBeInTheDocument();
+    const due = MOCK_SERVER_HANDLER.tasks.find((task) => TASK_NAME === task.title).due;
+    const start = MOCK_SERVER_HANDLER.tasks.find((task) => TASK_NAME === task.title).start;
     // Assert
     // This task doesn't have a desc
     expect(within(popup).getByText("Task description"));
@@ -64,29 +56,33 @@ it("should display task details on show", async () => {
 });
 
 describe("should be able to close details", () => {
-    it("by clicking off show", async () => {
+    it("by clicking close button", async () => {
         // Arrange
         const popup = await getTaskDetailsPopup();
-        const close = within(popup).findByRole("button", {name: "Close"});
+        expect(popup).toBeInTheDocument();
+        const close = await within(popup).findByRole("button", {name: "Close"});
         // Act
         await act(async () => {
             await testUser.click(close);
+        })
+        // Assert
+        expect(screen.queryByRole("dialog", {name: TASK_DETAIL_POPUP_NAME })).toBeNull();
+    });
+
+    it.todo("by clicking off of popup");
+
+    it("via escape button", async () => {
+        // Arrange
+        const popup = await getTaskDetailsPopup();
+        // Act
+        await act(async () => {
+            await testUser.keyboard('[Escape]');
         })
         // Assert
         expect(popup).not.toBeInTheDocument();
     });
 })
 
-it("should be able to close details via escape button", async () => {
-    // Arrange
-    const popup = await getTaskDetailsPopup();
-    // Act
-    await act(async () => {
-        await testUser.keyboard('[Escape]');
-    })
-    // Assert
-    expect(popup).not.toBeInTheDocument();
-});
 
 it("should not close details via any other buttons", async () => {
     // Cant be sure this is working before the one above i working
@@ -95,8 +91,9 @@ it("should not close details via any other buttons", async () => {
     // Act
     await act(async () => {
         await testUser.keyboard('k');
+        await testUser.keyboard('kgfjlfkd');
     })
-    expect(popup).not.toBeInTheDocument();
+    expect(popup).toBeInTheDocument();
 });
 
 it("should be able to mark tasks as complete from details and have it update in list", async () => {

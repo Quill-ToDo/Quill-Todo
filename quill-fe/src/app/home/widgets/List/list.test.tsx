@@ -9,8 +9,9 @@ import {
 } from '@testing-library/react';
 import {act} from 'react';
 import { testTaskStore, MOCK_SERVER_HANDLER, BASE_DATE, testUser } from "@/testing/jest.setup";
+import { PARTIAL_DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 
-const TASK_NAME = "Overdue incomplete";
+const TASK_NAME = MOCK_SERVER_HANDLER.peekTasks()[0].title;
 
 beforeEach(() => {
     render(<ListWidget passedStore={testTaskStore}/>);
@@ -38,7 +39,6 @@ it("should show loaded tasks in the list", async () => {
     await act(async () => {
         await testTaskStore.loadTasks();
         expect(testTaskStore.isLoaded).toBeTruthy();
-        render(<ListWidget passedStore={testTaskStore} />);
     })
     const list = screen.getByRole("region", {name: OVERDUE}); 
     // Assert
@@ -61,12 +61,20 @@ it("should show a message on the list if no tasks are present", async () => {
 it("should show the correct time and date in the list", async () => {
     // Arrange
     const list = await screen.findByRole("region", {name: LIST_WIDGET_NAME});
-    const listTaskLink = await within(list).findByRole("button", {name: TASK_NAME, exact: false});
-    const due = BASE_DATE.minus({days: 7}).setZone(DateTime.local().zoneName);
-    // Assert
-    // Validate that the dates are right
-    expect(within(listTaskLink).getByText(due.toLocaleString(DateTime.DATE_SHORT))).not.toBeNull();
-    expect(within(listTaskLink).getByText(due.toLocaleString(DateTime.TIME_SIMPLE))).not.toBeNull();
+    await act(async () => {
+        await testTaskStore.loadTasks();
+    })
+    logRoles(list);
+    const listTaskLink = await within(list).findByRole("listitem", {name: TASK_NAME, exact: false});
+    const task = MOCK_SERVER_HANDLER.peekTasks().find(task => task.title === TASK_NAME);
+    expect(task).toBeDefined()
+    if (task) {
+        const due = task.due;
+        // Assert
+        // Validate that the dates are right
+        expect(within(listTaskLink).getByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).not.toBeNull();
+        expect(within(listTaskLink).getByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))).not.toBeNull();
+    }
 })
 
 describe("should show uncompleted tasks", () => {
@@ -138,26 +146,28 @@ describe("should show tasks in the", () => {
 
     it("overdue section", async () => {
         // Tasks as defined in MockTaskApiHandler
-        const overdueTaskNames = ["Overdue incomplete", "Overdue complete", "No start"];
+        const overdueTaskNames = MOCK_SERVER_HANDLER.peekTasks().filter(task => task.due < DateTime.now()).map(task => task.title);
         const section = await screen.findByRole("region", {name: OVERDUE});
         ensureTasksInSection(overdueTaskNames, section)
     })
 
     it("upcoming section", async () => {
-        const upcomingTaskNames = ["Upcoming", "Upcoming span"];
+        const upcomingTaskNames = MOCK_SERVER_HANDLER.peekTasks().filter(task => task.start > DateTime.now()).map(task => task.title);
         const section = await screen.findByRole("region", {name: UPCOMING});
         ensureTasksInSection(upcomingTaskNames, section)
     })
 
     it("due today section", async () => {
-        const todayDue = ["Due today", "Due today span"];
-        const today = await screen.findByRole("region", {name: TODAY});
+        // Arrange
+        const todayDue = MOCK_SERVER_HANDLER.peekTasks().filter(task => DateTime.now().startOf("day") < task.due && task.due < DateTime.now().endOf("day")).map(task => task.title);
+        const today = await screen.findByRole("region", { name: TODAY});
         const dueToday = await within(today).findByRole("region", {name: "Due"});
+        // Assert
         ensureTasksInSection(todayDue, dueToday);
     })
 
     it("work on today section", async () => {
-        const workTaskNames = ["Work on today", "Due tomorrow"];
+        const workTaskNames = MOCK_SERVER_HANDLER.peekTasks().filter(task => DateTime.now() > task.start && task.due > DateTime.now()).map(task => task.title);
         const today = await screen.findByRole("region", {name: TODAY});
         const workToday = await within(today).findByRole("region", {name: "Work"});
         ensureTasksInSection(workTaskNames, workToday);

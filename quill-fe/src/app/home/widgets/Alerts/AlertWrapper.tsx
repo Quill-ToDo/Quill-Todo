@@ -113,6 +113,9 @@ const Alert = ({
             onAnimationStart={() => { props.animationStart(); }}
             key={`li-${alert.detail.id}`}
             {...commonAlertProps}
+            role="status"
+            aria-live='polite'
+            aria-label="Notice"
         >
             <div className='alert-cont-wrapper'>
                 <p id={descId}>{alert.detail.body}</p>
@@ -245,7 +248,6 @@ const AlertWrapper = ({...props}: {
         <div 
             ref={thisWrapperRef}
         >
-            <AlertWrapperContext.Provider value={thisWrapperRef}>
                 <AlertBox 
                     alerts={alerts} 
                     removeCallback={(alertIdsToRemove: Set<string>) => {
@@ -253,7 +255,6 @@ const AlertWrapper = ({...props}: {
                     }} 
                 />
                 {props.children}
-            </AlertWrapperContext.Provider>
         </div>
     );
 }
