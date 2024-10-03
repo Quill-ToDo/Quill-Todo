@@ -57,10 +57,18 @@
     flex: 0 1 0px;
   }
 
-.task-wrapper.complete .title:focus *,
-.task-wrapper.complete:hover *,
-.task-wrapper.complete.hover *,
-.task-wrapper.complete.hover .checkmark {
+  .list.widget .date-time-wrapper {
+    align-items: flex-end;
+  }
+
+.list.widget .task-wrapper.complete .title:focus *,
+.list.widget .task-wrapper.complete:hover *,
+.list.widget .task-wrapper.complete.hover *,
+.list.widget .task-wrapper.complete.hover .checkmark,
+.calendar.widget .task-wrapper.complete .title:focus *,
+.calendar.widget .task-wrapper.complete:hover *,
+.calendar.widget .task-wrapper.complete.hover *,
+.calendar.widget .task-wrapper.complete.hover .checkmark {
     color: var(--g2);
 }
 

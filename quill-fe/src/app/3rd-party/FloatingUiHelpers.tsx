@@ -1,3 +1,11 @@
+import React, { 
+    Dispatch, 
+    ForwardedRef, 
+    ReactNode, 
+    SetStateAction, 
+    useEffect, 
+    useState
+ } from 'react';
 import {
     FloatingFocusManager,
     UseFloatingOptions,
@@ -13,7 +21,6 @@ import {
     size,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
-import React, { Dispatch, ReactNode, SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
 import { TetheredPopupParams, StandalonePopupParams, SharedPopupProps } from '../@util/Popup';
 import { combineClassNamePropAndString } from '@util/constants';
 import { Draggable } from '@/util/Draggable';
@@ -155,13 +162,16 @@ export const FloatingUiPopupImplementation = observer((
     
     return <>
         {/* Anchor element  */}
-        <div 
-            ref={popupSetup.refs.setReference}
-            className={"popup-anchor"}
-            {...popupSetup.referenceProps()}
-        >
-            { renderElementToClick(open) } 
-        </div>  
+        { renderElementToClick(
+            {
+                openPopup: open,
+                toApply: {
+                    className: combineClassNamePropAndString({className: "popup-anchor", props}),
+                    ...popupSetup.referenceProps(),
+                },
+            },
+            popupSetup.refs.setReference as ForwardedRef<HTMLButtonElement>, 
+        )} 
         {/* Popup */}
         { showPopup && popupSetup.content }
     </>
@@ -204,9 +214,12 @@ export const setUpFloatingUiStandalonePopup = (
         useDragHandle: useDragHandle,
         ...props
     });
-    if (showPopup) {
-        setPopupContent(popupSetup.content);
-    }
+    
+    useEffect(() => {
+        if (showPopup) {
+            setPopupContent(popupSetup.content);
+        }
+    }, [showPopup])
     
     const open = () => {
         setShowPopup(true);

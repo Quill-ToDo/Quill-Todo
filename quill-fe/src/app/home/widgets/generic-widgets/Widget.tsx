@@ -1,6 +1,12 @@
-import { combineClassNamePropAndString } from "@/app/@util/constants";
+import { getSessionStorageItem, setSessionStorageItem } from "@/app/@util/SessionStorageHelper";
 import { observer } from "mobx-react-lite";
-import { Children, ComponentPropsWithoutRef, ComponentPropsWithRef, ReactElement, ReactNode, RefObject, useId, useRef, useState } from "react";
+import { 
+    ComponentPropsWithoutRef, 
+    ReactElement, 
+    ReactNode, 
+    RefObject, 
+    useState
+ } from "react";
 
 interface WidgetProps extends ComponentPropsWithoutRef<any> {
     widgetName: string;
@@ -11,6 +17,14 @@ interface WidgetProps extends ComponentPropsWithoutRef<any> {
     ref?: RefObject<any>;
     props?: ComponentPropsWithoutRef<any>;
 }
+
+export const setWidgetSessionStorageData = ({widgetName, itemKey, value}: {widgetName: string, itemKey: string, value: any}) => {
+    setSessionStorageItem(`widget-${widgetName}-${itemKey}`, value);
+} 
+
+export const getWidgetSessionStorageData = ({widgetName, itemKey}: {widgetName: string, itemKey: string}) => {
+    return getSessionStorageItem(`widget-${widgetName}-${itemKey}`);
+} 
 
 export const Widget = observer((
     {

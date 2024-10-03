@@ -1,11 +1,23 @@
-import { ChangeEvent, useEffect, useRef } from "react";
+import { 
+    useRef, 
+    useState 
+} from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { ICONS } from "@/util/constants";
-import { ColorBubble, TaskTitle } from "@/widgets/TaskDetail/TaskComponents";
+import { combineClassNamePropAndString, ICONS } from "@/util/constants";
+import { 
+    ColorBubble, 
+    TaskComponentAndHeader, 
+    TaskDescription, 
+    TaskDueDate, 
+    TaskStartDate, 
+    TaskTitle 
+} from "@/widgets/TaskDetail/TaskComponents";
 import { FormField } from "@util/FormComponents";
-import { TaskContext, TaskModel } from "@/store/tasks/TaskModel";
+import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
 import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
+import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
+import { ContextMenuPopup } from "@/app/@util/Popup";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 export const NEW_TASK_POPUP_TITLE = "New Task";
@@ -25,6 +37,45 @@ export const AddNewTaskPopUp = observer(({
         taskToCreate: TaskModel | null, 
     }) => {
     const formRef = useRef(null);
+    const [showDue, setShowDue] = useState(true);
+    const [showStart, setShowStart] = useState(true);
+    const [showDescription, setShowDescription] = useState(true);
+
+    const contextMenuData = [
+        {
+            label: "Add due date",
+            key: "add due",
+            content: <>{ICONS.CALENDAR}<p>Due date</p></>,
+            onClick: () => { 
+                if (taskToCreate) {
+                    taskToCreate.due = DEFAULT_DUE_DATETIME();
+                } 
+                setShowDue(true); 
+            },
+            visible: !showDue,
+        },
+        {
+            label: "Add start date",
+            key: "add start",
+            content: <>{ICONS.CALENDAR}<p>Start date</p></>,
+            onClick: () => { 
+                if (taskToCreate) {
+                    taskToCreate.start = DEFAULT_START_DATETIME();
+                }
+                setShowStart(true); 
+            },
+            visible: !showStart,
+        },
+        {
+            label: "Add description",
+            key: "add description",
+            content: <>{ICONS.DESCRIPTION}<p>Description</p></>,
+            onClick: () => { 
+                setShowDescription(true); 
+            },
+            visible: !showDescription,
+        },
+    ]
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <section 
@@ -33,9 +84,9 @@ export const AddNewTaskPopUp = observer(({
             >
             <header 
                 className={DRAGGABLE_HANDLE_CLASS}
-                title="Drag task"    
+                title="Move window"    
             >
-                <div className="aligned columns gap">
+                <div className="aligned rows gap">
                     {ICONS.DRAG}
                     <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
                 </div>
@@ -71,6 +122,7 @@ export const AddNewTaskPopUp = observer(({
                             name="Color"
                             required={true}
                             element={<ColorBubble />}
+                            labelProps={{className: "aligned"}}
                             />
                         <FormField
                             name="Title"
@@ -78,91 +130,83 @@ export const AddNewTaskPopUp = observer(({
                             element={<TaskTitle editAllowed={true} {...{autoFocus: true}}/>}
                         />
                     </div>
-                    <FormField 
-                        name={`Description`}
-                        required={false}
-                        type={`textarea`}
-                        inputProps={
-                            { 
-                                value: taskToCreate.description,
-                                onChange: function (e: ChangeEvent) { e.target && (taskToCreate.description = (e.target as HTMLTextAreaElement).value);}
-
-                            }
+                    { showDescription &&
+                        <TaskComponentAndHeader
+                            fieldName={"description"}
+                            optional={true}
+                            labelElement={<label>
+                                    Description
+                                </label>}
+                                onCloseClick={() => {
+                                    setShowDescription(false);
+                                    taskToCreate.description = "";
+                                }}
+                                >
+                                <TaskDescription
+                                    editAllowed={true}
+                                    />
+                        </TaskComponentAndHeader>
+                    }
+                    <div className={showDue && showStart ? `rows gap same-size` : ""}>
+                        { showStart && 
+                            <TaskComponentAndHeader
+                            fieldName={"start"}
+                            optional={true}
+                            labelElement={<label>
+                                    Start
+                                </label>}
+                                onCloseClick={() => {
+                                    setShowStart(false);
+                                    taskToCreate.start = null;
+                                }}
+                                >
+                                <TaskStartDate 
+                                    editable={true}
+                                    format={DATETIME_FORMATS.D_t}
+                                    />
+                            </TaskComponentAndHeader>
                         }
-                        errors={taskToCreate.validationErrors.description}
-                    />
-                    <div className={"start-due-wrapper rows"}> 
-                        <div>
-                            <div className={"columns gap"}>
-                                <FormField 
-                                    name={`Start Date`}
-                                    required={false}
-                                    inputProps={
-                                        { 
-                                            value: taskToCreate.startDateStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { 
-                                                if (e.target) {
-                                                    taskToCreate.startDateStringUnderEdit = e.target.value;
-                                                }
-                                            },
-                                        }
-                                    }
-                                    errors={taskToCreate.validationErrors.startDateStringUnderEdit}
-                                />
-                                <FormField 
-                                    name={`Start Time`}
-                                    required={false}
-                                    inputProps={
-                                        { 
-                                            value: taskToCreate.startTimeStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { 
-                                                if (e.target) {
-                                                    taskToCreate.startTimeStringUnderEdit = e.target.value;
-                                                } 
-                                            }
-                                        }
-                                    }
-                                    errors={taskToCreate.validationErrors.startTimeStringUnderEdit}
-                                />
-                            </div>
-                        </div>
-                        <div>
-                            <div className={"columns gap"}>
-                                <FormField 
-                                    name={`Due Date`}
-                                    required={false}
-                                    inputProps={
-                                        { 
-                                            value: taskToCreate.dueDateStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { 
-                                                if (e.target) {
-                                                    taskToCreate.dueDateStringUnderEdit = e.target.value;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    errors={taskToCreate.validationErrors.due.concat(taskToCreate.validationErrors.workInterval, taskToCreate.validationErrors.dueDateStringUnderEdit)}
-                                />
-                                <FormField  
-                                    name={`Due Time`}
-                                    required={false}
-                                    inputProps={
-                                        { 
-                                            value: taskToCreate.dueTimeStringUnderEdit,
-                                            onChange: function (e: ChangeEvent) { 
-                                                if (e.target) {
-                                                    taskToCreate.dueTimeStringUnderEdit = e.target.value;
-                                                } 
-                                            }
-            
-                                        }
-                                    }
-                                    errors={ taskToCreate.validationErrors.dueTimeStringUnderEdit}
-                                    
-                                />
-                            </div>
-                        </div>
+                        { showDue &&
+                            <TaskComponentAndHeader
+                                fieldName={"due"}
+                                optional={true}
+                                labelElement={<label>
+                                    Due
+                                </label>}
+                                onCloseClick={() => {
+                                    setShowDue(false);
+                                    taskToCreate.due = null;
+                                }}
+                                >
+                                <TaskDueDate 
+                                    editable={true}
+                                    format={DATETIME_FORMATS.D_t}
+                                    />
+                            </TaskComponentAndHeader>
+                        }
                     </div>
+                    { contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
+                        <ContextMenuPopup
+                            header={<header>Add field</header>}
+                            labelsAndClickCallbacks={contextMenuData}
+                            renderElementToClick={(props, ref) => <button 
+                                    {...props.toApply}
+                                    ref={ref}
+                                    onClick={props.openPopup}
+                                    type="button"
+                                    aria-label="Add task field"
+                                    aria-haspopup="menu"
+                                    title="Add task field" 
+                                    className={combineClassNamePropAndString({
+                                        className: `add-field-btn btn small centered take-full-space`,
+                                        props: props.toApply})} 
+                                    > 
+                                        { ICONS.PLUS }
+                                    </button>
+                            }
+                        />
+                    </div> : undefined
+                    }
                     <div className="centered">
                         <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>{ADD_BUTTON_TEXT}</button>
                     </div>

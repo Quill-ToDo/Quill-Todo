@@ -1,5 +1,5 @@
 .new-wrapper {
-    min-width: 400px;
+    min-width: fit-content;
     width: 40vh;
   }
 
@@ -16,7 +16,6 @@
     .new-wrapper form input,
     .new-wrapper form textarea {
       color: var(--g1);
-      font-size: var(--p-size);
     }
 
     .new-wrapper form label {
@@ -35,15 +34,16 @@
     flex-wrap: wrap;
   }
 
+  .new-wrapper .add-field-btn {
+    width: 100%;
+    height: 50px;
+    aspect-ratio: auto;
+  }
+
   #title-color .color {
     flex: 1 0 0px;
     display: flex;
     flex-direction: column;
-  }
-
-  #title-color .color-bubble-wrapper {
-    width: minmax(15px, 50%);
-    min-width: 50%;
   }
 
   #title-color .popup-anchor {

@@ -4,7 +4,7 @@ import {
     TaskContext,
     TaskModel,
 } from "@/store/tasks/TaskModel";
-import { DateTime, DateTimeFormatOptions } from "luxon";
+import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import { 
     ComponentPropsWithoutRef, 
@@ -23,7 +23,7 @@ import {
     useState, 
 } from "react";
 import TaskDetail from "./TaskDetail";
-import { BTN_APPEAR_ON_HOVER_CLASS, BTN_APPEAR_TARGET_CLASS, combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
+import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { setUpStandalonePopup, TetheredPopupOnClick } from "@/app/@util/Popup";
 import './tasks.css';
 import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
@@ -96,8 +96,8 @@ const ClearTaskFieldButton = observer(({
 }) => {
     return <button 
         {...props}
-        title={`Clear ${fieldName}`}
-        className={combineClassNamePropAndString({className: `clear floating ${BTN_APPEAR_ON_HOVER_CLASS} btn x-small square`, props: props})}
+        title={`Remove ${fieldName}`}
+        className={combineClassNamePropAndString({className: `clear floating btn x-small square`, props: props})}
         onClick={(e) => {onClick(e)}}
         >
         {ICONS.X}
@@ -117,8 +117,16 @@ export const TaskComponentAndHeader = observer(({
     onCloseClick: (e: MouseEvent) => void,
     children: ReactNode,
 }) => {
+    const [hovered, setHovered] = useState(false);
+
     return <div
-        className={`field ${fieldName} ${BTN_APPEAR_TARGET_CLASS}`}
+        className={`field ${fieldName}`}
+        onMouseEnter={() => {
+            setHovered(true);
+        }}
+        onMouseLeave={() => {
+            setHovered(false);
+        }}
     >
         <div 
             className="rows space-between"
@@ -126,7 +134,7 @@ export const TaskComponentAndHeader = observer(({
             { labelElement }
             <div className="field-btns">
                 { optional && 
-                    <ClearTaskFieldButton fieldName={fieldName} onClick={onCloseClick} />
+                    <ClearTaskFieldButton fieldName={fieldName} onClick={onCloseClick} {...{className: hovered ? "hover" : ""}}/>
                 }
             </div>
         </div>
@@ -272,7 +280,7 @@ export const ColorBubble = observer(({
     const task = useTaskContextOrPassedTask(passedTask);
 
     const colorBubble = <svg 
-            className="color-bubble-wrapper color-bubble" 
+            className="color-bubble" 
             viewBox="0 0 100 100" 
             xmlns="http://www.w3.org/2000/svg"
         >
@@ -280,21 +288,24 @@ export const ColorBubble = observer(({
         </svg>;
 
     return openColorPicker ? <TetheredPopupOnClick 
-                renderElementToClick={(open) => <div
-                    className="color-bubble-wrapper">
-                    <input
-                        type="color"
+                renderElementToClick={(props, ref) => <div
+                    className="color-bubble-wrapper centered">
+                    <button
+                        {...props.toApply}
+                        ref={ref}
                         role="button"
-                        className="color-bubble-input" 
+                        className={combineClassNamePropAndString({
+                            className: "color-bubble-input",
+                            props: props.toApply})} 
                         onClick={(e) => {
                             e.preventDefault();
-                            open();
+                            props.openPopup();
                         }}
                         title="Change task color"
                         aria-label="Task color changer"
                         aria-haspopup="dialog"
                         >
-                    </input>
+                    </button>
                     {colorBubble}
                     </div>}
                 renderPopupContent={({closePopup}) => <ColorGridPicker 
@@ -657,13 +668,15 @@ const EditableDatePortion = observer(({
     const dateErrorListId = useId();
 
     return <label
-        className="date"
+        className="date aligned rows small gap"
     >
+        Date
         <div className="input-sizer stacked" data-expand-content={dateStringUnderEdit}>
             <input 
                 aria-invalid={dateErrors.concat(task.validationErrors.workInterval).length !== 0} 
                 value={dateStringUnderEdit}
                 aria-describedby={dateErrorListId}
+                aria-label={`${type} date`}
                 placeholder="date e.g. 7/6/2024"
                 onChange={(e) => {
                     if (e.target) {
@@ -697,6 +710,7 @@ const EditableTimePortion = observer(({
     type: "due" | "start",
 }) => {
     const showTime = isDueType ? task.showDueTime : task.showStartTime;
+    const [timeHovered, setTimeHovered] = useState(false);
     const timeStringUnderEdit = isDueType ? task.dueTimeStringUnderEdit : task.startTimeStringUnderEdit;
     const timeErrors = isDueType ? task.validationErrors.dueTimeStringUnderEdit : task.validationErrors.startTimeStringUnderEdit;
     const timeErrorListId = useId();
@@ -709,43 +723,52 @@ const EditableTimePortion = observer(({
         task.saveEdits("showStartTime");
     };
 
-    return showTime ?
-    <label
-        className="time" 
+    return showTime ? <div 
+        className={`aligned rows small gap relative centered`}
+        onMouseEnter={() => {
+            setTimeHovered(true)}}
+        onMouseLeave={() => {
+            setTimeHovered(false)}}
         >
-                <div className={`aligned ${BTN_APPEAR_TARGET_CLASS}`}>
-                    <div className="input-sizer" data-expand-content={timeStringUnderEdit}>
-                        <input 
-                            aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
-                            value={timeStringUnderEdit} 
-                            placeholder="time e.g. 7:00"
-                            onChange={(e) => {updateTaskTime(e.target.value)}}
-                            onBlur={(e) => {
-                                if (startingDate && dateField !== startingDate.current) {
-                                    task.saveEdits(type);
-                                }
-                                else {
-                                    task.abortEdits(type);
-                                }
+            <label
+                className="time aligned rows small gap" 
+                >
+                    Time
+                    <div className={`aligned `}>
+                        <div className="input-sizer" data-expand-content={timeStringUnderEdit}>
+                            <input 
+                                aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
+                                value={timeStringUnderEdit} 
+                                placeholder="time e.g. 7:00"
+                                onChange={(e) => {updateTaskTime(e.target.value)}}
+                                onFocus={() => {setTimeHovered(true)}}
+                                onBlur={(e) => {
+                                    setTimeHovered(false);
+                                    if (startingDate && dateField !== startingDate.current) {
+                                        task.saveEdits(type);
+                                    }
+                                    else {
+                                        task.abortEdits(type);
+                                    }
+                                }}
+                                />
+                        </div>
+                        <ClearTaskFieldButton 
+                            fieldName={`${type} time`}
+                            onClick={() => {
+                                setShowTaskTime(false);
                             }}
+                            {...{className: `right appear-on-hover${timeHovered ? " hover":""}`}}
                             />
                     </div>
-                    <ClearTaskFieldButton 
-                        fieldName={`${type} time`}
-                        onClick={() => {
-                            setShowTaskTime(false);
-                        }}
-                        {...{className:"right"}}
-                        />
-                </div>
-                { timeErrors.length > 0 && 
-                    <ErrorsList errors={timeErrors} id={timeErrorListId}/>
-                } 
-            </label> 
+                    { timeErrors.length > 0 && 
+                        <ErrorsList errors={timeErrors} id={timeErrorListId}/>
+                    } 
+                </label> 
+            </div>
             : <button 
-            className="btn" 
+            className="btn small text" 
             style={{
-                fontSize: "inherit", 
                 color: "inherit"
             }}
             onClick={() => {setShowTaskTime(true);}}

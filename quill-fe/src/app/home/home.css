@@ -101,20 +101,6 @@ p,
     white-space: pre-line;
 }
 
-.date-time-wrapper .date,
-.date-time-wrapper .date input,
-.date-time-wrapper .time input,
-.date-time-wrapper .time {
-    display: flex;
-    align-items: baseline;
-    justify-content: center;
-    column-gap: 10px;
-    row-gap: 3px;
-    flex-direction: row;
-    flex-wrap: wrap;
-    font-family: "Azeret Mono", monospace;
-  }
-
   li .date-time-wrapper .date,
   li .date-time-wrapper .time {
     justify-content: right;
@@ -125,6 +111,25 @@ p,
   color: var(--g4);
   font-size: var(--smaller-p-size);
 }
+    .date-time-wrapper label.date,
+    .date-time-wrapper label.time {
+        font-weight: 100;
+        color: var(--g4);
+        font-size: medium;
+    }
+    
+    .date-time-wrapper .date,
+    .date-time-wrapper .date input,
+    .date-time-wrapper .time input,
+    .date-time-wrapper .time {
+        display: flex;
+        flex-wrap: wrap;
+        font-family: "Azeret Mono", monospace;
+    }
+
+    .date-time-wrapper > * {
+        width: fit-content;
+    }
 
 .subtle {
     font-style: italic;
@@ -164,7 +169,7 @@ p,
 
 .columns {
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
 }
 
 .rows {
@@ -175,6 +180,10 @@ p,
 .columns.gap,
 .rows.gap {
     gap: var(--section-gap);
+}
+
+.gap.small {
+    gap: calc(var(--section-gap)/2);
 }
 
 .space-between {
@@ -330,10 +339,18 @@ section.more-padding {
     width: 25px;
     height: auto;
 }
+
 .btn.small {
     width: 35px;
     height: auto;
 }
+
+.btn.small.text {
+    width: fit-content;
+    text-wrap: nowrap;
+    font-size: medium;
+}
+
 .btn.med {
     min-width: 100px;
     min-height: 30px;
@@ -432,22 +449,19 @@ button:focus {
     stroke: var(--focus-highlight);
 }
 
-.btn-hover-target:hover .appear-on-hover,
-.btn-hover-target:focus-within .appear-on-hover {
-  opacity: 100%;
-}
-
-.btn-hover-target {
-  position: relative;
-}
 
 .appear-on-hover {
   opacity: 0%;
   transition: opacity .5s;
-  position: absolute;
   right: 0px;
   top: 5px;
 }
+
+.appear-on-hover.hover,
+.clear.appear-on-hover.hover {
+  opacity: 100%;
+}
+
 /*#endregion Button States*/
 .btn i {
     aspect-ratio: 1/1;
@@ -490,10 +504,6 @@ form h3 {
   text-align: left;
   border: none;
   color: var(--g3);
-}
-
-form .btn {
-    margin-top: var(--section-gap);
 }
  
 input[aria-invalid="true"],

@@ -105,7 +105,13 @@ export const FormField = observer((
         type && type === "textarea" ? <textarea {...moreInputProps as ComponentPropsWithoutRef<"textarea">}/> 
         : <input {...moreInputProps as ComponentPropsWithoutRef<"input">} />
     );
-    return <label className={`${safeName}`} {...moreLabelProps}>
+    return <label 
+            {...moreLabelProps}
+            className={combineClassNamePropAndString({
+                className:`${safeName}`, 
+                props: moreLabelProps
+            })} 
+        >
         { name }
         { inputElement }
         { areErrors && <ErrorsList errors={errors} id={errorId} />}

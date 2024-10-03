@@ -26,6 +26,12 @@
   font-size: var(--smaller-p-size);
 }
 
+.date .input-sizer,
+.date {
+  font-size: var(--p-size);
+}
+
+
   .time input,
   .date input {
     font-size: inherit;
@@ -35,6 +41,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  align-items: center;
   gap: var(--focus-border-width);
 }
 
@@ -124,9 +131,9 @@ i.checkmark {
 }
 
 .check-box-wrapper label:focus i,
-.color-bubble-input:focus + .color-bubble
+.color-bubble-wrapper button:focus + .color-bubble
  {
-  outline: var(--focus-highlight) solid var(--focus-border-width);;
+  outline: var(--focus-highlight) solid var(--focus-border-width);
 }
 
 .checkmark.round {
@@ -137,15 +144,18 @@ i.checkmark {
 /*#endregion Checkbox*/
 /*#region Color picker*/
 .color-bubble-wrapper {
-  aspect-ratio: 1 / 1;
-  min-width: 15px;
-  max-width: max-content;
+  width: 100%;
+  min-width: fit-content;
+  max-width: 40px;
+  height: 100%;
   position: relative;
 }
 
 .color-bubble-wrapper > * {
-  width: 100%;
-  height: 100%;
+  aspect-ratio: 1 / 1;
+  min-width: 15px;
+  max-width: 25px;
+  /* So that the button and icon can be on top of each other */
   position: absolute;
   border-radius: 100%;
 }

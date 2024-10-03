@@ -1,15 +1,25 @@
-import React, { Fragment, useRef, useState } from "react";
+import React, { 
+    Fragment, 
+    useEffect, 
+    useRef, 
+    useState
+} from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { TaskModel } from "@/store/tasks/TaskModel";
-import { DateTimeWrapper, Checkbox, TaskTitle, TaskWrapper, TaskDueDate } from "@/widgets/TaskDetail/TaskComponents";
-import { DATETIME_FORMATS, timeOccursBeforeEOD, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
+import { 
+    Checkbox, 
+    TaskTitle, 
+    TaskWrapper, 
+    TaskDueDate 
+} from "@/widgets/TaskDetail/TaskComponents";
+import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
 import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 import { ICONS } from "@/app/@util/constants";
-import { PlaceableWidget } from "../generic-widgets/Widget";
+import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "../generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
 
@@ -17,7 +27,12 @@ const SECTION_TOGGLE_DURATION = 100;
 export const OVERDUE = "Overdue";
 export const TODAY = "Today";
 export const UPCOMING = "Upcoming";
+export const UNDATED = "Undated";
+export const DONE = "Done";
 export const LIST_WIDGET_NAME = "List";
+
+const saveSessionStorageItem = (key: any, value: any) => setWidgetSessionStorageData({widgetName: LIST_WIDGET_NAME, itemKey: key, value: value});
+const getSessionStorageItem = (key: any) => getWidgetSessionStorageData({widgetName: LIST_WIDGET_NAME, itemKey: key});
 
 //#region List 
 /**
@@ -46,7 +61,7 @@ export const ListWidget = observer(({passedStore}: {passedStore?: TaskStore}={})
 /**
  * A list format where tasks are separated into overdue, today, and upcoming sections.
  */ 
-const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
+const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {  
     const tasks : Set<TaskModel> = new Set(store.tasksInRange({startTime: DateTime.now().minus({years:10}), endTime: DateTime.now().plus({years:10})}));
     const now = DateTime.now();
     const sorted = (taskList : TaskModel[]) => {
@@ -111,7 +126,65 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
     todayWork = sorted(todayWork);
     upcoming = sorted(upcoming);
 
-    if (!(overdue.length || todayDue.length || todayWork.length || upcoming.length || undated.length)) {
+    const sectionData: {title: string, sectionId: number, content: SubSectionContent[]}[] = [
+        {
+            title: OVERDUE,
+            sectionId: 0,
+            content: [{
+                "tasks": overdue,
+                "type": TaskModel.VisualStyles.Due,
+                "emptyText": "No overdue tasks"
+            }],
+        },
+        {
+            title: TODAY,
+            sectionId: 1,
+            content: [
+                {
+                    "title": "Due",
+                    "tasks": todayDue,
+                    "type": TaskModel.VisualStyles.Due,
+                    "emptyText": "No tasks due today",
+                },
+                {
+                    "title": "In Progress",
+                    "tasks": todayWork,
+                    "type": TaskModel.VisualStyles.Scheduled,
+                    "emptyText": "No tasks to work on today",
+                }
+            ]
+        },
+        {
+            title: UPCOMING,
+            sectionId: 2,
+            content: [{
+                "tasks": upcoming,
+                "type": TaskModel.VisualStyles.Due,
+                "emptyText": "No upcoming tasks"
+            }]
+        },
+        {
+            title: UNDATED,
+            sectionId: 3,
+            content: [{
+                "tasks": undated,
+                "type": TaskModel.VisualStyles.Due,
+                "emptyText": "No undated tasks"
+            }]
+        },
+        {
+            title: DONE,
+            sectionId: 4,
+            content: [{
+                "tasks": complete,
+                "type": TaskModel.VisualStyles.Due,
+                "emptyText": "No undated tasks"
+            }]
+        },
+
+    ]
+
+    if (!sectionData.some(section => section.content.some(subsection => subsection.tasks.length > 0))) {
         return (
             <section>
                 <div className="mid-section">
@@ -123,80 +196,14 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
 
     return (
         <Fragment>
-            { !!overdue.length && 
-                <Section 
-                    title={OVERDUE}
-                    sectionNum={0}
-                    content={
-                        [{
-                            "tasks": overdue,
-                            "type": TaskModel.VisualStyles.Due,
-                            "emptyText": "No overdue tasks"
-                        }]
-                    }
-                /> 
-            }
-            { (!!todayDue.length || !!todayWork.length) &&
-                <Section 
-                    title={TODAY}
-                    sectionNum={1}
-                    content={
-                        [
-                            {
-                                "title": "Due",
-                                "tasks": todayDue,
-                                "type": TaskModel.VisualStyles.Due,
-                                "emptyText": "No tasks due today",
-                            },
-                            {
-                                "title": "In Progress",
-                                "tasks": todayWork,
-                                "type": TaskModel.VisualStyles.Scheduled,
-                                "emptyText": "No tasks to work on today",
-                            }
-                        ]
-                    }
-                />
-            }
-            { !!upcoming.length && 
-                <Section 
-                    title={UPCOMING}
-                    sectionNum={2}
-                    content={
-                        [{
-                            "tasks": upcoming,
-                            "type": TaskModel.VisualStyles.Due,
-                            "emptyText": "No upcoming tasks"
-                        }]
-                    }
-                />
-            }
-            { !!undated.length && 
-                <Section 
-                    title={"Undated"}
-                    sectionNum={3}
-                    content={
-                        [{
-                            "tasks": undated,
-                            "type": TaskModel.VisualStyles.Due,
-                            "emptyText": "No undated tasks"
-                        }]
-                    }
-                />
-            }
-            { !!complete.length && 
-                <Section 
-                    title={"Done"}
-                    sectionNum={4}
-                    content={
-                        [{
-                            "tasks": complete,
-                            "type": TaskModel.VisualStyles.Due,
-                            "emptyText": "No undated tasks"
-                        }]
-                    }
-                />
-            }
+            {sectionData.map(section => {
+                return section.content.some(subsection => subsection.tasks.length > 0) ? <Section 
+                    key={section.sectionId}
+                    title={section.title}
+                    sectionId={section.sectionId}
+                    content={section.content}
+                /> : undefined;
+            })}
         </Fragment>
     )
 });
@@ -206,21 +213,29 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
  */
 const Section = observer(({
     title, 
-    sectionNum, 
+    sectionId, 
     content, 
     classNames,
 }: {
     title: string, 
-    sectionNum: number, 
+    sectionId: number, 
     content: SubSectionContent[], 
     classNames?: string,
 }) => {
-    const [sectionOpen, setSectionOpen] = useState(true);
+    const sessionStorageKey = `section-${sectionId}-collapsed`;
+    const sectionAlreadycollapsed = getSessionStorageItem(sessionStorageKey);
+    const [sectionOpen, setSectionOpen] = useState(sectionAlreadycollapsed ? false : true);
 
     var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} section` : `Expand ${title.toLowerCase()} section`;
+
+    useEffect(() => {
+        if (!sectionOpen) {
+            handleSectionToggle(sectionId);
+        }
+    }, []);
     
     return (
-        <section id={getSectionId(sectionNum)} aria-labelledby={`section-${sectionNum}-title`} >
+        <section id={getSectionId(sectionId)} aria-labelledby={`section-${sectionId}-title`} >
             <div 
                 className={`mid-section${classNames ? " " + classNames : ""}`}
                 role="none"
@@ -232,13 +247,14 @@ const Section = observer(({
                         aria-expanded={sectionOpen}
                         onClick={(e) => {
                             setSectionOpen(!sectionOpen);
-                            handleSectionToggle(sectionNum);
+                            saveSessionStorageItem(sessionStorageKey, sectionOpen);
+                            handleSectionToggle(sectionId);
                         }}
                     >
                         { ICONS.DOWN }
                     </button>
                     <h2 
-                        id={`section-${sectionNum}-title`}
+                        id={`section-${sectionId}-title`}
                     >
                         {title}
                     </h2>
@@ -246,7 +262,6 @@ const Section = observer(({
                 <div className="section-collapsible" role="none">
                     <SubSection
                         sectionContent={content}
-                        // {...{"aria-labelled-by": `section-${sectionNum}-title`}}
                     />
                 </div>
             </div>
@@ -254,8 +269,8 @@ const Section = observer(({
     );
 })
 
-function getSectionId(sectionNum: number) {
-    return "task-section-" + sectionNum;
+function getSectionId(sectionId: number) {
+    return "task-section-" + sectionId;
 }
 
 interface SubSectionContent {
@@ -396,10 +411,10 @@ const ListViewTask = observer(({
 /**
  * Collapse/expand sections when the toggle symbol is clicked.
  * 
- * @param {sectionNum} The number of the section to toggle visibility of.
+ * @param {sectionId} The number of the section to toggle visibility of.
  */
-function handleSectionToggle (sectionNum: number) {
-    const taskSection = document.getElementById(getSectionId(sectionNum));
+function handleSectionToggle (sectionId: number) {
+    const taskSection = document.getElementById(getSectionId(sectionId));
     if (!taskSection) {
         addAlert(document.querySelector("#list"), ERROR_ALERT, "Could not toggle section :(");
         return;

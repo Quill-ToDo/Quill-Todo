@@ -16,6 +16,7 @@
   text-align: left;
   white-space: break-spaces;
   overflow-y: visible;
+  font-size: var(--p-size);
 }
 
 .task-detail .input-sizer textarea,
@@ -37,6 +38,10 @@
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 2px ;
 } 
+
+.task-detail .task-wrapper.complete.hover * {
+  color: auto;
+}
 
 .task-detail .task-wrapper.hover {
   background-color: unset;

@@ -1,10 +1,10 @@
 'use client';
 import { observer } from "mobx-react-lite";
 import './home.css'
-import { addAlert, ERROR_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
 import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
 import { ICONS } from "@util/constants";
-import { useRef } from "react";
+import { LegacyRef, useRef } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
 import { TetheredPopupOnClick } from "@util/Popup";
 import { ListWidget } from "@/widgets/List/List";
@@ -43,20 +43,21 @@ const DashboardLayout = observer(({
                     <TetheredPopupOnClick
                         draggable={true}
                         useDragHandle={true}
-                        renderElementToClick={(open) => <button 
+                        renderElementToClick={(props, ref) => <button 
+                                {...props.toApply}
                                 id="add-task"
                                 role="menuitem" 
                                 aria-haspopup="dialog"
                                 className="btn small square bg" 
                                 title={NEW_TASK_TEXT} 
+                                ref={ref as LegacyRef<HTMLButtonElement>}
                                 onClick={() => {
                                     taskStore.current.createNewTask();
-                                    open();
+                                    props.openPopup();
                                 }}
                             >
                                 { ICONS.PLUS }
-                            </button>
-                        }
+                            </button>}
                         renderPopupContent={({closePopup}) => <AddNewTaskPopUp 
                             close={closePopup}
                             taskToCreate={taskStore.current.taskBeingCreated}
@@ -72,7 +73,7 @@ const DashboardLayout = observer(({
                     >
                         { ICONS.TRASH }
                     </button>
-                    <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), SUCCESS_ALERT, "clicky")}>
+                    <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}>
                         { ICONS.SETTINGS }
                     </button>
                     <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>

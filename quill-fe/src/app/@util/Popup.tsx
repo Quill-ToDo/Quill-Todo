@@ -1,5 +1,13 @@
 import { observer } from "mobx-react-lite";
-import { createContext, ReactElement, ReactNode, useContext, useState } from "react";
+import { 
+    ComponentPropsWithoutRef, 
+    createContext, 
+    ForwardRefRenderFunction, 
+    ReactElement, 
+    ReactNode, 
+    useContext, 
+    useState 
+} from "react";
 import { combineClassNamePropAndString } from "./constants";
 import { FloatingUiPopupImplementation, setUpFloatingUiStandalonePopup } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
@@ -23,9 +31,13 @@ export type RenderPopUpContent = ({
     closePopup: ()=>void,
     dragHandleProps?: any,
 }) => ReactElement<any>;
+export type RenderAnchorElement = ForwardRefRenderFunction<HTMLButtonElement, {
+    openPopup: () => void, 
+    toApply: ComponentPropsWithoutRef<"button">,
+}>;
 export type TetheredPopupParams = {
     renderPopupContent: RenderPopUpContent,
-    renderElementToClick: (openPopup: ()=>void) => ReactElement<any>,
+    renderElementToClick: RenderAnchorElement,
 } & SharedPopupProps;
 // Option 2: "Standalone" popups only accepts content to popup and returns setup methods (open, close, anchor positioning ref).
 // Popup will remain until the close method is called.
@@ -36,17 +48,24 @@ export type StandalonePopupParams = {
 /**
  * Given a render prop for an anchor element (provided a method to open popup) and the content to popup
  * (provided a method to close popup), and popup configuration options, return
- * the anchor ref element to be rendered. Subscribe to
- * wider popup context and show popup when the state
- * value specified in UseFloatingOptions is called.
+ * the anchor ref element to be rendered.
  * If the anchor element is unmounted, the popup will as well. 
  * If this is not desired, use StandalonePopupOnClick instead.
  * 
+ * # renderPopUpContent requirements:
  * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
  * have the class DRAGGABLE_HANDLE_CLASS to specify which element should be used as the handle.
  * 
- * Also, add the property aria-haspopup="dialog" to the element returned by renderElementToClick
- * for accessibility.
+ * # renderElementToClick requirements: 
+ * - accept (props, ref) parameters
+ * - return button element 
+ * - apply passed ref to button element
+ * - spread props in props.toApply to button element (as first parameter so they can be overridden if desired)
+ * - If you want to add class names, do  
+ * `className={combineClassNamePropAndString({
+                            className: "your-class-name",
+                            props: props.toApply})}` to include passed classNames.
+ * - call `props.openPopup()` in an onClick method on returned button  
  * 
  * @returns the rendered anchor element for the popup
  */
@@ -84,11 +103,20 @@ export const TetheredPopupOnClick = observer((
  * Also returns an open method to call when it should open the popup and a close
  * method to use in child popup content or as desired to close the popup.
  * 
+ * # renderPopUpContent requirements:
  * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
  * have the class DRAGGABLE_HANDLE_CLASS to specify which element should be used as the handle.
  * 
- * Also, add the property aria-haspopup="dialog" to the element returned by renderElementToClick
- * for accessibility.
+ * # renderElementToClick requirements: 
+ * - accept (props, ref) parameters
+ * - return button element 
+ * - apply passed ref to button element
+ * - spread props in props.toApply to button element (as first parameter so they can be overridden if desired)
+ * - If you want to add class names, do  
+ * `className={combineClassNamePropAndString({
+                            className: "your-class-name",
+                            props: props.toApply})}` to include passed classNames.
+ * - call `props.openPopup()` in an onClick method on returned button  
  * 
  * @returns the rendered anchor element for the popup
  */
@@ -126,12 +154,12 @@ export const setUpStandalonePopup = (
 /**
  * Simple popup menu containing a list of clickable items. Add the property:
  * aria-haspopup="menu"
- * to the element returned by renderAnchorElementToClick for accessibility.
+ * to the element returned by renderElementToClick for accessibility.
  */
 export const ContextMenuPopup = observer((
     {   
         labelsAndClickCallbacks,
-        renderAnchorElementToClick,
+        renderElementToClick,
         header,
         placement="right",
         alignment="middle",
@@ -143,14 +171,14 @@ export const ContextMenuPopup = observer((
             onClick: () => void, 
             visible: boolean, // Should this element appear in the content menu?
         }[],
-        renderAnchorElementToClick: (openPopup: ()=>void) => ReactElement<any>, // Must stay a callback
+        renderElementToClick: RenderAnchorElement, // Must stay a callback
         header?: ReactElement<"any">, // Optional header content for the context menu
         placement?: "left" | "bottom" | "right" | "top",
         alignment?: "start" | "middle" | "end",
     }
 ) => {
     return <TetheredPopupOnClick
-        renderElementToClick={renderAnchorElementToClick}
+        renderElementToClick={renderElementToClick}
         renderPopupContent={({closePopup}) => 
             <menu
                 role="menu"
@@ -164,7 +192,7 @@ export const ContextMenuPopup = observer((
                         <button
                                 onClick={() => {
                                     labelAndCallback.onClick(); 
-                                    closePopup();
+                                    closePopup( );
                                 }}
                                 aria-labelledby={labelAndCallback.label} 
                                 title={labelAndCallback.label}

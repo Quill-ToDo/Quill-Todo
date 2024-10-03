@@ -312,14 +312,13 @@ export class TaskModel {
     get showStartTime () {return this._showStartTime; }
     set showStartTime (val) {
         if (val === false && this.start) {
-            this.start = this.start.endOf("day");
-            this.saveEdits("start");
+            this.start = this.start.startOf("day");
         }
         this._showStartTime = val;
     }
     setStartDateAndTimeStringsUnderEdit () {
-        this._startDateStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : "";
-        this._startTimeStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : ""; 
+        this.startDateStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : "";
+        this.startTimeStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : ""; 
     }
 
     /**
@@ -407,8 +406,8 @@ export class TaskModel {
     }
 
     setDueDateAndTimeStringsUnderEdit() {
-        this._dueDateStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : "";
-        this._dueTimeStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : "";
+        this.dueDateStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : "";
+        this.dueTimeStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : "";
     }
 
     /**
@@ -573,7 +572,9 @@ export class TaskModel {
             title: this.title,
             complete: this.complete,
             start: this.start ? this.start.toJSON() : undefined, 
+            show_start_time: this.showStartTime,
             due: this.due ? this.due.toJSON() : undefined,
+            show_due_time: this.showDueTime,
             description: this.description,
             color: this.color,
         };
@@ -588,7 +589,7 @@ export class TaskModel {
         this.title = json.title;
         this.description = json.description;
         this.start = json.start;
-        this.showStartTime = json.show_due_time;
+        this.showStartTime = json.show_start_time;
         this.due = json.due;
         this.showDueTime = json.show_due_time;
         this.complete = json.complete

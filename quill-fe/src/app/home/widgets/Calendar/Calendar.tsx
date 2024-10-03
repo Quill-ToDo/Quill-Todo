@@ -260,6 +260,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                         { weekData.days.map(day =>  
                                         <div 
                                             ref={today.current.hasSame(day.date, 'day') ? currentDayRef : undefined}
+                                            key={day.key}
                                             aria-labelledby={`${day.key}-header`}
                                             title={`${day.date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
                                             suppressHydrationWarning
@@ -278,6 +279,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                         ...{className: "inline"}
                                                     }
                                                     return <TaskWrapper 
+                                                            key={`${day.key}-${taskData.task.id}`}
                                                             {...taskWrapperProps}
                                                         >
                                                             <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
@@ -289,6 +291,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                     return <TaskWrapper 
                                                         task={task}
                                                         keyOverride={`${day.date}-${task.id}`}
+                                                        key={`${day.date}-${task.id}`}
                                                         >
                                                         <Checkbox type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
                                                         <TaskTitle />

@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
-import { ICONS } from "@/util/constants";
+import { combineClassNamePropAndString, ICONS } from "@/util/constants";
 import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
@@ -23,6 +23,7 @@ import { ContextMenuPopup } from "@/util/Popup";
 import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
 import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
+import { HOME_ID } from "../../dashboardLayout";
 
 export const TASK_DETAIL_POPUP_NAME = "Task Detail";
 
@@ -38,7 +39,6 @@ const TaskDetail = observer(({
     const [showDue, setShowDue] = useState(true);
     const [showStart, setShowStart] = useState(true);
     const descRef = useRef(null);
-    const addFieldButton = useRef(null);
     const contextMenuData = [
         {
             label: "Add due date",
@@ -75,7 +75,7 @@ const TaskDetail = observer(({
             label: "Add priority",
             key: "add priority",
             content: <>{ICONS.PRIORITY}<p>Priority</p></>,
-            onClick: () => addAlert(addFieldButton.current, NOTICE_ALERT, "We haven't implemented priority yet. Oopsies"),
+            onClick: () => addAlert(document.getElementById(HOME_ID), NOTICE_ALERT, "We haven't implemented priority yet. Oopsies"),
             visible: true,
         },
     ]
@@ -106,16 +106,22 @@ const TaskDetail = observer(({
                 </div>
                 <div className="aligned end">
                     <ContextMenuPopup
-                        renderAnchorElementToClick={(open) => <button 
-                                className="btn small square no-shadow"
+                        renderElementToClick={(props, ref) => <button 
+                                {...props.toApply}
+                                className={combineClassNamePropAndString({
+                                    className: "btn small square no-shadow", 
+                                    props: props.toApply
+                                })}
                                 title="Options" 
                                 aria-haspopup="menu"
                                 onClick={() => {
-                                        open();
+                                        props.openPopup();
                                     }}
+                                ref={ref}
                                 >
                                     { ICONS.MENU }
-                                </button>}
+                                </button>
+                        }
                         labelsAndClickCallbacks={[
                                 {
                                     label: "Delete",
@@ -143,7 +149,7 @@ const TaskDetail = observer(({
             aria-labelledby="task-show-title"
         >
             {showStart || showDue || task.start || task.due ? 
-                <div className={task.start && task.due ? `columns gap same-size` : ""}>
+                <div className={task.start && task.due ? `rows gap same-size` : ""}>
                         {(showStart || task.start) && <TaskComponentAndHeader 
                                 fieldName="start"
                                 optional={true}
@@ -195,13 +201,17 @@ const TaskDetail = observer(({
                 <ContextMenuPopup
                     header={<header>Add field</header>}
                     labelsAndClickCallbacks={contextMenuData}
-                    renderAnchorElementToClick={(openPopup) => <button 
-                            ref={addFieldButton}
-                            onClick={openPopup}
+                    renderElementToClick={(props, ref) => <button 
+                            {...props.toApply}
+                            ref={ref}
+                            onClick={props.openPopup}
                             aria-label="Add task field"
                             aria-haspopup="menu"
                             title="Add task field" 
-                            className={`add-field-btn btn large centered`} 
+                            className={combineClassNamePropAndString({
+                                className: `add-field-btn btn large centered`,
+                                props: props.toApply,
+                            })} 
                             > 
                                 { ICONS.PLUS }
                             </button>
