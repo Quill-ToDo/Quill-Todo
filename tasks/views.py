@@ -89,6 +89,11 @@ def task_details(request, id):
         # Update fields
         t_data = request.data.copy()
         t_data["updated_at"] = timezone.now()
+        if ("complete" in t_data):
+            if (t_data["complete"] and not task.complete):
+                t_data["completed_at"] = timezone.now()
+            else:
+                t_data["completed_at"] = None
         serializer = TaskSerializer(
             task, 
             data=t_data, 

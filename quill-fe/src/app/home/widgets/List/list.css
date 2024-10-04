@@ -34,7 +34,6 @@
   }
 
   .list.widget .title {
-    transition: background-color .1s, color .4s;
     border-radius: 12px;
     padding: 8px 8px 8px 8px;
   }

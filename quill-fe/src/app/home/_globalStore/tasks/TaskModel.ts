@@ -131,6 +131,7 @@ export class TaskModel {
             private _showDueTime : boolean = true;
             private _description : string = "";
             private _complete : boolean = false;
+            private _completedDate : DateTime | null = null;
             private _createdDate : DateTime;
             private _color : string = "#ffffff";
             private _store : TaskStore | undefined;
@@ -162,6 +163,8 @@ export class TaskModel {
             description: computed,
             _complete: observable, // Whether or not this task is complete
             complete: computed,
+            _completedDate: observable,
+            completedDate: computed,
             toggleComplete: action, // Flip the completion status of the task
             workRange: computed, // Range of the start to due date of this task
             _start: observable, // The DateTime when the user wants to start working on this task
@@ -264,6 +267,12 @@ export class TaskModel {
 //#region complete
     set complete(complete : boolean) { 
         this._complete = complete;
+        if (complete) {
+            this.completedDate = DateTime.now();
+        }
+        else {
+            this.completedDate = null;
+        }
         if (this.autoSave) {
             this.patchToServer("complete"); 
         }
@@ -274,6 +283,14 @@ export class TaskModel {
      */
     toggleComplete () {
         this.complete = !this.complete;
+    }
+
+    get completedDate () {
+        return this._completedDate;
+    }
+
+    set completedDate (val: DateTime | null) {
+        this._completedDate = val;
     }
 //#endregion
 //#region workRange
@@ -515,7 +532,10 @@ export class TaskModel {
         }
         if (this._store) {
             return this._store.API.updateTask(this.id, update).then(
-                result => result,
+                result => {
+                    this.json = result.data;
+                    return result;
+                },
                 reason => {
                     addAlert(document.getElementById(HOME_ID), 
                     ERROR_ALERT, 
@@ -569,6 +589,7 @@ export class TaskModel {
     get json() {
         return {
             id: this.id,
+            created_date: this.createdDate,
             title: this.title,
             complete: this.complete,
             start: this.start ? this.start.toJSON() : undefined, 
@@ -592,7 +613,8 @@ export class TaskModel {
         this.showStartTime = json.show_start_time;
         this.due = json.due;
         this.showDueTime = json.show_due_time;
-        this.complete = json.complete
+        this.complete = json.complete;
+        this.completedDate = json.completed_at !== null ? dateTimeHelper(json.completed_at) : null;
         this._createdDate = dateTimeHelper(json.created_at);
         this.color = json.color;
         this.autoSave = true;

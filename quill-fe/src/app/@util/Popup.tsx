@@ -44,6 +44,12 @@ export type TetheredPopupParams = {
 export type StandalonePopupParams = {
     children: ReactNode | JSX.Element,
 } & SharedPopupProps;
+export type PopupSetup = { 
+    openPopup: () => void,
+    closePopup: () => void,
+    setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
+    getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>,
+};
 
 /**
  * Given a render prop for an anchor element (provided a method to open popup) and the content to popup
@@ -129,11 +135,7 @@ export const setUpStandalonePopup = (
         draggable=false, 
         useDragHandle=false,
         ...props
-    } : StandalonePopupParams) : { 
-        openPopup: () => void,
-        closePopup: () => void,
-        setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
-    } => {
+    } : StandalonePopupParams) : PopupSetup => {
         // Popup helper to serve as an interface between Quill and
         // 3rd party libraries.
         const popupContext = useContext(StandalonePopupContext);

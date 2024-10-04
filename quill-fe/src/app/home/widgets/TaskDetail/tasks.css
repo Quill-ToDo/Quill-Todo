@@ -3,12 +3,17 @@
   display: flex;
   gap: var(--section-gap);
   align-items: center;
-  padding: 0px 10px 0px 10px;
   border-radius: 10px;
 }
 
 .task-wrapper.hover {
   background-color: var(--list-hover);
+}
+
+.list.widget .task-wrapper,
+.calendar.widget .task-wrapper {
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 /*#region Time and date */
@@ -49,6 +54,15 @@
     display: flex;
     justify-content: center;
   }
+
+.overdue .title,
+.overdue .date-time-wrapper .date,
+.overdue .date-time-wrapper .date input,
+.overdue .date-time-wrapper .time,
+.overdue .date-time-wrapper .time input {
+  color: var(--overdue);
+}
+
 /*#endregion Time and date */
 /*#region Title */
 .task-wrapper .title {
@@ -56,11 +70,11 @@
   text-align: left;
 }
 
-  .task-wrapper .title:focus-within {
+  .task-wrapper .title textarea:focus {
     background-color: var(--g8);
   }
 
-.task-wrapper.complete .title:focus-within {
+.task-wrapper.complete .title textarea:focus {
   color: var(--g3);
   text-decoration: line-through solid var(--g3) 2px;
 }
@@ -75,22 +89,8 @@
   width: 100%;
 }
 
-.task-wrapper.complete .title {
-  color: var(--g7);
-  text-decoration: line-through solid var(--g5) 2px;
-} 
-
-.overdue.title,
-.overdue.title p,
-.overdue.date-time-wrapper .date,
-.overdue.date-time-wrapper .date input,
-.overdue.date-time-wrapper .time,
-.overdue.date-time-wrapper .time input {
-  color: var(--overdue);
-}
-
 .title.blank p,
-.title.blank.overdue p,
+.overdue .title.blank p,
 .title.blank::placeholder,
 .date input::placeholder,
 .time input::placeholder {
@@ -102,7 +102,7 @@
   overflow: hidden;
 }
 
-.task-wrapper.complete p,
+.task-wrapper.complete p.title,
 .task-wrapper.complete i.checkmark {
   color: var(--g4);
 }
@@ -145,7 +145,7 @@ i.checkmark {
 /*#region Color picker*/
 .color-bubble-wrapper {
   width: 100%;
-  min-width: fit-content;
+  min-width: 20px;
   max-width: 40px;
   height: 100%;
   position: relative;
@@ -228,4 +228,4 @@ i.checkmark {
 .description {
   min-height: min-content;
 }
-/*#endregion Color picker*/
+/*#endregion Description*/

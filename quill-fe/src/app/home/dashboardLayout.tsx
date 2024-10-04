@@ -82,7 +82,7 @@ const DashboardLayout = observer(({
                 </menu>
                 {widgets}
             </div>
-            <div id={PORTAL_HOLDER_ID} className="take-full-space"></div>
+            <div id={PORTAL_HOLDER_ID}></div>
     </>)
 })
 

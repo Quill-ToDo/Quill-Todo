@@ -68,3 +68,10 @@ div[data-floating-ui-portal] > div {
         padding: 3px 10px 3px 10px;
         color: var(--g1);
     } 
+
+#portal-holder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 0;
+}

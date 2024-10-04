@@ -148,6 +148,18 @@ const TaskDetail = observer(({
             className="mid-section" 
             aria-labelledby="task-show-title"
         >
+            <div>
+                <div className="aligned rows small gap">
+                    <button className="btn x-small square">
+                        {ICONS.DOWN}
+                    </button>
+                    <h5>Task Metadata</h5>
+                </div>
+                <div className="meta-data dark-section">
+                    <label className="inline">Created<p>{DATETIME_FORMATS.D_t.serializer(task.createdDate)}</p></label>
+                    { task.complete && <label className="inline">Completed<p>{task.completedDate ? DATETIME_FORMATS.D_t.serializer(task.completedDate): "Unknown"}</p></label> }
+                </div>
+            </div>
             {showStart || showDue || task.start || task.due ? 
                 <div className={task.start && task.due ? `rows gap same-size` : ""}>
                         {(showStart || task.start) && <TaskComponentAndHeader 

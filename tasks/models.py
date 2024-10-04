@@ -16,7 +16,7 @@ class Task(models.Model):
     due = models.DateTimeField(blank=True, null=True)
     show_due_time = models.BooleanField(blank=False, default=True)
     complete = models.BooleanField(default=False)
-    completed_at = models.DateTimeField(editable=False, null=True)
+    completed_at = models.DateTimeField(null=True)
     color = models.CharField(
         max_length=7, 
         editable=True, 

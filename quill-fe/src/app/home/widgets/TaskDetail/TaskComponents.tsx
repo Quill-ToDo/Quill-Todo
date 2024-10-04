@@ -74,7 +74,7 @@ export const TaskWrapper = observer((
                 });
             }}
             {...props}
-            className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}`, props: props as HTMLProps<"any">})}
+            className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}${task.overdue() ? " overdue" : ""}`, props: props as HTMLProps<"any">})}
         >
             {children}
         </div>
@@ -164,9 +164,6 @@ export const Checkbox = observer(({
             title={text}
             aria-label={text}
             tabIndex={0}
-            onClick={() => {
-                task.toggleComplete();
-            }}
         >
         <input 
             type="checkbox" 
@@ -327,11 +324,14 @@ export const ColorBubble = observer(({
 const PlainTaskTitle = observer((
     {
         passedTask,
-        ...props
+        openTaskDetailPopup=true,
+        style,
+        props,
     }: {
         passedTask?: TaskModel,
         openTaskDetailPopup?: boolean,
         style?: CSSProperties,
+        props: ComponentPropsWithoutRef<"p">,
     }
 ) => {
     const [task, setTask] = useState(useTaskContextOrPassedTask(passedTask));
@@ -342,6 +342,7 @@ const PlainTaskTitle = observer((
         task={task} 
         close={closePopupCallback.current}
     />
+    
     const popupControls = setUpStandalonePopup({
         children: taskDetailContent,
         placement: "right",
@@ -350,19 +351,25 @@ const PlainTaskTitle = observer((
         useDragHandle: true,
         ...{className: "task-detail"},
     });
-    closePopupCallback.current = (popupControls.closePopup);
-
-    return <button
-            type="button"   
+    closePopupCallback.current = popupControls.closePopup;
+    let toReturn = <p 
+        {...props}
+        className={combineClassNamePropAndString({className: "title", props})}
+        style={style}
+    > 
+        { task.complete ? <s>{displayTitle}</s> : displayTitle } 
+    </p>;
+    if (openTaskDetailPopup) {
+        toReturn = <button
+            {...popupControls.getReferenceProps()}
             onClick={popupControls.openPopup}
             ref={popupControls.setPopupPositioningAnchor}
-            aria-haspopup="dialog"
-            className={combineClassNamePropAndString({className: "", props: props as HTMLProps<"any">})}
         >
-        <p style={props.style}> 
-            { task.complete ? <s>{displayTitle}</s> : displayTitle } 
-        </p>
-    </button>
+            {toReturn}
+        </button>
+    }
+
+    return toReturn;
 });
 
 /**
@@ -583,7 +590,7 @@ export const TaskDate = observer(({
     const task = useTaskContextOrPassedTask(passedTask);
     const isDueType = type === dueType;
     const overdue = isDueType && task.overdue();
-    const wrapperClasses = `date-time-wrapper${overdue ? " overdue" : ""}`;
+    const wrapperClasses = `date-time-wrapper`;
     if (editable) {
         return <EditableTaskDate 
             task={task}

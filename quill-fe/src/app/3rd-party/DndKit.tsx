@@ -226,7 +226,7 @@ function restrictToBoundingRect(
         value.y = boundingRect.top + boundingRect.height - rect.bottom;
     }
   
-    // OOF on left
+    // OOB on left
     if (rect.left + transform.x <= boundingRect.left) {
         value.x = boundingRect.left - rect.left;
     // OOB on right

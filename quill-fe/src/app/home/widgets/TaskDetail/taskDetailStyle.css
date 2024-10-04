@@ -1,7 +1,7 @@
 .task-detail.popup {
   width: 800px;
   max-width: 50vw;
-  min-width: 20vw;
+  min-width: min-content;
 }
 
 .task-detail .checkbox-color {
@@ -34,7 +34,7 @@
   justify-content: space-between;
 }
 
-.task-detail .task-wrapper.complete .title {
+.task-detail .task-wrapper.complete .title textarea {
   color: var(--g7);
   text-decoration: line-through solid var(--g7) 2px ;
 } 
@@ -74,6 +74,10 @@
   transition: opacity .5s;
 }
 
+.task-detail .meta-data * {
+  font-size: medium;
+}
+
 .description .dark-section {
   padding: 0;
 }
@@ -102,4 +106,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
+}
+.task-detail .loading {
+  min-height: 100px;
 }

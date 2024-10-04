@@ -83,6 +83,20 @@ h3 {
     font-family: "Quicksand", sans-serif;
     font-weight: 700;
 }
+
+h4 {
+    font-size: var(--h4-size);
+    color: var(--g3);
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+}
+
+h5 {
+    font-size: var(--h5-size);
+    color: var(--g3);
+    font-family: "Quicksand", sans-serif;
+    font-weight: 700;
+}
 /*#endregion Headers*/
 /*#region Text*/
 p, 
@@ -252,6 +266,7 @@ p,
     .input-sizer.take-full-width,
     .input-sizer.take-full-width::after {
         width: 100%;
+        justify-content: unset;
     }
 
     .input-sizer.take-full-width::after,
@@ -336,8 +351,9 @@ section.more-padding {
     aspect-ratio: 1 / 1;
 }
 .btn.x-small {
-    width: 25px;
+    width: 30px;
     height: auto;
+    font-size: 15px;
 }
 
 .btn.small {
