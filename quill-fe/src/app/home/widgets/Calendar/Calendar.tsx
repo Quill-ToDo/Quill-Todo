@@ -5,13 +5,19 @@ import { END_OF_WEEK_WEEKDAY, ICONS, START_OF_WEEK_WEEKDAY } from "@/util/consta
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
-import { ComponentProps, useEffect, useRef, useState} from "react";
+import { 
+    ComponentProps, 
+    MutableRefObject, 
+    useEffect, 
+    useRef, 
+    useState
+} from "react";
 import { PlaceableWidget } from "../generic-widgets/Widget";
 import { useTaskStore } from "@/store/StoreProvider";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
-const NUM_MONTHS_TRIGGER_INFINITE_SCROLL = 2;
+const NUM_MONTHS_TRIGGER_INFINITE_SCROLL = 3;
 const NUM_WEEKDAYS = 7;
 export const CALENDAR_WIDGET_NAME = "Calendar";
 
@@ -108,77 +114,95 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
     const taskStore: TaskStore = passedStore ? passedStore : useTaskStore();
     const thisCalendarRef = useRef(null);
     const thisCalendarHeaderRef = useRef(null);
-    const currentDayRef = useRef(null);
     const scrollContainerRef = useRef(null);
+    const today = useRef(START_OF_DAY());
+    const currentDayRef = useRef(null);
+    const [start, setStart] = useState(today. current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND}));
     const earlyMonthRef = useRef(null);
     const lateMonthRef = useRef(null);
-    const today = useRef(START_OF_DAY());
-    const [start, setStart] = useState(today.current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND}));
     const [end, setEnd] = useState(today.current.endOf('month').startOf('day').plus({months: NUM_MONTHS_LOOKAHEAD}));
+    const [scrollTo, setScrollTo] = useState<number | null>(null);
+    const monthRefs = useRef<MutableRefObject<HTMLElement>[]>([]);
 
     const allLoadedMonthData = getCalendarData({start, end, taskStore});
 
     const scrollToEle = (toScroll: HTMLElement) => {
-        if (!thisCalendarRef.current || !toScroll) {
-            console.error("Could not scroll to", toScroll);
-            return;
-        }
-        const calendarHeader = thisCalendarHeaderRef.current;
-        const yOffset = toScroll.getBoundingClientRect().y - (calendarHeader.getBoundingClientRect().y + calendarHeader.getBoundingClientRect().height);
-        toScroll && scrollContainerRef.current && scrollContainerRef.current.scrollBy({behavior: "smooth", top: yOffset, left: 0 })
+            if (!thisCalendarRef.current || !toScroll) {
+                console.error("Could not scroll to", toScroll);
+                return;
+            }
+            const calendarHeader = thisCalendarHeaderRef.current;
+            const yOffset = toScroll.getBoundingClientRect().y - (calendarHeader.getBoundingClientRect().y + calendarHeader.getBoundingClientRect().height);
+            scrollContainerRef.current && scrollContainerRef.current.scrollBy({behavior: "smooth", top: yOffset, left: 0 })
     }
 
-    useEffect(() => {
-        // scrollToEle(currentDayRef.current);
-        const options = {
-            root: scrollContainerRef.current,
-            rootMargin: "0px",
-            threshold: .2,
-        };
-        const earlyMonthAppearsObserver = new IntersectionObserver((entries) => {
-            //Load earlier months
-            if (entries[0].intersectionRatio > .3) {
-                setStart(start.minus({months: NUM_MONTHS_LOOKBEHIND}))
+    const scrollToMonth = (index: number) => {
+        setScrollTo(index);
+        scrollToEle(monthRefs.current[index]);
+        setTimeout(() => {
+            setScrollTo(null);
+        }, 400);
+    }
+
+    const getMonthIntersectingWithTopOfCalendar = () => {
+        const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
+        const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
+        return monthRefs.current.findIndex((month) => {                  
+            const monthRect = month.getBoundingClientRect();
+            if (monthRect.y > calendarTop) {
+                return true;
             }
-        }, options);
-        if (earlyMonthRef.current) {
-            earlyMonthAppearsObserver.observe(earlyMonthRef.current);
-        }
-        const laterMonthAppearsObserver = new IntersectionObserver((entries) => {
-            //Load later months
-            if (entries[0].intersectionRatio > .3) {
-                setEnd(end.plus({months: NUM_MONTHS_LOOKAHEAD}))
-            }
-        }, options);
-        if (lateMonthRef.current) {
-            laterMonthAppearsObserver.observe(lateMonthRef.current);
-        }
-        return () => {
-            if (earlyMonthRef.current) {
-                earlyMonthAppearsObserver.unobserve(earlyMonthRef.current);
-            }
-            if (lateMonthRef.current) {
-                laterMonthAppearsObserver.unobserve(lateMonthRef.current);
-            }
-        };
-    }, [allLoadedMonthData]);
+            return monthRect.y < calendarTop && monthRect.bottom > calendarTop;
+        })
+    }
 
     useEffect(() => {
         // Scroll to the current day only on first load
         currentDayRef.current && scrollToEle(currentDayRef.current);
     }, [thisCalendarRef.current]);
+    useEffect(() => {
+        const options = {
+            root: scrollContainerRef.current,
+            rootMargin: "0px",
+            threshold: .2,
+        };
+        // Load in previous months as you scroll to an earlier month in the container
+        const earlyMonthAppearsObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                setStart(start.minus({months: NUM_MONTHS_LOOKBEHIND}))
+            }
+        }, options);
+        // Load in future months as you scroll down to a later month in the container
+        const laterMonthAppearsObserver = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                setEnd(end.plus({months: NUM_MONTHS_LOOKAHEAD}))
+            }
+        }, options);
 
-    const getMonthsInView = () => {
-        if (thisCalendarRef.current && thisCalendarHeaderRef.current) {
-            const calendar = thisCalendarRef.current.getBoundingClientRect(); 
-            const header = thisCalendarHeaderRef.current.getBoundingClientRect(); 
-            return [...thisCalendarRef.current.querySelectorAll(".month-container")].filter((entry) => {
-                let month = entry.getBoundingClientRect(); 
-                return (month.top < calendar.bottom) && (month.bottom > header.bottom+1)
-            }); 
+        if (scrollContainerRef.current) {
+            for (let i=0; i < scrollContainerRef.current.children.length; i++) {
+                const child = scrollContainerRef.current.children[i];
+                if (i < NUM_MONTHS_TRIGGER_INFINITE_SCROLL-1) {
+                    // Observe months early in array
+                    earlyMonthAppearsObserver.observe(child);
+                }
+                if (i > scrollContainerRef.current.children.length - NUM_MONTHS_TRIGGER_INFINITE_SCROLL-1) {
+                    // And late in the array
+                    laterMonthAppearsObserver.observe(child);
+                }
+            }
         }
-    }
- 
+        return () => {
+            if (scrollContainerRef.current) {
+                for (const child of scrollContainerRef.current.children) {
+                    earlyMonthAppearsObserver.unobserve(child);
+                    laterMonthAppearsObserver.unobserve(child);
+                }
+            }
+        };
+    }, [allLoadedMonthData]);
+
+
     return <PlaceableWidget 
                 widgetName={CALENDAR_WIDGET_NAME} 
                 icon={ICONS.CALENDAR} 
@@ -193,16 +217,25 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                         <button className="btn small bg square"
                             title="Previous month"
                             onClick={(e) => {
-                                const firstMonth = getMonthsInView()[0];
-                                const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
-                                const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
-                                // If the first visible month is at the very top of the calendar then scroll to the month before that instead
-                                if (Math.abs(firstMonth.getBoundingClientRect().y - calendarTop) < 10) {
-                                    scrollToEle(firstMonth.previousSibling);
-                                }
-                                else {
-                                    scrollToEle(firstMonth);
-                                }
+                                    if (scrollTo !== null && scrollTo > 0) {
+                                        // Already in the process of scrolling somewhere
+                                        scrollToMonth(scrollTo - 1);
+                                        return;
+                                    }
+                                    // Calculate the month intersecting with the top of the calendar
+                                    const monthOnTop = getMonthIntersectingWithTopOfCalendar();
+                                    const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
+                                    const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
+
+                                    if (monthOnTop >= 0) {
+                                        if (monthOnTop > 0 && Math.abs(monthRefs.current[monthOnTop].getBoundingClientRect().y - calendarTop) < 10) {
+                                            // If the first visible month is at the very top of the calendar then scroll to the month before that instead
+                                            scrollToMonth(monthOnTop-1);
+                                        } 
+                                        else {
+                                            scrollToMonth(monthOnTop);
+                                        }
+                                    }
                             }}
                         >
                             { ICONS.PREVIOUS }
@@ -210,8 +243,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                         <button className="btn small bg square"
                             title="Jump to today"
                             onClick={(e) => {
-                                
-                                scrollToEle(currentDayRef.current);
+                                currentDayRef.current && scrollToEle(currentDayRef.current);
                             }}
                         >
                             { ICONS.JUMP_TO_DAY }
@@ -219,10 +251,15 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                         <button className="btn small bg square"
                             title="Next month"
                             onClick={(e) => {
-                                const monthsVisible = getMonthsInView(); 
-                                const nextMonth = monthsVisible.length >= 2 ? monthsVisible[1] : monthsVisible[0].nextSibling;
-                                // If the next month not visible at the very top of the calendar then scroll to the month after that instead
-                                scrollToEle(nextMonth);
+                                if (scrollTo !== null && scrollTo < monthRefs.current.length-1) {
+                                    // Already in the process of scrolling somewhere
+                                    scrollToMonth(scrollTo + 1);
+                                    return;
+                                }
+                                const monthOnTop = getMonthIntersectingWithTopOfCalendar();
+                                if (monthOnTop >= 0 && monthOnTop < monthRefs.current.length-1) {
+                                    scrollToMonth(monthOnTop+1);
+                                }
                             }}
                         >
                             { ICONS.NEXT }
@@ -243,12 +280,20 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                     ref={scrollContainerRef}
                     title="Calendar body"
                     >
-                    { allLoadedMonthData.map(monthData => 
+                    { allLoadedMonthData.map((monthData, index) => 
                         <div 
                             className="month-container" 
                             key={monthData.key} 
                             aria-labelledby={`${monthData.key}-header`} 
-                            ref={monthData.closeToBeginningOfDataRange ? earlyMonthRef : (monthData.closeToEndOfDataRange ? lateMonthRef : undefined)}    
+                            ref={(node) => {
+                                if (monthData.closeToBeginningOfDataRange) {
+                                    earlyMonthRef.current = node;
+                                }
+                                if (monthData.closeToEndOfDataRange) {
+                                    lateMonthRef.current = node;
+                                }
+                                monthRefs.current[index] = node;
+                            }}    
                         >
                             <div className="month-title" id={`${monthData.key}-header`}> 
                                 <h2>{monthData.monthName}</h2>
@@ -307,7 +352,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                     )}
                 </div>
             </div>
-        </PlaceableWidget>;
+        </PlaceableWidget>
 });
 
 export const ShowSelectableCalendarDays = () => {};
