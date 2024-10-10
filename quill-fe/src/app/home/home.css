@@ -634,3 +634,12 @@ hr {
     }
 }
 /*#endregion Animations*/
+
+.droppable.valid {
+    transform: scale(1.3);
+    border: solid var(--focus-highlight) var(--focus-border-width);
+}
+
+.droppable.invalid {
+    border: solid var(--failure-bg) var(--focus-border-width);
+}

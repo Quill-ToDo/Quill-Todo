@@ -1,25 +1,26 @@
 import React, { 
     Fragment, 
+    MutableRefObject, 
     useEffect, 
     useRef, 
     useState
 } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import { TaskModel } from "@/store/tasks/TaskModel";
+import { TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     TaskTitle, 
     TaskWrapper, 
     TaskDueDate 
 } from "@/widgets/TaskDetail/TaskComponents";
-import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@/app/@util/DateTimeHelper";
+import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@util/DateTimeHelper";
 import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-import { ICONS } from "@/app/@util/constants";
-import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "../generic-widgets/Widget";
+import { combineClassNamePropAndString, ICONS } from "@/app/@util/constants";
+import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
 
@@ -223,16 +224,24 @@ const Section = observer(({
     classNames?: string,
 }) => {
     const sessionStorageKey = `section-${sectionId}-collapsed`;
-    const sectionAlreadycollapsed = getSessionStorageItem(sessionStorageKey);
-    const [sectionOpen, setSectionOpen] = useState(sectionAlreadycollapsed ? false : true);
-
+    const [sectionOpen, setSectionOpen] = useState(true);
+    
     var collapseToolTip = sectionOpen ? `Collapse ${title.toLowerCase()} section` : `Expand ${title.toLowerCase()} section`;
-
+    
     useEffect(() => {
-        if (!sectionOpen) {
-            handleSectionToggle(sectionId);
+        const alreadyCollapsed = getSessionStorageItem(sessionStorageKey); 
+        if (alreadyCollapsed !== undefined) {
+            setSectionOpen(!alreadyCollapsed);
+            if (alreadyCollapsed) {
+                handleSectionToggle(sectionId);
+            }
         }
     }, []);
+    useEffect(() => {
+        if (!sectionOpen) {
+            saveSessionStorageItem(sessionStorageKey, !sectionOpen);
+        }
+    }, [sectionOpen]);
     
     return (
         <section id={getSectionId(sectionId)} aria-labelledby={`section-${sectionId}-title`} >
@@ -247,7 +256,6 @@ const Section = observer(({
                         aria-expanded={sectionOpen}
                         onClick={(e) => {
                             setSectionOpen(!sectionOpen);
-                            saveSessionStorageItem(sessionStorageKey, sectionOpen);
                             handleSectionToggle(sectionId);
                         }}
                     >
@@ -346,11 +354,20 @@ const TaskList = observer(({
             return ( 
                 <Draggable
                     droppable={true}
+                    itemType={TASK_DRAG_TYPE}
+                    itemData={{id: task.id}}
                     key={`task-li-${task.id}`}
                     actionTitle="Drag task"
-                    renderDraggableItem={(props) => <li 
-                            className="task"
+                    onDragStart={(e) => {
+                        task.highlighted = true;
+                    }}
+                    onDragEnd={(e) => {
+                        task.highlighted = false;
+                    }}
+                    renderDraggableItem={(props, ref) => <li 
+                            ref={ref as MutableRefObject<HTMLLIElement>}
                             {...props}
+                            className={combineClassNamePropAndString({className: "task", props})}
                         >
                             <ListViewTask
                                 task={task}

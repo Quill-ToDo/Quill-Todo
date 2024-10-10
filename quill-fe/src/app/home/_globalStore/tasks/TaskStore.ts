@@ -18,6 +18,7 @@ export default class TaskStore {
     rootStore : RootStore;
     taskSet : Set<TaskModel> = new Set();
     taskBeingCreated : TaskModel | null = null;
+    highlightedTask : TaskModel | null = null;
     // Boolean : Whether the store has synced with server
     isLoaded : boolean = false;
 
@@ -37,6 +38,7 @@ export default class TaskStore {
             isLoaded: observable,
             taskSet: observable,
             taskBeingCreated: observable,
+            highlightedTask: observable,
             // Computeds
             tasks: computed,
             taskMap: computed,
@@ -44,12 +46,13 @@ export default class TaskStore {
             // Actions
             createNewTask: action,
             setNewTask: action,
+            setHighlightedTask: action,
             add: action,
             setIsLoaded: action,
             remove: action, 
             delete: action,
             clearTasks: action,
-            getTaskWithId: false,
+            getTaskById: false,
             loadTasks: false,
         }, {proxy: false})
         this.rootStore = rootStore;
@@ -80,7 +83,7 @@ export default class TaskStore {
                 this.clearTasks();
                 fetchedTasks.data.forEach((json : {[index : string]: any}) => {
                     if (refresh && this.taskMap && this.taskMap.has(json.id)) {
-                        let task = this.getTaskWithId(json.id); 
+                        let task = this.getTaskById(json.id); 
                         if (task) { 
                             task.json = json;
                         }
@@ -105,7 +108,6 @@ export default class TaskStore {
                 if (document.getElementById(HOME_ID)) {
                     connectionAlertIdselectorForFieldElementstring = addAlert(document.getElementById(HOME_ID), ERROR_ALERT, error);
                 }
-                // TODO newTaskPopup is getting axios errors here
                 throw e;
             }
             else if (connectionAlertIdselectorForFieldElementstring) {
@@ -139,7 +141,7 @@ export default class TaskStore {
         
     }
 
-    getTaskWithId = (id: string) => {
+    getTaskById = (id: string) => {
         return this.taskMap.get(id);
     }
     
@@ -235,5 +237,9 @@ export default class TaskStore {
             ERROR_ALERT, `${task.title} could not be deleted - ${error.toString()}`);
             this.add(task);
         });
+    }
+
+    setHighlightedTask (task: TaskModel | null) {
+        this.highlightedTask = task;
     }
 }

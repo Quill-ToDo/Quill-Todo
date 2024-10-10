@@ -2,6 +2,9 @@
   width: 800px;
   max-width: 50vw;
   min-width: min-content;
+  max-height: 100vh;
+  overflow-y: scroll;
+  position: relative;
 }
 
 .task-detail .checkbox-color {
@@ -32,6 +35,7 @@
 
 .task-detail .task-wrapper {
   justify-content: space-between;
+  padding: 0;
 }
 
 .task-detail .task-wrapper.complete .title textarea {
@@ -39,11 +43,11 @@
   text-decoration: line-through solid var(--g7) 2px ;
 } 
 
-.task-detail .task-wrapper.complete.hover * {
+.task-detail .task-wrapper.highlighted * {
   color: auto;
 }
 
-.task-detail .task-wrapper.hover {
+.task-detail .task-wrapper.highlighted {
   background-color: unset;
 }
 
@@ -61,6 +65,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--section-gap);
+  overflow-y: scroll;
 }
 
 .field:hover .field-btns,
@@ -91,7 +96,11 @@
 
 .task-detail header {
   min-width: fit-content;
-  width: 100%;
+  max-width: 100%;
+  position: sticky;
+  inset: 0;
+  z-index: 10;
+  border-radius: var(--box-corner-rounding) var(--box-corner-rounding) 0 0;
 }
 
 .task-detail h3, 

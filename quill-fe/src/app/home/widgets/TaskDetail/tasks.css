@@ -6,14 +6,12 @@
   border-radius: 10px;
 }
 
-.task-wrapper.hover {
+.task-wrapper.highlighted {
   background-color: var(--list-hover);
 }
 
-.list.widget .task-wrapper,
-.calendar.widget .task-wrapper {
-  padding-left: 10px;
-  padding-right: 10px;
+.task-wrapper {
+  padding: 5px 10px 5px 10px;
 }
 
 /*#region Time and date */
@@ -89,8 +87,7 @@
   width: 100%;
 }
 
-.title.blank p,
-.overdue .title.blank p,
+p.title.blank,
 .title.blank::placeholder,
 .date input::placeholder,
 .time input::placeholder {

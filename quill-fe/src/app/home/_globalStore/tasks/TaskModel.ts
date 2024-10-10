@@ -1,4 +1,4 @@
-import { action, computed, makeObservable, observable, reaction } from "mobx"
+import { action, computed, makeObservable, observable } from "mobx"
 import pluralize from 'pluralize';
 import { v4 } from "uuid";
 import { DateTime, Interval } from "luxon";
@@ -7,11 +7,11 @@ import {
     END_OF_DAY,
     PARTIAL_DATETIME_FORMATS,
     dateTimeHelper,
-} from "@/app/@util/DateTimeHelper";
+} from "@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
-import { Context, createContext } from "react";
+import { createContext } from "react";
 import { HOME_ID } from "../../dashboardLayout";
 
 export const DEFAULT_START_DATETIME = () => DateTime.now();
@@ -19,6 +19,10 @@ export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_DESCRIPTION_LENGTH = 10000;
+export const TASK_DRAG_TYPE = "task";
+export interface TaskDragData {
+    id: string,
+}
 
 type ValidationTest = {
     text: string;
@@ -179,6 +183,7 @@ export class TaskModel {
             _color: observable, // The color of the task
             color: computed,
             json: computed, // This tasks data in JSON form
+            highlighted: computed,
             // --- Editing mode ---
             submitNewTask: action, // Submit this task to the server (if new)
             isNewAndUnsubmitted: computed, // Is this a new task being created?
@@ -621,6 +626,22 @@ export class TaskModel {
     }
 
 //#endregion JSON
+//#region Visual
+get highlighted() {
+    return this._store?.highlightedTask === this;
+}
+
+set highlighted(value: boolean) {
+    if (this._store) {
+        if (value) {
+            this._store.setHighlightedTask(this);
+        }
+        else {
+            this._store.setHighlightedTask(null);
+        }
+    }
+}
+//#endregion Visual
 //#region NEW TASK CREATION
     get isNewAndUnsubmitted() {
         return this._store ? this._store.taskBeingCreated === this : true;
@@ -841,4 +862,4 @@ export module TaskModel.VisualStyles {
     export type AcceptedStyles = "start" | "due" | "scheduled";
 }
 
-export const TaskContext: Context<TaskModel> | Context<null> = createContext(null);
+export const TaskContext = createContext<null | TaskModel>(null);

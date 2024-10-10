@@ -1,6 +1,7 @@
 import React, { 
     Dispatch, 
     ForwardedRef, 
+    LegacyRef, 
     ReactNode, 
     SetStateAction, 
     useEffect, 
@@ -17,17 +18,21 @@ import {
     offset,
     shift,
     flip,
-    ReferenceType,
     size,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
-import { TetheredPopupParams, StandalonePopupParams, SharedPopupProps } from '../@util/Popup';
+import { 
+    TetheredPopupParams, 
+    StandalonePopupParams, 
+    SharedPopupProps, 
+    PopupSetup 
+} from '@util/Popup';
 import { combineClassNamePropAndString } from '@util/constants';
 import { Draggable } from '@/util/Draggable';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
-const loading = <div className="loading">
+const loading = <div className="loading take-full-space centered">
     <p>Loading...</p>
 </div>;
 
@@ -90,26 +95,28 @@ const getInnerPopupContent = ({
     // Apply focus manager to popup content
     const innerPopupContent = <FloatingFocusManager context={context}>
             <div 
-                ref={refs.setFloating} 
                 style={floatingStyles} 
-                {...props}
+                ref={refs.setFloating} 
                 {...getFloatingProps()}
-                className={combineClassNamePropAndString({className: `floating popup`, props: {...props, ...getFloatingProps()}})}
             >
-                { doneLoading ? innerContent : loading }
+                <div
+                    {...props}
+                    className={combineClassNamePropAndString({className: `floating popup`, props})}
+                >
+                    { doneLoading ? innerContent : loading }
+                </div>
             </div>
     </FloatingFocusManager>;
 
     // Make focus-managed inner content draggable if needed 
-    const possibleDraggableContent =  draggable ? <Draggable 
+    const possibleDraggableContent =  draggable ? <Draggable
         droppable={false} 
         useHandle={useDragHandle} 
         actionTitle='Move popup'
-        renderDraggableItem={(draggableProps) => 
+        renderDraggableItem={(draggableProps, ref) => 
             <div 
-                    className={combineClassNamePropAndString({className: `popup`, props: {...draggableProps}})}
-                    role={"dialog"}
                     {...draggableProps}
+                    ref={ref as ForwardedRef<HTMLDivElement>}
                 >
                 { innerPopupContent }
             </div>
@@ -124,7 +131,7 @@ const getInnerPopupContent = ({
                         { possibleDraggableContent }
                     </FloatingPortal>,
         refs: refs,
-        referenceProps: getReferenceProps,
+        getReferenceProps: getReferenceProps,
     }
 }
 
@@ -167,10 +174,10 @@ export const FloatingUiPopupImplementation = observer((
                 openPopup: open,
                 toApply: {
                     className: combineClassNamePropAndString({className: "popup-anchor", props}),
-                    ...popupSetup.referenceProps(),
+                    ...popupSetup.getReferenceProps(),
                 },
             },
-            popupSetup.refs.setReference as ForwardedRef<HTMLButtonElement>, 
+            popupSetup.refs.setReference, 
         )} 
         {/* Popup */}
         { showPopup && popupSetup.content }
@@ -196,11 +203,7 @@ export const setUpFloatingUiStandalonePopup = (
         ...props
         
     } : StandalonePopupParams & { setPopupContent: Dispatch<SetStateAction<any>>}  )
-    : { 
-        openPopup: () => void,
-        closePopup: () => void,
-        setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
-    } =>  {
+    : PopupSetup =>  {
     const [showPopup, setShowPopup] = useState(false);
     
     const popupSetup = getInnerPopupContent({
@@ -219,7 +222,7 @@ export const setUpFloatingUiStandalonePopup = (
         if (showPopup) {
             setPopupContent(popupSetup.content);
         }
-    }, [showPopup])
+    }, [children])
     
     const open = () => {
         setShowPopup(true);
@@ -234,5 +237,6 @@ export const setUpFloatingUiStandalonePopup = (
         openPopup: open,
         closePopup: close,
         setPopupPositioningAnchor: popupSetup.refs.setReference,
+        getReferenceProps: popupSetup.getReferenceProps,
     }
 }

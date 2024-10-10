@@ -60,19 +60,15 @@
     align-items: flex-end;
   }
 
-.list.widget .task-wrapper.complete .title:focus *,
-.list.widget .task-wrapper.complete:hover *,
-.list.widget .task-wrapper.complete.hover *,
-.list.widget .task-wrapper.complete.hover .checkmark,
-.calendar.widget .task-wrapper.complete .title:focus *,
-.calendar.widget .task-wrapper.complete:hover *,
-.calendar.widget .task-wrapper.complete.hover *,
-.calendar.widget .task-wrapper.complete.hover .checkmark {
+.task-wrapper.complete .title:focus *,
+.task-wrapper.complete:hover *,
+.task-wrapper.complete.highlighted *,
+.task-wrapper.complete.highlighted .checkmark {
     color: var(--g2);
 }
 
 .task-wrapper.complete:hover s,
-.task-wrapper.complete.hover s,
+.task-wrapper.complete.highlighted s,
 .task-wrapper.complete .title:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }

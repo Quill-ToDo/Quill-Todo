@@ -1,19 +1,27 @@
 import { observer } from "mobx-react-lite";
 import { START_OF_DAY } from "@/app/@util/DateTimeHelper";
 import { DateTime } from "luxon";
-import { END_OF_WEEK_WEEKDAY, ICONS, START_OF_WEEK_WEEKDAY } from "@/util/constants";
+import { 
+    combineClassNamePropAndString, 
+    END_OF_WEEK_WEEKDAY, 
+    ICONS, 
+    START_OF_WEEK_WEEKDAY 
+} from "@/util/constants";
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { 
     ComponentProps, 
-    MutableRefObject, 
+    ForwardedRef, 
+    MutableRefObject,
     useEffect, 
     useRef, 
     useState
 } from "react";
 import { PlaceableWidget } from "../generic-widgets/Widget";
 import { useTaskStore } from "@/store/StoreProvider";
+import { Draggable } from "@/app/@util/Draggable";
+import { TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
@@ -116,11 +124,13 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
     const thisCalendarHeaderRef = useRef(null);
     const scrollContainerRef = useRef(null);
     const today = useRef(START_OF_DAY());
+    const defaultStart = today.current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND});
+    const defaultEnd = today.current.endOf('month').startOf('day').plus({months: NUM_MONTHS_LOOKAHEAD});
     const currentDayRef = useRef(null);
-    const [start, setStart] = useState(today. current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND}));
+    const [start, setStart] = useState(defaultStart);
     const earlyMonthRef = useRef(null);
     const lateMonthRef = useRef(null);
-    const [end, setEnd] = useState(today.current.endOf('month').startOf('day').plus({months: NUM_MONTHS_LOOKAHEAD}));
+    const [end, setEnd] = useState(defaultEnd);
     const [scrollTo, setScrollTo] = useState<number | null>(null);
     const monthRefs = useRef<MutableRefObject<HTMLElement>[]>([]);
 
@@ -133,10 +143,16 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
             }
             const calendarHeader = thisCalendarHeaderRef.current;
             const yOffset = toScroll.getBoundingClientRect().y - (calendarHeader.getBoundingClientRect().y + calendarHeader.getBoundingClientRect().height);
-            scrollContainerRef.current && scrollContainerRef.current.scrollBy({behavior: "smooth", top: yOffset, left: 0 })
+            scrollContainerRef.current && scrollContainerRef.current.scrollBy({behavior: "smooth", top: yOffset, left: 0 });
     }
 
     const scrollToMonth = (index: number) => {
+        if (index+1 <= NUM_MONTHS_TRIGGER_INFINITE_SCROLL) {
+            setStart(start.minus({months: NUM_MONTHS_LOOKBEHIND}));
+        }
+        if (index+1 >= monthRefs.current.length - NUM_MONTHS_TRIGGER_INFINITE_SCROLL) {
+            setEnd(end.minus({months: NUM_MONTHS_LOOKAHEAD}));
+        }
         setScrollTo(index);
         scrollToEle(monthRefs.current[index]);
         setTimeout(() => {
@@ -243,6 +259,8 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                         <button className="btn small bg square"
                             title="Jump to today"
                             onClick={(e) => {
+                                setStart(defaultStart);
+                                setEnd(defaultEnd);
                                 currentDayRef.current && scrollToEle(currentDayRef.current);
                             }}
                         >
@@ -323,24 +341,26 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                         keyOverride: `${day.key}-${taskData.task.id}`,
                                                         ...{className: "inline"}
                                                     }
-                                                    return <TaskWrapper 
-                                                            key={`${day.key}-${taskData.task.id}`}
-                                                            {...taskWrapperProps}
-                                                        >
-                                                            <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
-                                                            <TaskTitle />
-                                                        </TaskWrapper>
-                                                    })
-                                                }
-                                                { day.tasksToday && day.tasksToday.due && day.tasksToday.due.map((task) => {
-                                                    return <TaskWrapper 
-                                                        task={task}
-                                                        keyOverride={`${day.date}-${task.id}`}
-                                                        key={`${day.date}-${task.id}`}
-                                                        >
-                                                        <Checkbox type={'due'} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>
-                                                        <TaskTitle />
-                                                    </TaskWrapper>
+                                                    return <Draggable
+                                                        droppable={true}
+                                                        key={taskWrapperProps.keyOverride}
+                                                        actionTitle="Move task"
+                                                        itemType={TASK_DRAG_TYPE}
+                                                        itemData={{id: taskWrapperProps.task.id}}
+                                                        renderDraggableItem={(props, ref) => <TaskWrapper 
+                                                                ref={ref as ForwardedRef<HTMLDivElement>}
+                                                                {...props}
+                                                                {...taskWrapperProps}
+                                                                {...{id: props.id, className: combineClassNamePropAndString({
+                                                                    className: taskWrapperProps.className,
+                                                                    props: props,
+                                                                })}}
+                                                            >
+                                                                <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
+                                                                <TaskTitle />
+                                                            </TaskWrapper>
+                                                        }
+                                                    />
                                                 })}
                                             </div>
                                         </div>    

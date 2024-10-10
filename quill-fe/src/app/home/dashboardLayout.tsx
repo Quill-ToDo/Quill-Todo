@@ -3,13 +3,17 @@ import { observer } from "mobx-react-lite";
 import './home.css'
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
 import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
-import { ICONS } from "@util/constants";
-import { LegacyRef, useRef } from "react";
+import { combineClassNamePropAndString, ICONS } from "@util/constants";
+import { useRef } from "react";
 import { useTaskStore } from "./_globalStore/StoreProvider";
 import { TetheredPopupOnClick } from "@util/Popup";
 import { ListWidget } from "@/widgets/List/List";
 import { CalendarWidget } from "@/widgets//Calendar/Calendar";
 import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
+import { Draggable, Droppable } from "@/util/Draggable";
+import { TASK_DRAG_TYPE, TaskDragData } from "@/store/tasks/TaskModel";
+import { DraggedContent } from "../3rd-party/DndKit";
+import { DragEndEvent } from "@dnd-kit/core";
 
 export const NEW_TASK_TEXT = "Add task";
 export const HOME_ID = "home-wrapper";
@@ -20,7 +24,7 @@ const DashboardLayout = observer(({
     children?: React.ReactNode,
 }) => {
     const taskStore = useRef(useTaskStore());
-    const trashBtnRef = useRef(null);
+    const trashBtnRef = useRef<HTMLButtonElement | null>(null);
 
     const widgets = children ? children :<>
         <ListWidget />
@@ -45,12 +49,12 @@ const DashboardLayout = observer(({
                         useDragHandle={true}
                         renderElementToClick={(props, ref) => <button 
                                 {...props.toApply}
+                                ref={ref}
                                 id="add-task"
                                 role="menuitem" 
                                 aria-haspopup="dialog"
                                 className="btn small square bg" 
                                 title={NEW_TASK_TEXT} 
-                                ref={ref as LegacyRef<HTMLButtonElement>}
                                 onClick={() => {
                                     taskStore.current.createNewTask();
                                     props.openPopup();
@@ -63,16 +67,49 @@ const DashboardLayout = observer(({
                             taskToCreate={taskStore.current.taskBeingCreated}
                         />}
                     />
-                    <button 
-                        ref={trashBtnRef}
-                        role="menuitem" 
-                        className="btn small square bg" 
-                        title="Trash" 
-                        type="button" 
-                        onClick={() => addAlert(document.querySelector("#left-menu button[title='Trash']"), ERROR_ALERT, "We haven't implemented clicking on trash")}
-                    >
-                        { ICONS.TRASH }
-                    </button>
+                    <Draggable 
+                        actionTitle="Drag to item to delete"
+                        droppable={true}
+                        itemType="delete"
+                        onDragEnd={() => {
+
+                        }}
+                        renderDraggableItem={(props, ref) => {
+                            return <Droppable 
+                                {...props}
+                                ref={ref}
+                                acceptedItemTypes={[TASK_DRAG_TYPE]}
+                                itemType={"delete"}
+                                onDrop={({e, drop, drag}) => {
+                                    if (drag && drag.type === TASK_DRAG_TYPE) {
+                                        const droppedTaskId = drag.value.id; 
+                                        const droppedTask = taskStore.current.getTaskById(droppedTaskId);
+                                        droppedTask && droppedTask.deleteSelf();
+                                    }
+                                }}
+                                renderDroppableItem={(props, ref) => <button 
+                                    {...props}
+                                    ref={(node) => {
+                                        trashBtnRef.current = node;
+                                        if (typeof ref === "function") {
+                                            ref(node);
+                                        }
+                                        else {
+                                            ref.current = node;
+                                        }
+                                    }}
+                                    role="menuitem" 
+                                    className={combineClassNamePropAndString({className: "btn small square bg", props: props})} 
+                                    title="Trash" 
+                                    type="button" 
+                                >
+                                    { ICONS.TRASH }
+                                </button>
+                                }
+                            />
+                        }}
+                    />
+                    
                     <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}>
                         { ICONS.SETTINGS }
                     </button>
@@ -83,6 +120,7 @@ const DashboardLayout = observer(({
                 {widgets}
             </div>
             <div id={PORTAL_HOLDER_ID}></div>
+            <DraggedContent/>
     </>)
 })
 

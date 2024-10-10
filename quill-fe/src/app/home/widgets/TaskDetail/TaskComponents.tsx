@@ -8,7 +8,6 @@ import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import { 
     ComponentPropsWithoutRef, 
-    CSSProperties, 
     ForwardedRef, 
     forwardRef, 
     HTMLProps, 
@@ -24,11 +23,13 @@ import {
 } from "react";
 import TaskDetail from "./TaskDetail";
 import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
-import { setUpStandalonePopup, TetheredPopupOnClick } from "@/app/@util/Popup";
+import { setUpStandalonePopup, TetheredPopupOnClick } from "@/util/Popup";
 import './tasks.css';
-import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
+import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
+import { DraggableContext } from "@/app/3rd-party/DndKit";
 
-const HOVER_CLASS = "hover";
+const TASK_WRAPPER_CLASS = "task-wrapper";
+
 
 const useTaskContextOrPassedTask = (passedTask?: TaskModel): TaskModel => {
     if (passedTask) {
@@ -44,7 +45,7 @@ const useTaskContextOrPassedTask = (passedTask?: TaskModel): TaskModel => {
 /**
  * Provide context of a single task for all task-related components within
  */
-export const TaskWrapper = observer((
+export const TaskWrapper = observer(forwardRef((
     {
         task, 
         keyOverride,
@@ -54,32 +55,29 @@ export const TaskWrapper = observer((
         task: TaskModel, 
         keyOverride?: string,
         children: ReactNode, 
-    }) => {
-    const taskWrapperClass = "task-wrapper";
-    const allTaskWrapperSelector = `[data-task-id="${task.id}"].${taskWrapperClass}`;
+    }, ref: ForwardedRef<HTMLDivElement>) => {
+
+    const dragContext = useContext(DraggableContext);
+
     return <TaskContext.Provider value={task}>
         <div 
+            ref={ref}
             key={keyOverride ? keyOverride : task.id}
             data-task-id={task.id}
-            onPointerOver={(e) => {
-                document.querySelectorAll(allTaskWrapperSelector).forEach((element: Element) => {
-                    // if ((e.target as HTMLElement).classList.contains(taskWrapperClass)) {
-                        element.classList.add(HOVER_CLASS);
-                    // }
-                });
-            }}
-            onMouseLeave={() => {
-                document.querySelectorAll(`${allTaskWrapperSelector}.${HOVER_CLASS}`).forEach((element: Element) => {
-                    element.classList.remove(HOVER_CLASS);
-                });
+            onMouseEnter={(e) => {
+                if (!dragContext.isDragging) {
+                    task.highlighted = true;
+                }
             }}
             {...props}
-            className={combineClassNamePropAndString({className: `task-wrapper${task.complete ? " complete" : ""}${task.overdue() ? " overdue" : ""}`, props: props as HTMLProps<"any">})}
+            className={combineClassNamePropAndString({
+                className: `${TASK_WRAPPER_CLASS}${task.complete ? " complete" : ""}${task.overdue() ? " overdue" : ""}${task.highlighted ? " highlighted" : ""}`, 
+                props})}
         >
             {children}
         </div>
     </TaskContext.Provider>;
-});
+}));
 
 /**
  * This will render a button that will clear <fieldName> provided an onClick method to do so. 
@@ -325,13 +323,10 @@ const PlainTaskTitle = observer((
     {
         passedTask,
         openTaskDetailPopup=true,
-        style,
-        props,
+        ...props
     }: {
         passedTask?: TaskModel,
         openTaskDetailPopup?: boolean,
-        style?: CSSProperties,
-        props: ComponentPropsWithoutRef<"p">,
     }
 ) => {
     const [task, setTask] = useState(useTaskContextOrPassedTask(passedTask));
@@ -354,16 +349,15 @@ const PlainTaskTitle = observer((
     closePopupCallback.current = popupControls.closePopup;
     let toReturn = <p 
         {...props}
-        className={combineClassNamePropAndString({className: "title", props})}
-        style={style}
     > 
         { task.complete ? <s>{displayTitle}</s> : displayTitle } 
     </p>;
     if (openTaskDetailPopup) {
         toReturn = <button
+            ref={popupControls.setPopupPositioningAnchor}
             {...popupControls.getReferenceProps()}
             onClick={popupControls.openPopup}
-            ref={popupControls.setPopupPositioningAnchor}
+            title={"Open task details"}
         >
             {toReturn}
         </button>
@@ -396,6 +390,8 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
             data-expand-content={task.title}
             >
             <textarea 
+                ref={ref as ForwardedRef<HTMLTextAreaElement>}
+                {...props}
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
                 value={task.title}
                 aria-label={"Title"}
@@ -410,7 +406,6 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
                     }
                 }}
                 onBlur={finishEditing}
-                {...props}
             />
             {
                 !!task.validationErrors.title.length && <ErrorsList
@@ -426,12 +421,10 @@ export const TaskTitle = observer((
     {
         passedTask, 
         editAllowed=false,
-        style,
         ...props
     }: {
         passedTask?: TaskModel, 
         editAllowed?: boolean,
-        style?: CSSProperties,
     }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const overdue = task.overdue();
@@ -439,24 +432,21 @@ export const TaskTitle = observer((
     const defaultColorLogic = !task.complete && !overdue && !!task.title.length ? task.color : undefined;
     const formattedProps: ComponentPropsWithoutRef<any> = {
         ...props,
-        className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}${props&&props.className?" "+props.className:""}`,
+        className: combineClassNamePropAndString({className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}`, props}),
         style: {
             color: defaultColorLogic,
-            ...(style?style:undefined),
+            ...(props && props.style ? props.style:undefined),
         }
     };
 
-    // Use p element if not editable
     if (!editAllowed) {
         return <PlainTaskTitle 
             {...formattedProps}
         />;
     }
-    else {
-        return <EditableTaskTitle
-            {...formattedProps}
-        />
-    }
+    return <EditableTaskTitle
+        {...formattedProps}
+    />
 });
 
 //#endregion 
