@@ -52,11 +52,3 @@ export const ICONS = {
 export const BTN_APPEAR_ON_HOVER_CLASS = "appear-on-hover";
 export const BTN_APPEAR_TARGET_CLASS = "btn-hover-target";
 
-/**
- * 
- * @returns a string of the passed className and any className from the passed props
- */
-export const combineClassNamePropAndString = ({className, props}: {className: string, props: ComponentPropsWithoutRef<any>}): string => {
-    return `${className}${props && props.className ? " " + props.className : ""}`;
-}
-

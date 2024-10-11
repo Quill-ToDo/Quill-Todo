@@ -4,7 +4,8 @@ import {
 } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { combineClassNamePropAndString, ICONS } from "@/util/constants";
+import { ICONS } from "@/util/constants";
+import { combineClassNamePropAndString } from '@util/jsTools';
 import { 
     ColorBubble, 
     TaskComponentAndHeader, 
@@ -197,9 +198,7 @@ export const AddNewTaskPopUp = observer(({
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
                                     title="Add task field" 
-                                    className={combineClassNamePropAndString({
-                                        className: `add-field-btn btn small centered take-full-space`,
-                                        props: props.toApply})} 
+                                    className={combineClassNamePropAndString(`add-field-btn btn small centered take-full-space`, props.toApply)} 
                                     > 
                                         { ICONS.PLUS }
                                     </button>

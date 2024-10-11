@@ -20,6 +20,10 @@ export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const TASK_DRAG_TYPE = "task";
+export const TASK_ACTIONS = {
+    delete: "delete"
+};
+export const TASK_ACCEPTED_DRAG_TYPES = [TASK_ACTIONS.delete];
 export interface TaskDragData {
     id: string,
 }

@@ -2,11 +2,11 @@ import { observer } from "mobx-react-lite";
 import { START_OF_DAY } from "@/app/@util/DateTimeHelper";
 import { DateTime } from "luxon";
 import { 
-    combineClassNamePropAndString, 
     END_OF_WEEK_WEEKDAY, 
     ICONS, 
     START_OF_WEEK_WEEKDAY 
 } from "@/util/constants";
+import { combineClassNamePropAndString } from '@util/jsTools';
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";

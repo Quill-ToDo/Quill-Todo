@@ -27,7 +27,7 @@ import {
     SharedPopupProps, 
     PopupSetup 
 } from '@util/Popup';
-import { combineClassNamePropAndString } from '@util/constants';
+import { combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
@@ -173,7 +173,7 @@ export const FloatingUiPopupImplementation = observer((
             {
                 openPopup: open,
                 toApply: {
-                    className: combineClassNamePropAndString({className: "popup-anchor", props}),
+                    className: combineClassNamePropAndString("popup-anchor", props),
                     ...popupSetup.getReferenceProps(),
                 },
             },

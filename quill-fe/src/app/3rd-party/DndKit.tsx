@@ -65,7 +65,7 @@ export const DraggedContent = () => {
 }
 
 
-export const WrapWithDndContext = ({
+export const WrapWithDndContext = observer(({
     children,
 }: {
     children: ReactNode,
@@ -99,7 +99,7 @@ export const WrapWithDndContext = ({
 
         </DndContext>
     </DraggableContext.Provider>;
-}
+});
 //#endregion Context
 //region Draggable
 /**
@@ -107,7 +107,7 @@ export const WrapWithDndContext = ({
  * DRAGGABLE_HANDLE_CLASS
  * @returns 
  */
-export const DraggableDndKitImplementation = ({ 
+export const DraggableDndKitImplementation = observer(({ 
     droppable, 
     renderDraggableItem,
     ...props
@@ -119,7 +119,7 @@ export const DraggableDndKitImplementation = ({
     const sharedClassNames = DRAGGABLE_CLASS;
     const renderWithClassNames = (props: ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => renderDraggableItem({
         ...props,
-        className: combineClassNamePropAndString({className: sharedClassNames, props}),
+        className: combineClassNamePropAndString(sharedClassNames, props),
     }, ref)
     return droppable 
     ? <PickUpAndMove 
@@ -133,7 +133,7 @@ export const DraggableDndKitImplementation = ({
         renderDraggableItem={renderWithClassNames}
         {...props}
     /> 
-}
+})
 
 interface DragOptions {
     renderDraggableItem: DraggableParams["renderDraggableItem"],
@@ -167,7 +167,7 @@ const handleDragStart = (id: string, e: DragStartEvent, onDragStart: DragOptions
  * DND Kit implementation of a freely draggable element.
  * @returns 
  */
-const FreeDrag =  ({
+const FreeDrag = observer(({
     renderDraggableItem,
     id,
     useDragHandle,
@@ -223,13 +223,13 @@ const FreeDrag =  ({
             },
             setNodeRef
         );
-}
+})
 
 /**
  * DND Kit implementation of a an element that can be picked up and dropped into another container
  * @returns 
  */
-const PickUpAndMove = ({
+const PickUpAndMove = observer(({
     id,
     renderDraggableItem,
     useDragHandle,
@@ -277,7 +277,7 @@ const PickUpAndMove = ({
         },
         setNodeRef,
     )
-}
+});
 
 //endregion Draggable
 //region Droppable

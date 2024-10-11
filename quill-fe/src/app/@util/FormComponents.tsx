@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { ComponentPropsWithRef, ComponentPropsWithoutRef, Fragment, ReactNode } from "react";
-import { combineClassNamePropAndString } from "./constants";
+import { combineClassNamePropAndString } from '@util/jsTools';
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
 
@@ -22,7 +22,7 @@ export const ErrorsList = observer(({
         return <Fragment> 
             <ul 
                 id={id} 
-                className={combineClassNamePropAndString({className: "error-list", props: props})} 
+                className={combineClassNamePropAndString("error-list", props)} 
                 aria-live="polite" 
                 {...props}
             >
@@ -107,10 +107,7 @@ export const FormField = observer((
     );
     return <label 
             {...moreLabelProps}
-            className={combineClassNamePropAndString({
-                className:`${safeName}`, 
-                props: moreLabelProps
-            })} 
+            className={combineClassNamePropAndString(`${safeName}`, moreLabelProps)} 
         >
         { name }
         { inputElement }

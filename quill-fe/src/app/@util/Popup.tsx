@@ -8,7 +8,8 @@ import {
     useContext, 
     useState 
 } from "react";
-import { combineClassNamePropAndString } from "./constants";
+import { combineClassNamePropAndString } from '@util/jsTools';
+
 import { FloatingUiPopupImplementation, setUpFloatingUiStandalonePopup } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 import { ReferenceType } from "@floating-ui/react";
@@ -28,11 +29,11 @@ export type RenderPopUpContent = ({
     closePopup, 
     dragHandleProps
 }: {
-    closePopup: ()=>void,
+    closePopup: (callback?: Function)=>void,
     dragHandleProps?: any,
 }) => ReactElement<any>;
 export type RenderAnchorElement = ForwardRefRenderFunction<HTMLButtonElement, {
-    openPopup: () => void, 
+    openPopup: (callback?: Function)=>void, 
     toApply: ComponentPropsWithoutRef<"button">,
 }>;
 export type TetheredPopupParams = {
@@ -45,8 +46,8 @@ export type StandalonePopupParams = {
     children: ReactNode | JSX.Element,
 } & SharedPopupProps;
 export type PopupSetup = { 
-    openPopup: () => void,
-    closePopup: () => void,
+    openPopup: (callback?: Function)=>void,
+    closePopup: (callback?: Function)=>void,
     setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
     getReferenceProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>,
 };
@@ -68,9 +69,7 @@ export type PopupSetup = {
  * - apply passed ref to button element
  * - spread props in props.toApply to button element (as first parameter so they can be overridden if desired)
  * - If you want to add class names, do  
- * `className={combineClassNamePropAndString({
-                            className: "your-class-name",
-                            props: props.toApply})}` to include passed classNames.
+ * `className={combineClassNamePropAndString( "your-class-name", props.toApply)}` to include passed classNames.
  * - call `props.openPopup()` in an onClick method on returned button  
  * 
  * @returns the rendered anchor element for the popup
@@ -119,9 +118,7 @@ export const TetheredPopupOnClick = observer((
  * - apply passed ref to button element
  * - spread props in props.toApply to button element (as first parameter so they can be overridden if desired)
  * - If you want to add class names, do  
- * `className={combineClassNamePropAndString({
-                            className: "your-class-name",
-                            props: props.toApply})}` to include passed classNames.
+ * `className={combineClassNamePropAndString("your-class-name", props.toApply)}` to include passed classNames.
  * - call `props.openPopup()` in an onClick method on returned button  
  * 
  * @returns the rendered anchor element for the popup
@@ -198,7 +195,7 @@ export const ContextMenuPopup = observer((
                                 }}
                                 aria-labelledby={labelAndCallback.label} 
                                 title={labelAndCallback.label}
-                                className={combineClassNamePropAndString({className: `item`, props: props})} 
+                                className={combineClassNamePropAndString(`item`, props)} 
                                 > 
                                 { labelAndCallback.content }
                             </button>
