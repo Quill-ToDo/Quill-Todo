@@ -65,7 +65,8 @@ const DashboardLayout = observer(({
                             >
                                 { ICONS.PLUS }
                             </button>}
-                        renderPopupContent={({closePopup}) => <AddNewTaskPopUp 
+                        renderPopupContent={({closePopup, popupContainerProps}) => <AddNewTaskPopUp
+                            {...popupContainerProps}
                             close={() => closePopup(()=> {
                                     if (taskStore.current && taskStore.current.taskBeingCreated && taskStore.current.taskBeingCreated.isNewAndUnsubmitted) {
                                         taskStore.current.taskBeingCreated.abortTaskCreation();

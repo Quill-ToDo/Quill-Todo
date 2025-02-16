@@ -1,4 +1,5 @@
 import { 
+    ComponentPropsWithoutRef,
     useRef, 
     useState 
 } from "react";
@@ -32,11 +33,12 @@ export const ADD_BUTTON_TEXT = "Create Task";
  */
 export const AddNewTaskPopUp = observer(({
     close, 
-    taskToCreate
+    taskToCreate,
+    ...props
 }: {
         close: () => void,
         taskToCreate: TaskModel | null, 
-    }) => {
+    } & ComponentPropsWithoutRef<"section">) => {
     const formRef = useRef(null);
     const [showDue, setShowDue] = useState(true);
     const [showStart, setShowStart] = useState(true);
@@ -82,6 +84,7 @@ export const AddNewTaskPopUp = observer(({
         <section 
             className={OUTER_WRAPPER_NAME}
             aria-labelledby="new-task-title"
+            {...props}
             >
             <header 
                 className={DRAGGABLE_HANDLE_CLASS}
