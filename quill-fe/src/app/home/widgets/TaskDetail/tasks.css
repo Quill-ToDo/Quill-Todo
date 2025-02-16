@@ -24,16 +24,15 @@
   position: relative;
 }
 
-.time .input-sizer,
 .time {
   font-size: var(--smaller-p-size);
 }
 
-
-  .time input,
-  .date input {
-    font-size: inherit;
-  }
+.time input,
+.date input {
+  font-size: inherit;
+  color: inherit;
+}
   
 .task-wrapper .date-time-wrapper {
   display: flex;
@@ -49,9 +48,8 @@
 
 .overdue .title,
 .overdue .date-time-wrapper .date,
-.overdue .date-time-wrapper .date input,
-.overdue .date-time-wrapper .time,
-.overdue .date-time-wrapper .time input {
+.overdue .date-time-wrapper .time
+{
   color: var(--overdue);
 }
 
@@ -60,6 +58,7 @@
 .task-wrapper .title {
   background-color: unset;
   text-align: left;
+  text-overflow: ellipsis;
 }
 
   .task-wrapper .title textarea:focus {

@@ -120,8 +120,9 @@ h5 {
 /*#endregion Headers*/
 /*#region Text*/
 p, 
-.date > *,
-.time > * {
+input, 
+textarea,
+.sizer {
     font-family: "Quicksand", sans-serif;
     font-weight: 600;
     font-size: var(--p-size);
@@ -250,56 +251,38 @@ p,
     opacity: 0;
 }
 
+/* Grid box for input auto sizing util wrapper */
 .input-sizer {
     display: inline-grid;
     justify-content: flex-start;
-    grid-auto-flow: column;
-    position: relative;
 }
 
-    .input-sizer.stacked {
-            grid-auto-flow: row;
-            align-items: stretch;
-            grid-template-columns: 1;
-            grid-auto-rows: fit;
-        }
-            .input-sizer.stacked::after,
-            .input-sizer > * {
-            grid-area: 1 / 1;
-            }
+    .input-sizer.narrow {
+        width: min-content;
+    }
 
-    .input-sizer::after,
+    .input-sizer.wide {
+        width: fit-content;
+    }
+
     .input-sizer > * {
         grid-area: 1 / 1;
-        width: 10px;
-        min-width: 100%;
-        min-height: fit-content;
-        height: 100%;
-        padding: 0.25em;
-        margin: 0;
+        resize: none;
+        white-space: pre-wrap;
+    }
+    
+    .input-sizer > *:not(.sizer) {
+        min-width: 1px;
+        width: auto;
         resize: none;
     }
-    .input-sizer.take-full-width,
-    .input-sizer.take-full-width::after {
-        width: 100%;
-        justify-content: unset;
-    }
-
-    .input-sizer.take-full-width::after,
-    .input-sizer.take-full-width > * {
-        width: 100%;
-        max-width: 100%;
-        min-width: 100%;
-        resize: both;
-    }
-
-  .input-sizer::after {
-    min-width: 60px;
-    font: inherit;
-    width: fit-content;
-    content: attr(data-expand-content) ' ';
-    background-color: rgba(0, 255, 255, 0.431);
+/* The thing that wraps normalls because inputs and textareas can't do it to save their
+lives */
+  .input-sizer .sizer {
     visibility: hidden;
+    min-width: 1px;
+    width: fit-content;
+    background-color: rgba(0, 255, 255, 0.155);
   }
 
 /*#endregion Layout/Style Helpers*/
@@ -507,7 +490,8 @@ button:focus {
 /*#endregion Buttons*/
 /*#region Forms*/
 input,
-textarea {
+textarea,
+.sizer {
     font-size: var(--p-size);
     padding: 8px;
     width: 100%;

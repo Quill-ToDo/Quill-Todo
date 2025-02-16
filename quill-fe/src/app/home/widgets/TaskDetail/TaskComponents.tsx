@@ -1,4 +1,4 @@
-import { ErrorsList } from "@util/FormComponents";
+import { ErrorsList, ResizableInput } from "@util/FormComponents";
 import { 
     AcceptedTaskCheckboxStyles,
     TASK_ACCEPTED_DRAG_TYPES,
@@ -479,6 +479,7 @@ const PlainTaskTitle = observer((
 const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskModel}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: MutableRefObject<string> = useRef(task.title);
+    const invalid = !!task.validationErrors.title.length;
     
     // Use input elements if editable to try and get a sort of inline effect
     const finishEditing = async () => {
@@ -492,35 +493,33 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
 
     const errorId = `detail-${task.id}-title-errors`;
 
-    return <label 
-            className="title input-sizer stacked title-sizing"
-            data-expand-content={task.title}
-            >
-            <textarea 
-                ref={(node) => assignForwardedRef(ref, node)}
-                {...props}
-                placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
-                value={task.title}
-                aria-label={"Title"}
-                aria-invalid={!!task.validationErrors.title.length}
-                aria-describedby={errorId}
-                title={"Edit Title"}
-                rows={1}
-                onChange={(e) => {
-                    if (e.target) {
-                        let inputText = e.target.value;
-                        task.title = inputText;
-                    }
-                }}
-                onBlur={finishEditing}
-            />
+    return <>
+        <ResizableInput
+            {...props}
+            version="textarea"
+            forwardedRef={(node) => assignForwardedRef(ref, node)}
+            value={task.title}
+            placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
+            aria-label={"Title"}
+            aria-invalid={invalid}
+            aria-describedby={invalid ? errorId : undefined}
+            title={"Edit Title"}
+            rows={1}
+            onChange={(e) => {
+                if (e.target) {
+                    let inputText = e.target.value;
+                    task.title = inputText;
+                }
+            }}
+            onBlur={finishEditing}
+        />
             {
                 !!task.validationErrors.title.length && <ErrorsList
-                    errors={task.validationErrors.title}
-                    id={errorId}
+                errors={task.validationErrors.title}
+                id={errorId}
                 />
-            }
-    </label>
+            }         
+        </>
 }));
 
 /** Render a task title. Can make editable on click with editAllowed=true */
@@ -585,6 +584,7 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
 
 const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: TaskModel}, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
+    const invalid = !!task.validationErrors.description.length;
     const startingText: MutableRefObject<string> = useRef(task.description);
     
     // Use input elements if editable to try and get a sort of inline effect
@@ -604,28 +604,24 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
     }, [])
 
     return <>
-        <div 
-            className="input-sizer take-full-width"
-            data-expand-content={task.description}
-        >
-            <textarea 
-                value={task.description}
-                aria-label={"Description"}
-                title={"Edit Description"}
-                aria-invalid={!!task.validationErrors.description.length}
-                aria-describedby={errorId}
-                onChange={(e) => task.description = e.target.value}
-                onBlur={finishEditing}
-                {...props}
-                ref={(node) => assignForwardedRef(editInputRef, node)}
-            />
-        </div>
-            {
-                !!task.validationErrors.description.length && <ErrorsList
-                    errors={task.validationErrors.description}
-                    id={errorId}
-                />
-            }
+        <ResizableInput 
+            version="textarea"
+            value={task.description}
+            aria-label={"Description"}
+            title={"Edit Description"}
+            aria-invalid={invalid}
+            aria-describedby={invalid ? errorId : undefined}
+            onChange={(e) => task.description = e.target.value}
+            onBlur={finishEditing}
+            {...props}
+            ref={(node) => assignForwardedRef(editInputRef, node)}
+        
+        />
+        { invalid && <ErrorsList
+            errors={task.validationErrors.description}
+            id={errorId}
+        />
+        }
     </>
 }));
 //#endregion 
@@ -771,25 +767,26 @@ const EditableDatePortion = observer(({
         className="date aligned rows small gap"
     >
         Date
-        <div className="input-sizer stacked" data-expand-content={dateStringUnderEdit}>
-            <input 
-                aria-invalid={dateErrors.concat(task.validationErrors.workInterval).length !== 0} 
-                value={dateStringUnderEdit}
-                aria-describedby={dateErrorListId}
-                aria-label={`${type} date`}
-                placeholder="date e.g. 7/6/2024"
-                onChange={(e) => {
-                    if (e.target) {
-                        updateTaskDate(e.target.value);
-                    }
-                }}
-                onBlur={(e) => {
-                    if (dateField !== startingDate.current && task.isValid) {
-                        task.saveEdits(type);
-                    }
-                }}
-            />
-        </div>
+        <ResizableInput 
+            version="input"
+            type="date"
+            width="narrow"
+            aria-invalid={dateErrors.concat(task.validationErrors.workInterval).length !== 0} 
+            value={dateStringUnderEdit}
+            aria-describedby={dateErrorListId}
+            aria-label={`${type} date`}
+            placeholder="date e.g. 7/6/2024"
+            onChange={(e) => {
+                if (e.target) {
+                    updateTaskDate(e.target.value);
+                }
+            }}
+            onBlur={(e) => {
+                if (dateField !== startingDate.current && task.isValid) {
+                    task.saveEdits(type);
+                }
+            }}
+        />
         { dateErrors.length > 0 && 
             <ErrorsList errors={dateErrors} id={dateErrorListId}/> 
         }
@@ -837,29 +834,27 @@ const EditableTimePortion = observer(({
                 >
                     Time
                     <div className={`aligned `}>
-                        <div className="input-sizer" data-expand-content={timeStringUnderEdit} sizer-styles={timeInputRef.current && timeInputRef.current.style}>
-                            <input 
-                                ref={(node) => assignForwardedRef(timeInputRef, node)}
-                                aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
-                                // Value in 24 hour time string for time input to translate it into whatever the user has set.
-                                value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 
-                                type="time"
-                                onChange={(e) => {
-                                    const newVal = e.target.value;
-                                    updateTaskTime(newVal);
-                                }}
-                                onFocus={() => {setTimeHovered(true)}}
-                                onBlur={(e) => {
-                                    setTimeHovered(false);
-                                    if (startingDate && dateField !== startingDate.current) {
-                                        task.saveEdits(type);
-                                    }
-                                    else {
-                                        task.abortEdits(type);
-                                    }
-                                }}
-                            />
-                        </div>
+                        <ResizableInput
+                            version="input"
+                            width="narrow"
+                            type="time"
+                            // Value in 24 hour time string for time input to translate it into whatever the user has set.
+                            value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 
+                            onChange={(e) => {
+                                updateTaskTime(e.target.value);
+                            }}
+                            aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
+                            onFocus={() => { setTimeHovered(true) }}
+                            onBlur={(e) => {
+                                setTimeHovered(false);
+                                if (startingDate && dateField !== startingDate.current) {
+                                    task.saveEdits(type);
+                                }
+                                else {
+                                    task.abortEdits(type);
+                                }
+                            }}
+                        />
                         <ClearTaskFieldButton 
                             fieldName={`${type} time`}
                             onClick={() => {

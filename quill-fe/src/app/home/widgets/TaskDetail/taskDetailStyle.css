@@ -22,12 +22,6 @@
   font-size: var(--p-size);
 }
 
-.task-detail .input-sizer textarea,
-.task-detail .input-sizer textarea::after {
-  font: inherit;
-}
-
-
 .task-detail label {
   color: var(--g3);
   font-size: var(--p-size);
@@ -78,9 +72,7 @@
   padding: 0;
 }
 
-.description .input-sizer textarea,
-.description .input-sizer::after, 
-.description .input-sizer input  {
+.description .input-sizer > *   {
   padding: var(--section-gap);
   font-size: var(--p-size);
 }

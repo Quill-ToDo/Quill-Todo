@@ -1,5 +1,13 @@
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithRef, ComponentPropsWithoutRef, Fragment, MutableRefObject, ReactNode, forwardRef, useRef, useState } from "react";
+import { 
+    ComponentPropsWithRef, 
+    ComponentPropsWithoutRef, 
+    ForwardedRef, 
+    Fragment, 
+    MutableRefObject,
+    ReactNode,
+    createElement, forwardRef,
+    useRef, useState } from "react";
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
@@ -115,6 +123,9 @@ export const FormField = observer((
     </label>
 });
 
+
+type ResizableInputTypes = "input" | "textarea";
+type ResizableInputParameters = ComponentPropsWithoutRef<"input"> | ComponentPropsWithoutRef<"textarea">;
 /**
  * An input element wrapped in a container which manages its size. 
  * 
@@ -124,32 +135,39 @@ export const FormField = observer((
  * and make the grid expand to the size of the pseudo-element. Actual input value expands to the size allowed by
  * the grid container.
  */
-export const ResizableInput = observer(forwardRef(({
-    children,
+export const ResizableInput = observer(forwardRef(<T extends ResizableInputTypes>({
+    version,
+    forwardedRef,
+    width="wide",
     ...props
-}: {
-    children: ReactNode,
-} & ComponentPropsWithoutRef<"input">, forwardedRef) => {
-    const inputRef: MutableRefObject<HTMLInputElement | null> = useRef(null); 
+}:{
+    version: T,
+    width?: "wide" | "narrow",
+    forwardedRef?: ForwardedRef<HTMLElement>,
+} & ResizableInputParameters) => {
     const [inputValue, setInputVal] = useState(props.value); 
-    
+    const inputRef: MutableRefObject<null | HTMLElement> = useRef(null)
+
+    const input = createElement(version, {
+        ...props,
+        ref: (node: HTMLElement | null) => {
+            assignForwardedRef(inputRef, node);
+            forwardedRef && assignForwardedRef(forwardedRef, node);
+        },
+        onChange: (e) => {
+            setInputVal(e.target.value);
+            props.onChange && props.onChange(e);
+    }})
+
     return <div 
-        className="input-sizer" 
-        data-expand-content={inputValue} 
-        sizer-styles={inputRef.current && inputRef.current.style}
-    >
-        <input
-            {...props}
-            ref={(node) => {
-                assignForwardedRef(inputRef, node);
-                assignForwardedRef(forwardedRef, node);
-            }}
-            onChange={(e) => {
-                setInputVal(e.target.value)
-                props.onChange && props.onChange(e);
-            }}
+            className={`input-sizer ${width}`} 
         >
-            { children }
-        </input>
+        { input }
+        <div
+            aria-hidden={true}
+            className={combineClassNamePropAndString("sizer", props)}
+        >
+            {inputValue}
+        </div>
     </div>
 }));
