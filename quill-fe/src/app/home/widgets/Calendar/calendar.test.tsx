@@ -3,7 +3,7 @@ import {
     render,
     screen,
 } from '@testing-library/react';
-import { testTaskStore, } from "@/testing/jest.setup";
+import { testTaskStore, } from "@/app/__testing__/jest.setup.test";
 
 beforeEach(() => {
     render(<CalendarWidget passedStore={testTaskStore}/>);

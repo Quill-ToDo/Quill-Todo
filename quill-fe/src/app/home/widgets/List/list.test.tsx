@@ -8,7 +8,7 @@ import {
     logRoles,
 } from '@testing-library/react';
 import {act} from 'react';
-import { testTaskStore, MOCK_SERVER_HANDLER, BASE_DATE, testUser } from "@/testing/jest.setup";
+import { testTaskStore, MOCK_SERVER_HANDLER, BASE_DATE, testUser } from "@/app/__testing__/jest.setup.test";
 import { PARTIAL_DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 
 const TASK_NAME = MOCK_SERVER_HANDLER.peekTasks()[0].title;

@@ -11,7 +11,7 @@ import { MAX_DESCRIPTION_LENGTH, MAX_TITLE_LENGTH, TaskModel } from '@/store/tas
 import { ERROR_TEXT } from '../Alerts/AlertWrapper';
 import { ADD_BUTTON_TEXT } from './NewTaskPopUp';
 import '@testing-library/jest-dom';
-import { BASE_DATE, testTaskStore, testUser } from '@/testing/jest.setup';
+import { BASE_DATE, testTaskStore, testUser } from '@/app/__testing__/jest.setup.test';
 import { DATETIME_FORMATS, PARTIAL_DATETIME_FORMATS } from '@/app/@util/DateTimeHelper';
 import { NEW_TASK_TEXT } from '../../dashboardLayout';
 

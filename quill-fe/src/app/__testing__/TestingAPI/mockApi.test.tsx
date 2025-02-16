@@ -1,7 +1,7 @@
 import { MockTaskApiHandler, PassedTask } from "./MockTaskApiHandler";
 import { DateTime } from "luxon";
 import { TaskApi } from "@/store/tasks/TaskApi"
-import { MOCK_SERVER_HANDLER } from "@/testing/jest.setup";
+import { MOCK_SERVER_HANDLER } from "@/app/__testing__/jest.setup.test";
 import { http, HttpResponse } from "msw";
 import { setupServer } from "msw/node";
 

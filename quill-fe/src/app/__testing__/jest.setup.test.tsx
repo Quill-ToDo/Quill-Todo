@@ -40,3 +40,8 @@ afterAll(() => {
     Settings.now = luxonNow;
     MOCK_SERVER_HANDLER.server && MOCK_SERVER_HANDLER.server.close();
 })
+
+it("should set up a testing app", async () => {
+    await testRoot.taskStore.loadTasks();
+    expect(await testRoot.taskStore.tasks.length > 0).toBeTruthy();
+});

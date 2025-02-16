@@ -11,7 +11,7 @@ import {
     HttpResponse,
 } from 'msw'
 import { ERROR_TEXT } from "./AlertWrapper";
-import { MOCK_SERVER_HANDLER, testTaskStore, testUser } from "@/testing/jest.setup";
+import { MOCK_SERVER_HANDLER, testTaskStore, testUser } from "@/app/__testing__/jest.setup.test";
 import { AxiosError } from "axios";
 
 const slideOutTimeout = 15000;

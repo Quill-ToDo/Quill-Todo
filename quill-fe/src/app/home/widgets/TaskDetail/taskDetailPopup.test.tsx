@@ -1,4 +1,5 @@
 import {
+    logRoles,
     render,
     screen,
     within,
@@ -6,7 +7,7 @@ import {
 import {act} from 'react';
 import { LIST_WIDGET_NAME, ListWidget } from '@/widgets/List/List';
 import Home from "@/app/page";
-import { MOCK_SERVER_HANDLER, testRoot, testTaskStore, testUser } from '@/testing/jest.setup';
+import { MOCK_SERVER_HANDLER, testRoot, testTaskStore, testUser } from '@/app/__testing__/jest.setup.test';
 import { TASK_DETAIL_POPUP_NAME } from './TaskDetail';
 import { http, HttpResponse } from 'msw';
 import { ERROR_TEXT } from '../Alerts/AlertWrapper';
@@ -17,7 +18,7 @@ let list: HTMLElement;
 
 beforeEach(async () => {
     await act(async () => {
-        render(<Home rootStore={testRoot} widgets={<ListWidget />} />);
+        await render(<Home rootStore={testRoot} widgets={<ListWidget />} />);
     })
     expect (testTaskStore.isLoaded).toBeTruthy();
     list = await screen.findByRole("region", {name: LIST_WIDGET_NAME});
@@ -33,23 +34,26 @@ const getTaskDetailsPopup = async (passedTaskName?: string) => {
 }
 
 it("should be able to open task details", async () => {
-    expect(await getTaskDetailsPopup()).toBeInTheDocument();
-
+    const popup = await getTaskDetailsPopup(); 
+    expect(popup).toBeInTheDocument();
 });
 
 it("should display task details on show", async () => {
     // Arrange
     const popup = await getTaskDetailsPopup();
     expect(popup).toBeInTheDocument();
-    const due = MOCK_SERVER_HANDLER.tasks.find((task) => TASK_NAME === task.title).due;
-    const start = MOCK_SERVER_HANDLER.tasks.find((task) => TASK_NAME === task.title).start;
+    const task = MOCK_SERVER_HANDLER.tasks.find((task) => TASK_NAME === task.title); 
+    expect(task).toBeDefined();
+    const due = task.due;
+    const start = task.start;
     // Assert
     // This task doesn't have a desc
     expect(within(popup).getByText("Task description"));
     expect(within(popup).getByText("Due")).toBeInTheDocument();
     expect(within(popup).getByText("Start")).toBeInTheDocument();
     // Validate that the dates are right
-    expect(within(popup).getByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
+    logRoles(await screen.findByTestId("home"));
+    expect(within(popup).getByDisplayValue(due.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
     expect(within(popup).getByText(start.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
     expect(within(popup).getAllByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))[0]).toBeInTheDocument();
     expect(within(popup).getAllByText(start.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))[0]).toBeInTheDocument();

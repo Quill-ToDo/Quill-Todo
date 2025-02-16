@@ -1,6 +1,6 @@
 import '@testing-library/jest-dom';
 import { act } from 'react';
-import { MOCK_SERVER_HANDLER, testTaskStore } from '@/testing/jest.setup';
+import { MOCK_SERVER_HANDLER, testTaskStore } from '@/app/__testing__/jest.setup.test';
 
 it("should load tasks", async () => {
     // Act
