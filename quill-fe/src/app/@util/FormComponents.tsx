@@ -1,6 +1,6 @@
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithRef, ComponentPropsWithoutRef, Fragment, ReactNode } from "react";
-import { combineClassNamePropAndString } from '@util/jsTools';
+import { ComponentPropsWithRef, ComponentPropsWithoutRef, Fragment, MutableRefObject, ReactNode, forwardRef, useRef, useState } from "react";
+import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
 
@@ -114,3 +114,42 @@ export const FormField = observer((
         { areErrors && <ErrorsList errors={errors} id={errorId} />}
     </label>
 });
+
+/**
+ * An input element wrapped in a container which manages its size. 
+ * 
+ * ## Implementation details
+ * Inserts a post pseudo element using CSS which takes the same size of the input value and grid layout
+ * in the sizing container. Positions the pseudo-element and real input value on top of each other using grid
+ * and make the grid expand to the size of the pseudo-element. Actual input value expands to the size allowed by
+ * the grid container.
+ */
+export const ResizableInput = observer(forwardRef(({
+    children,
+    ...props
+}: {
+    children: ReactNode,
+} & ComponentPropsWithoutRef<"input">, forwardedRef) => {
+    const inputRef: MutableRefObject<HTMLInputElement | null> = useRef(null); 
+    const [inputValue, setInputVal] = useState(props.value); 
+    
+    return <div 
+        className="input-sizer" 
+        data-expand-content={inputValue} 
+        sizer-styles={inputRef.current && inputRef.current.style}
+    >
+        <input
+            {...props}
+            ref={(node) => {
+                assignForwardedRef(inputRef, node);
+                assignForwardedRef(forwardedRef, node);
+            }}
+            onChange={(e) => {
+                setInputVal(e.target.value)
+                props.onChange && props.onChange(e);
+            }}
+        >
+            { children }
+        </input>
+    </div>
+}));

@@ -1,5 +1,5 @@
-import { ComponentPropsWithoutRef } from "react";
 import { DRAGGABLE_HANDLE_CLASS } from "./Draggable";
+export const HOME_ID = "home-wrapper";
 
 // URLs
 export const API_URL = "http://localhost:8000/api/tasks/";

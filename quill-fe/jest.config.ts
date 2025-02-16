@@ -141,7 +141,7 @@ const config: Config = {
   // The paths to modules that run some code to configure or set up the testing environment before each test
   setupFiles: ['./jest.polyfills.js'],
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: ["<rootDir>/src/app/__testing__/jest.setup.tsx"],
+  setupFilesAfterEnv: ["<rootDir>/src/app/__testing__/jest.setup.test.tsx"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,

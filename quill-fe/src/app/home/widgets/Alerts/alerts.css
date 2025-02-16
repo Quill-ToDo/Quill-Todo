@@ -23,7 +23,7 @@ dialog {
 
 .alert-pop-up li {
     z-index: 5;
-    border-radius: 10px;
+    border-radius: var(--small-box-corner-rounding);
     max-width: 500px;
     line-break: loose;
     width: fit-content;

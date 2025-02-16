@@ -87,6 +87,6 @@ export const assignForwardedRef = (ref: ForwardedRef<any> | RefCallback<HTMLElem
  * Combine a given string and any possible the className values from props
  * @returns a string of the passed className and any className from the passed props
  */
-export const combineClassNamePropAndString = (className: string, props: ComponentPropsWithoutRef<any>): string => {
+export const combineClassNamePropAndString = (className: string, props: ComponentPropsWithoutRef<any> | undefined): string => {
     return `${className}${props && props.className ? " " + props.className : ""}`;
 }
