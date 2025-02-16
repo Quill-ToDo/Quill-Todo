@@ -2,7 +2,15 @@
     cursor: grab;
 }
 
+.draggable-handle:active {
+    cursor: grabbing;
+}
+
 i.draggable-handle {
     color: var(--g7);
     font-size: 25px;
+}
+
+.drag-overlay {
+    cursor: grabbing;
 }

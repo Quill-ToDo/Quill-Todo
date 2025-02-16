@@ -1,5 +1,6 @@
 import {
     ClientRect,
+    closestCenter,
     DndContext, 
     DragEndEvent, 
     DragOverlay,  
@@ -27,27 +28,30 @@ import React, {
     Dispatch,
     SetStateAction,
     forwardRef,
+    ReactElement,
 } from 'react';
 import { 
     DragDropData, 
-    DRAGGABLE_CLASS, 
+    DRAGGABLE_CONTAINER_CLASS, 
     DRAGGABLE_HANDLE_CLASS, 
     DraggableParams, 
-    DroppableParams } from '@util/Draggable';
-import { combineClassNamePropAndString } from '@util/constants';
-import { clickedInBounds, searchThroughParents } from '@util/jsTools';
+    DroppableParams, 
+    INTERACTABLE_ELEMENT_CLASS} from '@util/Draggable';
+import { combineClassNamePropAndString } from '@util/jsTools';
+import { assignForwardedRef, clickedInBounds, searchThroughParents } from '@util/jsTools';
 import { snapCenterToCursor } from '@dnd-kit/modifiers';
+import { observer } from 'mobx-react-lite';
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 
 
 //#region Context
 export const DraggableContext = createContext<{
-    content: null | ReactNode, 
-    setContent: Dispatch<SetStateAction<ReactNode>> | Dispatch<SetStateAction<null>>,
+    content: null | ReactElement, 
+    setContent: null | Dispatch<SetStateAction<ReactElement | null>>,
     isDragging: boolean,
 }>({
     content: null, 
-    setContent: () => {},
+    setContent: null,
     isDragging: false,
 });
 
@@ -55,14 +59,20 @@ export const DraggableContext = createContext<{
  * This is the content rendered on the drag preview layer/overlay. Drag overlay should always be mounted
  * @returns 
  */
-export const DraggedContent = () => {
+export const DraggedContent = observer(() => {
     const modifiers = [];
     modifiers.push(snapCenterToCursor);
+    const dragged = useContext(DraggableContext); 
 
-    return <DragOverlay modifiers={modifiers}>
-            { useContext(DraggableContext).content }
+    // Drag overlay should always be mounted and content within should be conditionally rendered
+    return <DragOverlay 
+            dropAnimation={null}
+            modifiers={modifiers}
+            className='drag-overlay'
+        >
+            { dragged.content }
         </DragOverlay> 
-}
+})
 
 
 export const WrapWithDndContext = observer(({
@@ -72,19 +82,29 @@ export const WrapWithDndContext = observer(({
 }) => {
     // Modifiers can be applied to drag overlay
     // Sensors can only be applied to dnd context
-    const [contentBeingDragged, setContentBeingDragged] = useState<ReactNode | null>(null);
+    const [contentBeingDragged, setContentBeingDragged] = useState<ReactElement | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const modifiers: Modifier[] = [];
     const sensorsToUse = [];
-    const dragHandleSensor = useSensor(DragHandleSensor);
+    const dragHandleSensor = useSensor(DragHandleSensor, {
+        activationConstraint: {
+            distance: 10,
+        }
+    });
     const pointerSensor = useSensor(PointerSensor);
     
     sensorsToUse.push(pointerSensor);
     sensorsToUse.push(dragHandleSensor);
     
     const sensors = useSensors(...sensorsToUse);
-    return <DraggableContext.Provider value={{content: contentBeingDragged, setContent: setContentBeingDragged, isDragging}}>
+    return <DraggableContext.Provider value={{
+        content: contentBeingDragged, 
+        setContent: setContentBeingDragged, 
+        isDragging
+        }}
+    >
         <DndContext 
+            collisionDetection={closestCenter}
             modifiers={modifiers}
             sensors={sensors}
             autoScroll={false}
@@ -113,14 +133,13 @@ export const DraggableDndKitImplementation = observer(({
     ...props
 } : DraggableParams) => {
     const id = useId();
-    // TODO figure out how to use senors and monitors with context that's higher up. 
-    // It needs to know to restrict to the drag handle?????
-    // modifiers.push(restrictToView);
-    const sharedClassNames = DRAGGABLE_CLASS;
+    // Use a different draggable presentation if provided, otherwise default to the same resentation as the 
+    // draggable item
     const renderWithClassNames = (props: ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => renderDraggableItem({
         ...props,
-        className: combineClassNamePropAndString(sharedClassNames, props),
-    }, ref)
+        // TODO This is putting in a lot of draggable classes for some reason
+        className: DRAGGABLE_CONTAINER_CLASS,//combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, props),
+    }, ref);
     return droppable 
     ? <PickUpAndMove 
         id={id}
@@ -135,8 +154,10 @@ export const DraggableDndKitImplementation = observer(({
     /> 
 })
 
+// The subset of props required in both free drag and "pick up and move item" implementations
 interface DragOptions {
     renderDraggableItem: DraggableParams["renderDraggableItem"],
+    renderItemBeingDraggedIfDifferent?: DraggableParams["renderItemBeingDraggedIfDifferent"],
     id: string,
     onDragStart?: DraggableParams["onDragStart"],
     onDragEnd?: DraggableParams["onDragEnd"],
@@ -151,7 +172,7 @@ const handleDragEnd = (id: string, e: DragEndEvent, onDragEnd: DragOptions["onDr
     if (e.active.id === id) {
         const droppableData = over ? over.data.current : null;
         const draggedData = active.data.current;
-        onDragEnd && onDragEnd({e, drag: draggedData as DragDropData, drop: droppableData as DragDropData});
+        onDragEnd && onDragEnd({drag: draggedData as DragDropData, drop: droppableData as DragDropData});
     }
 }
 
@@ -159,7 +180,7 @@ const handleDragStart = (id: string, e: DragStartEvent, onDragStart: DragOptions
     const {active} = e;
     if (active.id === id) {
         const draggedData = active.data.current;
-        onDragStart && onDragStart({e, drag: draggedData as DragDropData, drop: null});
+        onDragStart && onDragStart({drag: draggedData as DragDropData, drop: null});
     }
 }
 
@@ -170,12 +191,12 @@ const handleDragStart = (id: string, e: DragStartEvent, onDragStart: DragOptions
 const FreeDrag = observer(({
     renderDraggableItem,
     id,
-    useDragHandle,
     actionTitle,
     itemType,
     itemData,
     onDragEnd, 
     onDragStart,
+    ...props
 }: DragOptions
 ) => {
     const {attributes, listeners, setNodeRef, transform} = useDraggable({
@@ -209,20 +230,18 @@ const FreeDrag = observer(({
         goToPosition.x += transform.x;
         goToPosition.y += transform.y;
     }
-    
-    return renderDraggableItem(
-            {
-                id: id,
-                style: { 
-                    transform: translate(goToPosition.x, goToPosition.y),
-                },
-                className: useDragHandle ? "" : DRAGGABLE_HANDLE_CLASS,
-                ...listeners,
-                ...attributes,
-                "aria-label": actionTitle,
-            },
-            setNodeRef
-        );
+    const propsToRender = {
+        id: id,
+        style: { 
+            transform: translate(goToPosition.x, goToPosition.y),
+        },
+        ...listeners,
+        ...attributes,
+        "aria-label": actionTitle,
+    };
+    return props.renderItemBeingDraggedIfDifferent ?
+        props.renderItemBeingDraggedIfDifferent(propsToRender, setNodeRef)
+        : renderDraggableItem(propsToRender, setNodeRef);
 })
 
 /**
@@ -232,7 +251,7 @@ const FreeDrag = observer(({
 const PickUpAndMove = observer(({
     id,
     renderDraggableItem,
-    useDragHandle,
+    renderItemBeingDraggedIfDifferent,
     actionTitle,
     onDragStart,
     onDragEnd,
@@ -254,29 +273,30 @@ const PickUpAndMove = observer(({
     useDndMonitor({
         onDragStart(e) {
             handleDragStart(id, e, (...props) => {
-                dragContext.setContent(renderDraggableItem({}, null));
+                const draggedContent = renderItemBeingDraggedIfDifferent ? 
+                    renderItemBeingDraggedIfDifferent(props, null)
+                    : renderDraggableItem(props, null);
+                dragContext.setContent && dragContext.setContent(draggedContent as ReactElement);
                 onDragStart && onDragStart(...props);
             })
         },
         onDragEnd(e) {
             handleDragEnd(id, e, (...props) => {
-                dragContext.setContent(null);
+                dragContext.setContent && dragContext.setContent(null);
                 onDragEnd && onDragEnd(...props)
             })
             
         }
     });
-    
-    return renderDraggableItem(
-        {
-            id: id,
-            className: useDragHandle ? "" : " " + DRAGGABLE_HANDLE_CLASS,
-            ...listeners,
-            ...attributes,
-            "aria-label": actionTitle,
-        },
-        setNodeRef,
-    )
+    const props = {
+        id: id,
+        ...listeners,
+        ...attributes,
+        "aria-label": actionTitle,
+    };
+    return renderItemBeingDraggedIfDifferent ? 
+        renderItemBeingDraggedIfDifferent(props, setNodeRef)
+        : renderDraggableItem(props, setNodeRef)
 });
 
 //endregion Draggable
@@ -285,28 +305,25 @@ const PickUpAndMove = observer(({
  * DND Kit implementation of a draggable element. 
  * @returns 
  */
-export const DroppableDndKitImplementation = forwardRef(({renderDroppableItem, itemType, acceptedItemTypes, onDrop, ...props}: DroppableParams, ref) => {
+export const DroppableDndKitImplementation = observer(forwardRef(({
+    renderDroppableItem, 
+    itemType, 
+    itemData, 
+    acceptedItemTypes, 
+    onDrop, 
+    ...props
+}: DroppableParams, ref) => {
     const id = useId();
     const {setNodeRef, isOver} = useDroppable({
         id: id,
         data: {
             type: itemType,
             value: {
+                ...itemData,
                 accepts: acceptedItemTypes,
             }
         }
     });
-
-    const setRefs = (instance: HTMLElement | null) => {
-        setNodeRef(instance);
-        if (typeof ref === "function") {
-            ref(instance);
-        }
-        else if (ref) {
-            ref.current = instance;
-        }
-    };
-
     const [validDropTarget, setValidDropTarget] = useState(false);
 
     useDndMonitor({
@@ -321,7 +338,7 @@ export const DroppableDndKitImplementation = forwardRef(({renderDroppableItem, i
                 const {active, over} = e;
                 const droppableData = over ? over.data.current : null;
                 const draggedData = active.data.current;
-                droppableData && draggedData && onDrop({e, drag: draggedData as DragDropData, drop: droppableData as DragDropData});
+                droppableData && draggedData && onDrop({drag: draggedData as DragDropData, drop: droppableData as DragDropData});
             }
         }
     })
@@ -329,9 +346,13 @@ export const DroppableDndKitImplementation = forwardRef(({renderDroppableItem, i
     return renderDroppableItem({
             ...props,
             id: id,
-            className: combineClassNamePropAndString({className: `droppable${isOver ? (validDropTarget ? " valid" : " invalid") : ""}`, props}),
-        }, setRefs);
-})
+            className: combineClassNamePropAndString(`droppable${isOver ? (validDropTarget ? " valid" : " invalid") : ""}`, props),
+        }, 
+        (node: HTMLElement | null) => {
+            setNodeRef(node);
+            assignForwardedRef(ref, node);
+        });
+}));
 
 //endregion Droppable
 //#region Modifers
@@ -400,7 +421,7 @@ function restrictToBoundingRect(
   class DragHandleSensor extends PointerSensor {
     static activators = [
         {
-            eventName: 'onPointerDown' as any,
+            eventName: "onPointerDown" as const,
             handler: ({nativeEvent: event}: PointerEvent) => {
                 // Iterate through parents until you find the one with DRAGGABLE_CLASS (top draggable parent)
                 // and see if the user has clicked on the same spot as an element with DRAGGABLE_HANDLE_CLASS
@@ -409,14 +430,16 @@ function restrictToBoundingRect(
                     successCondition: (node) => node.classList.contains(DRAGGABLE_HANDLE_CLASS) 
                         && clickedInBounds(node.getClientRects()[0], event.clientX, event.clientY),
                     failCondition: (node) => {
-                        // Stop searching for parent with DRAGGABLE_HANDLE_CLASS if:  
-                        // 1) there is a different button covering the drag handle
-                        // 2) reaches DRAGGABLE_CLASS without a DRAGGABLE_HANDLE_CLASS
-                        return (node.tagName === "BUTTON" && !(node.classList.contains(DRAGGABLE_HANDLE_CLASS)))
-                            || (node.classList.contains(DRAGGABLE_CLASS) && !node.classList.contains(DRAGGABLE_HANDLE_CLASS));
+                        // Stop searching for parent with DRAGGABLE_HANDLE_CLASS if
+                        const interactableCoveringDragHandle = (
+                            ["BUTTON", "INPUT", "TEXTAREA"].includes(node.tagName)
+                            || node.classList.contains(INTERACTABLE_ELEMENT_CLASS)
+                        ) && !(node.classList.contains(DRAGGABLE_HANDLE_CLASS));
+                        const reachedParentDraggableNode = node.classList.contains(DRAGGABLE_CONTAINER_CLASS) && !node.classList.contains(DRAGGABLE_HANDLE_CLASS);
+                        return interactableCoveringDragHandle || reachedParentDraggableNode;
                     }
                 });
-                return event.isPrimary && thisOrParentElementIsDraggable;
+                return !!(event.isPrimary && thisOrParentElementIsDraggable);
             },
         },
     ];

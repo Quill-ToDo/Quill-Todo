@@ -1,5 +1,10 @@
 import { ErrorsList } from "@util/FormComponents";
 import { 
+    AcceptedTaskCheckboxStyles,
+    TASK_ACCEPTED_DRAG_TYPES,
+    TASK_ACTIONS,
+    TASK_CHECKBOX_STYLES,
+    TASK_DRAG_TYPE,
     TaskColorCodes, 
     TaskContext,
     TaskModel,
@@ -8,12 +13,14 @@ import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import { 
     ComponentPropsWithoutRef, 
+    Dispatch, 
     ForwardedRef, 
     forwardRef, 
-    HTMLProps, 
+    ForwardRefRenderFunction, 
     MouseEvent, 
     MutableRefObject, 
     ReactNode, 
+    SetStateAction, 
     useCallback, 
     useContext, 
     useEffect, 
@@ -22,11 +29,13 @@ import {
     useState, 
 } from "react";
 import TaskDetail from "./TaskDetail";
-import { combineClassNamePropAndString, ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
-import { setUpStandalonePopup, TetheredPopupOnClick } from "@/util/Popup";
+import { ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
+import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { AnchorWithStandalonePopupAttached, AttachedPopupOnClick } from "@/util/Popup";
 import './tasks.css';
 import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
+import { Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
 
@@ -35,47 +44,140 @@ const useTaskContextOrPassedTask = (passedTask?: TaskModel): TaskModel => {
     if (passedTask) {
         return passedTask;
     }
-    else if (useContext(TaskContext)) {
-        return useContext(TaskContext);
+    const t = useContext(TaskContext);
+    if (t) {
+        return t;
     } else {
         throw new Error("Must pass a TaskModel or call useTaskContextOrPassedTask within a TaskContext Provider.");
     }
 }
 
+export const TaskBeingDragged = observer(forwardRef((
+{
+    task, 
+    type,
+    ...props
+}: {
+    task: TaskModel, 
+    type: AcceptedTaskCheckboxStyles,
+}, ref: ForwardedRef<any>) => {
+    const t = useTaskContextOrPassedTask(task);
+    if (!t) {
+        return;
+    }
+
+    return <TaskWrapper
+        {...props}
+        className={combineClassNamePropAndString("dragging rows centered gap", props)}
+        task={t}
+        ref={ref}
+    >
+        <Checkbox type={type}/>
+        <TaskTitle/>
+    </TaskWrapper>
+}));
+
+
+export const DeleteTaskConfirmationPopup = observer(({
+        renderAnchor
+    }: {
+        renderAnchor: (setTaskToDelete: Dispatch<SetStateAction<TaskModel | null>>) => ReactNode
+    }) => {
+    const [task, setTask] = useState<null | TaskModel>(null);
+
+    return <AttachedPopupOnClick 
+        renderElementToClick={(props, ref) => renderAnchor(setTask)}
+        renderPopupContent={(closePopup) => task ? <section 
+            className={"mid-section confirmation"}
+        >
+            <p>Are you sure you want to delete this task?</p>
+            <br />
+            <PlainTaskTitle passedTask={task}/>
+            <br />
+            <div className={"rows gap centered"}>
+                <button 
+                    className={"btn med"} 
+                    onClick={ () => closePopup}
+                >Cancel</button>
+                <button className={"btn med  bg"} type={"submit"} autoFocus={true} onClick={() => {task.deleteSelf();}}>Delete</button>
+            </div>
+        </section> : <></>}
+    />
+});
+
 /**
- * Provide context of a single task for all task-related components within
+ * Provide context of a single task for all task-related components within.
+ * @param droppable Whether or not this task should accept draggable items being dropped on it
  */
 export const TaskWrapper = observer(forwardRef((
     {
         task, 
         keyOverride,
         children,
+        droppable=true,
+        highlightable=true,
         ...props
     } : {
         task: TaskModel, 
         keyOverride?: string,
         children: ReactNode, 
-    }, ref: ForwardedRef<HTMLDivElement>) => {
+        droppable?:  boolean,
+        highlightable?: boolean,
+    } & ComponentPropsWithoutRef<"div">, ref: ForwardedRef<HTMLDivElement>) => {
 
     const dragContext = useContext(DraggableContext);
 
-    return <TaskContext.Provider value={task}>
-        <div 
-            ref={ref}
-            key={keyOverride ? keyOverride : task.id}
-            data-task-id={task.id}
-            onMouseEnter={(e) => {
-                if (!dragContext.isDragging) {
-                    task.highlighted = true;
+    let renderContent: ForwardRefRenderFunction<HTMLDivElement, ComponentPropsWithoutRef<"div">> = (props, ref) => <div 
+        {...props}
+        ref={(ele: HTMLDivElement | null) => {
+            assignForwardedRef(ref, ele);
+        }}
+        key={keyOverride ? keyOverride : task.id}
+        onMouseEnter={(e) => {
+            if (!dragContext.isDragging) {
+                task.highlighted = true;
+            }
+        }}
+        onMouseLeave={(e) => {
+            if (!dragContext.isDragging) {
+                task.highlighted = false;
+            }
+        }}
+        className={combineClassNamePropAndString(
+            `${TASK_WRAPPER_CLASS}${task.complete ? " complete" : ""}${task.overdue() ? " overdue" : ""}${highlightable && task.highlighted ? " highlighted" : ""}`, 
+            props
+        )}
+    >
+        {children}
+    </div>
+
+    let content = droppable ? <DeleteTaskConfirmationPopup 
+        renderAnchor={(setTask) => <Droppable 
+            itemType={TASK_DRAG_TYPE}
+            itemData={{id: task.id}}
+            onDrop={({drop}) => {
+                if (drop && drop.type === TASK_ACTIONS.delete) {
+                    setTask(task);
                 }
             }}
-            {...props}
-            className={combineClassNamePropAndString({
-                className: `${TASK_WRAPPER_CLASS}${task.complete ? " complete" : ""}${task.overdue() ? " overdue" : ""}${task.highlighted ? " highlighted" : ""}`, 
-                props})}
-        >
-            {children}
-        </div>
+            acceptedItemTypes={TASK_ACCEPTED_DRAG_TYPES}
+            renderDroppableItem={(droppableProps, droppableRef) => {
+                return renderContent({
+                    ...props,
+                    ...droppableProps,
+                    // ...deleteConfirmationSetup.getReferenceProps,
+                    className: combineClassNamePropAndString(props.className ? props.className : "", droppableProps),
+                }, (ele) => {
+                    assignForwardedRef(droppableRef, ele);
+                    assignForwardedRef(ref, ele);
+                    // assignForwardedRef(deleteConfirmationSetup.setPopupPositioningAnchor, ele);
+                });
+            }}
+        />}
+    /> : renderContent(props, ref);
+
+    return <TaskContext.Provider value={task}>
+        { content }
     </TaskContext.Provider>;
 }));
 
@@ -95,7 +197,7 @@ const ClearTaskFieldButton = observer(({
     return <button 
         {...props}
         title={`Remove ${fieldName}`}
-        className={combineClassNamePropAndString({className: `clear floating btn x-small square`, props: props})}
+        className={combineClassNamePropAndString(`clear floating btn x-small square`, props)}
         onClick={(e) => {onClick(e)}}
         >
         {ICONS.X}
@@ -149,7 +251,7 @@ export const Checkbox = observer(({
     checkboxId
 }: {
     passedTask?: TaskModel, 
-    type: TaskModel.VisualStyles.AcceptedStyles, 
+    type: AcceptedTaskCheckboxStyles, 
     checkboxId?: string
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
@@ -157,7 +259,7 @@ export const Checkbox = observer(({
     const id = checkboxId ? checkboxId : useId();
     const text = `Mark task ${task.complete ? "uncomplete" : "complete"}`;
     return <label 
-            className="check-box-wrapper"
+            className={`check-box-wrapper ${INTERACTABLE_ELEMENT_CLASS}`}
             htmlFor={id}
             title={text}
             aria-label={text}
@@ -181,13 +283,13 @@ const TaskCheckbox = observer(({
     form
 }: {
     passedTask?: TaskModel, 
-    form: TaskModel.VisualStyles.AcceptedStyles
+    form: AcceptedTaskCheckboxStyles
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const styleText = !task.complete ? {color: task.color} : {};
     let checkboxIcon;
     switch (form) {
-        case TaskModel.VisualStyles.Due:
+        case TASK_CHECKBOX_STYLES.due:
             checkboxIcon = task.complete ? `fa-check-square` : `fa-square`;
             break;
         default:
@@ -268,9 +370,11 @@ const ColorGridPicker = observer(({task, closePicker}: {
 export const ColorBubble = observer(({
     passedTask,
     openColorPicker=true,
+    buttonProps,
 }: {
     passedTask?: TaskModel,
     openColorPicker?: boolean,
+    buttonProps?: ComponentPropsWithoutRef<"button">,
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
 
@@ -282,23 +386,25 @@ export const ColorBubble = observer(({
             <circle cx="50" cy="50" r="50" fill={task.color}/>
         </svg>;
 
-    return openColorPicker ? <TetheredPopupOnClick 
-                renderElementToClick={(props, ref) => <div
+    return openColorPicker ? <AttachedPopupOnClick 
+                renderElementToClick={(popupProps, ref) => <div
                     className="color-bubble-wrapper centered">
                     <button
-                        {...props.toApply}
+                        {...popupProps.anchorProps}
+                        {...buttonProps}
                         ref={ref}
-                        role="button"
-                        className={combineClassNamePropAndString({
-                            className: "color-bubble-input",
-                            props: props.toApply})} 
+                        className={combineClassNamePropAndString(
+                            combineClassNamePropAndString("color-bubble-input", popupProps.anchorProps),
+                            buttonProps
+                        )} 
                         onClick={(e) => {
                             e.preventDefault();
-                            props.openPopup();
+                            popupProps.openPopup();
                         }}
                         title="Change task color"
-                        aria-label="Task color changer"
-                        aria-haspopup="dialog"
+                        // role="button"
+                        // aria-label="Task color changer"
+                        // aria-haspopup="dialog"
                         >
                     </button>
                     {colorBubble}
@@ -331,38 +437,39 @@ const PlainTaskTitle = observer((
 ) => {
     const [task, setTask] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
-    const closePopupCallback = useRef((undefined as unknown) as (() => void));
 
-    const taskDetailContent = <TaskDetail 
-        task={task} 
-        close={closePopupCallback.current}
-    />
-    
-    const popupControls = setUpStandalonePopup({
-        children: taskDetailContent,
-        placement: "right",
-        alignment: "middle",
-        draggable: true,
-        useDragHandle: true,
-        ...{className: "task-detail"},
-    });
-    closePopupCallback.current = popupControls.closePopup;
-    let toReturn = <p 
+    let toReturn: ReactNode = <p 
         {...props}
     > 
         { task.complete ? <s>{displayTitle}</s> : displayTitle } 
     </p>;
     if (openTaskDetailPopup) {
-        toReturn = <button
-            ref={popupControls.setPopupPositioningAnchor}
-            {...popupControls.getReferenceProps()}
-            onClick={popupControls.openPopup}
-            title={"Open task details"}
-        >
-            {toReturn}
-        </button>
+        return <AnchorWithStandalonePopupAttached
+                placement="right"
+                alignment= "middle"
+                draggable={true}
+                useDragHandle={true}
+                renderElementToClick={({openPopup, anchorProps}, ref) => <button
+                        {...anchorProps}
+                        onClick={(e) => {
+                            anchorProps.onClick && anchorProps.onClick(e);
+                            openPopup();
+                        }}
+                        title={"Open task details"}
+                        ref={(node) => {assignForwardedRef(ref, node);}}
+                    >
+                        {toReturn}
+                    </button>
+                    }
+            renderPopupContent={({closePopup, popupContainerProps}, ref) => 
+                <TaskDetail 
+                    task={task} 
+                    closeWidget={closePopup}
+                    containerProps={popupContainerProps}
+                    ref={(node) => {assignForwardedRef(ref, node);}}
+                />}
+        />;
     }
-
     return toReturn;
 });
 
@@ -390,7 +497,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
             data-expand-content={task.title}
             >
             <textarea 
-                ref={ref as ForwardedRef<HTMLTextAreaElement>}
+                ref={(node) => assignForwardedRef(ref, node)}
                 {...props}
                 placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
                 value={task.title}
@@ -425,17 +532,17 @@ export const TaskTitle = observer((
     }: {
         passedTask?: TaskModel, 
         editAllowed?: boolean,
-    }) => {
+    } & ComponentPropsWithoutRef<any>) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const overdue = task.overdue();
 
     const defaultColorLogic = !task.complete && !overdue && !!task.title.length ? task.color : undefined;
     const formattedProps: ComponentPropsWithoutRef<any> = {
         ...props,
-        className: combineClassNamePropAndString({className: `title${overdue?" overdue":""}${!!!task.title.length?" blank":""}`, props}),
+        className: combineClassNamePropAndString(`title${overdue?" overdue":""}${!!!task.title.length?" blank":""}`, props),
         style: {
             color: defaultColorLogic,
-            ...(props && props.style ? props.style:undefined),
+            ...(props && props.style ? props.style: undefined),
         }
     };
 
@@ -457,9 +564,8 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     autofocus?: boolean,
 } >((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
-    const refToUse: MutableRefObject<HTMLObjectElement | null> | ForwardedRef<HTMLObjectElement> = ref ? ref : useRef(null);
 
-    const propsToUse: HTMLProps<any> = {
+    const propsToUse: ComponentPropsWithoutRef<any> = {
         className: `description dark-section keep-whitespace`,
         autoFocus: props.autofocus ?  props.autofocus : false,
     };
@@ -467,20 +573,17 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     return (props.editAllowed && props.editAllowed) 
         ? 
         <EditableTaskDescription 
-            ref={refToUse as ForwardedRef<any>} 
+            ref={(node: HTMLElement) => assignForwardedRef(ref, node)} 
             {...propsToUse} 
         /> 
         : 
-        <div ref={refToUse} {...propsToUse}> 
+        <div ref={(node) => assignForwardedRef(ref, node)} {...propsToUse}> 
             <p>{task.description}</p>      
         </div>
     }
 ));
 
-const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
-    ref: ForwardedRef<any>,
-    passedTask?: TaskModel,
-}>((props, ref) => {
+const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: TaskModel}, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const startingText: MutableRefObject<string> = useRef(task.description);
     
@@ -514,7 +617,7 @@ const EditableTaskDescription = observer(forwardRef<HTMLObjectElement, {
                 onChange={(e) => task.description = e.target.value}
                 onBlur={finishEditing}
                 {...props}
-                ref={editInputRef}
+                ref={(node) => assignForwardedRef(editInputRef, node)}
             />
         </div>
             {
@@ -539,7 +642,7 @@ export const TaskDueDate = observer(({
     const task = useTaskContextOrPassedTask(passedTask);
 
     return <TaskDate 
-        type={TaskModel.VisualStyles.Due}
+        type={TASK_CHECKBOX_STYLES.due}
         passedTask={task}
         editable={editable}
     />
@@ -557,7 +660,7 @@ export const TaskStartDate = observer(({
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     return <TaskDate 
-        type={TaskModel.VisualStyles.Start}
+        type={TASK_CHECKBOX_STYLES.start}
         passedTask={task}
         editable={editable}
     />
@@ -572,11 +675,11 @@ export const TaskDate = observer(({
     type, 
     editable=false,
 }: {
-    type: "start" | "due", 
+    type: AcceptedTaskCheckboxStyles, 
     passedTask?: TaskModel, 
     editable?: boolean
 }) => {
-    const dueType = TaskModel.VisualStyles.Due;
+    const dueType = TASK_CHECKBOX_STYLES.due;
     const task = useTaskContextOrPassedTask(passedTask);
     const isDueType = type === dueType;
     const overdue = isDueType && task.overdue();
@@ -608,7 +711,7 @@ const PlainTaskDate = observer(({
     isDueType,
 }: DateImplementationParams) => {
     const date = isDueType ? task.due : task.start;
-    return date ? <time dateTime={date.toISO()} className={wrapperClasses} suppressHydrationWarning > 
+    return date ? <time dateTime={date.toISO() as string} className={wrapperClasses} suppressHydrationWarning > 
         <p className="date">{date.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token)}</p>
         <p className="time">{date.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token)}</p>
     </time> : <></>
@@ -707,7 +810,9 @@ const EditableTimePortion = observer(({
     type: "due" | "start",
 }) => {
     const showTime = isDueType ? task.showDueTime : task.showStartTime;
+    const timeInputRef: MutableRefObject<HTMLInputElement | null> = useRef(null); 
     const [timeHovered, setTimeHovered] = useState(false);
+    const datetime = isDueType ? task.due : task.start;
     const timeStringUnderEdit = isDueType ? task.dueTimeStringUnderEdit : task.startTimeStringUnderEdit;
     const timeErrors = isDueType ? task.validationErrors.dueTimeStringUnderEdit : task.validationErrors.startTimeStringUnderEdit;
     const timeErrorListId = useId();
@@ -732,12 +837,17 @@ const EditableTimePortion = observer(({
                 >
                     Time
                     <div className={`aligned `}>
-                        <div className="input-sizer" data-expand-content={timeStringUnderEdit}>
+                        <div className="input-sizer" data-expand-content={timeStringUnderEdit} sizer-styles={timeInputRef.current && timeInputRef.current.style}>
                             <input 
+                                ref={(node) => assignForwardedRef(timeInputRef, node)}
                                 aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
-                                value={timeStringUnderEdit} 
-                                placeholder="time e.g. 7:00"
-                                onChange={(e) => {updateTaskTime(e.target.value)}}
+                                // Value in 24 hour time string for time input to translate it into whatever the user has set.
+                                value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 
+                                type="time"
+                                onChange={(e) => {
+                                    const newVal = e.target.value;
+                                    updateTaskTime(newVal);
+                                }}
                                 onFocus={() => {setTimeHovered(true)}}
                                 onBlur={(e) => {
                                     setTimeHovered(false);
@@ -748,7 +858,7 @@ const EditableTimePortion = observer(({
                                         task.abortEdits(type);
                                     }
                                 }}
-                                />
+                            />
                         </div>
                         <ClearTaskFieldButton 
                             fieldName={`${type} time`}

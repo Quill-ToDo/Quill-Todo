@@ -3,11 +3,17 @@ import React, {
     useRef,
     MutableRefObject,
     useState,
+    forwardRef,
+    ComponentPropsWithoutRef,
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
-import { combineClassNamePropAndString, ICONS } from "@/util/constants";
-import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskModel } from "@/store/tasks/TaskModel";
+import { ICONS, HOME_ID } from "@/util/constants";
+import { ContextMenuPopup } from "@/util/Popup";
+import { DRAGGABLE_HANDLE_CLASS, INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
+import { DATETIME_FORMATS } from "@/util/DateTimeHelper";
+import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TASK_ACTIONS, TASK_CHECKBOX_STYLES, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     ColorBubble, 
@@ -19,21 +25,19 @@ import {
     TaskDueDate,
     TaskStartDate
 } from "@/widgets/TaskDetail/TaskComponents";
-import { ContextMenuPopup } from "@/util/Popup";
 import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
-import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
-import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
-import { HOME_ID } from "../../dashboardLayout";
 
 export const TASK_DETAIL_POPUP_NAME = "Task Detail";
 
-const TaskDetail = observer(({
-        task, 
-        close,
-    }: {
-        task: TaskModel,  
-        close?: (() => void) | undefined,
-}) => {
+const TaskDetail = observer(forwardRef<HTMLDivElement, {
+    task: TaskModel,  
+    closeWidget?: (() => void) | undefined,
+    containerProps?: ComponentPropsWithoutRef<"div">,
+}>(({
+    task, 
+    closeWidget, 
+    containerProps,
+}, ref) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
     const [showDescription, setShowDescription] = useState(true);
     const [showDue, setShowDue] = useState(true);
@@ -92,32 +96,39 @@ const TaskDetail = observer(({
         }
     }, [task])
 
-    return <TaskWrapper task={task} {...{"aria-label": TASK_DETAIL_POPUP_NAME, "role": "dialog"}}>
+    return <TaskWrapper 
+        highlightable={false}
+        task={task} 
+        {...containerProps}
+        ref={(node) => {
+            assignForwardedRef(ref, node);
+        }} 
+        aria-label={TASK_DETAIL_POPUP_NAME}
+        role="dialog"
+        className={combineClassNamePropAndString(`task-detail`, containerProps as ComponentPropsWithoutRef<"div">)}
+    >
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
                     <button>
                         {ICONS.DRAG}
                     </button>
-                    <ColorBubble />
+                    <ColorBubble buttonProps={{className: INTERACTABLE_ELEMENT_CLASS}} />
                     <Checkbox 
-                        type={TaskModel.VisualStyles.Due}
+                        type={TASK_CHECKBOX_STYLES.due}
                     />
                     <TaskTitle editAllowed={true} />   
                 </div>
                 <div className="aligned end">
                     <ContextMenuPopup
                         renderElementToClick={(props, ref) => <button 
-                                {...props.toApply}
-                                className={combineClassNamePropAndString({
-                                    className: "btn small square no-shadow", 
-                                    props: props.toApply
-                                })}
+                                {...props.anchorProps}
+                                ref={(node,) => {assignForwardedRef(ref, node);}}
+                                className={combineClassNamePropAndString("btn small square no-shadow", props.anchorProps)}
                                 title="Options" 
                                 aria-haspopup="menu"
                                 onClick={() => {
                                         props.openPopup();
                                     }}
-                                ref={ref}
                                 >
                                     { ICONS.MENU }
                                 </button>
@@ -126,7 +137,10 @@ const TaskDetail = observer(({
                                 {
                                     label: "Delete",
                                     content: <>{ ICONS.TRASH }<p>Delete task</p></>,
-                                    onClick: () => { task.deleteSelf(); close(); },
+                                    onClick: () => { 
+                                        task.deleteSelf(); 
+                                        closeWidget && closeWidget(); 
+                                    },
                                     visible: true,
                                 }
                             ]}
@@ -137,7 +151,7 @@ const TaskDetail = observer(({
                         className="btn small square no-shadow"
                         title="Close" 
                         onClick={() => {
-                            close();
+                            closeWidget && closeWidget();
                         }}
                     >
                         { ICONS.X }
@@ -214,16 +228,13 @@ const TaskDetail = observer(({
                     header={<header>Add field</header>}
                     labelsAndClickCallbacks={contextMenuData}
                     renderElementToClick={(props, ref) => <button 
-                            {...props.toApply}
+                            {...props.anchorProps}
                             ref={ref}
-                            onClick={props.openPopup}
+                            onClick={() => {props.openPopup();}}
                             aria-label="Add task field"
                             aria-haspopup="menu"
                             title="Add task field" 
-                            className={combineClassNamePropAndString({
-                                className: `add-field-btn btn large centered`,
-                                props: props.toApply,
-                            })} 
+                            className={combineClassNamePropAndString(`add-field-btn btn large centered`, props.anchorProps)} 
                             > 
                                 { ICONS.PLUS }
                             </button>
@@ -233,6 +244,6 @@ const TaskDetail = observer(({
             }
         </section>
     </TaskWrapper>
-})
+}))
 
 export default TaskDetail;

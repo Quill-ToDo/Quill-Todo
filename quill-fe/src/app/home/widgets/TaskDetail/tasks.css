@@ -3,7 +3,7 @@
   display: flex;
   gap: var(--section-gap);
   align-items: center;
-  border-radius: 10px;
+  border-radius: var(--small-box-corner-rounding);
 }
 
 .task-wrapper.highlighted {
@@ -29,11 +29,6 @@
   font-size: var(--smaller-p-size);
 }
 
-.date .input-sizer,
-.date {
-  font-size: var(--p-size);
-}
-
 
   .time input,
   .date input {
@@ -45,7 +40,6 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  gap: var(--focus-border-width);
 }
 
   .task-wrapper .date-time-wrapper label.date {
@@ -86,8 +80,8 @@
 
 .title-date-wrapper {
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
   column-gap: 10px;
   row-gap: 3px;
   margin: 0;
@@ -233,3 +227,20 @@ i.checkmark {
   min-height: min-content;
 }
 /*#endregion Description*/
+
+.task-wrapper.dragging {
+  width: max-content;
+  max-width: 400px;
+  height: min-content;
+  border-radius: var(--small-box-corner-rounding);
+}
+
+.task-wrapper.droppable.valid {
+  transform: scale(1.05);
+  border: solid var(--focus-highlight) var(--focus-border-width);
+}
+
+.task-wrapper.droppable {
+  transition: transform .2s;
+}
+

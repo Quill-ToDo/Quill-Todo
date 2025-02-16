@@ -11,14 +11,14 @@ import {
     DroppableDndKitImplementation, 
     WrapWithDndContext 
 } from "@/external/DndKit";
-import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
+
+export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 
 export type DragDropData = {
     type: string,
-    value: any,
+    value: DraggableParams["itemData"],
 } | null;
 type DragDropEventData = {
-    e: DragEndEvent | DragStartEvent, 
     drag: DragDropData, 
     drop: DragDropData
 }
@@ -31,39 +31,42 @@ export type DraggableParams = {
           id: string,
         }
         | ComponentPropsWithoutRef<any>>,
+    renderItemBeingDraggedIfDifferent?: ForwardRefRenderFunction<HTMLElement, ComponentPropsWithoutRef<any>>,
     actionTitle: string,
     useHandle?: boolean,
     onDragStart?: ({...props}: DragDropEventData) => void,
     onDragEnd?: ({...props}: DragDropEventData) => void,
     droppable?: boolean,
     itemType?: string,
-    itemData?: {},
+    itemData?: any,
 }
 
 export type DroppableParams = {
-    itemType: string,
+    itemType?: DraggableParams["itemType"],
+    itemData?: DraggableParams["itemData"],
     acceptedItemTypes: string[],
     renderDroppableItem: ForwardRefRenderFunction<
         HTMLElement, 
         { id: string,
-        } | ComponentPropsWithoutRef<any>
+        } & ComponentPropsWithoutRef<any>
     >,
     onDrop?: ({...props}: DragDropEventData) => void,
 }
 
 export const DRAGGABLE_HANDLE_CLASS = "draggable-handle";
-export const DRAGGABLE_CLASS = "draggable";
+export const DRAGGABLE_CONTAINER_CLASS = "draggable";
 /**
 * Draggable helper to serve as an interface between Quill and any
 * 3rd party libraries.
+* ## To mark an element potentially within the drag handle as 
+* NOT being part of the handle, give it the class INTERACTABLE_ELEMENT_CLASS
 * 
-* Droppable specifies whether the element should be free drag and remain 
-* in it's last dropped position or return to its origin.
 * @param id a unique ID for this draggable element
-* @param droppable whether this should be droppable (return to last valid position) 
-* or a freely draggable element (stays where you last drag it)
+* @param droppable whether the element should be free drag and remain 
+* in its last dropped position or return to its origin position when the user releases their cursor
 * @param useHandle Whether to use a specific element within the droppable content as a drag handle or use any point
-* as a drag handle. If true, one element within the draggable content should have the class DRAGGABLE_HANDLE_CLASS
+* as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
+* should have the class DRAGGABLE_HANDLE_CLASS.**
 */
 export const Draggable = observer((
 {
@@ -80,21 +83,20 @@ export const Draggable = observer((
     />
 })
 
-export const DragContextProvider = ({children}: {children: ReactNode}) => {
+export const DragContextProvider = observer(({children}: {children: ReactNode}) => {
     return <WrapWithDndContext>
         { children }
     </WrapWithDndContext>;
-};
+});
 
 /**
 * Droppable helper to serve as an interface between Quill and any
 * 3rd party libraries.
 * 
 */
-export const Droppable = forwardRef((props: DroppableParams, ref) => {
+export const Droppable = observer(forwardRef((props: DroppableParams, ref) => {
     return <DroppableDndKitImplementation 
         ref={ref}
         {...props}
     />
-})
-
+}))
