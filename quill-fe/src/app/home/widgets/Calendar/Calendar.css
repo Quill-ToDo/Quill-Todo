@@ -1,3 +1,16 @@
+.calendar.widget {
+    grid-area: calendar;
+    display: flex;
+    flex-direction: column;
+    gap: var(--section-gap);
+    position: relative;
+    height: 100%;
+    overflow-y: hidden;
+    overscroll-behavior: contain;
+    margin: 0;
+    scrollbar-width: none;
+}
+
 .calendar.widget .calendar-body {
     padding-bottom: 0;
 }
@@ -5,23 +18,46 @@
 .calendar-body {
     display: grid;
     grid-template-areas: 
-    "nav weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
-    "monthNames calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays";
-    grid-template-columns: minmax(80px, min-content) repeat(7, 1fr);
-    grid-template-rows: minmax(min-content, 50px) 100%;
+    "nav nav nav monthNames monthNames monthNames monthNames" 
+    "weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
+    "calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays";
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: 50px 50px 100%;
     align-items: flex-start;
-    gap: 0;
     height: 100%;
+} 
+
+/* M T W R F ... */
+.week-days-header {
+    grid-area: weekDays;
+    display: grid;
+    grid-template-columns: subgrid;
+    justify-content: center; 
+    place-items: center;
 }
 
 .calendar-month-infinite-scroll-wrapper {
-    grid-column: monthNames / calendarDays;
+    grid-column: calendarDays;
     display: grid;
     grid-template-columns: subgrid;
     overflow: scroll;
     max-height: 100%;
     position: relative;
     overscroll-behavior: contain;
+}
+
+@media (min-width:961px) {
+    .calendar-body {
+        grid-template-areas: 
+        "nav weekDays weekDays weekDays weekDays weekDays weekDays weekDays"
+        "monthNames calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays calendarDays";
+        grid-template-columns: minmax(80px, min-content) repeat(7, 1fr);
+        grid-template-rows: minmax(min-content, 50px) 100%;
+    }
+
+    .calendar-month-infinite-scroll-wrapper {
+        grid-column: monthNames / calendarDays;
+    }
 }
 
 .calendar.widget header {
@@ -37,14 +73,7 @@
     justify-content: center;
     column-gap: 5px;
 }
-/* M T W R F ... */
-.week-days-header {
-    grid-area: weekDays;
-    display: grid;
-    grid-template-columns: subgrid;
-    justify-content: center;
-    place-items: center;
-}
+
 
 /* Month titles and their days  */
 .month-container {
@@ -60,6 +89,7 @@
 /* Month titles */
 .month-container .month-title {
     grid-area: monthNames;
+    position: absolute;
     justify-self: flex-start;
     width: 100%;
     border-top: 2px solid var(--g4);

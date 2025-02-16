@@ -9,7 +9,7 @@ import {
 import { combineClassNamePropAndString } from '@util/jsTools';
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
-import { Checkbox, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
+import { Checkbox, TaskBeingDragged, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { 
     ComponentProps, 
     ForwardedRef, 
@@ -82,8 +82,8 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
             // Add a new MonthData
             allLoadedMonthData.push({
                 key: day.toLocaleString({year: "2-digit", month: "2-digit"}),
-                monthName: day.monthLong, 
-                year: day.year, 
+                monthName: day.monthLong as string, 
+                year: day.year as string, 
                 weeks: [],
                 closeToBeginningOfDataRange: monthNearBeginning.hasSame(day, "month") || day < monthNearBeginning,
                 closeToEndOfDataRange: monthNearEnd.hasSame(day, "month") || day > monthNearEnd,
@@ -92,7 +92,7 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
         mostRecentMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-1];
         if (itIsANewWeekday) {
             // Add a new WeekData to MonthData
-            mostRecentMonthLoaded.weeks.push({days: [], key: day.toISOWeekDate()});
+            mostRecentMonthLoaded.weeks.push({days: [], key: day.toISOWeekDate() as string});
         }
         previousMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-2];
         mostRecentWeekLoaded = mostRecentMonthLoaded.weeks.length ? mostRecentMonthLoaded.weeks[mostRecentMonthLoaded.weeks.length-1] : previousMonthLoaded.weeks[previousMonthLoaded.weeks.length-1];
@@ -343,23 +343,29 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                     }
                                                     return <Draggable
                                                         droppable={true}
-                                                        key={taskWrapperProps.keyOverride}
-                                                        actionTitle="Move task"
                                                         itemType={TASK_DRAG_TYPE}
                                                         itemData={{id: taskWrapperProps.task.id}}
+                                                        actionTitle="Move task"
+                                                        key={taskWrapperProps.keyOverride}
+                                                        onDragStart={() => {
+                                                            console.log("drag")
+                                                        }}
                                                         renderDraggableItem={(props, ref) => <TaskWrapper 
                                                                 ref={ref as ForwardedRef<HTMLDivElement>}
-                                                                {...props}
                                                                 {...taskWrapperProps}
-                                                                {...{id: props.id, className: combineClassNamePropAndString({
-                                                                    className: taskWrapperProps.className,
-                                                                    props: props,
-                                                                })}}
+                                                                {...props}
+                                                                {...{className: combineClassNamePropAndString(taskWrapperProps.className, props)}}
                                                             >
                                                                 <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
                                                                 <TaskTitle />
                                                             </TaskWrapper>
                                                         }
+                                                        renderItemBeingDraggedIfDifferent={(props, ref) => <TaskBeingDragged 
+                                                            {...props}
+                                                            ref={ref}
+                                                            task={taskData.task} 
+                                                            type={taskData.type} 
+                                                        />}
                                                     />
                                                 })}
                                             </div>
