@@ -1,9 +1,7 @@
 /*#region Global Styling*/
 body {
     margin: 0;
-    background-color: none;
     background: var(--bg);
-    overflow: hidden;
 }
 
 li {
@@ -34,10 +32,40 @@ margin-bottom: 2px;
 /*#region Home Layout*/
 #home-wrapper {
     display: grid;
-    background-color: rgb(37, 41, 46);
-    grid-template-areas: "left-menu list slider calendar";
-    grid-template-columns: min-content minmax(min-content, 2fr) var(--section-gap) 5fr;
-    grid-template-rows: 100vh;
+    height: 100vh;
+    padding: var(--section-gap);
+    grid-template-areas: 
+    "left-menu ..."
+    "list calendar"; 
+    grid-template-columns: 100% 100%;
+    gap: var(--section-gap);
+    align-items: flex-start;
+}
+
+#left-menu {
+    z-index: 2;
+    grid-area: left-menu;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    width: min-content;
+    height: fit-content;
+    justify-content: center;
+}
+
+@media (min-width:961px) {
+    #home-wrapper {
+        display: grid;
+        grid-template-areas: "left-menu list calendar";
+        grid-template-columns: min-content minmax(min-content, 2fr) 5fr;
+        grid-template-rows: 100%;
+    }
+
+    #left-menu {
+        width: min-content;
+        flex-direction: column;
+        justify-content: flex-start;
+    }
 }
 
 .calendar.widget {
@@ -45,15 +73,7 @@ margin-bottom: 2px;
     margin: var(--section-gap) var(--section-gap) var(--section-gap) 0;
 }
 
-#left-menu {
-    padding-left: var(--section-gap);
-    margin: 0;
-    grid-area: left-menu;
-    display: flex;
-    flex-direction: column;
-    row-gap: 10px;
-    padding: 10px;
-}
+
 
 #left-menu>.btn i {
     font-size: var(--menu-icon-size);
@@ -100,10 +120,8 @@ h5 {
 /*#endregion Headers*/
 /*#region Text*/
 p, 
-.date,
-.date input, 
-.time input,
-.time {
+.date > *,
+.time > * {
     font-family: "Quicksand", sans-serif;
     font-weight: 600;
     font-size: var(--p-size);
@@ -124,6 +142,8 @@ p,
 .date-time-wrapper {
   color: var(--g4);
   font-size: var(--smaller-p-size);
+  font-weight: 600;
+  font-family: "Azeret Mono", monospace;
 }
     .date-time-wrapper label.date,
     .date-time-wrapper label.time {
@@ -138,7 +158,6 @@ p,
     .date-time-wrapper .time {
         display: flex;
         flex-wrap: wrap;
-        font-family: "Azeret Mono", monospace;
     }
 
     .date-time-wrapper > * {
@@ -245,14 +264,12 @@ p,
             grid-auto-rows: fit;
         }
             .input-sizer.stacked::after,
-            .input-sizer input,
-            .input-sizer textarea {
+            .input-sizer > * {
             grid-area: 1 / 1;
             }
 
     .input-sizer::after,
-    .input-sizer input,
-    .input-sizer textarea {
+    .input-sizer > * {
         grid-area: 1 / 1;
         width: 10px;
         min-width: 100%;
@@ -262,7 +279,6 @@ p,
         margin: 0;
         resize: none;
     }
-
     .input-sizer.take-full-width,
     .input-sizer.take-full-width::after {
         width: 100%;
@@ -270,8 +286,7 @@ p,
     }
 
     .input-sizer.take-full-width::after,
-    .input-sizer.take-full-width input,
-    .input-sizer.take-full-width textarea {
+    .input-sizer.take-full-width > * {
         width: 100%;
         max-width: 100%;
         min-width: 100%;
@@ -283,7 +298,7 @@ p,
     font: inherit;
     width: fit-content;
     content: attr(data-expand-content) ' ';
-    background-color: rgb(0, 255, 255);
+    background-color: rgba(0, 255, 255, 0.431);
     visibility: hidden;
   }
 
@@ -308,24 +323,22 @@ section.mid-section {
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);
     padding: var(--inner-box-padding);
-    overflow: hidden;
 }
 
 section .more-padding,
 section.more-padding {
     padding: calc(var(--inner-box-padding) * 2.5);
 }
-
+  
 .dark-section {
     background-color: var(--g10);
-    padding: var(--inner-box-padding);
+    padding: var(--section-gap);
     border-radius: var(--box-corner-rounding);
   }
 
 .section-collapsible {
     display: block;
     transform-origin: 100% 7%;
-    overflow: hidden;
 }
 /*#endregion Sections*/
 /*#region Buttons*/
@@ -500,9 +513,8 @@ textarea {
     width: 100%;
     background-color: var(--g10);
     border: none;
-    border-radius: 10px;
+    border-radius: var(--small-box-corner-rounding);
     font-family: "Quicksand", sans-serif;
-    font-weight: 500;
     color: var(--g1);
 }
 

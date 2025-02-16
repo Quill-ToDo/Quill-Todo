@@ -33,28 +33,19 @@
   font-size: var(--p-size);
 }
 
-.task-detail .task-wrapper {
+.task-detail.task-wrapper {
   justify-content: space-between;
   padding: 0;
 }
+  .task-detail.task-wrapper.complete .title textarea {
+    color: var(--g7);
+    text-decoration: line-through solid var(--g7) 2px ;
+  } 
 
-.task-detail .task-wrapper.complete .title textarea {
-  color: var(--g7);
-  text-decoration: line-through solid var(--g7) 2px ;
-} 
-
-.task-detail .task-wrapper.highlighted * {
-  color: auto;
-}
-
-.task-detail .task-wrapper.highlighted {
-  background-color: unset;
-}
-
-.task-detail .task-wrapper.complete .checkmark
-{
-  color: var(--g7);
-} 
+  .task-detail.task-wrapper.complete .checkmark
+  {
+    color: var(--g7);
+  } 
 
 .task-detail .check-box-wrapper {
   scale: 1.3;

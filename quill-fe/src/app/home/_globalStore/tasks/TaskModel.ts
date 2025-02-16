@@ -12,7 +12,7 @@ import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
 import { createContext } from "react";
-import { HOME_ID } from "../../dashboardLayout";
+import { HOME_ID } from "@/util/constants";
 
 export const DEFAULT_START_DATETIME = () => DateTime.now();
 export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
@@ -23,6 +23,13 @@ export const TASK_DRAG_TYPE = "task";
 export const TASK_ACTIONS = {
     delete: "delete"
 };
+
+export const TASK_CHECKBOX_STYLES = {
+    start:  "start",
+    due: "due",
+    scheduled: "scheduled",
+}
+export type AcceptedTaskCheckboxStyles = "start" | "due" | "scheduled";
 export const TASK_ACCEPTED_DRAG_TYPES = [TASK_ACTIONS.delete];
 export interface TaskDragData {
     id: string,
@@ -363,7 +370,7 @@ export class TaskModel {
         if (this.validationErrors.startDateStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
                 this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : this.startTimeStringUnderEdit);
-                if (!newDate.invalid) {
+                if (newDate.isValid) {
                     // If the datetime generated using the time part of the current start datetime and the 
                     // date string under edit is valid, update underlying start datetime
                     this._start = newDate;
@@ -383,7 +390,7 @@ export class TaskModel {
         if (this.validationErrors.startTimeStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : this.startDateStringUnderEdit, 
                 timeString);
-            if (!newDate.invalid) {
+            if (newDate.isValid) {
                 // If the date generated using the date part of the current start datetime and the 
                 // time string under edit is valid, update underlying start datetime
                 this._start = newDate;
@@ -452,7 +459,7 @@ export class TaskModel {
         if (this.validationErrors.dueDateStringUnderEdit.length === 0) {
             const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
                 this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : this.dueTimeStringUnderEdit);
-            if (!newDate.invalid) {
+            if (newDate.isValid) {
                 // If the date generated using the time part of the current due datetime and the 
                 // date string under edit is valid, update underlying due datetime
                 this._due = newDate;
@@ -473,7 +480,7 @@ export class TaskModel {
             const newDate = DATETIME_FORMATS.D_t.deserializer(
                 this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : this.dueDateStringUnderEdit,
                 timeString);
-            if (!newDate.invalid) {
+            if (newDate.isValid) {
                 // If the date generated using the date part of the current due datetime and the 
                 // time string under edit is valid, update underlying due datetime
                 this._due = newDate;
@@ -550,7 +557,9 @@ export class TaskModel {
                     ERROR_ALERT, 
                     `Task could not be updated - ${getLegibleErrors(reason.response.data)}`);
                     // Revert changes
-                    this._store.loadTasks({refresh: true});
+                    if (this._store) {
+                        this._store.loadTasks({refresh: true});
+                    }
                 }
             );
         }
@@ -749,13 +758,13 @@ set highlighted(value: boolean) {
             ],
             start: [
                 {
-                    text: this.start && this.start.invalid ? this.start.invalid.explanation : "",
+                    text: this.start && !this.start.isValid ? this.start.invalidExplanation : "",
                     fail: ({start=this.start}) => start && !start.isValid,
                 },
             ],
             due: [
                 {
-                    text: this.due && this.due.invalid ? this.due.invalid.explanation : "",
+                    text: this.due && !this.due.isValid ? this.due.invalidExplanation : "",
                     fail: ({due=this.due}) => due && !due.isValid,
                 },
             ],
@@ -857,13 +866,6 @@ set highlighted(value: boolean) {
         return true;
     }
 //#endregion
-}
-
-export module TaskModel.VisualStyles {
-    export const Start =  "start";
-    export const Due = "due";
-    export const Scheduled = "scheduled";
-    export type AcceptedStyles = "start" | "due" | "scheduled";
 }
 
 export const TaskContext = createContext<null | TaskModel>(null);

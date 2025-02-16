@@ -1,18 +1,19 @@
 import React, { 
+    ForwardedRef,
     Fragment, 
-    MutableRefObject, 
     useEffect, 
     useRef, 
     useState
 } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import { TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
+import { AcceptedTaskCheckboxStyles, TASK_CHECKBOX_STYLES, TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     TaskTitle, 
     TaskWrapper, 
-    TaskDueDate 
+    TaskDueDate, 
+    TaskBeingDragged
 } from "@/widgets/TaskDetail/TaskComponents";
 import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@util/DateTimeHelper";
 import './list.css'
@@ -134,7 +135,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 0,
             content: [{
                 "tasks": overdue,
-                "type": TaskModel.VisualStyles.Due,
+                "type": TASK_CHECKBOX_STYLES.due,
                 "emptyText": "No overdue tasks"
             }],
         },
@@ -145,13 +146,13 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                 {
                     "title": "Due",
                     "tasks": todayDue,
-                    "type": TaskModel.VisualStyles.Due,
+                    "type": TASK_CHECKBOX_STYLES.due,
                     "emptyText": "No tasks due today",
                 },
                 {
                     "title": "In Progress",
                     "tasks": todayWork,
-                    "type": TaskModel.VisualStyles.Scheduled,
+                    "type": TASK_CHECKBOX_STYLES.scheduled,
                     "emptyText": "No tasks to work on today",
                 }
             ]
@@ -161,7 +162,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 2,
             content: [{
                 "tasks": upcoming,
-                "type": TaskModel.VisualStyles.Due,
+                "type": TASK_CHECKBOX_STYLES.due,
                 "emptyText": "No upcoming tasks"
             }]
         },
@@ -170,7 +171,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 3,
             content: [{
                 "tasks": undated,
-                "type": TaskModel.VisualStyles.Due,
+                "type": TASK_CHECKBOX_STYLES.due,
                 "emptyText": "No undated tasks"
             }]
         },
@@ -179,7 +180,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 4,
             content: [{
                 "tasks": complete,
-                "type": TaskModel.VisualStyles.Due,
+                "type": TASK_CHECKBOX_STYLES.due,
                 "emptyText": "No undated tasks"
             }]
         },
@@ -285,7 +286,7 @@ function getSectionId(sectionId: number) {
 interface SubSectionContent {
     title?: string, 
     tasks: TaskModel[], 
-    type: TaskModel.VisualStyles.AcceptedStyles, 
+    type: AcceptedTaskCheckboxStyles, 
     emptyText: string,
 };
 /**
@@ -344,7 +345,7 @@ const TaskList = observer(({
     type
 }: {
     tasks: TaskModel[], 
-    type: TaskModel.VisualStyles.AcceptedStyles
+    type: AcceptedTaskCheckboxStyles,
 }) => {
     const listRef = useRef(null);
     return <ul 
@@ -357,24 +358,24 @@ const TaskList = observer(({
                     droppable={true}
                     itemType={TASK_DRAG_TYPE}
                     itemData={{id: task.id}}
+                    actionTitle="Move task"
                     key={`task-li-${task.id}`}
-                    actionTitle="Drag task"
-                    onDragStart={(e) => {
-                        task.highlighted = true;
-                    }}
-                    onDragEnd={(e) => {
-                        task.highlighted = false;
-                    }}
                     renderDraggableItem={(props, ref) => <li 
-                            ref={ref as MutableRefObject<HTMLLIElement>}
+                            ref={ref as ForwardedRef<HTMLLIElement>}
                             {...props}
-                            className={combineClassNamePropAndString({className: "task", props})}
+                            className={combineClassNamePropAndString("task", props)}
                         >
                             <ListViewTask
                                 task={task}
                                 type={type}
                                 />
                         </li>}
+                    renderItemBeingDraggedIfDifferent={(props, ref) => <TaskBeingDragged 
+                        {...props}
+                        ref={ref}
+                        task={task} 
+                        type={type} 
+                    />}
                 > 
                 </Draggable>
             )
@@ -390,7 +391,7 @@ const ListViewTask = observer(({
     type,
 }: {
     task: TaskModel, 
-    type: TaskModel.VisualStyles.AcceptedStyles,
+    type: AcceptedTaskCheckboxStyles,
 }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;

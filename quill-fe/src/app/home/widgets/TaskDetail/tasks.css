@@ -77,6 +77,13 @@
   text-decoration: line-through solid var(--g3) 2px;
 }
 
+@media (min-width:961px) {
+  .title-date-wrapper {
+    flex-direction: row;
+    align-items: center;
+  }
+}
+
 .title-date-wrapper {
   display: flex;
   justify-content: space-between;

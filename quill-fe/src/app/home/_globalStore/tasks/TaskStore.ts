@@ -1,14 +1,14 @@
 import { makeObservable, observable, action, computed, runInAction} from "mobx";
-import { TaskModel } from "./TaskModel";
+import { AcceptedTaskCheckboxStyles, TASK_CHECKBOX_STYLES, TaskModel } from "./TaskModel";
 import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
-import { HOME_ID } from "../../dashboardLayout";
+import { HOME_ID } from "@/util/constants";
 
 export type TaskDataOnDay =  {
     task: TaskModel, 
-    type: TaskModel.VisualStyles.AcceptedStyles}[];
+    type: AcceptedTaskCheckboxStyles}[];
 
 export type Timeline = Map<string, TaskDataOnDay>;
 
@@ -164,18 +164,18 @@ export default class TaskStore {
             firstDayInRange = null; 
             lastDayInRange = null; 
             if (task.due) {
-                getTasksOnDay(task.due).push({task: task, type: TaskModel.VisualStyles.Due});
+                getTasksOnDay(task.due).push({task: task, type: TASK_CHECKBOX_STYLES.due});
                 lastDayInRange = task.due.endOf('day').minus({days: 1});
             }
             if (task.start) {
                 firstDayInRange = task.start.startOf('day').plus({days: 1});
                 if (!(task.due && task.start.hasSame(task.due, "day")) ){
-                    getTasksOnDay(task.start).push({task: task, type: TaskModel.VisualStyles.Start})
+                    getTasksOnDay(task.start).push({task: task, type: TASK_CHECKBOX_STYLES.start})
                 }
             }
             if (firstDayInRange && lastDayInRange && firstDayInRange < lastDayInRange) {
                 for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
-                    getTasksOnDay(dayItr).push({task: task, type: TaskModel.VisualStyles.Scheduled});    
+                    getTasksOnDay(dayItr).push({task: task, type: TASK_CHECKBOX_STYLES.scheduled});    
                 }
             }
         });
