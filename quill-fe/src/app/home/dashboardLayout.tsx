@@ -1,22 +1,27 @@
 'use client';
 import { observer } from "mobx-react-lite";
-import './home.css'
-import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
-import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
-import { combineClassNamePropAndString, ICONS } from "@util/constants";
 import { useRef } from "react";
-import { useTaskStore } from "./_globalStore/StoreProvider";
-import { TetheredPopupOnClick } from "@util/Popup";
-import { ListWidget } from "@/widgets/List/List";
-import { CalendarWidget } from "@/widgets//Calendar/Calendar";
+import './home.css'
+// Internal 3rd party implementations, would be good to remove somehow
 import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
-import { Draggable, Droppable } from "@/util/Draggable";
-import { TASK_DRAG_TYPE, TaskDragData } from "@/store/tasks/TaskModel";
 import { DraggedContent } from "../3rd-party/DndKit";
-import { DragEndEvent } from "@dnd-kit/core";
+// Quill 
+import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
+import { TASK_ACTIONS, TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
+import { useTaskStore } from "@/store/StoreProvider";
+// Widgets
+import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
+import { DeleteTaskConfirmationPopup } from "@/widgets/TaskDetail/TaskComponents";
+import { ListWidget } from "@/widgets/List/List";
+import { CalendarWidget } from "@/widgets/Calendar/Calendar";
+// Utils
+import { ICONS, HOME_ID } from "@/util/constants";
+import { Draggable, Droppable } from "@/util/Draggable";
+import { AttachedPopupOnClick } from "@/util/Popup";
+// import { AttachedPopupOnClick } from "@/util/Popup";
+import { combineClassNamePropAndString, assignForwardedRef } from '@/util/jsTools';
 
 export const NEW_TASK_TEXT = "Add task";
-export const HOME_ID = "home-wrapper";
 
 const DashboardLayout = observer(({
     children,
@@ -25,7 +30,6 @@ const DashboardLayout = observer(({
 }) => {
     const taskStore = useRef(useTaskStore());
     const trashBtnRef = useRef<HTMLButtonElement | null>(null);
-
     const widgets = children ? children :<>
         <ListWidget />
         <CalendarWidget />
@@ -35,7 +39,6 @@ const DashboardLayout = observer(({
             <div 
                 id={HOME_ID}
                 data-testid="home"
-                role="none"
             >
                 <menu 
                     role="menubar"
@@ -44,16 +47,16 @@ const DashboardLayout = observer(({
                     id="left-menu" 
                     className="bg-green"
                 >
-                    <TetheredPopupOnClick
+                    <AttachedPopupOnClick
                         draggable={true}
                         useDragHandle={true}
                         renderElementToClick={(props, ref) => <button 
-                                {...props.toApply}
+                                {...props.anchorProps}
                                 ref={ref}
                                 id="add-task"
                                 role="menuitem" 
                                 aria-haspopup="dialog"
-                                className="btn small square bg" 
+                                className={combineClassNamePropAndString("btn small square bg", props)}
                                 title={NEW_TASK_TEXT} 
                                 onClick={() => {
                                     taskStore.current.createNewTask();
@@ -63,52 +66,59 @@ const DashboardLayout = observer(({
                                 { ICONS.PLUS }
                             </button>}
                         renderPopupContent={({closePopup}) => <AddNewTaskPopUp 
-                            close={closePopup}
+                            close={() => closePopup(()=> {
+                                    if (taskStore.current && taskStore.current.taskBeingCreated && taskStore.current.taskBeingCreated.isNewAndUnsubmitted) {
+                                        taskStore.current.taskBeingCreated.abortTaskCreation();
+                                    }
+                                })
+                            }
                             taskToCreate={taskStore.current.taskBeingCreated}
                         />}
                     />
-                    <Draggable 
-                        actionTitle="Drag to item to delete"
-                        droppable={true}
-                        itemType="delete"
-                        onDragEnd={() => {
-
-                        }}
-                        renderDraggableItem={(props, ref) => {
-                            return <Droppable 
-                                {...props}
-                                ref={ref}
-                                acceptedItemTypes={[TASK_DRAG_TYPE]}
-                                itemType={"delete"}
-                                onDrop={({e, drop, drag}) => {
-                                    if (drag && drag.type === TASK_DRAG_TYPE) {
-                                        const droppedTaskId = drag.value.id; 
-                                        const droppedTask = taskStore.current.getTaskById(droppedTaskId);
-                                        droppedTask && droppedTask.deleteSelf();
-                                    }
+                    <DeleteTaskConfirmationPopup
+                        renderAnchor={(setTaskToDelete) => <Draggable 
+                                actionTitle="Drag to item to delete"
+                                droppable={true}
+                                itemType={TASK_ACTIONS.delete}
+                                renderDraggableItem={(props, ref) => {
+                                    return <Droppable 
+                                        {...props}
+                                        ref={ref}
+                                        acceptedItemTypes={[TASK_DRAG_TYPE]}
+                                        itemType={TASK_ACTIONS.delete}
+                                        onDrop={({drag}) => {
+                                            if (drag && drag.type === TASK_DRAG_TYPE) {
+                                                const droppedTaskId = drag.value.id; 
+                                                const droppedTask = taskStore.current.getTaskById(droppedTaskId);
+                                                if (droppedTask) {
+                                                    // const popupSetup = getDeleteConfirmationPopupSetup(droppedTask);
+                                                    // popupSetup.openPopup();
+                                                    setTaskToDelete(droppedTask);
+                                                }
+                                            }
+                                        }}
+                                        renderDroppableItem={(props, ref) => <button 
+                                            {...props}
+                                            ref={(node) => {
+                                                assignForwardedRef(trashBtnRef, node);
+                                                assignForwardedRef(ref, node);
+                                            }}
+                                            onClick={() => {
+                                                addAlert(trashBtnRef.current, "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
+                                            }}
+                                            role="menuitem" 
+                                            className={combineClassNamePropAndString("btn small square bg", props)} 
+                                            title="Trash" 
+                                            type="button"
+                                        >
+                                            { ICONS.TRASH }
+                                        </button>
+                                        }
+                                    />
                                 }}
-                                renderDroppableItem={(props, ref) => <button 
-                                    {...props}
-                                    ref={(node) => {
-                                        trashBtnRef.current = node;
-                                        if (typeof ref === "function") {
-                                            ref(node);
-                                        }
-                                        else {
-                                            ref.current = node;
-                                        }
-                                    }}
-                                    role="menuitem" 
-                                    className={combineClassNamePropAndString({className: "btn small square bg", props: props})} 
-                                    title="Trash" 
-                                    type="button" 
-                                >
-                                    { ICONS.TRASH }
-                                </button>
-                                }
                             />
-                        }}
-                    />
+                        }
+                    /> 
                     
                     <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}>
                         { ICONS.SETTINGS }
@@ -118,8 +128,8 @@ const DashboardLayout = observer(({
                     </button>
                 </menu>
                 {widgets}
+                <div id={PORTAL_HOLDER_ID}></div>
             </div>
-            <div id={PORTAL_HOLDER_ID}></div>
             <DraggedContent/>
     </>)
 })

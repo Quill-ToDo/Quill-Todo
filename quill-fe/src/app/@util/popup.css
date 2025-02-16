@@ -1,4 +1,5 @@
 .popup {
+    z-index: 10;
     background-color: var(--g8);
     width: fit-content;
     border-radius: var(--box-corner-rounding);
@@ -64,10 +65,14 @@ div[data-floating-ui-portal] > div {
         column-gap: 10px;
     }
     .popup.context-menu header {
-        border-radius: 10px 10px 0 0;
+        border-radius: var(--small-box-corner-rounding) var(--small-box-corner-rounding) 0 0;
         padding: 3px 10px 3px 10px;
         color: var(--g1);
     } 
+
+    .popup .confirmation {
+        width: 340px;
+    }
 
 #portal-holder {
     position: absolute;

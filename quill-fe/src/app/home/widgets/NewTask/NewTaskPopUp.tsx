@@ -112,7 +112,7 @@ export const AddNewTaskPopUp = observer(({
                                 })); 
                             }
                             else {
-                                let focusEle = e.target.querySelector(`[aria-invalid="true"]`);
+                                let focusEle = (e.target as HTMLElement).querySelector(`[aria-invalid="true"]`);
                                 !!focusEle && focusEle.focus();
                             }
                         }
@@ -191,14 +191,14 @@ export const AddNewTaskPopUp = observer(({
                             header={<header>Add field</header>}
                             labelsAndClickCallbacks={contextMenuData}
                             renderElementToClick={(props, ref) => <button 
-                                    {...props.toApply}
+                                    {...props.anchorProps}
                                     ref={ref}
-                                    onClick={props.openPopup}
+                                    onClick={() => {props.openPopup();}}
                                     type="button"
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
                                     title="Add task field" 
-                                    className={combineClassNamePropAndString(`add-field-btn btn small centered take-full-space`, props.toApply)} 
+                                    className={combineClassNamePropAndString(`add-field-btn btn small centered take-full-space`, props.anchorProps)} 
                                     > 
                                         { ICONS.PLUS }
                                     </button>

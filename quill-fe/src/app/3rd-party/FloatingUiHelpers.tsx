@@ -1,8 +1,10 @@
 import React, { 
+    ComponentPropsWithoutRef,
     Dispatch, 
     ForwardedRef, 
-    LegacyRef, 
-    ReactNode, 
+    forwardRef, 
+    ForwardRefRenderFunction, 
+    ReactElement, 
     SetStateAction, 
     useEffect, 
     useState
@@ -19,22 +21,20 @@ import {
     shift,
     flip,
     size,
+    autoPlacement,
+    autoUpdate,
+    Placement,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { 
-    TetheredPopupParams, 
-    StandalonePopupParams, 
-    SharedPopupProps, 
-    PopupSetup 
+    PopupSetupProps,
+    InnerPopupProps,
+    StandaloneProps, 
 } from '@util/Popup';
-import { combineClassNamePropAndString } from '@util/jsTools';
+import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
-
-const loading = <div className="loading take-full-space centered">
-    <p>Loading...</p>
-</div>;
 
 /**
  * Return the "guts" of the popup with Floating UI content applied as needed
@@ -42,7 +42,7 @@ const loading = <div className="loading take-full-space centered">
  * @returns 
  */
 const getInnerPopupContent = ({
-    innerContent,
+    renderInnerContent,
     isOpen,
     openChange,
     placement,
@@ -51,8 +51,14 @@ const getInnerPopupContent = ({
     draggable,
     useDragHandle,
     ...props
-}: SharedPopupProps 
-& {innerContent: ReactNode, isOpen: boolean, openChange: Dispatch<SetStateAction<boolean>>}) => {
+}: InnerPopupProps 
+& {
+    renderInnerContent: ForwardRefRenderFunction<HTMLElement, {
+        popupProps: ComponentPropsWithoutRef<any>,
+    }>, 
+    isOpen: boolean, 
+    openChange: Dispatch<SetStateAction<boolean>>,
+}) => {
     // Configure middleware
     const middleware = [];
     if (placement === "centered") {
@@ -64,6 +70,9 @@ const getInnerPopupContent = ({
     } else {
         middleware.push(offset(10));
     }
+    if (placement == "auto") {
+        middleware.push(autoPlacement());
+    } 
     
     middleware.push(shift());
     middleware.push(flip());
@@ -80,7 +89,7 @@ const getInnerPopupContent = ({
         // https://floating-ui.com/docs/useFloating#placement
         placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
         middleware: middleware,
-        // whileElementsMounted: autoUpdate,
+        whileElementsMounted: autoUpdate,
     };
     // Configure interactions
     const { refs, floatingStyles, context } = useFloating(positioning);
@@ -92,97 +101,102 @@ const getInnerPopupContent = ({
     }));
     const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
 
-    // Apply focus manager to popup content
-    const innerPopupContent = <FloatingFocusManager context={context}>
-            <div 
-                style={floatingStyles} 
-                ref={refs.setFloating} 
-                {...getFloatingProps()}
-            >
-                <div
-                    {...props}
-                    className={combineClassNamePropAndString({className: `floating popup`, props})}
-                >
-                    { doneLoading ? innerContent : loading }
-                </div>
-            </div>
-    </FloatingFocusManager>;
+    let popupPropsToForward = {
+        style: floatingStyles,
+        ...getFloatingProps(),
+        className: combineClassNamePropAndString(`floating popup`, getFloatingProps()),
+    }
+    let anchorPropsToForward = {
+        ...getReferenceProps(),
+        className: combineClassNamePropAndString("popup-anchor", getReferenceProps()),
+    }
+    const loading = <div className="loading take-full-space centered">
+        <p>Loading...</p>
+    </div>;
 
-    // Make focus-managed inner content draggable if needed 
-    const possibleDraggableContent =  draggable ? <Draggable
-        droppable={false} 
-        useHandle={useDragHandle} 
-        actionTitle='Move popup'
-        renderDraggableItem={(draggableProps, ref) => 
-            <div 
-                    {...draggableProps}
-                    ref={ref as ForwardedRef<HTMLDivElement>}
-                >
-                { innerPopupContent }
-            </div>
-        }/>   
-        : innerPopupContent;
+    // Apply focus manager to popup content
+    let popupContent = draggable ?
+        <Draggable
+                droppable={false} 
+                useHandle={useDragHandle} 
+                actionTitle='Move popup'
+                renderDraggableItem={(draggableProps, draggableRef) => { 
+                    // Combine normal popup props and draggable props to pass to the rendered popup
+                    popupPropsToForward = {
+                        ...draggableProps,
+                        ...popupPropsToForward,
+                        className: combineClassNamePropAndString(popupPropsToForward.className, draggableProps),
+                    };
+                    return doneLoading ? renderInnerContent({ popupProps: popupPropsToForward }, 
+                            (node) => {
+                                // Assign the popup ref and the draggable element ref
+                                assignForwardedRef(draggableRef, node);
+                                assignForwardedRef(refs.setFloating, node);
+                            }) 
+                        : loading;
+            }}
+        />  
+        : <FloatingFocusManager context={context}>
+            {/* Only apply popup props */}
+            { (doneLoading ? renderInnerContent({popupProps: popupPropsToForward}, 
+                (node) => {
+                    // only apply popup ref
+                    assignForwardedRef(refs.setFloating, node);
+                })
+            : loading) as ReactElement}
+    </FloatingFocusManager>;
 
     // Portal this shit away
     return {
-        content: <FloatingPortal 
-                        id={PORTAL_HOLDER_ID}
-                    >
-                        { possibleDraggableContent }
+        content: <FloatingPortal id={PORTAL_HOLDER_ID}>
+                        { popupContent }
                     </FloatingPortal>,
-        refs: refs,
-        getReferenceProps: getReferenceProps,
+        assignAnchorRefs: (node: HTMLElement) => assignForwardedRef(refs.setReference, node),
+        getAnchorProps: () => anchorPropsToForward,
     }
 }
 
 /** Use Floating UI to create a positioned popup */
-export const FloatingUiPopupImplementation = observer((
+export const FloatingUiAttachedPopup = observer(forwardRef((
     {   
-        renderPopupContent,
-        renderElementToClick,
-        placement,
-        alignment,
-        doneLoading, 
-        draggable,
-        useDragHandle,
         ...props
-    } : TetheredPopupParams) => {
+    } : PopupSetupProps,
+    ref: ForwardedRef<any>) => {
     const [showPopup, setShowPopup] = useState(false);
-    const close = () => {
-        setShowPopup(false);
-    };
-    const open = () => {
+
+    const open = (callback?: Function) => {
         setShowPopup(true);
+        callback && callback();
+    };
+
+    const close = (callback?: Function) => {
+        setShowPopup(false);
+        callback && callback();
     };
     
     const popupSetup = getInnerPopupContent({
-        innerContent: renderPopupContent({closePopup: close}),
+        renderInnerContent: (innerProps) => props.renderPopupContent({
+            closePopup: close, 
+            popupContainerProps: innerProps.popupProps}, 
+            ref),
         isOpen: showPopup,
         openChange: setShowPopup,
-        placement: placement, 
-        alignment: alignment, 
-        doneLoading: doneLoading,
-        draggable: draggable,
-        useDragHandle: useDragHandle,
         ...props
     });
     
     return <>
         {/* Anchor element  */}
-        { renderElementToClick(
+        { props.renderElementToClick(
             {
                 openPopup: open,
-                toApply: {
-                    className: combineClassNamePropAndString("popup-anchor", props),
-                    ...popupSetup.getReferenceProps(),
-                },
+                anchorProps: popupSetup.getAnchorProps(),
             },
-            popupSetup.refs.setReference, 
+            (node) => {assignForwardedRef(popupSetup.assignAnchorRefs, node)}, 
         )} 
         {/* Popup */}
         { showPopup && popupSetup.content }
     </>
-})
+}))
 
 /**
  * Render a popup positioned near a reference element that will persist even if the
@@ -191,30 +205,31 @@ export const FloatingUiPopupImplementation = observer((
  * a method that opens the popup and a method that closes the popup.
  * Must be wrapped with StandalonePopupContextProvider.
  */
-export const setUpFloatingUiStandalonePopup = (
+export const FloatingUiStandalonePopup = observer((
     {
-        children,
+        renderElementToClick,
+        renderPopupContent,
         setPopupContent,
-        placement,
-        alignment,
-        doneLoading,
-        draggable,
-        useDragHandle,
         ...props
-        
-    } : StandalonePopupParams & { setPopupContent: Dispatch<SetStateAction<any>>}  )
-    : PopupSetup =>  {
+    } : StandaloneProps) =>  {
     const [showPopup, setShowPopup] = useState(false);
     
+    const open = (callback?: Function) => {
+        setShowPopup(true);
+        callback && callback();
+    };
+    
+    const close = (callback?: Function) => {
+        setShowPopup(false);
+        callback && callback();
+    };
+
     const popupSetup = getInnerPopupContent({
-        innerContent: children,
+        renderInnerContent: ({popupProps}, ref) => {
+            return renderPopupContent({closePopup: close, popupContainerProps: popupProps}, ref);
+        },
         isOpen: showPopup,
         openChange: setShowPopup,
-        placement: placement, 
-        alignment: alignment, 
-        doneLoading: doneLoading,
-        draggable: draggable,
-        useDragHandle: useDragHandle,
         ...props
     });
     
@@ -222,21 +237,16 @@ export const setUpFloatingUiStandalonePopup = (
         if (showPopup) {
             setPopupContent(popupSetup.content);
         }
-    }, [children])
+        else { 
+            setPopupContent(null);
+        }
+    }, [showPopup]);
     
-    const open = () => {
-        setShowPopup(true);
-    };
-    
-    const close = () => {
-        setShowPopup(false);
-        setPopupContent(null);
-    };
 
-    return {
-        openPopup: open,
-        closePopup: close,
-        setPopupPositioningAnchor: popupSetup.refs.setReference,
-        getReferenceProps: popupSetup.getReferenceProps,
-    }
-}
+    return renderElementToClick({
+                openPopup: open, 
+                anchorProps: popupSetup.getAnchorProps(),
+            }, 
+            (node) => {assignForwardedRef(popupSetup.assignAnchorRefs, node)},
+        );
+})
