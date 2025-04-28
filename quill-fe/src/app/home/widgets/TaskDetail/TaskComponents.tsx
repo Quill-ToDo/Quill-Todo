@@ -129,7 +129,7 @@ export const TaskWrapper = observer(forwardRef((
 
     let renderContent: ForwardRefRenderFunction<HTMLDivElement, ComponentPropsWithoutRef<"div">> = (props, ref) => <div 
         {...props}
-        ref={(ele: HTMLDivElement | null) => {
+        ref={(ele) => {
             assignForwardedRef(ref, ele);
         }}
         key={keyOverride ? keyOverride : task.id}
@@ -149,35 +149,38 @@ export const TaskWrapper = observer(forwardRef((
         )}
     >
         {children}
-    </div>
+    </div>;
 
-    let content = droppable ? <DeleteTaskConfirmationPopup 
-        renderAnchor={(setTask) => <Droppable 
-            itemType={TASK_DRAG_TYPE}
-            itemData={{id: task.id}}
-            onDrop={({drop}) => {
-                if (drop && drop.type === TASK_ACTIONS.delete) {
-                    setTask(task);
-                }
-            }}
-            acceptedItemTypes={TASK_ACCEPTED_DRAG_TYPES}
-            renderDroppableItem={(droppableProps, droppableRef) => {
-                return renderContent({
-                    ...props,
-                    ...droppableProps,
-                    // ...deleteConfirmationSetup.getReferenceProps,
-                    className: combineClassNamePropAndString(props.className ? props.className : "", droppableProps),
-                }, (ele) => {
-                    assignForwardedRef(droppableRef, ele);
-                    assignForwardedRef(ref, ele);
-                    // assignForwardedRef(deleteConfirmationSetup.setPopupPositioningAnchor, ele);
-                });
-            }}
-        />}
-    /> : renderContent(props, ref);
+    // let content = useCallback((props: ComponentPropsWithoutRef<"div">, ref: ForwardedRef<HTMLDivElement>) => renderContent(props, ref), [props, ref]);
+    // droppable ? 
+    // <DeleteTaskConfirmationPopup 
+    //     renderAnchor={(setTask) => <Droppable 
+    //         itemType={TASK_DRAG_TYPE}
+    //         itemData={{id: task.id}}
+    //         onDrop={({drop}) => {
+    //             if (drop && drop.type === TASK_ACTIONS.delete) {
+    //                 setTask(task);
+    //             }
+    //         }}
+    //         acceptedItemTypes={TASK_ACCEPTED_DRAG_TYPES}
+    //         renderDroppableItem={(droppableProps, droppableRef) => {
+    //             return renderContent({
+    //                 ...props,
+    //                 ...droppableProps,
+    //                 // ...deleteConfirmationSetup.getReferenceProps,
+    //                 className: combineClassNamePropAndString(props.className ? props.className : "", droppableProps),
+    //             }, (ele) => {
+    //                 assignForwardedRef(droppableRef, ele);
+    //                 assignForwardedRef(ref, ele);
+    //                 // assignForwardedRef(deleteConfirmationSetup.setPopupPositioningAnchor, ele);
+    //             });
+    //         }}
+    //     />}
+    // /> : 
+    // renderContent(props, ref);
 
     return <TaskContext.Provider value={task}>
-        { content }
+        { renderContent(props, ref) }
     </TaskContext.Provider>;
 }));
 
@@ -466,7 +469,7 @@ const PlainTaskTitle = observer((
                     task={task} 
                     closeWidget={closePopup}
                     containerProps={popupContainerProps}
-                    ref={(node) => {assignForwardedRef(ref, node);}}
+                    ref={ref}
                 />}
         />;
     }
@@ -478,19 +481,9 @@ const PlainTaskTitle = observer((
  */
 const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskModel}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
-    const startingText: MutableRefObject<string> = useRef(task.title);
     const invalid = !!task.validationErrors.title.length;
     
     // Use input elements if editable to try and get a sort of inline effect
-    const finishEditing = async () => {
-        if (task.title && task.title !== startingText.current) {
-            const edits = task.saveEdits("title");
-            edits && edits.then(() => {
-                startingText.current = task.title;
-            })
-        }
-    }
-
     const errorId = `detail-${task.id}-title-errors`;
 
     return <>
@@ -506,12 +499,10 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
             title={"Edit Title"}
             rows={1}
             onChange={(e) => {
-                if (e.target) {
                     let inputText = e.target.value;
                     task.title = inputText;
-                }
+                    task.saveEdits("title");
             }}
-            onBlur={finishEditing}
         />
             {
                 !!task.validationErrors.title.length && <ErrorsList
@@ -588,7 +579,7 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
     const startingText: MutableRefObject<string> = useRef(task.description);
     
     // Use input elements if editable to try and get a sort of inline effect
-    const editInputRef = ref ? ref : useRef(null);
+    const editInputRef: MutableRefObject<HTMLElement | null> = useRef(null);
     const errorId = useId();
     const finishEditing = () => {
         if (task.description !== startingText.current) {
@@ -614,7 +605,11 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
             onChange={(e) => task.description = e.target.value}
             onBlur={finishEditing}
             {...props}
-            ref={(node) => assignForwardedRef(editInputRef, node)}
+            ref={(node: HTMLElement) => {
+                assignForwardedRef(editInputRef, node);
+                assignForwardedRef(ref, node);
+
+            }}
         
         />
         { invalid && <ErrorsList
@@ -758,8 +753,8 @@ const EditableDatePortion = observer(({
     startingDate: MutableRefObject<DateTime<boolean> | null>,
     type: "due" | "start",
 }) => {
-    const dateStringUnderEdit = isDueType ? task.dueDateStringUnderEdit : task.startDateStringUnderEdit;
-    const dateErrors = (isDueType ? task.validationErrors.dueDateStringUnderEdit : task.validationErrors.startDateStringUnderEdit);
+    const dateStringUnderEdit = isDueType ? task.due?.toFormat("yyyy-mm-dd") : task.start?.toFormat("yyyy-mm-dd");
+    const dateErrors = (isDueType ? task.validationErrors.dueDateStringUnderEdit : task.validationErrors.startDateStringUnderEdit).concat(task.validationErrors.workInterval);
     const updateTaskDate = isDueType ? (val: string) => {task.dueDateStringUnderEdit = val} : (val: string) => {task.startDateStringUnderEdit = val};
     const dateErrorListId = useId();
 
@@ -771,11 +766,11 @@ const EditableDatePortion = observer(({
             version="input"
             type="date"
             width="narrow"
-            aria-invalid={dateErrors.concat(task.validationErrors.workInterval).length !== 0} 
+            aria-invalid={dateErrors.length !== 0} 
             value={dateStringUnderEdit}
-            aria-describedby={dateErrorListId}
-            aria-label={`${type} date`}
-            placeholder="date e.g. 7/6/2024"
+            // aria-describedby={dateErrorListId}
+            // aria-label={`${type} date`}
+            // placeholder="date e.g. 7/6/2024"
             onChange={(e) => {
                 if (e.target) {
                     updateTaskDate(e.target.value);
@@ -787,9 +782,9 @@ const EditableDatePortion = observer(({
                 }
             }}
         />
-        { dateErrors.length > 0 && 
+        {/* { dateErrors.length > 0 && 
             <ErrorsList errors={dateErrors} id={dateErrorListId}/> 
-        }
+        } */}
     </label>
 })
 

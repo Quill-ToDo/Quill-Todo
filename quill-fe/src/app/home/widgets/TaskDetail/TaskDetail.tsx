@@ -29,7 +29,7 @@ import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
 
 export const TASK_DETAIL_POPUP_NAME = "Task Detail";
 
-const TaskDetail = observer(forwardRef<HTMLDivElement, {
+const TaskDetail = observer(forwardRef<any, {
     task: TaskModel,  
     closeWidget?: (() => void) | undefined,
     containerProps?: ComponentPropsWithoutRef<"div">,
@@ -37,7 +37,7 @@ const TaskDetail = observer(forwardRef<HTMLDivElement, {
     task, 
     closeWidget, 
     containerProps,
-}, ref) => {
+}, forwardedRef) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
     const [showDescription, setShowDescription] = useState(true);
     const [showDue, setShowDue] = useState(true);
@@ -97,15 +97,15 @@ const TaskDetail = observer(forwardRef<HTMLDivElement, {
     }, [task])
 
     return <TaskWrapper 
+        {...containerProps}
         highlightable={false}
         task={task} 
-        {...containerProps}
-        ref={(node) => {
-            assignForwardedRef(ref, node);
-        }} 
         aria-label={TASK_DETAIL_POPUP_NAME}
         role="dialog"
         className={combineClassNamePropAndString(`task-detail`, containerProps as ComponentPropsWithoutRef<"div">)}
+        ref={(node) => {
+            assignForwardedRef(forwardedRef, node);
+        }} 
     >
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
@@ -122,7 +122,7 @@ const TaskDetail = observer(forwardRef<HTMLDivElement, {
                     <ContextMenuPopup
                         renderElementToClick={(props, ref) => <button 
                                 {...props.anchorProps}
-                                ref={(node,) => {assignForwardedRef(ref, node);}}
+                                ref={(node) => assignForwardedRef(ref, node)}
                                 className={combineClassNamePropAndString("btn small square no-shadow", props.anchorProps)}
                                 title="Options" 
                                 aria-haspopup="menu"

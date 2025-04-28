@@ -549,7 +549,6 @@ export class TaskModel {
         if (this._store) {
             return this._store.API.updateTask(this.id, update).then(
                 result => {
-                    this.json = result.data;
                     return result;
                 },
                 reason => {

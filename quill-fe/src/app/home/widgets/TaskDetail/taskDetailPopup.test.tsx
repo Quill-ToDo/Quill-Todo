@@ -48,11 +48,11 @@ it("should display task details on show", async () => {
     const start = task.start;
     // Assert
     // This task doesn't have a desc
-    expect(within(popup).getByText("Task description"));
-    expect(within(popup).getByText("Due")).toBeInTheDocument();
-    expect(within(popup).getByText("Start")).toBeInTheDocument();
+    expect(within(popup).getByRole("textbox", {name: "Description"}));
+    expect(within(popup).getByRole("textbox", {name: "due date"})).toBeInTheDocument();
+    expect(within(popup).getByRole("textbox", {name: "start date"})).toBeInTheDocument();
     // Validate that the dates are right
-    logRoles(await screen.findByTestId("home"));
+    // logRoles(await screen.findByTestId("home"));
     expect(within(popup).getByDisplayValue(due.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
     expect(within(popup).getByText(start.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token))).toBeInTheDocument();
     expect(within(popup).getAllByText(due.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token))[0]).toBeInTheDocument();

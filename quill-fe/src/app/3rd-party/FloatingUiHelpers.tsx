@@ -5,6 +5,7 @@ import React, {
     forwardRef, 
     ForwardRefRenderFunction, 
     ReactElement, 
+    ReactNode, 
     SetStateAction, 
     useEffect, 
     useState
@@ -58,7 +59,11 @@ const getInnerPopupContent = ({
     }>, 
     isOpen: boolean, 
     openChange: Dispatch<SetStateAction<boolean>>,
-}) => {
+}): {
+    content: ReactNode,
+    anchorRef: ForwardedRef<any>,
+    getAnchorProps: () => ComponentPropsWithoutRef<"button">,
+} => {
     // Configure middleware
     const middleware = [];
     if (placement === "centered") {
@@ -106,10 +111,7 @@ const getInnerPopupContent = ({
         ...getFloatingProps(),
         className: combineClassNamePropAndString(`floating popup`, getFloatingProps()),
     }
-    let anchorPropsToForward = {
-        ...getReferenceProps(),
-        className: combineClassNamePropAndString("popup-anchor", getReferenceProps()),
-    }
+
     const loading = <div className="loading take-full-space centered">
         <p>Loading...</p>
     </div>;
@@ -125,7 +127,6 @@ const getInnerPopupContent = ({
                     popupPropsToForward = {
                         ...draggableProps,
                         ...popupPropsToForward,
-                        className: combineClassNamePropAndString(popupPropsToForward.className, draggableProps),
                     };
                     return doneLoading ? renderInnerContent({ popupProps: popupPropsToForward }, 
                             (node) => {
@@ -151,8 +152,12 @@ const getInnerPopupContent = ({
         content: <FloatingPortal id={PORTAL_HOLDER_ID}>
                         { popupContent }
                     </FloatingPortal>,
-        assignAnchorRefs: (node: HTMLElement) => assignForwardedRef(refs.setReference, node),
-        getAnchorProps: () => anchorPropsToForward,
+        anchorRef: refs.setReference,
+        getAnchorProps: () => { return {
+                ...getReferenceProps(),
+                className: combineClassNamePropAndString("popup-anchor", getReferenceProps()),
+            };
+        },
     }
 }
 
@@ -191,7 +196,7 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
                 openPopup: open,
                 anchorProps: popupSetup.getAnchorProps(),
             },
-            (node) => {assignForwardedRef(popupSetup.assignAnchorRefs, node)}, 
+            popupSetup.anchorRef, 
         )} 
         {/* Popup */}
         { showPopup && popupSetup.content }
@@ -235,18 +240,17 @@ export const FloatingUiStandalonePopup = observer((
     
     useEffect(() => {
         if (showPopup) {
-            setPopupContent(popupSetup.content);
+            setPopupContent(popupSetup.content as ReactElement);
         }
         else { 
             setPopupContent(null);
         }
     }, [showPopup]);
-    
 
     return renderElementToClick({
                 openPopup: open, 
                 anchorProps: popupSetup.getAnchorProps(),
             }, 
-            (node) => {assignForwardedRef(popupSetup.assignAnchorRefs, node)},
+            popupSetup.anchorRef,
         );
 })

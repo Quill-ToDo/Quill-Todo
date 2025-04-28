@@ -133,12 +133,13 @@ export const DraggableDndKitImplementation = observer(({
     ...props
 } : DraggableParams) => {
     const id = useId();
-    // Use a different draggable presentation if provided, otherwise default to the same resentation as the 
+    // Use a different draggable presentation if provided, otherwise default to the same presentation as the 
     // draggable item
-    const renderWithClassNames = (props: ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => renderDraggableItem({
-        ...props,
+    // const className = combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, props);
+    const renderWithClassNames = (p: ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => renderDraggableItem({
+        ...p,
         // TODO This is putting in a lot of draggable classes for some reason
-        className: DRAGGABLE_CONTAINER_CLASS,//combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, props),
+        className: combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, p),
     }, ref);
     return droppable 
     ? <PickUpAndMove 

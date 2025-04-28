@@ -31,7 +31,7 @@ export type PopupSetupProps = {
     renderElementToClick: RenderAnchorElement,
 } & InnerPopupProps;
 export type StandaloneProps = {
-    setPopupContent: Dispatch<SetStateAction<null | ReactElement>>;
+    setPopupContent: Dispatch<SetStateAction<ReactElement | null>>;
 } & PopupSetupProps;
 // Option 1: "Attached" popups use render props to specify the popup content and anchor element to tether popup to.
 // Popup will dismount when anchor element dismounts or when the close method is called.
