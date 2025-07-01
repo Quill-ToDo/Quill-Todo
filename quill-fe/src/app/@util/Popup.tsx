@@ -13,11 +13,11 @@ import {
 } from "react";
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 
-import { FloatingUiAttachedPopup, FloatingUiStandalonePopup } from "../3rd-party/FloatingUiHelpers";
+import { FloatingUiAttachedPopup, FloatingUiPersistentPopup } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 import { ReferenceType } from "@floating-ui/react";
 
-// Options used in both "attached" and "standalone" popup types
+// Options used in both "attached" and "persistent" popup types
 export type InnerPopupProps = {
     position?: "centered" | "positioned",
     placement?: "left" | "bottom" | "right" | "top" | "centered" | "auto",
@@ -30,7 +30,7 @@ export type PopupSetupProps = {
     renderPopupContent: RenderPopUpContent,
     renderElementToClick: RenderAnchorElement,
 } & InnerPopupProps;
-export type StandaloneProps = {
+export type PersistentProps = {
     setPopupContent: Dispatch<SetStateAction<ReactElement | null>>;
 } & PopupSetupProps;
 // Option 1: "Attached" popups use render props to specify the popup content and anchor element to tether popup to.
@@ -43,7 +43,7 @@ export type RenderAnchorElement = ForwardRefRenderFunction<HTMLButtonElement, {
     openPopup: (callback?: Function)=>void, 
     anchorProps: ComponentPropsWithoutRef<"button">,
 }>;
-// Option 2: "Standalone" popups only accepts content to popup and returns setup methods (open, close, anchor positioning ref).
+// Option 2: "Persistent" popups only accepts content to popup and returns setup methods (open, close, anchor positioning ref).
 // Popup will remain until the close method is called.
 export type PopupSetup = { 
     openPopup: (callback?: Function)=>void,
@@ -57,7 +57,7 @@ export type PopupSetup = {
  * and popup configuration options, return the anchor ref element to be rendered
  * with popup listneers attached.
  * If the anchor element is unmounted, the popup will as well--if this is not desired behavior, 
- * use StandalonePopupOnClick instead.
+ * use PersistentPopupOnClick instead.
  * 
  * # renderPopUpContent requirements:
  * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
@@ -119,7 +119,7 @@ export const AttachedPopupOnClick = observer((
  * 
  * @returns setup methods to get and set the popup content
  */
-export const AnchorWithStandalonePopupAttached = observer((
+export const AnchorWithPersistentPopupAttached = observer((
     {   
         position="positioned",
         placement="right",
@@ -131,7 +131,7 @@ export const AnchorWithStandalonePopupAttached = observer((
     } : PopupSetupProps) => {
         // Popup helper to serve as an interface between Quill and
         // 3rd party libraries.
-        const popupContext = useContext(StandalonePopupContext);
+        const popupContext = useContext(PersistentPopupContext);
         const defaultProps = {
             position: position,
             placement: placement,
@@ -141,21 +141,21 @@ export const AnchorWithStandalonePopupAttached = observer((
             useDragHandle: useDragHandle,
             setPopupContent: popupContext,
         }
-        return <FloatingUiStandalonePopup {...props} {...defaultProps} />;
+        return <FloatingUiPersistentPopup {...props} {...defaultProps} />;
 });
 
-export const StandalonePopupContext = createContext<Dispatch<SetStateAction<null | ReactElement>>>(() => null);
-export const StandalonePopupContextProvider = ({children}: {
+export const PersistentPopupContext = createContext<Dispatch<SetStateAction<null | ReactElement>>>(() => null);
+export const PersistentPopupContextProvider = ({children}: {
     children: ReactNode,
 }) => {
     const [popupContent, setPopupContent] = useState<null | ReactElement>(null);
 
-    return <StandalonePopupContext.Provider
+    return <PersistentPopupContext.Provider
         value={setPopupContent}
     >
         { children }
         { popupContent }
-    </StandalonePopupContext.Provider>
+    </PersistentPopupContext.Provider>
 }
 
 /**

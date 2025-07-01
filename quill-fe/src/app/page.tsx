@@ -6,7 +6,7 @@ import { StoreProvider } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { ReactNode } from 'react';
 import RootStore from './home/_globalStore/RootStore';
-import { StandalonePopupContextProvider } from '@/util/Popup';
+import { PersistentPopupContextProvider } from '@/util/Popup';
 import { DragContextProvider } from './@util/Draggable';
 
 const QuillContext = observer(({
@@ -20,11 +20,11 @@ const QuillContext = observer(({
     <StoreProvider rootStore={rootStore}>
       <AlertWrapper>
         <DragContextProvider>
-          <StandalonePopupContextProvider>
+          <PersistentPopupContextProvider>
             <DashboardLayout>
               {widgets}
             </DashboardLayout>
-          </StandalonePopupContextProvider>
+          </PersistentPopupContextProvider>
         </DragContextProvider>
       </AlertWrapper>
     </StoreProvider>

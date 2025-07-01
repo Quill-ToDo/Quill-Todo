@@ -357,7 +357,7 @@ export const DroppableDndKitImplementation = observer(forwardRef(({
 
 //endregion Droppable
 //#region Modifers
-function restrictToDragHandleClass(args): Transform {
+function restrictToDragHandleClass(args: any): Transform {
     const {
         transform,
         activatorEvent,
@@ -373,7 +373,7 @@ function restrictToDragHandleClass(args): Transform {
     return noMove;
 }
 
-function restrictToView(args): Transform {
+function restrictToView(args: any): Transform {
     const {
         transform, 
         draggingNodeRect,

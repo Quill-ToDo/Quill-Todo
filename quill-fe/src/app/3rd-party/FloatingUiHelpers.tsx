@@ -30,7 +30,7 @@ import { observer } from 'mobx-react-lite';
 import { 
     PopupSetupProps,
     InnerPopupProps,
-    StandaloneProps, 
+    PersistentProps, 
 } from '@util/Popup';
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
@@ -208,15 +208,15 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
  * reference is unmounted.
  * Returns a method so that the user can set the reference positioning element and
  * a method that opens the popup and a method that closes the popup.
- * Must be wrapped with StandalonePopupContextProvider.
+ * Must be wrapped with PersistentPopupContextProvider.
  */
-export const FloatingUiStandalonePopup = observer((
+export const FloatingUiPersistentPopup = observer((
     {
         renderElementToClick,
         renderPopupContent,
         setPopupContent,
         ...props
-    } : StandaloneProps) =>  {
+    } : PersistentProps) =>  {
     const [showPopup, setShowPopup] = useState(false);
     
     const open = (callback?: Function) => {
