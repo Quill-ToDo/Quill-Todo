@@ -1,5 +1,5 @@
 import { makeObservable, observable, action, computed, runInAction} from "mobx";
-import { AcceptedTaskCheckboxStyles, TASK_CHECKBOX_STYLES, TaskModel } from "./TaskModel";
+import { TaskModel } from "./TaskModel";
 import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
@@ -8,7 +8,8 @@ import { HOME_ID } from "@/util/constants";
 
 export type TaskDataOnDay =  {
     task: TaskModel, 
-    type: AcceptedTaskCheckboxStyles}[];
+    type: typeof TaskModel.checkboxStyles,
+}[];
 
 export type Timeline = Map<string, TaskDataOnDay>;
 
@@ -159,23 +160,31 @@ export default class TaskStore {
             return timeline.get(dayKey);
         }
 
+        // go through each task and iterate through each day it is scheduled,
+        // adding corresponding task state symbols (start circle, end checkbox, scheduled line)
+        // to a map of <days, the tasks on them>
         this.tasks.forEach(task => {
             let firstDayInRange: DateTime | null, lastDayInRange: DateTime | null;
             firstDayInRange = null; 
             lastDayInRange = null; 
+            // add task due symbol to appropriate day in map and set start of iteration 
             if (task.due) {
-                getTasksOnDay(task.due).push({task: task, type: TASK_CHECKBOX_STYLES.due});
+                getTasksOnDay(task.due).push({task: task, type: "due"});
+                // TODO double check what this is doing
                 lastDayInRange = task.due.endOf('day').minus({days: 1});
             }
+            // add task start symbol to appropriate day in map and set start of iteration 
             if (task.start) {
                 firstDayInRange = task.start.startOf('day').plus({days: 1});
                 if (!(task.due && task.start.hasSame(task.due, "day")) ){
-                    getTasksOnDay(task.start).push({task: task, type: TASK_CHECKBOX_STYLES.start})
+                    getTasksOnDay(task.start).push({task: task, type: "start"})
                 }
             }
+            // go through each day between the task start and end 
+            // add task scheduled symbol to appropriate day in map
             if (firstDayInRange && lastDayInRange && firstDayInRange < lastDayInRange) {
                 for (let dayItr = firstDayInRange; dayItr <= lastDayInRange; dayItr = dayItr.plus({days:1})) {
-                    getTasksOnDay(dayItr).push({task: task, type: TASK_CHECKBOX_STYLES.scheduled});    
+                    getTasksOnDay(dayItr).push({task: task, type: "scheduled"});    
                 }
             }
         });

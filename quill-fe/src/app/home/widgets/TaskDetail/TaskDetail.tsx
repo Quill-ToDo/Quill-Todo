@@ -13,7 +13,7 @@ import { ContextMenuPopup } from "@/util/Popup";
 import { DRAGGABLE_HANDLE_CLASS, INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
 import { DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
-import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TASK_ACTIONS, TASK_CHECKBOX_STYLES, TaskModel } from "@/store/tasks/TaskModel";
+import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TASK_ACTIONS, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     ColorBubble, 
@@ -114,7 +114,7 @@ const TaskDetail = observer(forwardRef<any, {
                     </button>
                     <ColorBubble buttonProps={{className: INTERACTABLE_ELEMENT_CLASS}} />
                     <Checkbox 
-                        type={TASK_CHECKBOX_STYLES.due}
+                        type={"due"}
                     />
                     <TaskTitle editAllowed={true} />   
                 </div>

@@ -1,9 +1,7 @@
 import { ErrorsList, ResizableInput } from "@util/FormComponents";
 import { 
-    AcceptedTaskCheckboxStyles,
     TASK_ACCEPTED_DRAG_TYPES,
     TASK_ACTIONS,
-    TASK_CHECKBOX_STYLES,
     TASK_DRAG_TYPE,
     TaskColorCodes, 
     TaskContext,
@@ -12,6 +10,7 @@ import {
 import { DateTime } from "luxon";
 import { observer } from "mobx-react-lite";
 import { 
+    ChangeEvent,
     ComponentPropsWithoutRef, 
     Dispatch, 
     ForwardedRef, 
@@ -31,7 +30,7 @@ import {
 import TaskDetail from "./TaskDetail";
 import { ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
-import { AnchorWithStandalonePopupAttached, AttachedPopupOnClick } from "@/util/Popup";
+import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick } from "@/util/Popup";
 import './tasks.css';
 import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
@@ -59,7 +58,7 @@ export const TaskBeingDragged = observer(forwardRef((
     ...props
 }: {
     task: TaskModel, 
-    type: AcceptedTaskCheckboxStyles,
+    type: typeof TaskModel.checkboxStyles,
 }, ref: ForwardedRef<any>) => {
     const t = useTaskContextOrPassedTask(task);
     if (!t) {
@@ -254,7 +253,7 @@ export const Checkbox = observer(({
     checkboxId
 }: {
     passedTask?: TaskModel, 
-    type: AcceptedTaskCheckboxStyles, 
+    type: typeof TaskModel.checkboxStyles, 
     checkboxId?: string
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
@@ -286,13 +285,13 @@ const TaskCheckbox = observer(({
     form
 }: {
     passedTask?: TaskModel, 
-    form: AcceptedTaskCheckboxStyles
+    form: typeof TaskModel.checkboxStyles,
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const styleText = !task.complete ? {color: task.color} : {};
     let checkboxIcon;
     switch (form) {
-        case TASK_CHECKBOX_STYLES.due:
+        case "due":
             checkboxIcon = task.complete ? `fa-check-square` : `fa-square`;
             break;
         default:
@@ -447,7 +446,7 @@ const PlainTaskTitle = observer((
         { task.complete ? <s>{displayTitle}</s> : displayTitle } 
     </p>;
     if (openTaskDetailPopup) {
-        return <AnchorWithStandalonePopupAttached
+        return <AnchorWithPersistentPopupAttached
                 placement="right"
                 alignment= "middle"
                 draggable={true}
@@ -490,7 +489,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
         <ResizableInput
             {...props}
             version="textarea"
-            forwardedRef={(node) => assignForwardedRef(ref, node)}
+            ref={ref}
             value={task.title}
             placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
             aria-label={"Title"}
@@ -498,7 +497,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
             aria-describedby={invalid ? errorId : undefined}
             title={"Edit Title"}
             rows={1}
-            onChange={(e) => {
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
                     let inputText = e.target.value;
                     task.title = inputText;
                     task.saveEdits("title");
@@ -552,7 +551,7 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     passedTask?: TaskModel, 
     editAllowed?: boolean,
     autofocus?: boolean,
-} >((props, ref) => {
+}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
 
     const propsToUse: ComponentPropsWithoutRef<any> = {
@@ -563,11 +562,11 @@ export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     return (props.editAllowed && props.editAllowed) 
         ? 
         <EditableTaskDescription 
-            ref={(node: HTMLElement) => assignForwardedRef(ref, node)} 
+            ref={ref} 
             {...propsToUse} 
         /> 
         : 
-        <div ref={(node) => assignForwardedRef(ref, node)} {...propsToUse}> 
+        <div ref={ref} {...propsToUse}> 
             <p>{task.description}</p>      
         </div>
     }
@@ -602,15 +601,13 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
             title={"Edit Description"}
             aria-invalid={invalid}
             aria-describedby={invalid ? errorId : undefined}
-            onChange={(e) => task.description = e.target.value}
+            onChange={(e: ChangeEvent<HTMLTextAreaElement>) => task.description = e.target.value}
             onBlur={finishEditing}
             {...props}
             ref={(node: HTMLElement) => {
                 assignForwardedRef(editInputRef, node);
                 assignForwardedRef(ref, node);
-
             }}
-        
         />
         { invalid && <ErrorsList
             errors={task.validationErrors.description}
@@ -633,7 +630,7 @@ export const TaskDueDate = observer(({
     const task = useTaskContextOrPassedTask(passedTask);
 
     return <TaskDate 
-        type={TASK_CHECKBOX_STYLES.due}
+        type={"due"}
         passedTask={task}
         editable={editable}
     />
@@ -651,7 +648,7 @@ export const TaskStartDate = observer(({
 }) => {
     const task = useTaskContextOrPassedTask(passedTask);
     return <TaskDate 
-        type={TASK_CHECKBOX_STYLES.start}
+        type={"start"}
         passedTask={task}
         editable={editable}
     />
@@ -666,11 +663,11 @@ export const TaskDate = observer(({
     type, 
     editable=false,
 }: {
-    type: AcceptedTaskCheckboxStyles, 
+    type: "start" | "due", 
     passedTask?: TaskModel, 
     editable?: boolean
 }) => {
-    const dueType = TASK_CHECKBOX_STYLES.due;
+    const dueType = "due";
     const task = useTaskContextOrPassedTask(passedTask);
     const isDueType = type === dueType;
     const overdue = isDueType && task.overdue();
@@ -771,12 +768,12 @@ const EditableDatePortion = observer(({
             // aria-describedby={dateErrorListId}
             // aria-label={`${type} date`}
             // placeholder="date e.g. 7/6/2024"
-            onChange={(e) => {
+            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 if (e.target) {
                     updateTaskDate(e.target.value);
                 }
             }}
-            onBlur={(e) => {
+            onBlur={(e: ChangeEvent<HTMLInputElement>) => {
                 if (dateField !== startingDate.current && task.isValid) {
                     task.saveEdits(type);
                 }
@@ -835,12 +832,12 @@ const EditableTimePortion = observer(({
                             type="time"
                             // Value in 24 hour time string for time input to translate it into whatever the user has set.
                             value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 
-                            onChange={(e) => {
+                            onChange={(e: ChangeEvent<HTMLInputElement>) => {
                                 updateTaskTime(e.target.value);
                             }}
                             aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
                             onFocus={() => { setTimeHovered(true) }}
-                            onBlur={(e) => {
+                            onBlur={(e: ChangeEvent<HTMLInputElement>) => {
                                 setTimeHovered(false);
                                 if (startingDate && dateField !== startingDate.current) {
                                     task.saveEdits(type);

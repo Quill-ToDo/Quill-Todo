@@ -24,12 +24,6 @@ export const TASK_ACTIONS = {
     delete: "delete"
 };
 
-export const TASK_CHECKBOX_STYLES = {
-    start:  "start",
-    due: "due",
-    scheduled: "scheduled",
-}
-export type AcceptedTaskCheckboxStyles = "start" | "due" | "scheduled";
 export const TASK_ACCEPTED_DRAG_TYPES = [TASK_ACTIONS.delete];
 export interface TaskDragData {
     id: string,
@@ -138,6 +132,7 @@ export const TaskColorCodes = [
  */
 export class TaskModel {
     //#region CLASS FIELDS AND CONSTRUCTOR
+            static checkboxStyles : "start" | "due" | "scheduled" = "due";
             private _id : string = "";
             private _title : string = "";
             private _start : DateTime | null = null;

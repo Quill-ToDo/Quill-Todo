@@ -1,7 +1,9 @@
 import { observer } from "mobx-react-lite";
 import { 
+    ChangeEvent,
     ComponentPropsWithRef, 
     ComponentPropsWithoutRef, 
+    FormEvent, 
     ForwardedRef, 
     Fragment, 
     MutableRefObject,
@@ -137,14 +139,12 @@ type ResizableInputParameters = ComponentPropsWithoutRef<"input"> | ComponentPro
  */
 export const ResizableInput = observer(forwardRef(<T extends ResizableInputTypes>({
     version,
-    forwardedRef,
     width="wide",
     ...props
 }:{
     version: T,
     width?: "wide" | "narrow",
-    forwardedRef?: ForwardedRef<HTMLElement>,
-} & ResizableInputParameters) => {
+} & ResizableInputParameters, forwardedRef?: ForwardedRef<HTMLElement>) => {
     const [inputValue, setInputVal] = useState(props.value); 
     const inputRef: MutableRefObject<null | HTMLElement> = useRef(null)
 
@@ -154,7 +154,7 @@ export const ResizableInput = observer(forwardRef(<T extends ResizableInputTypes
             assignForwardedRef(inputRef, node);
             forwardedRef && assignForwardedRef(forwardedRef, node);
         },
-        onChange: (e) => {
+        onChange: (e: ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
             setInputVal(e.target.value);
             props.onChange && props.onChange(e);
     }})

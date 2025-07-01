@@ -7,7 +7,7 @@ import React, {
 } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import { AcceptedTaskCheckboxStyles, TASK_CHECKBOX_STYLES, TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
+import { TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     TaskTitle, 
@@ -135,7 +135,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 0,
             content: [{
                 "tasks": overdue,
-                "type": TASK_CHECKBOX_STYLES.due,
+                "type": "due",
                 "emptyText": "No overdue tasks"
             }],
         },
@@ -146,13 +146,13 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                 {
                     "title": "Due",
                     "tasks": todayDue,
-                    "type": TASK_CHECKBOX_STYLES.due,
+                    "type": "due",
                     "emptyText": "No tasks due today",
                 },
                 {
                     "title": "In Progress",
                     "tasks": todayWork,
-                    "type": TASK_CHECKBOX_STYLES.scheduled,
+                    "type": "scheduled",
                     "emptyText": "No tasks to work on today",
                 }
             ]
@@ -162,7 +162,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 2,
             content: [{
                 "tasks": upcoming,
-                "type": TASK_CHECKBOX_STYLES.due,
+                "type": "due",
                 "emptyText": "No upcoming tasks"
             }]
         },
@@ -171,7 +171,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 3,
             content: [{
                 "tasks": undated,
-                "type": TASK_CHECKBOX_STYLES.due,
+                "type": "due",
                 "emptyText": "No undated tasks"
             }]
         },
@@ -180,7 +180,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 4,
             content: [{
                 "tasks": complete,
-                "type": TASK_CHECKBOX_STYLES.due,
+                "type": "due",
                 "emptyText": "No undated tasks"
             }]
         },
@@ -286,7 +286,7 @@ function getSectionId(sectionId: number) {
 interface SubSectionContent {
     title?: string, 
     tasks: TaskModel[], 
-    type: AcceptedTaskCheckboxStyles, 
+    type: typeof TaskModel.checkboxStyles, 
     emptyText: string,
 };
 /**
@@ -345,7 +345,7 @@ const TaskList = observer(({
     type
 }: {
     tasks: TaskModel[], 
-    type: AcceptedTaskCheckboxStyles,
+    type: typeof TaskModel.checkboxStyles,
 }) => {
     const listRef = useRef(null);
     return <ul 
@@ -391,7 +391,7 @@ const ListViewTask = observer(({
     type,
 }: {
     task: TaskModel, 
-    type: AcceptedTaskCheckboxStyles,
+    type: typeof TaskModel.checkboxStyles,
 }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
