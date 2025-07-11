@@ -25,6 +25,7 @@ export type InnerPopupProps = {
     doneLoading?: boolean,
     draggable?: boolean,
     useDragHandle?: boolean,
+    popupMargin?: number,
 }
 export type PopupSetupProps = {
     renderPopupContent: RenderPopUpContent,
@@ -131,6 +132,8 @@ export const AnchorWithPersistentPopupAttached = observer((
     } : PopupSetupProps) => {
         // Popup helper to serve as an interface between Quill and
         // 3rd party libraries.
+        // Use context to hold the popup content so that it may persist even when the anchor element
+        // is unmounteds from the dom
         const popupContext = useContext(PersistentPopupContext);
         const defaultProps = {
             position: position,

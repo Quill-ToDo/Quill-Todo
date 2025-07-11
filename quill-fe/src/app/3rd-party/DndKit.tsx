@@ -56,10 +56,10 @@ export const DraggableContext = createContext<{
 });
 
 /**
- * This is the content rendered on the drag preview layer/overlay. Drag overlay should always be mounted
+ * This is the content rendered on the drag preview layer/overlay. It should alwqays be mounted
  * @returns 
  */
-export const DraggedContent = observer(() => {
+export const DraggingContent = observer(() => {
     const modifiers = [];
     modifiers.push(snapCenterToCursor);
     const dragged = useContext(DraggableContext); 
@@ -75,6 +75,10 @@ export const DraggedContent = observer(() => {
 })
 
 
+/**
+ * Wrap passed content with Dnd context provider so that we can change the 
+ * content of the drag overlay
+ */
 export const WrapWithDndContext = observer(({
     children,
 }: {
@@ -82,7 +86,7 @@ export const WrapWithDndContext = observer(({
 }) => {
     // Modifiers can be applied to drag overlay
     // Sensors can only be applied to dnd context
-    const [contentBeingDragged, setContentBeingDragged] = useState<ReactElement | null>(null);
+    const [draggingContent, setDraggingContent] = useState<ReactElement | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const modifiers: Modifier[] = [];
     const sensorsToUse = [];
@@ -98,9 +102,9 @@ export const WrapWithDndContext = observer(({
     
     const sensors = useSensors(...sensorsToUse);
     return <DraggableContext.Provider value={{
-        content: contentBeingDragged, 
-        setContent: setContentBeingDragged, 
-        isDragging
+            content: draggingContent, 
+            setContent: setDraggingContent, 
+            isDragging
         }}
     >
         <DndContext 
@@ -116,7 +120,6 @@ export const WrapWithDndContext = observer(({
             }}
             >
             { children }
-
         </DndContext>
     </DraggableContext.Provider>;
 });
@@ -135,13 +138,13 @@ export const DraggableDndKitImplementation = observer(({
     const id = useId();
     // Use a different draggable presentation if provided, otherwise default to the same presentation as the 
     // draggable item
-    // const className = combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, props);
     const renderWithClassNames = (p: ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => renderDraggableItem({
         ...p,
         // TODO This is putting in a lot of draggable classes for some reason
         className: combineClassNamePropAndString(DRAGGABLE_CONTAINER_CLASS, p),
     }, ref);
-    return droppable 
+    return (
+    droppable 
     ? <PickUpAndMove 
         id={id}
         renderDraggableItem={renderWithClassNames}
@@ -152,7 +155,7 @@ export const DraggableDndKitImplementation = observer(({
         id={id}
         renderDraggableItem={renderWithClassNames}
         {...props}
-    /> 
+    /> )
 })
 
 // The subset of props required in both free drag and "pick up and move item" implementations
@@ -186,7 +189,7 @@ const handleDragStart = (id: string, e: DragStartEvent, onDragStart: DragOptions
 }
 
 /**
- * DND Kit implementation of a freely draggable element.
+ * DND Kit implementation of a freely draggable element that stays where it is last moved to
  * @returns 
  */
 const FreeDrag = observer(({
@@ -211,6 +214,7 @@ const FreeDrag = observer(({
         }
     });
     let goToPosition = {x: 0, y: 0};
+    // TODO this might need to be set based on floating ui starting position
     const startingPosition: MutableRefObject<{x: number, y: number} | null> = useRef(null);
     useDndMonitor({
         onDragEnd(e) {
@@ -445,23 +449,5 @@ function restrictToBoundingRect(
         },
     ];
   }
-
-//   class DragHandleTouchSensor extends TouchSensor {
-//     static activators = [
-//       {
-//         eventName: 'onTouchStart' as any,
-//         handler: ({nativeEvent: event}: TouchEvent) => {
-//           if (
-//             !event.isPrimary ||
-//             event.button !== 0 ||
-//             !clickedHandleClass(event.target, event.touches)
-//           ) {
-//             return false;
-//           }
-//           return true;
-//         },
-//       },
-//     ];
-//   }
 
   //#endregionSensors

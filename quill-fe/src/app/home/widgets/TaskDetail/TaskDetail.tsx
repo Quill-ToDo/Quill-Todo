@@ -103,9 +103,7 @@ const TaskDetail = observer(forwardRef<any, {
         aria-label={TASK_DETAIL_POPUP_NAME}
         role="dialog"
         className={combineClassNamePropAndString(`task-detail`, containerProps as ComponentPropsWithoutRef<"div">)}
-        ref={(node) => {
-            assignForwardedRef(forwardedRef, node);
-        }} 
+        ref={forwardedRef} 
     >
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
@@ -122,7 +120,7 @@ const TaskDetail = observer(forwardRef<any, {
                     <ContextMenuPopup
                         renderElementToClick={(props, ref) => <button 
                                 {...props.anchorProps}
-                                ref={(node) => assignForwardedRef(ref, node)}
+                                ref={ref}
                                 className={combineClassNamePropAndString("btn small square no-shadow", props.anchorProps)}
                                 title="Options" 
                                 aria-haspopup="menu"

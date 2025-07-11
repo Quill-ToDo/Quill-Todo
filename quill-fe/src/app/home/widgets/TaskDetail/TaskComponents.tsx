@@ -128,9 +128,7 @@ export const TaskWrapper = observer(forwardRef((
 
     let renderContent: ForwardRefRenderFunction<HTMLDivElement, ComponentPropsWithoutRef<"div">> = (props, ref) => <div 
         {...props}
-        ref={(ele) => {
-            assignForwardedRef(ref, ele);
-        }}
+        ref={ref}
         key={keyOverride ? keyOverride : task.id}
         onMouseEnter={(e) => {
             if (!dragContext.isDragging) {
@@ -449,6 +447,7 @@ const PlainTaskTitle = observer((
         return <AnchorWithPersistentPopupAttached
                 placement="right"
                 alignment= "middle"
+                popupMargin={10}
                 draggable={true}
                 useDragHandle={true}
                 renderElementToClick={({openPopup, anchorProps}, ref) => <button
@@ -458,7 +457,7 @@ const PlainTaskTitle = observer((
                             openPopup();
                         }}
                         title={"Open task details"}
-                        ref={(node) => {assignForwardedRef(ref, node);}}
+                        ref={ref}
                     >
                         {toReturn}
                     </button>

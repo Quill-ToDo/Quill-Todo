@@ -4,7 +4,7 @@ import { useRef } from "react";
 import './home.css'
 // Internal 3rd party implementations, would be good to remove somehow
 import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
-import { DraggedContent } from "../3rd-party/DndKit";
+import { DraggingContent } from "../3rd-party/DndKit";
 // Quill 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
 import { TASK_ACTIONS, TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
@@ -131,7 +131,8 @@ const DashboardLayout = observer(({
                 {widgets}
                 <div id={PORTAL_HOLDER_ID}></div>
             </div>
-            <DraggedContent/>
+            {/* Any content being dragged. This must stay mounted */}
+            <DraggingContent/>
     </>)
 })
 

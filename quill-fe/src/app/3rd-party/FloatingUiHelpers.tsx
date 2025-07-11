@@ -25,6 +25,7 @@ import {
     autoPlacement,
     autoUpdate,
     Placement,
+    useMergeRefs,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { 
@@ -51,6 +52,7 @@ const getInnerPopupContent = ({
     doneLoading, 
     draggable,
     useDragHandle,
+    popupMargin,
     ...props
 }: InnerPopupProps 
 & {
@@ -63,9 +65,13 @@ const getInnerPopupContent = ({
     content: ReactNode,
     anchorRef: ForwardedRef<any>,
     getAnchorProps: () => ComponentPropsWithoutRef<"button">,
+    popupIsPositioned: boolean,
 } => {
-    // Configure middleware
+    // Configure middleware for Floating UI module
     const middleware = [];
+    // Add corresponding middleware configuration for given placement.
+    // "centered" is a placement I made myself, other combos are Floating UI-specific 
+    // https://floating-ui.com/docs/useFloating#placement
     if (placement === "centered") {
         middleware.push(offset(({rects}) => {
             return (
@@ -78,10 +84,15 @@ const getInnerPopupContent = ({
     if (placement == "auto") {
         middleware.push(autoPlacement());
     } 
-    
+    if (popupMargin && popupMargin !== 0) {
+        middleware.push(offset(popupMargin));
+    }
+    // shift the floating element to keep it in view
     middleware.push(shift());
+    // allow the popup to "flip" to the other side of the anchor element
     middleware.push(flip());
     // TODO: Not sure if this is doing anything
+    // Provides data to change the size of a floating element.
     middleware.push(size({apply: ({availableHeight, elements}) => {
         elements.floating.style.maxHeight = availableHeight >= elements.floating.scrollHeight
         ? ''
@@ -90,60 +101,72 @@ const getInnerPopupContent = ({
     const positioning: UseFloatingOptions = {
         open: isOpen,
         onOpenChange: openChange,
-        // "centered" is a placement I made myself, other combos are Floating UI-specific 
-        // https://floating-ui.com/docs/useFloating#placement
         placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
         middleware: middleware,
-        whileElementsMounted: autoUpdate,
+        // autoUpdate must only be used in this way if popup is conditionally rendered attached to the 
+        // isOpen state
+        // whileElementsMounted: autoUpdate,
     };
     // Configure interactions
-    const { refs, floatingStyles, context } = useFloating(positioning);
+    const { refs, floatingStyles, context, isPositioned, update, elements } = useFloating(positioning);
     const interactions: ElementProps[] = [];
+    // context:
     interactions.push(useDismiss(context, {
+        // close the popup when click outside of it
         outsidePress: true,
+        // close the popup when click anchor element
         referencePress: true,
+        // TODO ? what do
         bubbles: false,
     }));
-    const {getReferenceProps, getFloatingProps} = useInteractions(interactions);
+    // generate the positioning props for the anchor and popup from Floating UI module
+    const { getReferenceProps, getFloatingProps } = useInteractions(interactions);
 
-    let popupPropsToForward = {
+    let floatingUiPopupPositioning = {
         style: floatingStyles,
         ...getFloatingProps(),
         className: combineClassNamePropAndString(`floating popup`, getFloatingProps()),
     }
+
+    useEffect(() => {
+        // set event listeners to handle updates https://floating-ui.com/docs/autoUpdate
+        // either dop this OR whileElementsMounted: autoUpdate if element is conditionally rendered
+        if (isOpen && elements.reference && elements.floating) {
+            const cleanup = autoUpdate(
+                elements.reference,
+                elements.floating,
+                update,
+            );
+            return cleanup;
+        } 
+    }, [isOpen, elements, update]);
 
     const loading = <div className="loading take-full-space centered">
         <p>Loading...</p>
     </div>;
 
     // Apply focus manager to popup content
-    let popupContent = draggable ?
+    let popupContent 
+    = 
+    draggable ?
         <Draggable
                 droppable={false} 
                 useHandle={useDragHandle} 
                 actionTitle='Move popup'
                 renderDraggableItem={(draggableProps, draggableRef) => { 
-                    // Combine normal popup props and draggable props to pass to the rendered popup
-                    popupPropsToForward = {
-                        ...draggableProps,
-                        ...popupPropsToForward,
-                    };
-                    return doneLoading ? renderInnerContent({ popupProps: popupPropsToForward }, 
-                            (node) => {
-                                // Assign the popup ref and the draggable element ref
-                                assignForwardedRef(draggableRef, node);
-                                assignForwardedRef(refs.setFloating, node);
-                            }) 
-                        : loading;
+                    return doneLoading ? renderInnerContent(
+                        { popupProps: {
+                            ...draggableProps,
+                            ...floatingUiPopupPositioning,
+                        }}, 
+                        useMergeRefs([draggableRef, refs.setFloating])) 
+                    : loading;
             }}
         />  
-        : <FloatingFocusManager context={context}>
-            {/* Only apply popup props */}
-            { (doneLoading ? renderInnerContent({popupProps: popupPropsToForward}, 
-                (node) => {
-                    // only apply popup ref
-                    assignForwardedRef(refs.setFloating, node);
-                })
+        : 
+        <FloatingFocusManager context={context}>
+            {/* show loading or popup content */}
+            { (doneLoading ? renderInnerContent({popupProps: floatingUiPopupPositioning}, refs.setFloating)
             : loading) as ReactElement}
     </FloatingFocusManager>;
 
@@ -152,6 +175,8 @@ const getInnerPopupContent = ({
         content: <FloatingPortal id={PORTAL_HOLDER_ID}>
                         { popupContent }
                     </FloatingPortal>,
+        popupIsPositioned: isPositioned,
+        // Set portal anchor and apply anchor props
         anchorRef: refs.setReference,
         getAnchorProps: () => { return {
                 ...getReferenceProps(),
@@ -164,26 +189,25 @@ const getInnerPopupContent = ({
 /** Use Floating UI to create a positioned popup */
 export const FloatingUiAttachedPopup = observer(forwardRef((
     {   
+        renderPopupContent,
         ...props
     } : PopupSetupProps,
-    ref: ForwardedRef<any>) => {
+    forwardedRef: ForwardedRef<any>) => {
     const [showPopup, setShowPopup] = useState(false);
 
-    const open = (callback?: Function) => {
-        setShowPopup(true);
-        callback && callback();
-    };
-
-    const close = (callback?: Function) => {
-        setShowPopup(false);
-        callback && callback();
-    };
-    
     const popupSetup = getInnerPopupContent({
-        renderInnerContent: (innerProps) => props.renderPopupContent({
-            closePopup: close, 
-            popupContainerProps: innerProps.popupProps}, 
-            ref),
+        renderInnerContent: ({popupProps}, ref) =>  renderPopupContent({
+                closePopup: (callback?: Function) => {
+                    setShowPopup(false);
+                    callback && callback();
+                }, 
+                popupContainerProps: popupProps
+            }, 
+            (node: HTMLElement | null) => {
+                assignForwardedRef(ref, node);
+                assignForwardedRef(forwardedRef, node);            
+            }
+        ),
         isOpen: showPopup,
         openChange: setShowPopup,
         ...props
@@ -193,7 +217,10 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
         {/* Anchor element  */}
         { props.renderElementToClick(
             {
-                openPopup: open,
+                openPopup: (callback?: Function) => {
+                        setShowPopup(true);
+                        callback && callback();
+                },
                 anchorProps: popupSetup.getAnchorProps(),
             },
             popupSetup.anchorRef, 
@@ -217,38 +244,43 @@ export const FloatingUiPersistentPopup = observer((
         setPopupContent,
         ...props
     } : PersistentProps) =>  {
+    // State that determines if the popup is shown or not
     const [showPopup, setShowPopup] = useState(false);
-    
-    const open = (callback?: Function) => {
-        setShowPopup(true);
-        callback && callback();
-    };
-    
-    const close = (callback?: Function) => {
-        setShowPopup(false);
-        callback && callback();
-    };
 
+    // Generate the popup content element
     const popupSetup = getInnerPopupContent({
-        renderInnerContent: ({popupProps}, ref) => {
-            return renderPopupContent({closePopup: close, popupContainerProps: popupProps}, ref);
-        },
+        renderInnerContent: ({popupProps}, ref) => renderPopupContent({
+                closePopup: (callback?: Function) => {
+                    setShowPopup(false);
+                    callback && callback();
+                }, 
+                popupContainerProps: popupProps
+            }, ref),
         isOpen: showPopup,
         openChange: setShowPopup,
         ...props
     });
     
     useEffect(() => {
+        // If should show the popup, set the content for parent context to be the popup body.
+        // must use context so that the popup persists even when the anchor / reference element is unmounted
+        // if is positioned
         if (showPopup) {
+            // TODO: Try doing a check for if the popup is positioned before setting the content here. Might need to pass an additional 
+            // parameter from popupSetup
             setPopupContent(popupSetup.content as ReactElement);
+            // might need to manually add auto update thing here
         }
         else { 
             setPopupContent(null);
         }
-    }, [showPopup]);
+    }, [showPopup, popupSetup]);
 
     return renderElementToClick({
-                openPopup: open, 
+            openPopup: (callback?: Function) => {
+                setShowPopup(true);
+                callback && callback();
+            }, 
                 anchorProps: popupSetup.getAnchorProps(),
             }, 
             popupSetup.anchorRef,
