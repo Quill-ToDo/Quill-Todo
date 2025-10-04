@@ -18,7 +18,6 @@ import { CalendarWidget } from "@/widgets/Calendar/Calendar";
 import { ICONS, HOME_ID } from "@/util/constants";
 import { Draggable, Droppable } from "@/util/Draggable";
 import { AttachedPopupOnClick } from "@/util/Popup";
-// import { AttachedPopupOnClick } from "@/util/Popup";
 import { combineClassNamePropAndString, assignForwardedRef } from '@/util/jsTools';
 
 export const NEW_TASK_TEXT = "Add task";
@@ -56,7 +55,7 @@ const DashboardLayout = observer(({
                                 id="add-task"
                                 role="menuitem" 
                                 aria-haspopup="dialog"
-                                className={combineClassNamePropAndString("btn small square bg", props)}
+                                className={combineClassNamePropAndString("btn small square bg", props.anchorProps)}
                                 title={NEW_TASK_TEXT} 
                                 onClick={() => {
                                     taskStore.current.createNewTask();
@@ -65,7 +64,8 @@ const DashboardLayout = observer(({
                             >
                                 { ICONS.PLUS }
                             </button>}
-                        renderPopupContent={({closePopup, popupContainerProps}) => <AddNewTaskPopUp
+                        renderPopupContent={({closePopup, popupContainerProps}, ref) => <AddNewTaskPopUp
+                            ref={ref}
                             {...popupContainerProps}
                             close={() => closePopup(()=> {
                                     if (taskStore.current && taskStore.current.taskBeingCreated && taskStore.current.taskBeingCreated.isNewAndUnsubmitted) {

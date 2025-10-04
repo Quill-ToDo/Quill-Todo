@@ -1,5 +1,6 @@
 import { 
     ComponentPropsWithoutRef,
+    forwardRef,
     useRef, 
     useState 
 } from "react";
@@ -31,14 +32,15 @@ export const ADD_BUTTON_TEXT = "Create Task";
  * and is marked as "beingCreated"
  * in TaskStore.
  */
-export const AddNewTaskPopUp = observer(({
+export const AddNewTaskPopUp = observer(forwardRef<any, {
+        close: () => void,
+        taskToCreate: TaskModel | null, 
+} & ComponentPropsWithoutRef<"section">>
+(({
     close, 
     taskToCreate,
     ...props
-}: {
-        close: () => void,
-        taskToCreate: TaskModel | null, 
-    } & ComponentPropsWithoutRef<"section">) => {
+}, forwardedRef) => {
     const formRef = useRef(null);
     const [showDue, setShowDue] = useState(true);
     const [showStart, setShowStart] = useState(true);
@@ -82,9 +84,10 @@ export const AddNewTaskPopUp = observer(({
 
     return (!taskToCreate ? <></> : <TaskContext.Provider value={taskToCreate} >
         <section 
-            className={OUTER_WRAPPER_NAME}
-            aria-labelledby="new-task-title"
+            ref={forwardedRef}
             {...props}
+            className={combineClassNamePropAndString(OUTER_WRAPPER_NAME, props)}
+            aria-labelledby="new-task-title"
             >
             <header 
                 className={DRAGGABLE_HANDLE_CLASS}
@@ -193,10 +196,10 @@ export const AddNewTaskPopUp = observer(({
                         <ContextMenuPopup
                             header={<header>Add field</header>}
                             labelsAndClickCallbacks={contextMenuData}
-                            renderElementToClick={(props, ref) => <button 
+                            renderElementToClick={({openPopup, ...props}, ref) => <button 
                                     {...props.anchorProps}
                                     ref={ref}
-                                    onClick={() => {props.openPopup();}}
+                                    onClick={() => {openPopup();}}
                                     type="button"
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
@@ -217,4 +220,4 @@ export const AddNewTaskPopUp = observer(({
         </section>
     </TaskContext.Provider>
     )
-})
+}))

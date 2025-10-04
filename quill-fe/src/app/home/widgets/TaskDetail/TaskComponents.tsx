@@ -16,6 +16,7 @@ import {
     ForwardedRef, 
     forwardRef, 
     ForwardRefRenderFunction, 
+    HTMLProps, 
     MouseEvent, 
     MutableRefObject, 
     ReactNode, 
@@ -302,10 +303,11 @@ const TaskCheckbox = observer(({
 
 //#endregion 
 //#region Color Picker
-const ColorGridPicker = observer(({task, closePicker}: {
+const ColorGridPicker = observer(forwardRef<any, {
     task: TaskModel, 
     closePicker: () => void, 
-}) => {
+    props: HTMLProps<any>
+}>(({task, closePicker, props}, forwardedRef) => {
     const errorId = useId();
     const inputRef = useRef(null);
     const startingTaskColor = useRef(task.color);
@@ -321,8 +323,10 @@ const ColorGridPicker = observer(({task, closePicker}: {
     }, [task.color, startingTaskColor]);
 
     return <div 
-                className="color-picker max-width-height"
-                onMouseLeave={() => task.color = startingTaskColor.current}
+            ref={forwardedRef}
+            {...props}
+            onMouseLeave={() => task.color = startingTaskColor.current}
+            className={combineClassNamePropAndString("color-picker", props)}
         > 
             <div className="colors max-width-height">
             { TaskColorCodes.map((colorCol: {key: string, data: string[]}) => 
@@ -365,7 +369,7 @@ const ColorGridPicker = observer(({task, closePicker}: {
                 />}
             </div>
         </div>
-})
+}))
 
 export const ColorBubble = observer(({
     passedTask,
@@ -409,10 +413,11 @@ export const ColorBubble = observer(({
                     </button>
                     {colorBubble}
                     </div>}
-                renderPopupContent={({closePopup}) => <ColorGridPicker 
+                renderPopupContent={({closePopup, popupContainerProps}, ref) => <ColorGridPicker 
+                    ref={ref}
                     task={task} 
                     closePicker={closePopup} 
-                    {...{className: "max-width-height"}}
+                    props={popupContainerProps}
                     />}
                 position={"positioned"} 
                 placement={"bottom"}
@@ -464,10 +469,10 @@ const PlainTaskTitle = observer((
                     }
             renderPopupContent={({closePopup, popupContainerProps}, ref) => 
                 <TaskDetail 
-                    task={task} 
-                    closeWidget={closePopup}
-                    containerProps={popupContainerProps}
-                    ref={ref}
+                        task={task} 
+                        closeWidget={closePopup}
+                        containerProps={popupContainerProps}
+                        ref={ref}
                 />}
         />;
     }

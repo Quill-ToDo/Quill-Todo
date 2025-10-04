@@ -1,5 +1,4 @@
 .popup {
-    z-index: 10;
     background-color: var(--g8);
     width: fit-content;
     border-radius: var(--box-corner-rounding);
@@ -14,10 +13,6 @@
 
 .popup .mid-section {
     background-color: unset;
-}
-
-div[data-floating-ui-portal] > div {
-    z-index: 5;
 }
 
 .popup header {

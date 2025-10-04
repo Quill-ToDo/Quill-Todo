@@ -9,7 +9,7 @@ import {
     useContext, 
     useState,
     Dispatch,
-    forwardRef, 
+    LegacyRef, 
 } from "react";
 import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
 
@@ -31,21 +31,21 @@ export type PopupSetupProps = {
     renderPopupContent: RenderPopUpContent,
     renderElementToClick: RenderAnchorElement,
 } & InnerPopupProps;
+
 export type PersistentProps = {
     setPopupContent: Dispatch<SetStateAction<ReactElement | null>>;
 } & PopupSetupProps;
-// Option 1: "Attached" popups use render props to specify the popup content and anchor element to tether popup to.
-// Popup will dismount when anchor element dismounts or when the close method is called.
+
 export type RenderPopUpContent = ForwardRefRenderFunction<HTMLElement, {
     closePopup: (callback?: Function)=>void,
-    popupContainerProps: ComponentPropsWithoutRef<"div">,
+    popupContainerProps: ComponentPropsWithoutRef<any>,
 }>;
+
 export type RenderAnchorElement = ForwardRefRenderFunction<HTMLButtonElement, {
     openPopup: (callback?: Function)=>void, 
-    anchorProps: ComponentPropsWithoutRef<"button">,
+    anchorProps: ComponentPropsWithoutRef<any>,
 }>;
-// Option 2: "Persistent" popups only accepts content to popup and returns setup methods (open, close, anchor positioning ref).
-// Popup will remain until the close method is called.
+
 export type PopupSetup = { 
     openPopup: (callback?: Function)=>void,
     closePopup: (callback?: Function)=>void,
@@ -56,12 +56,18 @@ export type PopupSetup = {
 /**
  * Given a render method for an anchor element, the content to popup, 
  * and popup configuration options, return the anchor ref element to be rendered
- * with popup listneers attached.
+ * with popup listners attached.
  * If the anchor element is unmounted, the popup will as well--if this is not desired behavior, 
  * use PersistentPopupOnClick instead.
  * 
  * # renderPopUpContent requirements:
- * If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
+ * - accept (props, ref) parameters
+ * - return element with forwarded ref and props applied that will serve as the container for the popup
+ * - If you want to add class names, do  
+ * `className={combineClassNamePropAndString( "your-class-name", props.anchorProps)}` to include passed classNames.
+ * - call `props.closePopup()` somewhere to close popup if desired  
+ * 
+ *  If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
  * have the class passed in "dragHandleClass" to specify which element should be used as the handle.
  * 
  * # renderElementToClick requirements: 
@@ -109,14 +115,22 @@ export const AttachedPopupOnClick = observer((
  * Also returns an open method to call when it should open the popup and a close
  * method to use in child popup content or as desired to close the popup.
  * 
- * # children requirements:
- * If draggable=true and useDragHandle=true, one element in the children callback must
+ * # renderPopUpContent requirements:
+ * - accept (props, ref) parameters
+ * - return element with forwarded ref and props applied that will serve as the container for the popup
+ * - If you want to add class names, do  
+ * `className={combineClassNamePropAndString( "your-class-name", props.anchorProps)}` to include passed classNames.
+ * - call `props.closePopup()` somewhere to close popup if desired  
+ * 
+ *  If draggable=true and useDragHandle=true, one element in the renderPopUpContent callback must
  * have the class passed in "dragHandleClass" to specify which element should be used as the handle.
  * 
- * - spread props in props.anchorProps to anchor element (as first parameter so they can be overridden if desired)
+ * # renderElementToClick requirements: 
+ * - accept (props, ref) parameters
+ * - return element with forwarded ref and props applied
  * - If you want to add class names, do  
- * `className={combineClassNamePropAndString("your-class-name", props.anchorProps)}` to include passed classNames.
- * - call `props.openPopup()` in an onClick method on anchor element that should activate the popup
+ * `className={combineClassNamePropAndString( "your-class-name", props.anchorProps)}` to include passed classNames.
+ * - call `props.openPopup()` somewhere to open popup  
  * 
  * @returns setup methods to get and set the popup content
  */
@@ -189,35 +203,41 @@ export const ContextMenuPopup = observer((
 ) => {
     return <AttachedPopupOnClick
         renderElementToClick={(props, ref) => renderElementToClick(props, ref)}
-        renderPopupContent={({closePopup}) => 
-            <menu
-                role="menu"
+        renderPopupContent={({closePopup, popupContainerProps}, ref) => 
+            <div 
+              ref={ref as LegacyRef<HTMLDivElement>}
+              {...popupContainerProps}
+              {...{className: combineClassNamePropAndString("context-menu", popupContainerProps)}}
             >
-                { header }
-                <ul>
-                    { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
-                    .map(labelAndCallback =>
+                <menu
+                    role="menu"
+                >
+                    { header }
+                    <ul>
+                        { labelsAndClickCallbacks.filter(labelAndCallback => labelAndCallback.visible)
+                        .map(labelAndCallback =>
 
-                    <li key={labelAndCallback.label}>
-                        <button
-                                onClick={() => {
-                                    labelAndCallback.onClick(); 
-                                    closePopup( );
-                                }}
-                                aria-labelledby={labelAndCallback.label} 
-                                title={labelAndCallback.label}
-                                className={combineClassNamePropAndString(`item`, props)} 
-                                > 
-                                { labelAndCallback.content }
-                            </button>
-                    </li>
-                )}
-                </ul>
-        </menu>
+                        <li key={labelAndCallback.label}>
+                            <button
+                                    onClick={() => {
+                                        labelAndCallback.onClick(); 
+                                        closePopup( );
+                                    }}
+                                    aria-labelledby={labelAndCallback.label} 
+                                    title={labelAndCallback.label}
+                                    className={combineClassNamePropAndString(`item`, props)} 
+                                    > 
+                                    { labelAndCallback.content }
+                                </button>
+                        </li>
+                    )}
+                    </ul>
+                </menu>
+            </div>
         }
         placement={placement}
         alignment={alignment}
-        {...{className: "context-menu"}}> 
+        > 
     </AttachedPopupOnClick>
 })
 

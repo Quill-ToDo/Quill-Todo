@@ -43,7 +43,6 @@ margin-bottom: 2px;
 }
 
 #left-menu {
-    z-index: 2;
     grid-area: left-menu;
     display: flex;
     flex-direction: row;
@@ -237,6 +236,10 @@ textarea,
     min-height: max-content;
 }
 
+.padding {
+    padding: var(--section-gap);
+}
+
 .full-width {
     width: 100%;
 }
@@ -244,6 +247,10 @@ textarea,
 .take-full-space {
     height: 100%;
     width: 100%;
+}
+
+.round-corners {
+    border-radius: var(--box-corner-rounding);
 }
 
 .hidden {
@@ -289,6 +296,11 @@ lives */
 /*#region Re-Usable Elements*/
 /*#region Inline Elements*/
 /*#region Sections*/
+
+.light-section {
+    background-color: var(--g4);
+}
+
 .header-container, header {
     display: flex;
     padding: var(--section-gap);
@@ -607,6 +619,11 @@ hr {
 /*#endregion Other Elements*/
 /*#endregion Re-Usable Elements*/
 /*#region Animations*/
+
+.jiggle {
+    animation: jiggle 3s 1s infinite;
+}
+
 @keyframes jiggle {
 
     0%,
