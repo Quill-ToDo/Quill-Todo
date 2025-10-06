@@ -11,11 +11,14 @@ import {
     Dispatch,
     LegacyRef, 
 } from "react";
-import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@util/jsTools';
 
 import { FloatingUiAttachedPopup, FloatingUiPersistentPopup } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 import { ReferenceType } from "@floating-ui/react";
+
+export const POPUP_CLASS = "popup";
+export const POPUP_ANCHOR_CLASS = "popup-anchor";
 
 // Options used in both "attached" and "persistent" popup types
 export type InnerPopupProps = {

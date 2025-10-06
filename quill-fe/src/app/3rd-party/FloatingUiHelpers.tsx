@@ -31,7 +31,9 @@ import { observer } from 'mobx-react-lite';
 import { 
     PopupSetupProps,
     InnerPopupProps,
-    PersistentProps, 
+    PersistentProps,
+    POPUP_CLASS,
+    POPUP_ANCHOR_CLASS, 
 } from '@util/Popup';
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
@@ -108,7 +110,7 @@ const configureFloatingUi = ({
     let floatingUiPopupPositioningProps = {
         style: floatingStyles,
         ...getFloatingProps(),
-        className: combineClassNamePropAndString(`floating popup`, getFloatingProps()),
+        className: combineClassNamePropAndString(`floating ${POPUP_CLASS}`, getFloatingProps()),
     }
     return {
         floatingUiRefs: refs,
@@ -204,7 +206,7 @@ const getInnerPopupContent = ({
             const anchorProps = getFloatingUiAnchorProps();
             return {
                 ...anchorProps,
-                className: combineClassNamePropAndString("popup-anchor", anchorProps),
+                className: combineClassNamePropAndString(POPUP_ANCHOR_CLASS, anchorProps),
             };
         },
     }

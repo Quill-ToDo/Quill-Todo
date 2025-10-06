@@ -27,7 +27,7 @@ export const iterateThroughParents = ({
  * 3) the optional fail criteria is met
  * 4) there are no more parent elements
  * 
- * @returns true is the success criteria was met, false otherwise 
+ * @returns the node which meets success criteria or null if one was not found or fail condition was met 
  */
 export const searchThroughParents = ({
     start,
@@ -45,14 +45,15 @@ export const searchThroughParents = ({
 
     while (i < searchDepth && node) {
         if (successCondition(node)) {
-            return true;
+            return node;
         }
         if (failCondition && failCondition(node)) {
-            return false;
+            break;
         }
         i++;
         node = node.parentElement;
     }
+    return null;
 }
 
 

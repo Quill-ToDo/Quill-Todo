@@ -6,7 +6,7 @@ import {
 } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { ICONS } from "@/util/constants";
+import { ICONS, DRAGGABLE_HANDLE_CLASS } from "@/util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { 
     ColorBubble, 
@@ -18,7 +18,6 @@ import {
 } from "@/widgets/TaskDetail/TaskComponents";
 import { FormField } from "@util/FormComponents";
 import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
-import { DRAGGABLE_HANDLE_CLASS } from "@/app/@util/Draggable";
 import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
 import { ContextMenuPopup } from "@/app/@util/Popup";
 

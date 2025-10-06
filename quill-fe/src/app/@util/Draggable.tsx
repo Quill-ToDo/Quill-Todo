@@ -52,9 +52,6 @@ export type DroppableParams = {
     >,
     onDrop?: ({...props}: DragDropEventData) => void,
 }
-
-export const DRAGGABLE_HANDLE_CLASS = "draggable-handle";
-export const DRAGGABLE_CONTAINER_CLASS = "draggable";
 /**
 * Draggable helper to serve as an interface between Quill and any
 * 3rd party libraries.

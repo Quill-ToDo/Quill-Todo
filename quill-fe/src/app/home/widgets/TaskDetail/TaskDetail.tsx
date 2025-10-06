@@ -8,11 +8,11 @@ import React, {
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
-import { ICONS, HOME_ID } from "@/util/constants";
+import { ICONS, HOME_ID, DRAGGABLE_HANDLE_CLASS } from "@/util/constants";
 import { ContextMenuPopup } from "@/util/Popup";
-import { DRAGGABLE_HANDLE_CLASS, INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
+import { INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
 import { DATETIME_FORMATS } from "@/util/DateTimeHelper";
-import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@util/jsTools';
 import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TASK_ACTIONS, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 

@@ -32,26 +32,38 @@ import React, {
 } from 'react';
 import { 
     DragDropData, 
-    DRAGGABLE_CONTAINER_CLASS, 
-    DRAGGABLE_HANDLE_CLASS, 
     DraggableParams, 
     DroppableParams, 
     INTERACTABLE_ELEMENT_CLASS} from '@util/Draggable';
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { assignForwardedRef, clickedInBounds, searchThroughParents } from '@util/jsTools';
-import { snapCenterToCursor } from '@dnd-kit/modifiers';
 import { observer } from 'mobx-react-lite';
+import { HIDDEN, DRAGGABLE_CONTAINER_CLASS, DRAGGABLE_HANDLE_CLASS, } from '../@util/constants';
+const DRAG_POSITIONER_ID = "drag-id";
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
+const numbersFromTranslate = (s: String) => {
+    const x = Number(s.substring(s.indexOf("(")+1, s.indexOf("px")));
+    const withoutX = s.substring(s.indexOf("px")+3).trim();
+    const y = Number(withoutX.substring(0, withoutX.indexOf("px")));
+    return {
+        x: x,
+        y: y,
+    }
+}
 
 
 //#region Context
 export const DraggableContext = createContext<{
     content: null | ReactElement, 
     setContent: null | Dispatch<SetStateAction<ReactElement | null>>,
+    position: null | {x: number, y: number},
+    setPosition: null | Dispatch<SetStateAction<{x: number, y: number} | null>>, 
     isDragging: boolean,
 }>({
     content: null, 
     setContent: null,
+    position: null,
+    setPosition: null,
     isDragging: false,
 });
 
@@ -60,18 +72,32 @@ export const DraggableContext = createContext<{
  * @returns 
  */
 export const DraggingContent = observer(() => {
-    const modifiers = [];
-    modifiers.push(snapCenterToCursor);
-    const dragged = useContext(DraggableContext); 
+    const modifiers: any = [];
+    // Use content from nearest drag context to render dragged content in a drag overlay
+    const context = useContext(DraggableContext); 
+    const dragged = context.content; 
 
     // Drag overlay should always be mounted and content within should be conditionally rendered
-    return <DragOverlay 
+    return (
+    <DragOverlay 
             dropAnimation={null}
             modifiers={modifiers}
             className='drag-overlay'
         >
-            { dragged.content }
+            <div id={DRAG_POSITIONER_ID}
+                {...(context.position && {style: {transform: translate(context.position.x, context.position.y)}})}
+            >
+                { context.isDragging && dragged ? 
+                    dragged 
+                    : <div className='light-section round-corners padding loading'>
+                        <p className='jiggle'>
+                            Loading...
+                        </p>
+                    </div>
+                }
+            </div>
         </DragOverlay> 
+            ) 
 })
 
 
@@ -87,6 +113,7 @@ export const WrapWithDndContext = observer(({
     // Modifiers can be applied to drag overlay
     // Sensors can only be applied to dnd context
     const [draggingContent, setDraggingContent] = useState<ReactElement | null>(null);
+    const [position, setPosition] = useState<{x: number, y: number} | null>(null);
     const [isDragging, setIsDragging] = useState(false);
     const modifiers: Modifier[] = [];
     const sensorsToUse = [];
@@ -104,6 +131,8 @@ export const WrapWithDndContext = observer(({
     return <DraggableContext.Provider value={{
             content: draggingContent, 
             setContent: setDraggingContent, 
+            position: position,
+            setPosition: setPosition, 
             isDragging
         }}
     >
@@ -189,10 +218,10 @@ const handleDragStart = (id: string, e: DragStartEvent, onDragStart: DragOptions
 }
 
 /**
- * DND Kit implementation of a freely draggable element that stays where it is last moved to
+ * DND Kit implementation of a freely draggable element that stays where it is last moved to. 
  * @returns 
  */
-const FreeDrag = observer(({
+const FreelyDraggable = observer(({
     renderDraggableItem,
     id,
     actionTitle,
@@ -202,8 +231,10 @@ const FreeDrag = observer(({
     onDragStart,
     ...props
 }: DragOptions
-) => {
-    const {attributes, listeners, setNodeRef, transform} = useDraggable({
+): ReactNode => {
+    const dragContext = useContext(DraggableContext);
+
+    const {attributes, listeners, setNodeRef} = useDraggable({
         id: id,
         attributes: {
             role: "generic",
@@ -213,40 +244,67 @@ const FreeDrag = observer(({
             value: itemData,  
         }
     });
-    let goToPosition = {x: 0, y: 0};
-    // TODO this might need to be set based on floating ui starting position
-    const startingPosition: MutableRefObject<{x: number, y: number} | null> = useRef(null);
+    const startingCoords: MutableRefObject<{x: number, y: number} | null> = useRef(null);
+    const [itemIsBeingDragged, setItemIsBeingDragged] = useState(false);
+    /// Render the draggable item with drag start and end listeners, 
+    // when drag starts use dragContext to set content for a dragOverlay rendered elsewhere. Hide the actual element. Set the dragged content to be the  
+    // correct element and set a starting position as necessary. 
+    // When drag ends, update the position of the actual element to be where the drag ended and unhide it. 
+
     useDndMonitor({
         onDragEnd(e) {
-            handleDragEnd(id, e, (...props) => {
-                startingPosition.current = {x: goToPosition.x, y: goToPosition.y};
-                onDragEnd && onDragEnd(...props)
+            handleDragEnd(id, e, (props) => {
+                setItemIsBeingDragged(false);
+                // Move the actual HTML element (not overlay) to the ending position of the DragOverlay and make it visible
+                if (e.active.rect.current.translated) {
+                    const translated = {x: e.active.rect.current.translated.left, y: e.active.rect.current.translated.top}
+                    if (startingCoords.current) {
+                        startingCoords.current = {x: startingCoords.current.x + translated.x, y: startingCoords.current.y + translated.y};
+                    }
+                }
+                onDragEnd && onDragEnd(props);
             })
         },
         onDragStart(e) {
-            handleDragStart(id, e, onDragStart);
+              handleDragStart(id, e, (props) => {
+                  setItemIsBeingDragged(true);
+                // Set the starting coords of the drag and dragOverlay element to be where the item starts being dragged from
+                const draggedContentElement = document.getElementById(id); 
+                if (!!draggedContentElement) {
+                    const topLeftCornerOfElementBeforeDrag = numbersFromTranslate(draggedContentElement.style.transform);
+                    if (topLeftCornerOfElementBeforeDrag.x !== 0 || topLeftCornerOfElementBeforeDrag.y !== 0) {
+                        startingCoords.current = topLeftCornerOfElementBeforeDrag;
+                        // Set starting position of drag overlay to be where the real item is
+                        dragContext.setPosition && dragContext.setPosition(topLeftCornerOfElementBeforeDrag);       
+                    }
+                } 
+                // Set drag overlay content to be that of the actual item
+                dragContext.setContent && dragContext.setContent(draggableContent as ReactElement);
+                onDragStart && onDragStart(props);
+            })
         }
     })
-    if (startingPosition.current !== null) {
-        goToPosition.x = startingPosition.current.x;
-        goToPosition.y = startingPosition.current.y;
-    }
-    if (transform) {
-        goToPosition.x += transform.x;
-        goToPosition.y += transform.y;
-    }
+
     const propsToRender = {
         id: id,
-        style: { 
-            transform: translate(goToPosition.x, goToPosition.y),
-        },
         ...listeners,
         ...attributes,
         "aria-label": actionTitle,
     };
-    return props.renderItemBeingDraggedIfDifferent ?
+
+    const draggableContent = props.renderItemBeingDraggedIfDifferent ?
         props.renderItemBeingDraggedIfDifferent(propsToRender, setNodeRef)
         : renderDraggableItem(propsToRender, setNodeRef);
+
+    // Hide the actual item when the drag overlay is not rendered
+    return <div className={itemIsBeingDragged ? HIDDEN : ""}
+            {
+                // Set the position of the actual element not while dragging
+                ...(startingCoords.current && {style: {transform: translate(startingCoords.current.x, startingCoords.current.y)}})
+            }
+            >
+        {draggableContent}
+    </div>;
 })
 
 /**
@@ -299,7 +357,7 @@ const PickUpAndMove = observer(({
         ...attributes,
         "aria-label": actionTitle,
     };
-    return renderItemBeingDraggedIfDifferent ? 
+    return !!renderItemBeingDraggedIfDifferent ? 
         renderItemBeingDraggedIfDifferent(props, setNodeRef)
         : renderDraggableItem(props, setNodeRef)
 });
@@ -430,7 +488,7 @@ function restrictToBoundingRect(
             handler: ({nativeEvent: event}: PointerEvent) => {
                 // Iterate through parents until you find the one with DRAGGABLE_CLASS (top draggable parent)
                 // and see if the user has clicked on the same spot as an element with DRAGGABLE_HANDLE_CLASS
-                const thisOrParentElementIsDraggable = searchThroughParents({
+                const thisOrParentElementIsDraggable = !!searchThroughParents({
                     start: event.target as HTMLElement,
                     successCondition: (node) => node.classList.contains(DRAGGABLE_HANDLE_CLASS) 
                         && clickedInBounds(node.getClientRects()[0], event.clientX, event.clientY),
