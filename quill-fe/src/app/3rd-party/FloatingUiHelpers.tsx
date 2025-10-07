@@ -37,6 +37,7 @@ import {
 } from '@util/Popup';
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
+import { POPUP_POSITIONER_CLASS } from '../@util/constants';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
@@ -169,19 +170,19 @@ const getInnerPopupContent = ({
             droppable={false} 
             useHandle={useDragHandle} 
             actionTitle='Move popup'
-            renderDraggableItem={(draggableProps, draggableRef) => renderInnerContent(
-                {
-                    popupProps: {
-                        ...draggableProps,
-                        ...floatingUiPopupPositioningProps, 
-                        className: combineClassNamePropAndString(floatingUiPopupPositioningProps.className, draggableProps)
-                    },
-                }, 
-                useMergeRefs([draggableRef, floatingUiRefs.setFloating]),
-            )}
-        />
+            positioningProps={floatingUiPopupPositioningProps}
+            ref={floatingUiRefs.setFloating}
+        >
+            {renderInnerContent({popupProps:{}}, null)}
+        </Draggable>
         : 
-        renderInnerContent({popupProps: floatingUiPopupPositioningProps,}, floatingUiRefs.setFloating);
+        <div
+            ref={floatingUiRefs.setFloating}
+            {...floatingUiPopupPositioningProps}
+            className={combineClassNamePropAndString(POPUP_POSITIONER_CLASS, floatingUiPopupPositioningProps)}
+        >
+            {renderInnerContent({popupProps: {}}, null)}
+        </div>
 
     // Portal this shit away
     const popupWithPortalApplied = 

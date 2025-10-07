@@ -3,6 +3,7 @@ import {
     ComponentPropsWithoutRef, 
     forwardRef, 
     ForwardRefRenderFunction, 
+    PropsWithoutRef, 
     ReactNode,
  } from "react";
 import "./draggable.css";
@@ -25,14 +26,10 @@ type DragDropEventData = {
 
 export type DraggableParams = {
     // These props must be spread out onto the draggable item
-    renderDraggableItem: ForwardRefRenderFunction<
-        HTMLElement,
-        { className: string,
-          id: string,
-        }
-        | ComponentPropsWithoutRef<any>>,
-    renderItemBeingDraggedIfDifferent?: ForwardRefRenderFunction<HTMLElement, ComponentPropsWithoutRef<any>>,
+    children: ReactNode,
+    draggedPresentation?: ReactNode,
     actionTitle: string,
+    positioningProps?: PropsWithoutRef<any>,
     useHandle?: boolean,
     onDragStart?: ({...props}: DragDropEventData) => void,
     onDragEnd?: ({...props}: DragDropEventData) => void,
@@ -65,20 +62,23 @@ export type DroppableParams = {
 * as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
 * should have the class DRAGGABLE_HANDLE_CLASS.**
 */
-export const Draggable = observer((
-{
+export const Draggable = observer(forwardRef(({
+    children,
     useHandle=false,
     droppable=false,
     actionTitle="Drag item",
     ...props
-} : DraggableParams) => {
+} : DraggableParams, ref) => {
     return <DraggableDndKitImplementation 
+        ref={ref}
         actionTitle={actionTitle}    
         useHandle={useHandle}
         droppable={droppable}
         {...props}
-    />
-})
+    >
+        {children}
+    </DraggableDndKitImplementation>
+}));
 
 export const DragContextProvider = observer(({children}: {children: ReactNode}) => {
     return <WrapWithDndContext>

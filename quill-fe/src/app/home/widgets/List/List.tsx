@@ -360,23 +360,19 @@ const TaskList = observer(({
                     itemData={{id: task.id}}
                     actionTitle="Move task"
                     key={`task-li-${task.id}`}
-                    renderDraggableItem={(props, ref) => <li 
-                            {...props}
-                            ref={ref}
-                            className={combineClassNamePropAndString("task", props)}
-                        >
-                            <ListViewTask
-                                task={task}
-                                type={type}
-                                />
-                        </li>}
-                    renderItemBeingDraggedIfDifferent={(props, ref) => <TaskBeingDragged 
-                        {...props}
-                        ref={ref}
+                    draggedPresentation={<TaskBeingDragged 
                         task={task} 
                         type={type} 
                     />}
-                > 
+                >
+                    <li 
+                        className={"task"}
+                    >
+                        <ListViewTask
+                            task={task}
+                            type={type}
+                            />
+                    </li> 
                 </Draggable>
             )
         })}

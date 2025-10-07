@@ -10,6 +10,7 @@ export const END_OF_WEEK_WEEKDAY = "Sunday";
 // ID and Classes
 export const UNSET_TASK_TITLE_PLACEHOLDER = "title";
 export const HIDDEN = "hidden";
+export const POPUP_POSITIONER_CLASS = "positioner";
 // SVG Icons
 export const ICONS = {
     PLUS:   

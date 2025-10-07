@@ -82,10 +82,8 @@ const DashboardLayout = observer(({
                                 actionTitle="Drag to item to delete"
                                 droppable={true}
                                 itemType={TASK_ACTIONS.delete}
-                                renderDraggableItem={(props, ref) => {
-                                    return <Droppable 
-                                        {...props}
-                                        ref={ref}
+                            >
+                                <Droppable 
                                         acceptedItemTypes={[TASK_DRAG_TYPE]}
                                         itemType={TASK_ACTIONS.delete}
                                         onDrop={({drag}) => {
@@ -114,14 +112,23 @@ const DashboardLayout = observer(({
                                         </button>
                                         }
                                     />
-                                }}
-                            />
+                            </Draggable>
                         }
                     /> 
-                    
-                    <button role="menuitem" className="btn small square bg" title="Settings" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}>
-                        { ICONS.SETTINGS }
-                    </button>
+                    <Draggable
+                        actionTitle="Drag settings button"
+                        droppable={true}
+                    >
+                        <button 
+                            role="menuitem" 
+                            className={"btn small square bg"}
+                            title="Settings" 
+                            type="button" 
+                            // onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}
+                            >
+                                { ICONS.SETTINGS }
+                            </button>
+                    </Draggable>
                     <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
                         { ICONS.LOG_OUT }
                     </button>

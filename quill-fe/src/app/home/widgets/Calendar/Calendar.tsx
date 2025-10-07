@@ -350,23 +350,21 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                         onDragStart={() => {
                                                             console.log("drag")
                                                         }}
-                                                        renderDraggableItem={(props, ref) => <TaskWrapper 
-                                                                ref={ref as ForwardedRef<HTMLDivElement>}
+                                                        draggedPresentation={
+                                                            <TaskBeingDragged 
+                                                                task={taskData.task} 
+                                                                type={taskData.type} 
+                                                            />
+                                                    }
+                                                    >
+                                                        <TaskWrapper 
                                                                 {...taskWrapperProps}
-                                                                {...props}
-                                                                {...{className: combineClassNamePropAndString(taskWrapperProps.className, props)}}
+                                                                {...{className: taskWrapperProps.className}}
                                                             >
                                                                 <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
                                                                 <TaskTitle />
                                                             </TaskWrapper>
-                                                        }
-                                                        renderItemBeingDraggedIfDifferent={(props, ref) => <TaskBeingDragged 
-                                                            {...props}
-                                                            ref={ref}
-                                                            task={taskData.task} 
-                                                            type={taskData.type} 
-                                                        />}
-                                                    />
+                                                    </Draggable>
                                                 })}
                                             </div>
                                         </div>    
