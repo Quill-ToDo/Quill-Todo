@@ -12,6 +12,7 @@ import {
     DroppableDndKitImplementation, 
     WrapWithDndContext 
 } from "@/external/DndKit";
+import { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 
 export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 
@@ -19,7 +20,7 @@ export type DragDropData = {
     type: string,
     value: DraggableParams["itemData"],
 } | null;
-type DragDropEventData = {
+export type DragDropEventData = {
     drag: DragDropData, 
     drop: DragDropData
 }
@@ -27,13 +28,13 @@ type DragDropEventData = {
 export type DraggableParams = {
     // These props must be spread out onto the draggable item
     children: ReactNode,
+    useHandle?: boolean,
     draggedPresentation?: ReactNode,
+    droppable?: boolean,
+    dragStart?: (e: DragStartEvent, callback?: (dragStartPosition: {x: number, y: number}) => void) => void,
+    dragEnd?: (e: DragEndEvent, callback?: (dragEndPosition: {x: number, y: number}) => void) => void,
     actionTitle: string,
     positioningProps?: PropsWithoutRef<any>,
-    useHandle?: boolean,
-    onDragStart?: ({...props}: DragDropEventData) => void,
-    onDragEnd?: ({...props}: DragDropEventData) => void,
-    droppable?: boolean,
     itemType?: string,
     itemData?: any,
 }

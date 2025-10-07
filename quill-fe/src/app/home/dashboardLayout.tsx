@@ -124,7 +124,7 @@ const DashboardLayout = observer(({
                             className={"btn small square bg"}
                             title="Settings" 
                             type="button" 
-                            // onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}
+                            onClick={() => addAlert(document.querySelector("#left-menu button[title='Settings']"), NOTICE_ALERT, "We haven't implemented settings yet.")}
                             >
                                 { ICONS.SETTINGS }
                             </button>
