@@ -21,7 +21,7 @@ import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
 import { ICONS } from "@/app/@util/constants";
-import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@util/jsTools';
 import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
@@ -361,8 +361,8 @@ const TaskList = observer(({
                     actionTitle="Move task"
                     key={`task-li-${task.id}`}
                     renderDraggableItem={(props, ref) => <li 
-                            ref={(node) => assignForwardedRef(ref, node)}
                             {...props}
+                            ref={ref}
                             className={combineClassNamePropAndString("task", props)}
                         >
                             <ListViewTask
@@ -372,7 +372,7 @@ const TaskList = observer(({
                         </li>}
                     renderItemBeingDraggedIfDifferent={(props, ref) => <TaskBeingDragged 
                         {...props}
-                        ref={(node) => assignForwardedRef(ref, node)}
+                        ref={ref}
                         task={task} 
                         type={type} 
                     />}

@@ -46,10 +46,6 @@ type TaskValidationTests = {
     due: ValidationTest[];
     workInterval: ValidationTest[];
     color: ValidationTest[];
-    startTimeStringUnderEdit: ValidationTest[];
-    startDateStringUnderEdit: ValidationTest[];
-    dueTimeStringUnderEdit: ValidationTest[];
-    dueDateStringUnderEdit: ValidationTest[];
     colorStringUnderEdit: ValidationTest[];
 };
 
@@ -61,10 +57,6 @@ type TaskValidationErrors = {
     due: string[];
     workInterval: string[];
     color: string[];
-    startTimeStringUnderEdit: string[];
-    startDateStringUnderEdit: string[];
-    dueTimeStringUnderEdit: string[];
-    dueDateStringUnderEdit: string[];
     colorStringUnderEdit: string[];
 };
 
@@ -145,10 +137,6 @@ export class TaskModel {
             private _createdDate : DateTime;
             private _color : string = "#ffffff";
             private _store : TaskStore | undefined;
-            private _startTimeStringUnderEdit : string = ""; 
-            private _startDateStringUnderEdit : string = "";
-            private _dueTimeStringUnderEdit : string = "";
-            private _dueDateStringUnderEdit : string = "";
             private _colorStringUnderEdit: string = "";
             autoSave : boolean = true;
 
@@ -196,15 +184,7 @@ export class TaskModel {
             /// vvv all fields that are for display purposes during editing. For example, 
             // if the user enters a string "3cshjaklfdhsa" for the startDateStringUnderEdit, 
             // this value can be displayed as needed in form fields to show the user typing but
-            // will not change the underlying start DateTime because it can't be parsed. 
-            _startDateStringUnderEdit: observable,
-            startDateStringUnderEdit: computed,
-            _startTimeStringUnderEdit: observable,
-            startTimeStringUnderEdit: computed,
-            _dueDateStringUnderEdit: observable,
-            dueDateStringUnderEdit: computed,
-            _dueTimeStringUnderEdit: observable,
-            dueTimeStringUnderEdit: computed,
+            // will not change the underlying start DateTime because it can't be parsed.
             _colorStringUnderEdit: observable,
             colorStringUnderEdit: computed,
             abortTaskCreation: action, // Abandon the task being created
@@ -242,8 +222,6 @@ export class TaskModel {
             this._store = store;
             this._store.add(this);
         }
-        this.setStartDateAndTimeStringsUnderEdit();
-        this.setDueDateAndTimeStringsUnderEdit();
         if (this.color) {
             this.colorStringUnderEdit = this.color;
         }
@@ -315,24 +293,21 @@ export class TaskModel {
      * **OR as a Luxon DateTime object**. 
      * dateTime must be valid to set it. 
      * 
-     * @param {string} dateTime 
+     * @param {string} passedStartVal 
      */
-    set start(dateTime : DateTime | null) {
+    set start(passedStartVal : DateTime | null) {
         const originalStartTime = this._start;
-        if (dateTime ===  null) {
-            this._start = dateTime;
+        if (passedStartVal ===  null) {
+            this._start = passedStartVal;
             return;
         } 
         try {
-            const converted = dateTimeHelper(dateTime);
-            this._start = converted;
-            if (originalStartTime === null) {
-                this.setStartDateAndTimeStringsUnderEdit()
-            }
+            this._start =  dateTimeHelper(passedStartVal);
         }
         catch (e) {
             addAlert(document.getElementById(HOME_ID), 
             ERROR_ALERT, `Could not set task start: ${e}`);
+            this._start = originalStartTime;
         }
     }
     /** The start date as a Luxon DateTime */
@@ -344,75 +319,22 @@ export class TaskModel {
         }
         this._showStartTime = val;
     }
-    setStartDateAndTimeStringsUnderEdit () {
-        this.startDateStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : "";
-        this.startTimeStringUnderEdit = this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : ""; 
-    }
-
-    /**
-     * Set the date portion of the DateTime as a string. 
-     * It does not need to be valid. If it is invalid, validation errors will be generated.
-     * If it is parseable with the time, update the actual Start 
-     * DateTime. 
-     * @param dateString The string the user submitted for the date portion.
-     */
-    set startDateStringUnderEdit (dateString : string)  { 
-        this._startDateStringUnderEdit = dateString;
-        if (dateString === "") {
-            this.start = null;
-            return;
-        }
-        if (this.validationErrors.startDateStringUnderEdit.length === 0) {
-            const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
-                this.start ? PARTIAL_DATETIME_FORMATS.t.serializer(this.start) : this.startTimeStringUnderEdit);
-                if (newDate.isValid) {
-                    // If the datetime generated using the time part of the current start datetime and the 
-                    // date string under edit is valid, update underlying start datetime
-                    this._start = newDate;
-                }
-        }
-    }
-    get startDateStringUnderEdit () { return this._startDateStringUnderEdit; }
-    /**
-     * Set the time portion of the DateTime as a string. 
-     * It does not need to be valid. If it is invalid, validation errors will be generated.
-     * If it is parseable with the date, update the actual Start 
-     * DateTime. 
-     * @param timeString The string the user submitted for the time portion.
-     */
-    set startTimeStringUnderEdit (timeString : string) { 
-        this._startTimeStringUnderEdit = timeString;
-        if (this.validationErrors.startTimeStringUnderEdit.length === 0) {
-            const newDate = DATETIME_FORMATS.D_t.deserializer(this.start ? PARTIAL_DATETIME_FORMATS.D.serializer(this.start) : this.startDateStringUnderEdit, 
-                timeString);
-            if (newDate.isValid) {
-                // If the date generated using the date part of the current start datetime and the 
-                // time string under edit is valid, update underlying start datetime
-                this._start = newDate;
-            }
-        }
-    }
-    get startTimeStringUnderEdit () { return this._startTimeStringUnderEdit; }
 //#endregion
 //#region due
     /**
      * Set the end of the work Interval as a Luxon DateTime object taking a datetime string in ISO format 
      * **OR as a Luxon DateTime object**. 
      * dateTime must be valid. 
-     * @param {string} dateTime 
+     * @param {string} passedDueVal 
      */
-    set due (dateTime : DateTime | null) {
+    set due (passedDueVal : DateTime | null) {
         const originalDueTime = this._due;
-        if (dateTime === null) {
+        if (passedDueVal === null) {
             this._due = null;
             return;
         } 
         try {
-            const converted = dateTimeHelper(dateTime);
-            this._due = converted;
-            if (originalDueTime === null) {
-                this.setDueDateAndTimeStringsUnderEdit();
-            }
+            this._due = dateTimeHelper(passedDueVal);
         }
         catch (e) {
             addAlert(document.getElementById(HOME_ID), 
@@ -432,57 +354,6 @@ export class TaskModel {
             this.saveEdits("due");
         }
     }
-
-    setDueDateAndTimeStringsUnderEdit() {
-        this.dueDateStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : "";
-        this.dueTimeStringUnderEdit = this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : "";
-    }
-
-    /**
-     * Set the date portion of the DateTime as a string. 
-     * It does not need to be valid. If it is invalid, validation errors will be generated.
-     * If it is parseable with the time, update the actual Due 
-     * DateTime. 
-     * @param dateString The string the user submitted for the date portion.
-     */
-    set dueDateStringUnderEdit (dateString : string) {
-        this._dueDateStringUnderEdit = dateString;
-        if (dateString === "") {
-            this._due = null;
-            return;
-        }
-        if (this.validationErrors.dueDateStringUnderEdit.length === 0) {
-            const newDate = DATETIME_FORMATS.D_t.deserializer(dateString, 
-                this.due ? PARTIAL_DATETIME_FORMATS.t.serializer(this.due) : this.dueTimeStringUnderEdit);
-            if (newDate.isValid) {
-                // If the date generated using the time part of the current due datetime and the 
-                // date string under edit is valid, update underlying due datetime
-                this._due = newDate;
-            }
-        }
-    }
-    get dueDateStringUnderEdit () { return this._dueDateStringUnderEdit; }
-    /**
-     * Set the time portion of the DateTime as a string. 
-     * It does not need to be valid. If it is invalid, validation errors will be generated.
-     * If it is parseable with the date, update the actual Due 
-     * DateTime. 
-     * @param timeString The string the user submitted for the time portion.
-     */
-    set dueTimeStringUnderEdit (timeString : string) { 
-        this._dueTimeStringUnderEdit = timeString;
-        if (this.validationErrors.dueTimeStringUnderEdit.length === 0) {
-            const newDate = DATETIME_FORMATS.D_t.deserializer(
-                this.due ? PARTIAL_DATETIME_FORMATS.D.serializer(this.due) : this.dueDateStringUnderEdit,
-                timeString);
-            if (newDate.isValid) {
-                // If the date generated using the date part of the current due datetime and the 
-                // time string under edit is valid, update underlying due datetime
-                this._due = newDate;
-            }
-        }
-    }
-    get dueTimeStringUnderEdit () { return this._dueTimeStringUnderEdit; }
 
     /**
      * @returns if this task is overdue at the moment this method
@@ -578,18 +449,14 @@ export class TaskModel {
         // If has been initialized and this is not a task not yet posted to the server
         switch (field) {
             case "start":
-                this.setStartDateAndTimeStringsUnderEdit();
                 break;
             case "due":
-                this.setDueDateAndTimeStringsUnderEdit();
                 break;
             case "color":
                 this.colorStringUnderEdit = this.color;
                 break;
             default:
                 this.colorStringUnderEdit = this._color;
-                this.setStartDateAndTimeStringsUnderEdit();
-                this.setDueDateAndTimeStringsUnderEdit();
                 break;
         }
     }
@@ -725,11 +592,6 @@ set highlighted(value: boolean) {
 //#endregion CLASS FIELD GETTERS AND SETTERS
 //#region VALIDATION
     get validationTests(): TaskValidationTests {
-        const reUsedErrorMessages = {
-            INVALID_TIME_FORMAT: `Time is not of the format ${PARTIAL_DATETIME_FORMATS.t.readable}. Ex: 10:30 am`,
-            INVALID_DATE_FORMAT: `Date is not of the format ${PARTIAL_DATETIME_FORMATS.D.readable}. Ex: 7/26/2022`,
-            INVALID_DATETIME_FORMAT: `Date and time could not be parsed together.`,
-        }
         const reUsedTests = {
             validHexCode: {
                 text: `Color must be formatted as a valid hex code (ex: #ffffff)`,
@@ -784,30 +646,6 @@ set highlighted(value: boolean) {
                     fail: ({color=this.colorStringUnderEdit}) => reUsedTests.validHexCode.fail({color: color}),
                 }
             ],
-            startTimeStringUnderEdit: [
-                {
-                    text: reUsedErrorMessages.INVALID_TIME_FORMAT,
-                    fail: ({timeString=this.startTimeStringUnderEdit}) => timeString !== "" && !PARTIAL_DATETIME_FORMATS.t.deserializer(timeString).isValid,
-                },
-            ],
-            startDateStringUnderEdit: [
-                {
-                    text: reUsedErrorMessages.INVALID_DATE_FORMAT,
-                    fail: ({dateString=this.startDateStringUnderEdit}) => dateString !== "" && !PARTIAL_DATETIME_FORMATS.D.deserializer(dateString).isValid,
-                },
-            ],
-            dueTimeStringUnderEdit: [
-                {
-                    text: reUsedErrorMessages.INVALID_TIME_FORMAT,
-                    fail: ({timeString=this.dueTimeStringUnderEdit}) => timeString !== "" && !PARTIAL_DATETIME_FORMATS.t.deserializer(timeString).isValid,
-                },
-            ],
-            dueDateStringUnderEdit: [
-                {
-                    text: reUsedErrorMessages.INVALID_DATE_FORMAT,
-                    fail: ({dateString=this.dueDateStringUnderEdit}) => dateString !== "" && !PARTIAL_DATETIME_FORMATS.D.deserializer(dateString).isValid,
-                },
-            ],
         } as TaskValidationTests;
     }
 
@@ -835,10 +673,6 @@ set highlighted(value: boolean) {
             due: [],
             workInterval: [],
             color: [],
-            startTimeStringUnderEdit: [],
-            startDateStringUnderEdit: [],
-            dueTimeStringUnderEdit: [],
-            dueDateStringUnderEdit: [],
             colorStringUnderEdit: [],
         };
   

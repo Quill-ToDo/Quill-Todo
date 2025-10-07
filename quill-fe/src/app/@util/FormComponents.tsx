@@ -10,7 +10,8 @@ import {
     ReactNode,
     createElement, forwardRef,
     useRef, useState } from "react";
-import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@util/jsTools';
+import { useMergeRefs } from "@floating-ui/react";
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();
 
@@ -150,10 +151,7 @@ export const ResizableInput = observer(forwardRef(<T extends ResizableInputTypes
 
     const input = createElement(version, {
         ...props,
-        ref: (node: HTMLElement | null) => {
-            assignForwardedRef(inputRef, node);
-            forwardedRef && assignForwardedRef(forwardedRef, node);
-        },
+        ref: useMergeRefs([inputRef, forwardedRef]),
         onChange: (e: ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
             setInputVal(e.target.value);
             props.onChange && props.onChange(e);

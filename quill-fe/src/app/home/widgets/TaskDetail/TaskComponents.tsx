@@ -30,12 +30,13 @@ import {
 } from "react";
 import TaskDetail from "./TaskDetail";
 import { ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
-import { assignForwardedRef, combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@util/jsTools';
 import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick } from "@/util/Popup";
 import './tasks.css';
-import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
+import { DateFormat, dateTimeHelper, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
-import { Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
+import { INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
+import { useMergeRefs } from "@floating-ui/react";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
 
@@ -608,10 +609,7 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => task.description = e.target.value}
             onBlur={finishEditing}
             {...props}
-            ref={(node: HTMLElement) => {
-                assignForwardedRef(editInputRef, node);
-                assignForwardedRef(ref, node);
-            }}
+            ref={useMergeRefs([editInputRef, ref])}
         />
         { invalid && <ErrorsList
             errors={task.validationErrors.description}
@@ -718,14 +716,13 @@ const EditableTaskDate = observer(({
 }: DateImplementationParams & {type: "start" | "due"}) => {
     const dateField = isDueType ? task.due : task.start;
     const startingDate = useRef(dateField);
-    const workIntervalErrorListId = useId();
 
     return <div className={`${wrapperClasses}`}>
         <EditableDatePortion
             type={type}
             task={task}
             isDueType={isDueType}
-            dateField={dateField}
+            date={dateField}
             startingDate={startingDate}
         />
         <EditableTimePortion 
@@ -735,28 +732,29 @@ const EditableTaskDate = observer(({
             dateField={dateField}
             startingDate={startingDate}
         />
-        { task.validationErrors.workInterval.length > 0 && 
-            <ErrorsList errors={task.validationErrors.workInterval} id={workIntervalErrorListId}/> 
-        }
     </div>
 });
 
 const EditableDatePortion = observer(({
     task,
     isDueType,
-    dateField,
+    date,
     startingDate,
     type,
 }: {
     task: TaskModel,
     isDueType: boolean,
-    dateField: DateTime<boolean> | null,
+    date: DateTime<boolean> | null,
     startingDate: MutableRefObject<DateTime<boolean> | null>,
     type: "due" | "start",
 }) => {
-    const dateStringUnderEdit = isDueType ? task.due?.toFormat("yyyy-mm-dd") : task.start?.toFormat("yyyy-mm-dd");
-    const dateErrors = (isDueType ? task.validationErrors.dueDateStringUnderEdit : task.validationErrors.startDateStringUnderEdit).concat(task.validationErrors.workInterval);
-    const updateTaskDate = isDueType ? (val: string) => {task.dueDateStringUnderEdit = val} : (val: string) => {task.startDateStringUnderEdit = val};
+    const dateErrors = (isDueType ? task.validationErrors.due : task.validationErrors.start).concat(task.validationErrors.workInterval);
+    const convertToDateTime = (dateString: string) => date && DateTime.fromMillis((new Date(`${dateString}T${date.hour}:${date.minute}:00`).valueOf()));
+    const updateTaskDate = isDueType ? (val: DateTime) => {     
+            task.due = val;} 
+        : (val: DateTime) => {
+            task.start = val;
+    };
     const dateErrorListId = useId();
 
     return <label
@@ -768,24 +766,25 @@ const EditableDatePortion = observer(({
             type="date"
             width="narrow"
             aria-invalid={dateErrors.length !== 0} 
-            value={dateStringUnderEdit}
+            { ...(date && {value: date.toFormat("yyyy-MM-dd")})}
             // aria-describedby={dateErrorListId}
             // aria-label={`${type} date`}
             // placeholder="date e.g. 7/6/2024"
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
                 if (e.target) {
-                    updateTaskDate(e.target.value);
-                }
-            }}
-            onBlur={(e: ChangeEvent<HTMLInputElement>) => {
-                if (dateField !== startingDate.current && task.isValid) {
-                    task.saveEdits(type);
+                    const dateTime = convertToDateTime(e.target.value);
+                    if (dateTime) {
+                        updateTaskDate(dateTime);
+                        if (dateTime !== startingDate.current && task.isValid) {
+                            task.saveEdits(type);
+                        }
+                    }
                 }
             }}
         />
-        {/* { dateErrors.length > 0 && 
+        { dateErrors.length > 0 && 
             <ErrorsList errors={dateErrors} id={dateErrorListId}/> 
-        } */}
+        }
     </label>
 })
 
@@ -806,10 +805,12 @@ const EditableTimePortion = observer(({
     const timeInputRef: MutableRefObject<HTMLInputElement | null> = useRef(null); 
     const [timeHovered, setTimeHovered] = useState(false);
     const datetime = isDueType ? task.due : task.start;
-    const timeStringUnderEdit = isDueType ? task.dueTimeStringUnderEdit : task.startTimeStringUnderEdit;
-    const timeErrors = isDueType ? task.validationErrors.dueTimeStringUnderEdit : task.validationErrors.startTimeStringUnderEdit;
-    const timeErrorListId = useId();
-    const updateTaskTime = isDueType ? (val: string) => {task.dueTimeStringUnderEdit = val;} : (val: string) => {task.startTimeStringUnderEdit = val;};
+    const convertToDateTime = (timeString: string) => DateTime.fromMillis((new Date(`${dateField?.toFormat("yyyy-MM-dd")}T${timeString}:00`).valueOf()));
+    const updateTaskTime = isDueType ? (val: DateTime) => {
+        task.due = val;
+    } : (val: DateTime) => {
+        task.start = val;
+    };
     const setShowTaskTime = isDueType ? (val: boolean) => {
         task.showDueTime = val;
         task.saveEdits("showDueTime");
@@ -837,18 +838,18 @@ const EditableTimePortion = observer(({
                             // Value in 24 hour time string for time input to translate it into whatever the user has set.
                             value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 
                             onChange={(e: ChangeEvent<HTMLInputElement>) => {
-                                updateTaskTime(e.target.value);
-                            }}
-                            aria-invalid={timeErrors.concat(task.validationErrors.workInterval).length !== 0} 
-                            onFocus={() => { setTimeHovered(true) }}
-                            onBlur={(e: ChangeEvent<HTMLInputElement>) => {
-                                setTimeHovered(false);
-                                if (startingDate && dateField !== startingDate.current) {
+                                const dateTime = convertToDateTime(e.target.value);
+                                updateTaskTime(dateTime);
+                                if (startingDate && dateTime !== startingDate.current) {
                                     task.saveEdits(type);
                                 }
                                 else {
                                     task.abortEdits(type);
                                 }
+                            }}
+                            onFocus={() => { setTimeHovered(true) }}
+                            onBlur={(e: ChangeEvent<HTMLInputElement>) => {
+                                setTimeHovered(false);
                             }}
                         />
                         <ClearTaskFieldButton 
@@ -859,9 +860,6 @@ const EditableTimePortion = observer(({
                             {...{className: `right appear-on-hover${timeHovered ? " hover":""}`}}
                             />
                     </div>
-                    { timeErrors.length > 0 && 
-                        <ErrorsList errors={timeErrors} id={timeErrorListId}/>
-                    } 
                 </label> 
             </div>
             : <button 

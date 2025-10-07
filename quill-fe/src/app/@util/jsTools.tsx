@@ -68,22 +68,6 @@ export const clickedInBounds = (rect: ClientRect, x: number, y: number) => {
     return x <= rect.right && x >= rect.left && y >= rect.top && y <= rect.bottom; 
 };
 
-
-/**
- * Assign a value to a forwarded ref, handling MutableObjectRefs and ref assignment function cases
- * @param ref 
- * @param node 
- */
-export const assignForwardedRef = (ref: ForwardedRef<any> | RefCallback<HTMLElement>, node: HTMLElement | null) => {
-    if (typeof ref === "function") {
-        ref(node);
-    }
-    else if (ref) {
-        ref.current = node;
-    }
-}
-
-
 /**
  * Combine a given string and any possible the className values from props
  * @returns a string of the passed className and any className from the passed props

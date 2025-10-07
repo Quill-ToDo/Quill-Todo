@@ -18,7 +18,8 @@ import { CalendarWidget } from "@/widgets/Calendar/Calendar";
 import { ICONS, HOME_ID } from "@/util/constants";
 import { Draggable, Droppable } from "@/util/Draggable";
 import { AttachedPopupOnClick } from "@/util/Popup";
-import { combineClassNamePropAndString, assignForwardedRef } from '@/util/jsTools';
+import { combineClassNamePropAndString } from '@/util/jsTools';
+import { useMergeRefs } from "@floating-ui/react";
 
 export const NEW_TASK_TEXT = "Add task";
 
@@ -100,10 +101,7 @@ const DashboardLayout = observer(({
                                         }}
                                         renderDroppableItem={(props, ref) => <button 
                                             {...props}
-                                            ref={(node) => {
-                                                assignForwardedRef(trashBtnRef, node);
-                                                assignForwardedRef(ref, node);
-                                            }}
+                                            ref={useMergeRefs([ref, trashBtnRef])}
                                             onClick={() => {
                                                 addAlert(trashBtnRef.current, "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
                                             }}

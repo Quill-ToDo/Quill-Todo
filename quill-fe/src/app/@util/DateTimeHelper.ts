@@ -66,21 +66,10 @@ export const DATETIME_FORMATS: {D_t: DateFormat, ISO: DateFormat, [index : strin
  * Supports parsing dtString in supported formats into a Luxon DateTime object. Returns null if unable to parse
  * @param {*} dtString DateTime String in ISO or "D t" formats
  */
-export const stringToDateTimeHelper = (dtString: string, timeString?: string) => 
+export const stringToDateTimeHelper = (dtString: string) => 
     {
-        var date = DateTime.invalid("Invalid DateTime string", "Please provide a valid string");
-        if (dtString.trim() === "") {
-            return date;
-        }
-        var formatter;
-        for (let formatKey in DATETIME_FORMATS) {
-            formatter = DATETIME_FORMATS[formatKey];
-            date = formatter.deserializer(dtString, timeString);
-            if (!date.invalid) {
-                break;
-            }
-        };
-        return date;
+        var parsed = new Date(dtString); 
+        return DateTime.fromMillis(parsed.valueOf());
     };
 
 export const dateTimeHelper = (maybeDateTime: string | DateTime<boolean>) => {
