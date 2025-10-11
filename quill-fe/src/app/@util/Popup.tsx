@@ -31,20 +31,18 @@ export type InnerPopupProps = {
     popupMargin?: number,
 }
 export type PopupSetupProps = {
-    renderPopupContent: RenderPopUpContent,
-    renderElementToClick: RenderAnchorElement,
+    popupRenderMethod: PopupRenderMethod,
+    anchorRenderMethod: AnchorRenderMethod,
 } & InnerPopupProps;
 
-export type PersistentProps = {
-    setPopupContent: Dispatch<SetStateAction<ReactElement | null>>;
-} & PopupSetupProps;
+export type PersistentProps = PopupSetupProps;
 
-export type RenderPopUpContent = ForwardRefRenderFunction<HTMLElement, {
+export type PopupRenderMethod = ForwardRefRenderFunction<HTMLElement, {
     closePopup: (callback?: Function)=>void,
     popupContainerProps: ComponentPropsWithoutRef<any>,
 }>;
 
-export type RenderAnchorElement = ForwardRefRenderFunction<HTMLButtonElement, {
+export type AnchorRenderMethod = ForwardRefRenderFunction<HTMLButtonElement, {
     openPopup: (callback?: Function)=>void, 
     anchorProps: ComponentPropsWithoutRef<any>,
 }>;
@@ -151,7 +149,6 @@ export const AnchorWithPersistentPopupAttached = observer((
         // 3rd party libraries.
         // Use context to hold the popup content so that it may persist even when the anchor element
         // is unmounteds from the dom
-        const popupContext = useContext(PersistentPopupContext);
         const defaultProps = {
             position: position,
             placement: placement,
@@ -159,24 +156,10 @@ export const AnchorWithPersistentPopupAttached = observer((
             doneLoading: doneLoading,
             draggable: draggable,
             useDragHandle: useDragHandle,
-            setPopupContent: popupContext,
         }
         return <FloatingUiPersistentPopup {...props} {...defaultProps} />;
 });
 
-export const PersistentPopupContext = createContext<Dispatch<SetStateAction<null | ReactElement>>>(() => null);
-export const PersistentPopupContextProvider = ({children}: {
-    children: ReactNode,
-}) => {
-    const [popupContent, setPopupContent] = useState<null | ReactElement>(null);
-
-    return <PersistentPopupContext.Provider
-        value={setPopupContent}
-    >
-        { children }
-        { popupContent }
-    </PersistentPopupContext.Provider>
-}
 
 /**
  * Simple popup menu containing a list of clickable items. Add the property:
@@ -198,15 +181,15 @@ export const ContextMenuPopup = observer((
             onClick: () => void, 
             visible: boolean, // Should this element appear in the content menu?
         }[],
-        renderElementToClick: RenderAnchorElement, // Must stay a callback
+        renderElementToClick: AnchorRenderMethod, // Must stay a callback
         header?: ReactElement<"any">, // Optional header content for the context menu
         placement?: "left" | "bottom" | "right" | "top",
         alignment?: "start" | "middle" | "end",
     }
 ) => {
     return <AttachedPopupOnClick
-        renderElementToClick={(props, ref) => renderElementToClick(props, ref)}
-        renderPopupContent={({closePopup, popupContainerProps}, ref) => 
+        anchorRenderMethod={(props, ref) => renderElementToClick(props, ref)}
+        popupRenderMethod={({closePopup, popupContainerProps}, ref) => 
             <div 
               ref={ref as LegacyRef<HTMLDivElement>}
               {...popupContainerProps}

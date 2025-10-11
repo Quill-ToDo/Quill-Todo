@@ -258,6 +258,20 @@ textarea,
     opacity: 0;
 }
 
+.transparent {
+    opacity: 0;
+}
+
+/* .positioner.draggable-handle {
+    background-color: rgba(255, 0, 0, 0.136);
+}
+
+#portal-holder .positioner {
+    min-width: 50px;
+    min-height: 50px;
+    background-color: rgba(0, 255, 255, 0.43);
+} */
+
 /* Grid box for input auto sizing util wrapper */
 .input-sizer {
     display: inline-grid;

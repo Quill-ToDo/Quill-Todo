@@ -40,14 +40,10 @@ export type DraggableParams = {
 }
 
 export type DroppableParams = {
+    children: ReactNode,
     itemType?: DraggableParams["itemType"],
     itemData?: DraggableParams["itemData"],
     acceptedItemTypes: string[],
-    renderDroppableItem: ForwardRefRenderFunction<
-        HTMLElement, 
-        { id: string,
-        } & ComponentPropsWithoutRef<any>
-    >,
     onDrop?: ({...props}: DragDropEventData) => void,
 }
 /**

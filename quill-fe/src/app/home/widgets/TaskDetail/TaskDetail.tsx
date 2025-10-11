@@ -32,11 +32,10 @@ export const TASK_DETAIL_POPUP_NAME = "Task Detail";
 const TaskDetail = observer(forwardRef<any, {
     task: TaskModel,  
     closeWidget?: (() => void) | undefined,
-    containerProps?: ComponentPropsWithoutRef<"div">,
 }>(({
     task, 
     closeWidget, 
-    containerProps,
+    ...props
 }, forwardedRef) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
     const [showDescription, setShowDescription] = useState(true);
@@ -97,12 +96,12 @@ const TaskDetail = observer(forwardRef<any, {
     }, [task])
 
     return <TaskWrapper 
-        {...containerProps}
+        {...props}
         highlightable={false}
         task={task} 
         aria-label={TASK_DETAIL_POPUP_NAME}
         role="dialog"
-        className={combineClassNamePropAndString(`task-detail`, containerProps as ComponentPropsWithoutRef<"div">)}
+        className={combineClassNamePropAndString(`task-detail`, props as ComponentPropsWithoutRef<"div">)}
         ref={forwardedRef} 
     >
         <header className={DRAGGABLE_HANDLE_CLASS}>

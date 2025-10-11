@@ -31,7 +31,7 @@ import {
 import TaskDetail from "./TaskDetail";
 import { ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
-import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick } from "@/util/Popup";
+import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick, POPUP_CLASS } from "@/util/Popup";
 import './tasks.css';
 import { DateFormat, dateTimeHelper, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
@@ -87,8 +87,8 @@ export const DeleteTaskConfirmationPopup = observer(({
     const [task, setTask] = useState<null | TaskModel>(null);
 
     return <AttachedPopupOnClick 
-        renderElementToClick={(props, ref) => renderAnchor(setTask)}
-        renderPopupContent={(closePopup) => task ? <section 
+        anchorRenderMethod={(props, ref) => renderAnchor(setTask)}
+        popupRenderMethod={(closePopup) => task ? <section 
             className={"mid-section confirmation"}
         >
             <p>Are you sure you want to delete this task?</p>
@@ -392,19 +392,19 @@ export const ColorBubble = observer(({
         </svg>;
 
     return openColorPicker ? <AttachedPopupOnClick 
-                renderElementToClick={(popupProps, ref) => <div
+                anchorRenderMethod={({anchorProps, openPopup}, ref) => <div
                     className="color-bubble-wrapper centered">
                     <button
-                        {...popupProps.anchorProps}
+                        {...anchorProps}
                         {...buttonProps}
                         ref={ref}
                         className={combineClassNamePropAndString(
-                            combineClassNamePropAndString("color-bubble-input", popupProps.anchorProps),
+                            combineClassNamePropAndString("color-bubble-input", anchorProps),
                             buttonProps
                         )} 
                         onClick={(e) => {
                             e.preventDefault();
-                            popupProps.openPopup();
+                            openPopup();
                         }}
                         title="Change task color"
                         // role="button"
@@ -414,7 +414,7 @@ export const ColorBubble = observer(({
                     </button>
                     {colorBubble}
                     </div>}
-                renderPopupContent={({closePopup, popupContainerProps}, ref) => <ColorGridPicker 
+                popupRenderMethod={({closePopup, popupContainerProps}, ref) => <ColorGridPicker 
                     ref={ref}
                     task={task} 
                     closePicker={closePopup} 
@@ -441,7 +441,7 @@ const PlainTaskTitle = observer((
         openTaskDetailPopup?: boolean,
     }
 ) => {
-    const [task, setTask] = useState(useTaskContextOrPassedTask(passedTask));
+    const [task] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
 
     let toReturn: ReactNode = <p 
@@ -451,12 +451,12 @@ const PlainTaskTitle = observer((
     </p>;
     if (openTaskDetailPopup) {
         return <AnchorWithPersistentPopupAttached
-                placement="right"
-                alignment= "middle"
+                alignment="middle"
+                placement="auto"
                 popupMargin={10}
                 draggable={true}
                 useDragHandle={true}
-                renderElementToClick={({openPopup, anchorProps}, ref) => <button
+                anchorRenderMethod={({openPopup, anchorProps}, ref) => <button
                         {...anchorProps}
                         onClick={(e) => {
                             anchorProps.onClick && anchorProps.onClick(e);
@@ -468,12 +468,13 @@ const PlainTaskTitle = observer((
                         {toReturn}
                     </button>
                     }
-            renderPopupContent={({closePopup, popupContainerProps}, ref) => 
+            popupRenderMethod={({closePopup, popupContainerProps}, ref) => 
                 <TaskDetail 
+                        {...popupContainerProps}
                         task={task} 
                         closeWidget={closePopup}
-                        containerProps={popupContainerProps}
                         ref={ref}
+                        // {...{className: combineClassNamePropAndString(POPUP_CLASS, popupContainerProps)}}
                 />}
         />;
     }
@@ -764,7 +765,6 @@ const EditableDatePortion = observer(({
         <ResizableInput 
             version="input"
             type="date"
-            width="narrow"
             aria-invalid={dateErrors.length !== 0} 
             { ...(date && {value: date.toFormat("yyyy-MM-dd")})}
             // aria-describedby={dateErrorListId}
@@ -833,7 +833,6 @@ const EditableTimePortion = observer(({
                     <div className={`aligned `}>
                         <ResizableInput
                             version="input"
-                            width="narrow"
                             type="time"
                             // Value in 24 hour time string for time input to translate it into whatever the user has set.
                             value={datetime?.toLocaleString(DateTime.TIME_24_SIMPLE)} 

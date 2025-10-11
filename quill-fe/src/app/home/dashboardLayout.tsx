@@ -19,7 +19,6 @@ import { ICONS, HOME_ID } from "@/util/constants";
 import { Draggable, Droppable } from "@/util/Draggable";
 import { AttachedPopupOnClick } from "@/util/Popup";
 import { combineClassNamePropAndString } from '@/util/jsTools';
-import { useMergeRefs } from "@floating-ui/react";
 
 export const NEW_TASK_TEXT = "Add task";
 
@@ -29,7 +28,7 @@ const DashboardLayout = observer(({
     children?: React.ReactNode,
 }) => {
     const taskStore = useRef(useTaskStore());
-    const trashBtnRef = useRef<HTMLButtonElement | null>(null);
+    const trashBtnRef = useRef(null);
     const widgets = children ? children :<>
         <ListWidget />
         <CalendarWidget />
@@ -50,7 +49,7 @@ const DashboardLayout = observer(({
                     <AttachedPopupOnClick
                         draggable={true}
                         useDragHandle={true}
-                        renderElementToClick={(props, ref) => <button 
+                        anchorRenderMethod={(props, ref) => <button 
                                 {...props.anchorProps}
                                 ref={ref}
                                 id="add-task"
@@ -65,7 +64,7 @@ const DashboardLayout = observer(({
                             >
                                 { ICONS.PLUS }
                             </button>}
-                        renderPopupContent={({closePopup, popupContainerProps}, ref) => <AddNewTaskPopUp
+                        popupRenderMethod={({closePopup, popupContainerProps}, ref) => <AddNewTaskPopUp
                             ref={ref}
                             {...popupContainerProps}
                             close={() => closePopup(()=> {
@@ -97,21 +96,20 @@ const DashboardLayout = observer(({
                                                 }
                                             }
                                         }}
-                                        renderDroppableItem={(props, ref) => <button 
-                                            {...props}
-                                            ref={useMergeRefs([ref, trashBtnRef])}
-                                            onClick={() => {
-                                                addAlert(trashBtnRef.current, "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
-                                            }}
-                                            role="menuitem" 
-                                            className={combineClassNamePropAndString("btn small square bg", props)} 
-                                            title="Trash" 
-                                            type="button"
+                                    >
+                                    <button 
+                                        ref={trashBtnRef}
+                                        onClick={() => {
+                                            addAlert(trashBtnRef.current, "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
+                                        }}
+                                        role="menuitem" 
+                                        className={"btn small square bg"} 
+                                        title="Trash" 
+                                        type="button"
                                         >
-                                            { ICONS.TRASH }
-                                        </button>
-                                        }
-                                    />
+                                        { ICONS.TRASH }
+                                    </button>
+                                </Droppable>
                             </Draggable>
                         }
                     /> 

@@ -41,8 +41,6 @@ import { clickedInBounds, searchThroughParents } from '@util/jsTools';
 import { observer } from 'mobx-react-lite';
 import { DRAGGABLE_CONTAINER_CLASS, DRAGGABLE_HANDLE_CLASS, POPUP_POSITIONER_CLASS, } from '../@util/constants';
 import { useMergeRefs } from '@floating-ui/react';
-import { POPUP_CLASS } from '../@util/Popup';
-const DRAG_POSITIONER_ID = "drag-id";
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 const numbersFromTranslate = (s: String) => {
     const x = Number(s.substring(s.indexOf("(")+1, s.indexOf("px")));
@@ -335,15 +333,15 @@ const FreelyDraggable = observer(forwardRef(({
 
     useDndMonitor({
         onDragStart(e) {
+            setItemIsBeingDragged(true);
             dragStart && dragStart(e, (startingPosition) => {
                 setStartingCoords(startingPosition);
-                setItemIsBeingDragged(true);
             })
         },
         onDragEnd(e) {
+            setItemIsBeingDragged(false);
             dragEnd && dragEnd(e, (endingPosition) => {
                 setStartingCoords(endingPosition);
-                setItemIsBeingDragged(false);
             })
         },
     })
@@ -409,11 +407,11 @@ const PickUpAndMove = observer(forwardRef(({
 //endregion Draggable
 //region Droppable
 /**
- * DND Kit implementation of a draggable element. 
+ * DND Kit implementation of a droppable element. 
  * @returns 
  */
 export const DroppableDndKitImplementation = observer(forwardRef(({
-    renderDroppableItem, 
+    children, 
     itemType, 
     itemData, 
     acceptedItemTypes, 
@@ -451,13 +449,14 @@ export const DroppableDndKitImplementation = observer(forwardRef(({
         }
     })
 
-    return renderDroppableItem({
-            ...props,
-            id: id,
-            className: combineClassNamePropAndString(`droppable${isOver ? (validDropTarget ? " valid" : " invalid") : ""}`, props),
-        }, 
-        ref
-    );
+    return <div
+        ref={ref}
+        {...props}
+        id={id}
+        className={`droppable${isOver ? (validDropTarget ? " valid" : " invalid") : ""}`}
+    >
+        {children}
+    </div> 
 }));
 
 //endregion Droppable
@@ -536,14 +535,8 @@ function restrictToBoundingRect(
                     successCondition: (node) => node.classList.contains(DRAGGABLE_HANDLE_CLASS) 
                         && clickedInBounds(node.getClientRects()[0], event.clientX, event.clientY),
                     failCondition: (node) => {
-                        // Stop searching for parent with DRAGGABLE_HANDLE_CLASS if they clicked on something else interactible
-                        // that covered the drag handle
-                        const interactableCoveringDragHandle = (
-                            ["BUTTON", "INPUT", "TEXTAREA"].includes(node.tagName)
-                            || node.classList.contains(INTERACTABLE_ELEMENT_CLASS)
-                        ) && !(node.classList.contains(DRAGGABLE_HANDLE_CLASS));
                         const reachedParentDraggableNode = node.classList.contains(DRAGGABLE_CONTAINER_CLASS) && !node.classList.contains(DRAGGABLE_HANDLE_CLASS);
-                        return interactableCoveringDragHandle || reachedParentDraggableNode;
+                        return reachedParentDraggableNode;
                     }
                 });
                 return !!(event.isPrimary && thisOrParentElementIsDraggable);

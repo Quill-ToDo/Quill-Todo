@@ -6,8 +6,8 @@ import { StoreProvider } from '@/store/StoreProvider';
 import { observer } from 'mobx-react-lite';
 import { ReactNode } from 'react';
 import RootStore from './home/_globalStore/RootStore';
-import { PersistentPopupContextProvider } from '@/util/Popup';
 import { DragContextProvider } from './@util/Draggable';
+import { PersistentPopupContextProvider } from './3rd-party/FloatingUiHelpers';
 
 const QuillContext = observer(({
   widgets,
