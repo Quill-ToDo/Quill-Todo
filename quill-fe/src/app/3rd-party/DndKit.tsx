@@ -89,6 +89,7 @@ export const DraggingContent = observer(() => {
     const modifiers: any = [];
     // Use content from nearest drag context to render dragged content in a drag overlay
 
+    // TODO how to make drag overlay container class take the classes of the real div...
     // Drag overlay should always be mounted and content within should be conditionally rendered
     return (
     <DragOverlay 
@@ -150,7 +151,6 @@ export const WrapWithDndContext = observer(({
         }}
     >
         <DndContext 
-            collisionDetection={closestCenter}
             modifiers={modifiers}
             sensors={sensors}
             autoScroll={false}
@@ -181,7 +181,7 @@ export const DraggableDndKitImplementation = observer(forwardRef(({
     useHandle,
     dragStart,
     dragEnd,
-    ...props
+    ...droppableProps
 } : DraggableParams, ref) => {
     const id = useId();
     const dragContext = useContext(DraggableContext);
@@ -234,6 +234,8 @@ export const DraggableDndKitImplementation = observer(forwardRef(({
         ref={ref}
         draggedContent={draggedContent}
         {...sharedPositioningProps}
+        {...droppableProps}
+        className={combineClassNamePropAndString(sharedPositioningProps.className, droppableProps)}
         id={id}
         dragStart={sharedDragStart}
         dragEnd={sharedDragEnd}
@@ -374,8 +376,9 @@ const PickUpAndMove = observer(forwardRef(({
     itemType,
     itemData,
     draggedContent,
-    ...passedElementProps
-}: DragOptions, forwardedRef) => {
+    useDragHandle,
+    ...props
+}: DragOptions & ComponentPropsWithoutRef<any>, forwardedRef) => {
     const {attributes, listeners, setNodeRef} = useDraggable({
         id: id,
         attributes: {
@@ -394,7 +397,7 @@ const PickUpAndMove = observer(forwardRef(({
     ;
 
     return <div
-        {...passedElementProps}
+        {...props}
         ref={ref}
         id={id}
         {...attributes}

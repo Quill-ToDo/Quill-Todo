@@ -12,15 +12,12 @@ import { observer } from "mobx-react-lite";
 import { 
     ChangeEvent,
     ComponentPropsWithoutRef, 
-    Dispatch, 
     ForwardedRef, 
     forwardRef, 
     ForwardRefRenderFunction, 
-    HTMLProps, 
     MouseEvent, 
     MutableRefObject, 
     ReactNode, 
-    SetStateAction, 
     useCallback, 
     useContext, 
     useEffect, 
@@ -33,9 +30,9 @@ import { ICONS, UNSET_TASK_TITLE_PLACEHOLDER } from "@util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick, POPUP_CLASS } from "@/util/Popup";
 import './tasks.css';
-import { DateFormat, dateTimeHelper, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
+import { DateFormat, PARTIAL_DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
-import { INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
+import { Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
 import { useMergeRefs } from "@floating-ui/react";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
@@ -82,25 +79,54 @@ export const TaskBeingDragged = observer(forwardRef((
 export const DeleteTaskConfirmationPopup = observer(({
         renderAnchor
     }: {
-        renderAnchor: (setTaskToDelete: Dispatch<SetStateAction<TaskModel | null>>) => ReactNode
+        renderAnchor: ForwardRefRenderFunction<HTMLButtonElement, {
+        openPopup: (getTask: () => TaskModel) => void;
+            anchorProps: ComponentPropsWithoutRef<any>;
+        }>
     }) => {
-    const [task, setTask] = useState<null | TaskModel>(null);
-
+    const [taskToDelete, setTaskToDelete] = useState<null | TaskModel>(null);
+    
     return <AttachedPopupOnClick 
-        anchorRenderMethod={(props, ref) => renderAnchor(setTask)}
-        popupRenderMethod={(closePopup) => task ? <section 
+        anchorRenderMethod={({anchorProps, openPopup}, ref) => {
+            return renderAnchor({
+                anchorProps,
+                // Make the callback for after the popup is opened setting the task for the popup data
+                openPopup: (getTask: () => TaskModel) => {
+                    if (!getTask) {
+                        openPopup();
+                        return;
+                    }
+                    const passedTask = getTask();
+                    setTaskToDelete(passedTask);
+                    openPopup();
+                },
+            }, ref);
+        }}
+        popupRenderMethod={({closePopup}) => taskToDelete ? <section 
             className={"mid-section confirmation"}
         >
             <p>Are you sure you want to delete this task?</p>
             <br />
-            <PlainTaskTitle passedTask={task}/>
+            {taskToDelete && <TaskTitle passedTask={taskToDelete} className={"centered"}/>}
             <br />
             <div className={"rows gap centered"}>
                 <button 
                     className={"btn med"} 
-                    onClick={ () => closePopup}
-                >Cancel</button>
-                <button className={"btn med  bg"} type={"submit"} autoFocus={true} onClick={() => {task.deleteSelf();}}>Delete</button>
+                    onClick={ () => {closePopup()}}
+                >
+                    Cancel
+                </button>
+                <button 
+                    className={"btn med bg"} 
+                    type={"submit"} 
+                    autoFocus={true} 
+                    onClick={() => {
+                        taskToDelete.deleteSelf();
+                        closePopup();
+                    }}
+                >
+                    Delete
+                </button>
             </div>
         </section> : <></>}
     />
@@ -151,35 +177,29 @@ export const TaskWrapper = observer(forwardRef((
     </div>;
 
     // let content = useCallback((props: ComponentPropsWithoutRef<"div">, ref: ForwardedRef<HTMLDivElement>) => renderContent(props, ref), [props, ref]);
-    // droppable ? 
-    // <DeleteTaskConfirmationPopup 
-    //     renderAnchor={(setTask) => <Droppable 
-    //         itemType={TASK_DRAG_TYPE}
-    //         itemData={{id: task.id}}
-    //         onDrop={({drop}) => {
-    //             if (drop && drop.type === TASK_ACTIONS.delete) {
-    //                 setTask(task);
-    //             }
-    //         }}
-    //         acceptedItemTypes={TASK_ACCEPTED_DRAG_TYPES}
-    //         renderDroppableItem={(droppableProps, droppableRef) => {
-    //             return renderContent({
-    //                 ...props,
-    //                 ...droppableProps,
-    //                 // ...deleteConfirmationSetup.getReferenceProps,
-    //                 className: combineClassNamePropAndString(props.className ? props.className : "", droppableProps),
-    //             }, (ele) => {
-    //                 assignForwardedRef(droppableRef, ele);
-    //                 assignForwardedRef(ref, ele);
-    //                 // assignForwardedRef(deleteConfirmationSetup.setPopupPositioningAnchor, ele);
-    //             });
-    //         }}
-    //     />}
-    // /> : 
-    // renderContent(props, ref);
+    const mightBeDroppable = droppable ? 
+        <Droppable 
+            itemType={TASK_DRAG_TYPE}
+            itemData={{id: task.id}}
+            onDrop={({drop}) => {
+                if (drop && drop.type === TASK_ACTIONS.delete) {
+                    
+                    // setTaskTo(task);
+                    // TODO Open task delete confirmation
+                }
+            }}
+            acceptedItemTypes={TASK_ACCEPTED_DRAG_TYPES}
+            > 
+                { renderContent({
+                    ...props,
+                }, 
+                ref)
+                }
+            </Droppable> 
+    : renderContent(props, ref);
 
     return <TaskContext.Provider value={task}>
-        { renderContent(props, ref) }
+        { mightBeDroppable }
     </TaskContext.Provider>;
 }));
 
@@ -307,8 +327,8 @@ const TaskCheckbox = observer(({
 const ColorGridPicker = observer(forwardRef<any, {
     task: TaskModel, 
     closePicker: () => void, 
-    props: HTMLProps<any>
-}>(({task, closePicker, props}, forwardedRef) => {
+    props?: ComponentPropsWithoutRef<any>
+}>(({task, closePicker, ...props}, forwardedRef) => {
     const errorId = useId();
     const inputRef = useRef(null);
     const startingTaskColor = useRef(task.color);
@@ -414,11 +434,10 @@ export const ColorBubble = observer(({
                     </button>
                     {colorBubble}
                     </div>}
-                popupRenderMethod={({closePopup, popupContainerProps}, ref) => <ColorGridPicker 
+                popupRenderMethod={({closePopup}, ref) => <ColorGridPicker 
                     ref={ref}
                     task={task} 
                     closePicker={closePopup} 
-                    props={popupContainerProps}
                     />}
                 position={"positioned"} 
                 placement={"bottom"}
@@ -439,7 +458,7 @@ const PlainTaskTitle = observer((
     }: {
         passedTask?: TaskModel,
         openTaskDetailPopup?: boolean,
-    }
+    } & ComponentPropsWithoutRef<any>
 ) => {
     const [task] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
@@ -457,7 +476,9 @@ const PlainTaskTitle = observer((
                 draggable={true}
                 useDragHandle={true}
                 anchorRenderMethod={({openPopup, anchorProps}, ref) => <button
+                        {...props}
                         {...anchorProps}
+                        className={combineClassNamePropAndString(props.className, anchorProps)}
                         onClick={(e) => {
                             anchorProps.onClick && anchorProps.onClick(e);
                             openPopup();
@@ -468,9 +489,8 @@ const PlainTaskTitle = observer((
                         {toReturn}
                     </button>
                     }
-            popupRenderMethod={({closePopup, popupContainerProps}, ref) => 
+            popupRenderMethod={({closePopup}, ref) => 
                 <TaskDetail 
-                        {...popupContainerProps}
                         task={task} 
                         closeWidget={closePopup}
                         ref={ref}
@@ -543,10 +563,12 @@ export const TaskTitle = observer((
 
     if (!editAllowed) {
         return <PlainTaskTitle 
+            passedTask={task}
             {...formattedProps}
         />;
     }
     return <EditableTaskTitle
+        passedTask={task}
         {...formattedProps}
     />
 });

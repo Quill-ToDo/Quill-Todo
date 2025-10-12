@@ -28,7 +28,6 @@ const DashboardLayout = observer(({
     children?: React.ReactNode,
 }) => {
     const taskStore = useRef(useTaskStore());
-    const trashBtnRef = useRef(null);
     const widgets = children ? children :<>
         <ListWidget />
         <CalendarWidget />
@@ -64,9 +63,8 @@ const DashboardLayout = observer(({
                             >
                                 { ICONS.PLUS }
                             </button>}
-                        popupRenderMethod={({closePopup, popupContainerProps}, ref) => <AddNewTaskPopUp
+                        popupRenderMethod={({closePopup}, ref) => <AddNewTaskPopUp
                             ref={ref}
-                            {...popupContainerProps}
                             close={() => closePopup(()=> {
                                     if (taskStore.current && taskStore.current.taskBeingCreated && taskStore.current.taskBeingCreated.isNewAndUnsubmitted) {
                                         taskStore.current.taskBeingCreated.abortTaskCreation();
@@ -77,33 +75,32 @@ const DashboardLayout = observer(({
                         />}
                     />
                     <DeleteTaskConfirmationPopup
-                        renderAnchor={(setTaskToDelete) => <Draggable 
+                        renderAnchor={({anchorProps, openPopup}, ref) => <Draggable 
                                 actionTitle="Drag to item to delete"
                                 droppable={true}
                                 itemType={TASK_ACTIONS.delete}
                             >
                                 <Droppable 
-                                        acceptedItemTypes={[TASK_DRAG_TYPE]}
-                                        itemType={TASK_ACTIONS.delete}
-                                        onDrop={({drag}) => {
-                                            if (drag && drag.type === TASK_DRAG_TYPE) {
-                                                const droppedTaskId = drag.value.id; 
-                                                const droppedTask = taskStore.current.getTaskById(droppedTaskId);
-                                                if (droppedTask) {
-                                                    // const popupSetup = getDeleteConfirmationPopupSetup(droppedTask);
-                                                    // popupSetup.openPopup();
-                                                    setTaskToDelete(droppedTask);
-                                                }
+                                    acceptedItemTypes={[TASK_DRAG_TYPE]}
+                                    itemType={TASK_ACTIONS.delete}
+                                    onDrop={({drag}) => {
+                                        if (drag && drag.type === TASK_DRAG_TYPE) {
+                                            const droppedTaskId = drag.value.id; 
+                                            const droppedTask = taskStore.current.getTaskById(droppedTaskId);
+                                            if (droppedTask) {
+                                                openPopup(() => droppedTask);
                                             }
-                                        }}
-                                    >
+                                        }
+                                    }}
+                                >
                                     <button 
-                                        ref={trashBtnRef}
+                                        ref={ref}
+                                        {...anchorProps}
                                         onClick={() => {
-                                            addAlert(trashBtnRef.current, "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
+                                            addAlert(document.getElementById(HOME_ID), "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
                                         }}
                                         role="menuitem" 
-                                        className={"btn small square bg"} 
+                                        className={combineClassNamePropAndString("btn small square bg", anchorProps)} 
                                         title="Trash" 
                                         type="button"
                                         >

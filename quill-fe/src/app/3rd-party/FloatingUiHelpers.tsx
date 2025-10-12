@@ -186,7 +186,7 @@ const getPositionedDraggablePopup = ({
             positioningProps={propsHiddenWhileNotPositioned}
             ref={mergedRef}
         >
-            { getPositionedPopup({popupContainerProps:{}, closePopup: () => {}}, null) }
+            { getPositionedPopup({closePopup: () => {}}, null) }
         </Draggable>
         : 
         <div
@@ -194,7 +194,7 @@ const getPositionedDraggablePopup = ({
             {...propsHiddenWhileNotPositioned}
             className={combineClassNamePropAndString(POPUP_POSITIONER_CLASS, propsHiddenWhileNotPositioned)}
         >
-            { getPositionedPopup({popupContainerProps: {}, closePopup: () => {}}, null) }
+            { getPositionedPopup({closePopup: () => {}}, null) }
         </div>;
 
     // Portal this shit away
@@ -242,14 +242,17 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
     forwardedRef: ForwardedRef<any>) => {
     const [showPopup, setShowPopup] = useState(false);
 
-    const popupSetup = getPositionedDraggablePopup({
-        getPositionedPopup: ({popupContainerProps}, ref) => 
+    const {
+        content, 
+        anchorRef, 
+        getAnchorProps
+    } = getPositionedDraggablePopup({
+        getPositionedPopup: ({}, ref) => 
             popupRenderMethod({
                 closePopup: (callback?: Function) => {
                         setShowPopup(false);
                         callback && callback();
                     }, 
-                popupContainerProps: popupContainerProps 
                 }, 
                 ref,
             ),
@@ -267,12 +270,12 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
                         setShowPopup(true);
                         callback && callback();
                 },
-                anchorProps: popupSetup.getAnchorProps(),
+                anchorProps: getAnchorProps(),
             },
-            popupSetup.anchorRef, 
+            anchorRef, 
         )} 
         {/* Popup */}
-        { showPopup && popupSetup.content }
+        { showPopup && content }
     </>
 }))
 
@@ -381,13 +384,13 @@ export const PersistentPopupContextProvider = ({children}: {
     //     an anchor ref, and anchor props to pass back to the 
     //     paricular anchor element that opened the popup
     const { content, anchorRef: setPopupAnchor, getAnchorProps, popupIsPositioned } = getPositionedDraggablePopup({
-        getPositionedPopup: ({popupContainerProps}, ref) => 
+        getPositionedPopup: ({closePopup}, ref) => 
             popupProps.popupRenderMethod({
                     closePopup: (callback?: Function) => {
                         setShowPopup(false);
                         callback && callback();
+                        closePopup();
                     }, 
-                    popupContainerProps: popupContainerProps
                 }, 
                 ref),
             isOpen: showPopup,
@@ -395,16 +398,14 @@ export const PersistentPopupContextProvider = ({children}: {
             ...popupProps
         });
     
-        // TODO this is currently causing errors because content is changing every time
-    //   5) After everything is rendered, listen for changes to the popup content 
-    //      base (do to the anchor being set etc.)
-    //      and anchor props. render updates popup content as soon as it is received
-    useEffect(() => {
-        if (showPopup) {
-            setPopupContent(content as ReactElement);
-            setAnchorProps(getAnchorProps());
-        }
-    }, [showPopup, content]);
+        //   5) When the popup is open, render popup content but transparent so not visible before positioning it. 
+        //      After it has been postioned, update the content again as it will no longer be transparent
+        useEffect(() => {
+            if (showPopup) {
+                setPopupContent(content as ReactElement);
+                setAnchorProps(getAnchorProps());
+            }
+    }, [showPopup, popupIsPositioned]);
 
     //  4) Pass the anchor ref and anchor props to position the popup in context data so that 
     //     the anchor element can access them and render them into it's returned anchor element 

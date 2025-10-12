@@ -39,7 +39,6 @@ export type PersistentProps = PopupSetupProps;
 
 export type PopupRenderMethod = ForwardRefRenderFunction<HTMLElement, {
     closePopup: (callback?: Function)=>void,
-    popupContainerProps: ComponentPropsWithoutRef<any>,
 }>;
 
 export type AnchorRenderMethod = ForwardRefRenderFunction<HTMLButtonElement, {
@@ -189,11 +188,10 @@ export const ContextMenuPopup = observer((
 ) => {
     return <AttachedPopupOnClick
         anchorRenderMethod={(props, ref) => renderElementToClick(props, ref)}
-        popupRenderMethod={({closePopup, popupContainerProps}, ref) => 
+        popupRenderMethod={({closePopup}, ref) => 
             <div 
               ref={ref as LegacyRef<HTMLDivElement>}
-              {...popupContainerProps}
-              {...{className: combineClassNamePropAndString("context-menu", popupContainerProps)}}
+              className="context-menu"
             >
                 <menu
                     role="menu"

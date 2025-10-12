@@ -239,7 +239,8 @@ export default class TaskStore {
         .then(() => {
             this.remove(task);
             addAlert(document.getElementById(HOME_ID), 
-            NOTICE_ALERT, `Deleted "${task.title}"`);
+            SUCCESS_ALERT, `Deleted "${task.title}"`);
+            // TODO: Add undo button?
         })
         .catch(error => {
             addAlert(document.getElementById(HOME_ID), 

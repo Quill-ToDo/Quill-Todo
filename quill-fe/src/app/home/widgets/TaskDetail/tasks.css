@@ -233,13 +233,3 @@ i.checkmark {
   height: min-content;
   border-radius: var(--small-box-corner-rounding);
 }
-
-.task-wrapper.droppable.valid {
-  transform: scale(1.05);
-  border: solid var(--focus-highlight) var(--focus-border-width);
-}
-
-.task-wrapper.droppable {
-  transition: transform .2s;
-}
-
