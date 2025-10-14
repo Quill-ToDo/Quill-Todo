@@ -1,5 +1,6 @@
 export const DRAGGABLE_HANDLE_CLASS = "draggable-handle";
 export const DRAGGABLE_CONTAINER_CLASS = "draggable";
+export const DELETE_DRAG_TYPE = "delete";
 export const HOME_ID = "home-wrapper";
 
 // URLs
@@ -9,9 +10,22 @@ export const START_OF_WEEK_WEEKDAY = "Monday";
 export const END_OF_WEEK_WEEKDAY = "Sunday";
 // ID and Classes
 export const UNSET_TASK_TITLE_PLACEHOLDER = "title";
+export const POPUP_POSITIONER_CLASS = "positioner";
+export const LOADING_CLASS = "loading";
+// Styling
 export const HIDDEN = "hidden";
 export const TRANSPARENT = "transparent";
-export const POPUP_POSITIONER_CLASS = "positioner";
+export const SUBTLE_CLASS = "subtle";
+export const PADDING_CLASS = "padding";
+export const CENTERED_CLASS = "centered";
+export const ALIGNED_CLASS = "aligned";
+export const TAKE_FULL_SPACE_CLASS = "take-full-space";
+export const LIGHT_SECTION_CLASS = "light-section";
+export const MID_SECTION_CLASS = "mid-section";
+export const DARK_SECTION_CLASS = "dark-section";
+export const DATE_CLASS = "date";
+export const TIME_CLASS = "time";
+export const ROUND_CORNERS_CLASS = "round-corners";
 // SVG Icons
 export const ICONS = {
     PLUS:   

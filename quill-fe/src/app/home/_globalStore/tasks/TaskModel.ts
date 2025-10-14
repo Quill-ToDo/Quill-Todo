@@ -3,16 +3,14 @@ import pluralize from 'pluralize';
 import { v4 } from "uuid";
 import { DateTime, Interval } from "luxon";
 import { 
-    DATETIME_FORMATS,
     END_OF_DAY,
-    PARTIAL_DATETIME_FORMATS,
     dateTimeHelper,
 } from "@util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
 import { createContext } from "react";
-import { HOME_ID } from "@/util/constants";
+import { DELETE_DRAG_TYPE, HOME_ID } from "@/util/constants";
 
 export const DEFAULT_START_DATETIME = () => DateTime.now();
 export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
@@ -20,11 +18,7 @@ export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
 export const MAX_TITLE_LENGTH = 100;
 export const MAX_DESCRIPTION_LENGTH = 10000;
 export const TASK_DRAG_TYPE = "task";
-export const TASK_ACTIONS = {
-    delete: "delete"
-};
-
-export const TASK_ACCEPTED_DRAG_TYPES = [TASK_ACTIONS.delete];
+export const TASK_ACCEPTED_DRAG_TYPES = [DELETE_DRAG_TYPE];
 export interface TaskDragData {
     id: string,
 }

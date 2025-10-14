@@ -1,5 +1,4 @@
 import React, { 
-    ForwardedRef,
     Fragment, 
     useEffect, 
     useRef, 
@@ -20,8 +19,14 @@ import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
 import { ERROR_ALERT, addAlert } from "@/alerts/alertEvent";
-import { ICONS } from "@/app/@util/constants";
-import { combineClassNamePropAndString } from '@util/jsTools';
+import { 
+    ALIGNED_CLASS, 
+    CENTERED_CLASS, 
+    DARK_SECTION_CLASS, 
+    ICONS, 
+    MID_SECTION_CLASS, 
+    SUBTLE_CLASS 
+} from "@/app/@util/constants";
 import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
@@ -190,8 +195,8 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
     if (!sectionData.some(section => section.content.some(subsection => subsection.tasks.length > 0))) {
         return (
             <section>
-                <div className="mid-section">
-                    <p className="centered aligned">You have no tasks to work on. Try adding one!</p>
+                <div className={MID_SECTION_CLASS}>
+                    <p className={`${CENTERED_CLASS} ${ALIGNED_CLASS}"`}>You have no tasks to work on. Try adding one!</p>
                 </div>
             </section>
             );
@@ -248,7 +253,7 @@ const Section = observer(({
     return (
         <section id={getSectionId(sectionId)} aria-labelledby={`section-${sectionId}-title`} >
             <div 
-                className={`mid-section${classNames ? " " + classNames : ""}`}
+                className={`${MID_SECTION_CLASS}${classNames ? " " + classNames : ""}`}
                 role="none"
                 >
                 <header className="header-container collapsible">
@@ -313,24 +318,24 @@ const SubSection = observer(({
  * The tasks within a subsection.
  */
 const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
-    const sectionTitleId = `dark-section-title-${content.title}`;
+    const sectionTitleId = `${DARK_SECTION_CLASS}-title-${content.title}`;
     return (
         <section 
             aria-labelledby={content.title ? sectionTitleId : ""} 
         >
             {content.title && <h3 
                 id={sectionTitleId} 
-                className="centered"
+                className={CENTERED_CLASS}
                 >
                     {content.title}
                 </h3>}
-            <div className="dark-section">
+            <div className={DARK_SECTION_CLASS}>
                 {content.tasks.length ? 
                 <TaskList 
                     tasks={content.tasks} 
                     type={content.type}    
                 /> :
-                <p className="subtle centered">{content.emptyText}</p>
+                <p className={`${SUBTLE_CLASS} ${CENTERED_CLASS}`}>{content.emptyText}</p>
                 }
             </div>
         </section>
@@ -434,7 +439,7 @@ function handleSectionToggle (sectionId: number) {
         addAlert(document.querySelector("#list"), ERROR_ALERT, "Could not toggle section :(");
         return;
     }
-    const outer_section: HTMLElement = taskSection.querySelector(".mid-section") as HTMLElement;
+    const outer_section: HTMLElement = taskSection.querySelector(`.${MID_SECTION_CLASS}`) as HTMLElement;
     const inner_section: HTMLElement = taskSection.getElementsByClassName("section-collapsible")[0] as HTMLElement;
     inner_section.style.transition = `transform ${SECTION_TOGGLE_DURATION * .98}ms ease-in-out 0s`;
     outer_section.style.transition = `height ${SECTION_TOGGLE_DURATION}ms ease-in-out 0s`;
@@ -448,7 +453,7 @@ function handleSectionToggle (sectionId: number) {
  * 
  */
 function toggleSection(taskSectionToToggle: HTMLElement) {
-    var outerSection = taskSectionToToggle.querySelector(".mid-section") as HTMLElement;
+    var outerSection = taskSectionToToggle.querySelector(`.${MID_SECTION_CLASS}`) as HTMLElement;
     var innerContent = taskSectionToToggle.querySelector(".section-collapsible") as HTMLElement;
     if (!outerSection || !innerContent) {
         addAlert(taskSectionToToggle, ERROR_ALERT, "Could not toggle section :(");

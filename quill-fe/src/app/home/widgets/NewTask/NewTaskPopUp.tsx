@@ -6,7 +6,14 @@ import {
 } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
-import { ICONS, DRAGGABLE_HANDLE_CLASS } from "@/util/constants";
+import { 
+    ICONS, 
+    DRAGGABLE_HANDLE_CLASS, 
+    CENTERED_CLASS, 
+    TAKE_FULL_SPACE_CLASS, 
+    ALIGNED_CLASS, 
+    MID_SECTION_CLASS
+ } from "@/util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { 
     ColorBubble, 
@@ -92,7 +99,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                 className={DRAGGABLE_HANDLE_CLASS}
                 title="Move window"    
             >
-                <div className="aligned rows gap">
+                <div className={`${ALIGNED_CLASS} rows gap"`}>
                     {ICONS.DRAG}
                     <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
                 </div>
@@ -103,7 +110,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                     { ICONS.X }
                 </button>
             </header>
-            <section className="mid-section" aria-labelledby="popup-title">
+            <section className={MID_SECTION_CLASS} aria-labelledby="popup-title">
                 <form 
                     id="add-taskToCreate" 
                     ref={formRef}
@@ -128,7 +135,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                             name="Color"
                             required={true}
                             element={<ColorBubble />}
-                            labelProps={{className: "aligned"}}
+                            labelProps={{className: ALIGNED_CLASS}}
                             />
                         <FormField
                             name="Title"
@@ -191,7 +198,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                             </TaskComponentAndHeader>
                         }
                     </div>
-                    { contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
+                    { contextMenuData.some(entry => entry.visible) ? <div className={`${TAKE_FULL_SPACE_CLASS} ${CENTERED_CLASS}`}>
                         <ContextMenuPopup
                             header={<header>Add field</header>}
                             labelsAndClickCallbacks={contextMenuData}
@@ -203,7 +210,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
                                     title="Add task field" 
-                                    className={combineClassNamePropAndString(`add-field-btn btn small centered take-full-space`, props.anchorProps)} 
+                                    className={combineClassNamePropAndString(`add-field-btn btn small ${CENTERED_CLASS} ${TAKE_FULL_SPACE_CLASS}`, props.anchorProps)} 
                                     > 
                                         { ICONS.PLUS }
                                     </button>
@@ -211,7 +218,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                         />
                     </div> : undefined
                     }
-                    <div className="centered">
+                    <div className={CENTERED_CLASS}>
                         <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>{ADD_BUTTON_TEXT}</button>
                     </div>
                 </form>

@@ -1,10 +1,83 @@
 import { DateTime, DateTimeFormatOptions } from "luxon";
+import { observer } from "mobx-react-lite";
+import { ComponentPropsWithoutRef, forwardRef, ForwardRefRenderFunction, ReactNode, useState } from "react";
+import { Draggable, Droppable } from "./Draggable";
+import { TASK_DRAG_TYPE } from "../home/_globalStore/tasks/TaskModel";
+import { POPUP_CLASS } from "./Popup";
+import { DATE_CLASS, PADDING_CLASS, ROUND_CORNERS_CLASS, SUBTLE_CLASS } from "./constants";
 
 // Date and Time Constants
 // Make sure you call these inside of a hook in a React component to avoid hydration errors!
 export const END_OF_DAY = () => DateTime.now().endOf('day');
 export const START_OF_DAY = () => DateTime.now().startOf('day');
 
+const DRAGGED_DATE_CLASS = "dragged-date";
+export const DATE_DRAG_TYPE = "date";
+export const DATE_FIELD_DRAG_TYPE = "date field";
+/**
+ * Wrap around a draggable and droppable date component. 
+ * Draggable to DATE FIELDs to set them to the given date and time. 
+ * Droppable to TASKs so that tasks can change their due dates?
+ */
+export const DraggableDroppableDate = observer(forwardRef((
+    {
+        useDragHandle,
+        date,
+        renderChild,
+        ...props
+    }
+    : 
+    {
+        useDragHandle: boolean,
+        date: DateTime<boolean>
+        renderChild: ForwardRefRenderFunction<any, any>,
+        props?: ComponentPropsWithoutRef<any>
+    }, ref) => {
+
+        // Why do the others disappear when I drag this
+    return <Draggable 
+        droppable={true}
+        itemType={DATE_DRAG_TYPE}
+        itemData={{
+            date: date
+        }}
+        useHandle={useDragHandle}
+        actionTitle="Assign date"
+        dragStart={(e) => {
+            console.log("Start")
+        }}
+        dragEnd={(e, callback) => {
+            console.log(e.active);
+            // on drag end, 
+            // if dragged to task field type, set the task field to the date passed 
+            // callback()
+        }}
+        draggedPresentation={<div className={`${DRAGGED_DATE_CLASS} ${POPUP_CLASS} ${ROUND_CORNERS_CLASS}`}>
+            <header><p>date:</p></header>
+            <div className={PADDING_CLASS}>
+                <p className={`${DATE_CLASS}`}>
+                    {`${date.toLocaleString(DateTime.DATE_HUGE)}`}
+                </p>
+            </div>
+        </div>
+        }
+    >
+        {/* <Droppable
+            acceptedItemTypes={[TASK_DRAG_TYPE]}
+            onDrop={({drop, drag}) => {
+                // If date field, get the task ID from drag
+                // get task from store given ID
+                // change the task due date to passed date 
+            }}
+        > */}
+            {renderChild( 
+                {
+                    ...props,
+                }, ref
+            )}
+        {/* </Droppable> */}
+    </Draggable>
+}))
 
 export interface DateFormat {
     token: DateTimeFormatOptions,

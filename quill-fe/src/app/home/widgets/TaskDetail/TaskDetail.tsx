@@ -8,12 +8,25 @@ import React, {
 } from "react";
 import './TaskDetailStyle.css';
 import { observer } from "mobx-react-lite";
-import { ICONS, HOME_ID, DRAGGABLE_HANDLE_CLASS } from "@/util/constants";
+import { 
+    ICONS, 
+    HOME_ID, 
+    DRAGGABLE_HANDLE_CLASS, 
+    CENTERED_CLASS, 
+    TAKE_FULL_SPACE_CLASS, 
+    ALIGNED_CLASS, 
+    MID_SECTION_CLASS, 
+    DARK_SECTION_CLASS 
+} from "@/util/constants";
 import { ContextMenuPopup } from "@/util/Popup";
 import { INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
 import { DATETIME_FORMATS } from "@/util/DateTimeHelper";
 import { combineClassNamePropAndString } from '@util/jsTools';
-import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TASK_ACTIONS, TaskModel } from "@/store/tasks/TaskModel";
+import { 
+    DEFAULT_DUE_DATETIME, 
+    DEFAULT_START_DATETIME, 
+    TaskModel 
+} from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     ColorBubble, 
@@ -115,7 +128,7 @@ const TaskDetail = observer(forwardRef<any, {
                     />
                     <TaskTitle editAllowed={true} />   
                 </div>
-                <div className="aligned end">
+                <div className={`${ALIGNED_CLASS} end`}>
                     <ContextMenuPopup
                         renderElementToClick={(props, ref) => <button 
                                 {...props.anchorProps}
@@ -156,17 +169,17 @@ const TaskDetail = observer(forwardRef<any, {
                 </div>
         </header>
         <section 
-            className="mid-section" 
+            className={MID_SECTION_CLASS}
             aria-labelledby="task-show-title"
         >
             <div>
-                <div className="aligned rows small gap">
+                <div className={`${ALIGNED_CLASS} rows small gap`}>
                     <button className="btn x-small square">
                         {ICONS.DOWN}
                     </button>
                     <h5>Task Metadata</h5>
                 </div>
-                <div className="meta-data dark-section">
+                <div className={`meta-data ${DARK_SECTION_CLASS}`}>
                     <label className="inline">Created<p>{DATETIME_FORMATS.D_t.serializer(task.createdDate)}</p></label>
                     { task.complete && <label className="inline">Completed<p>{task.completedDate ? DATETIME_FORMATS.D_t.serializer(task.completedDate): "Unknown"}</p></label> }
                 </div>
@@ -220,7 +233,7 @@ const TaskDetail = observer(forwardRef<any, {
                 />
             </TaskComponentAndHeader>
             }
-            { contextMenuData.some(entry => entry.visible) ? <div className="take-full-space centered">
+            { contextMenuData.some(entry => entry.visible) ? <div className={`${TAKE_FULL_SPACE_CLASS} ${CENTERED_CLASS}`}>
                 <ContextMenuPopup
                     header={<header>Add field</header>}
                     labelsAndClickCallbacks={contextMenuData}
@@ -231,7 +244,7 @@ const TaskDetail = observer(forwardRef<any, {
                             aria-label="Add task field"
                             aria-haspopup="menu"
                             title="Add task field" 
-                            className={combineClassNamePropAndString(`add-field-btn btn large centered`, props.anchorProps)} 
+                            className={combineClassNamePropAndString(`add-field-btn btn large ${CENTERED_CLASS}`, props.anchorProps)} 
                             > 
                                 { ICONS.PLUS }
                             </button>

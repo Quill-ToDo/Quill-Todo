@@ -34,7 +34,15 @@ import {
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { clickedInBounds, searchThroughParents } from '@util/jsTools';
 import { observer } from 'mobx-react-lite';
-import { DRAGGABLE_CONTAINER_CLASS, DRAGGABLE_HANDLE_CLASS, POPUP_POSITIONER_CLASS, } from '../@util/constants';
+import { 
+    DRAGGABLE_CONTAINER_CLASS, 
+    DRAGGABLE_HANDLE_CLASS, 
+    LIGHT_SECTION_CLASS, 
+    LOADING_CLASS, 
+    PADDING_CLASS, 
+    POPUP_POSITIONER_CLASS, 
+    ROUND_CORNERS_CLASS, 
+} from '../@util/constants';
 import { useMergeRefs } from '@floating-ui/react';
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 const numbersFromTranslate = (s: String) => {
@@ -99,7 +107,7 @@ export const DraggingContent = observer(() => {
     >
                 { isDragging && draggedContent ? 
                     draggedContent 
-                    : <div className='light-section round-corners padding loading'>
+                    : <div className={`${LIGHT_SECTION_CLASS} ${ROUND_CORNERS_CLASS} ${PADDING_CLASS} ${LOADING_CLASS}`}>
                         <p className='jiggle'>
                             Loading...
                         </p>
@@ -430,14 +438,14 @@ export const DroppableDndKitImplementation = observer(forwardRef(({
     children, 
     itemType, 
     itemData, 
-    acceptedItemTypes, 
-    onDrop, 
+    callbacksForAcceptedDragTypes, 
     ...props
 }: DroppableParams, forwardedRef) => {
     const id = useId();
     const { dragOverlay } = useContext(DraggableContext);
     const draggedContentAnchorId = dragOverlay.anchorId ? dragOverlay.anchorId : id ;
     const [validDropTarget, setValidDropTarget] = useState(false);
+    const acceptedItemTypes = callbacksForAcceptedDragTypes.map((val) => val.type);
     const {setNodeRef, isOver} = useDroppable({
         id: id,
         data: {
@@ -456,13 +464,28 @@ export const DroppableDndKitImplementation = observer(forwardRef(({
                 const {active, over} = e;
                 const droppableData = over ? over.data.current : null;
                 const draggedData = active.data.current;
-                setValidDropTarget(droppableData && draggedData && droppableData.value.accepts.includes(draggedData.type))
+                if (droppableData && draggedData && droppableData.value.accepts.includes(draggedData.type)) {
+                    setValidDropTarget(true)
+                    callbacksForAcceptedDragTypes.forEach(({type, dragOver}) => {
+                        // Do i need to check both drag and drop types?
+                        if (draggedData.type === type && dragOver) {
+                            dragOver(data)
+                        }
+                    })
+                } else {
+                    setValidDropTarget(false);
+                }
             })
         },
         onDragEnd(e) {
             dropIfIdMatchesDroppedId(id, e, (data) => {
-                if (validDropTarget && onDrop) {
-                    onDrop(data);
+                // Do i need to check both drag and drop types?
+                if (validDropTarget) {
+                    callbacksForAcceptedDragTypes.forEach(({type, dragEnd}) => {
+                        if (data.drag && data.drag.type === type && dragEnd) {
+                            dragEnd(data);
+                        }
+                    })
                 }
             })
         }

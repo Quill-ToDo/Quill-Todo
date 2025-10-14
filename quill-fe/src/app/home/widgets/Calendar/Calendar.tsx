@@ -1,9 +1,12 @@
 import { observer } from "mobx-react-lite";
-import { START_OF_DAY } from "@/app/@util/DateTimeHelper";
+import { DraggableDroppableDate, START_OF_DAY } from "@/app/@util/DateTimeHelper";
 import { DateTime } from "luxon";
 import { 
+    ALIGNED_CLASS,
+    DARK_SECTION_CLASS,
     END_OF_WEEK_WEEKDAY, 
     ICONS, 
+    MID_SECTION_CLASS, 
     START_OF_WEEK_WEEKDAY 
 } from "@/util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
@@ -224,12 +227,12 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                 icon={ICONS.CALENDAR} 
                 doneLoading={taskStore.isLoaded && allLoadedMonthData != undefined}
             >
-            <div className="calendar-body mid-section" ref={thisCalendarRef}>
+            <div className={`calendar-body ${MID_SECTION_CLASS}`} ref={thisCalendarRef}>
                 <header 
                     ref={thisCalendarHeaderRef}
                     title="Calendar header"
                     >
-                    <nav className="aligned">
+                    <nav className={ALIGNED_CLASS}>
                         <button className="btn small bg square"
                             title="Previous month"
                             onClick={(e) => {
@@ -321,53 +324,60 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                 { monthData.weeks.map((weekData, i) =>
                                     <div key={weekData.key} className={"week-container"}>
                                         { weekData.days.map(day =>  
-                                        <div 
-                                            ref={today.current.hasSame(day.date, 'day') ? currentDayRef : undefined}
-                                            key={day.key}
-                                            aria-labelledby={`${day.key}-header`}
-                                            title={`${day.date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
-                                            suppressHydrationWarning
-                                            {...day.props}
-                                            >
-                                            <h4 
-                                                id={`${day.key}-header`}
-                                            >
-                                                <time dateTime={day.date.toISODate()}>{day.date.day}</time>
-                                            </h4>
-                                            <div className="dark-section">
-                                                { day.tasksToday && day.tasksToday.map((taskData) => {
-                                                    const taskWrapperProps = {
-                                                        task: taskData.task,
-                                                        keyOverride: `${day.key}-${taskData.task.id}`,
-                                                        ...{className: "inline"}
-                                                    }
-                                                    return <Draggable
-                                                        droppable={true}
-                                                        itemType={TASK_DRAG_TYPE}
-                                                        itemData={{id: taskWrapperProps.task.id}}
-                                                        actionTitle="Move task"
-                                                        key={taskWrapperProps.keyOverride}
-                                                        onDragStart={() => {
-                                                            console.log("drag")
-                                                        }}
-                                                        draggedPresentation={
-                                                            <TaskBeingDragged 
-                                                                task={taskData.task} 
-                                                                type={taskData.type} 
-                                                            />
-                                                    }
+                                        <DraggableDroppableDate
+                                            useDragHandle={false}
+                                            date={day.date}
+                                            renderChild={(props, ref) => 
+                                                <div 
+                                                    {...props}
+                                                    ref={today.current.hasSame(day.date, 'day') ? currentDayRef : ref}
+                                                    key={day.key}
+                                                    aria-labelledby={`${day.key}-header`}
+                                                    title={`${day.date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
+                                                    suppressHydrationWarning
+                                                    {...day.props}
                                                     >
-                                                        <TaskWrapper 
-                                                                {...taskWrapperProps}
-                                                                {...{className: taskWrapperProps.className}}
+                                                    <h4 
+                                                        id={`${day.key}-header`}
+                                                    >
+                                                        <time dateTime={day.date.toISODate()}>{day.date.day}</time>
+                                                    </h4>
+                                                    <div className={DARK_SECTION_CLASS}>
+                                                        { day.tasksToday && day.tasksToday.map((taskData) => {
+                                                            const taskWrapperProps = {
+                                                                task: taskData.task,
+                                                                keyOverride: `${day.key}-${taskData.task.id}`,
+                                                                ...{className: "inline"}
+                                                            }
+                                                            return <Draggable
+                                                                droppable={true}
+                                                                itemType={TASK_DRAG_TYPE}
+                                                                itemData={{id: taskWrapperProps.task.id}}
+                                                                actionTitle="Move task"
+                                                                key={taskWrapperProps.keyOverride}
+                                                                onDragStart={() => {
+                                                                    console.log("drag")
+                                                                }}
+                                                                draggedPresentation={
+                                                                    <TaskBeingDragged 
+                                                                        task={taskData.task} 
+                                                                        type={taskData.type} 
+                                                                    />
+                                                            }
                                                             >
-                                                                <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
-                                                                <TaskTitle />
-                                                            </TaskWrapper>
-                                                    </Draggable>
-                                                })}
-                                            </div>
-                                        </div>    
+                                                                <TaskWrapper 
+                                                                        {...taskWrapperProps}
+                                                                        {...{className: taskWrapperProps.className}}
+                                                                    >
+                                                                        <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
+                                                                        <TaskTitle />
+                                                                    </TaskWrapper>
+                                                            </Draggable>
+                                                        })}
+                                                    </div>
+                                                </div>    
+                                            }
+                                        />
                                     )}
                                     </div>
                                 )}

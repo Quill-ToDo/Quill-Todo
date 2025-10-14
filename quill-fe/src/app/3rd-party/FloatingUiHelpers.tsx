@@ -25,7 +25,6 @@ import {
     flip,
     size,
     autoPlacement,
-    autoUpdate,
     Placement,
     useMergeRefs,
   } from '@floating-ui/react';
@@ -39,7 +38,13 @@ import {
 } from '@util/Popup';
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { Draggable } from '@/util/Draggable';
-import { POPUP_POSITIONER_CLASS, TRANSPARENT } from '../@util/constants';
+import { 
+    CENTERED_CLASS, 
+    LOADING_CLASS, 
+    POPUP_POSITIONER_CLASS, 
+    TAKE_FULL_SPACE_CLASS, 
+    TRANSPARENT 
+} from '../@util/constants';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
@@ -207,7 +212,7 @@ const getPositionedDraggablePopup = ({
                 <div
                     ref={mergedRef}
                     {...floatingUiPopupPositioningProps}
-                    className={`loading take-full-space centered ${POPUP_POSITIONER_CLASS}`}
+                    className={`${LOADING_CLASS} ${TAKE_FULL_SPACE_CLASS} ${CENTERED_CLASS} ${POPUP_POSITIONER_CLASS}`}
                 >
                     <p>Loading...</p>
                 </div>

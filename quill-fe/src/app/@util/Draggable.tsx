@@ -39,10 +39,13 @@ export type DraggableParams = {
 
 export type DroppableParams = {
     children: ReactNode,
-    itemType?: DraggableParams["itemType"],
+    itemType: DraggableParams["itemType"],
+    callbacksForAcceptedDragTypes: {
+        type: string, 
+        dragEnd?: ({drag, drop}: DragDropEventData) => void
+        dragOver?: ({drag, drop}: DragDropEventData) => void
+    }[],
     itemData?: DraggableParams["itemData"],
-    acceptedItemTypes: string[],
-    onDrop?: ({...props}: DragDropEventData) => void,
 }
 /**
 * Draggable helper to serve as an interface between Quill and any
@@ -51,8 +54,9 @@ export type DroppableParams = {
 * NOT being part of the handle, give it the class INTERACTABLE_ELEMENT_CLASS
 * 
 * @param id a unique ID for this draggable element
-* @param droppable whether the element should be free drag and remain 
-* in its last dropped position or return to its origin position when the user releases their cursor
+* @param droppable whether the element should be able to be dropped into Droppable containers and
+*  return to its origin position when the user releases their cursor 
+*  or be free drag and remain in its last dropped position
 * @param useHandle Whether to use a specific element within the droppable content as a drag handle or use any point
 * as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
 * should have the class DRAGGABLE_HANDLE_CLASS.**

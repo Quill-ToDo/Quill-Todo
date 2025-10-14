@@ -7,7 +7,7 @@ import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
 import { DraggingContent } from "../3rd-party/DndKit";
 // Quill 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
-import { TASK_ACTIONS, TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
+import { TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
 import { useTaskStore } from "@/store/StoreProvider";
 // Widgets
 import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
@@ -15,7 +15,7 @@ import { DeleteTaskConfirmationPopup } from "@/widgets/TaskDetail/TaskComponents
 import { ListWidget } from "@/widgets/List/List";
 import { CalendarWidget } from "@/widgets/Calendar/Calendar";
 // Utils
-import { ICONS, HOME_ID } from "@/util/constants";
+import { ICONS, HOME_ID, DELETE_DRAG_TYPE } from "@/util/constants";
 import { Draggable, Droppable } from "@/util/Draggable";
 import { AttachedPopupOnClick } from "@/util/Popup";
 import { combineClassNamePropAndString } from '@/util/jsTools';
@@ -79,20 +79,22 @@ const DashboardLayout = observer(({
                         <Draggable 
                                 actionTitle="Drag to item to delete"
                                 droppable={true}
-                                itemType={TASK_ACTIONS.delete}
+                                itemType={DELETE_DRAG_TYPE}
                             >
                                 <Droppable 
-                                    acceptedItemTypes={[TASK_DRAG_TYPE]}
-                                    itemType={TASK_ACTIONS.delete}
-                                    onDrop={({drag}) => {
-                                        if (drag && drag.type === TASK_DRAG_TYPE) {
-                                            const droppedTaskId = drag.value.id; 
-                                            const droppedTask = taskStore.current.getTaskById(droppedTaskId);
-                                            if (droppedTask) {
-                                                openPopup(() => droppedTask);
+                                    callbacksForAcceptedDragTypes={[{
+                                        type: TASK_DRAG_TYPE,
+                                        dragEnd: ({drag}) => {
+                                            if (drag && drag.type === TASK_DRAG_TYPE) {
+                                                const droppedTaskId = drag.value.id; 
+                                                const droppedTask = taskStore.current.getTaskById(droppedTaskId);
+                                                if (droppedTask) {
+                                                    openPopup(() => droppedTask);
+                                                }
                                             }
                                         }
-                                    }}
+                                    }]}
+                                    itemType={DELETE_DRAG_TYPE}
                                 >
                                     <button 
                                         ref={ref}
