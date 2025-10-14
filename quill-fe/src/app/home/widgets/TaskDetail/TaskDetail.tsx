@@ -16,7 +16,9 @@ import {
     TAKE_FULL_SPACE_CLASS, 
     ALIGNED_CLASS, 
     MID_SECTION_CLASS, 
-    DARK_SECTION_CLASS 
+    DARK_SECTION_CLASS, 
+    GRID_ROWS_CLASS,
+    GRID_WITH_GAP_CLASS
 } from "@/util/constants";
 import { ContextMenuPopup } from "@/util/Popup";
 import { INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
@@ -173,7 +175,7 @@ const TaskDetail = observer(forwardRef<any, {
             aria-labelledby="task-show-title"
         >
             <div>
-                <div className={`${ALIGNED_CLASS} rows small gap`}>
+                <div className={`${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} small`}>
                     <button className="btn x-small square">
                         {ICONS.DOWN}
                     </button>
@@ -185,7 +187,7 @@ const TaskDetail = observer(forwardRef<any, {
                 </div>
             </div>
             {showStart || showDue || task.start || task.due ? 
-                <div className={task.start && task.due ? `rows gap same-size` : ""}>
+                <div className={task.start && task.due ? `${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} same-size` : ""}>
                         {(showStart || task.start) && <TaskComponentAndHeader 
                                 fieldName="start"
                                 optional={true}

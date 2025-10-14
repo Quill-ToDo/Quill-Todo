@@ -19,6 +19,7 @@ export const SUBTLE_CLASS = "subtle";
 export const PADDING_CLASS = "padding";
 export const CENTERED_CLASS = "centered";
 export const ALIGNED_CLASS = "aligned";
+export const RELATIVE_CLASS = "relatve";
 export const TAKE_FULL_SPACE_CLASS = "take-full-space";
 export const LIGHT_SECTION_CLASS = "light-section";
 export const MID_SECTION_CLASS = "mid-section";
@@ -26,6 +27,10 @@ export const DARK_SECTION_CLASS = "dark-section";
 export const DATE_CLASS = "date";
 export const TIME_CLASS = "time";
 export const ROUND_CORNERS_CLASS = "round-corners";
+export const GRID_ROWS_CLASS = "rows";
+export const GRID_COLUMNS_CLASS = "cols";
+export const GRID_WITH_GAP_CLASS = "gap";
+export const GRID_SPACE_BETWEEN_CLASS = "space-between";
 // SVG Icons
 export const ICONS = {
     PLUS:   

@@ -30,8 +30,12 @@ import {
     DARK_SECTION_CLASS, 
     DATE_CLASS, 
     DELETE_DRAG_TYPE, 
+    GRID_ROWS_CLASS, 
+    GRID_SPACE_BETWEEN_CLASS, 
+    GRID_WITH_GAP_CLASS, 
     ICONS, 
     MID_SECTION_CLASS, 
+    RELATIVE_CLASS, 
     TIME_CLASS, 
     UNSET_TASK_TITLE_PLACEHOLDER 
 } from "@util/constants";
@@ -81,7 +85,7 @@ export const TaskBeingDragged = observer(forwardRef((
     return <TaskWrapper
         droppable={false}
         {...props}
-        className={combineClassNamePropAndString(`dragging rows ${CENTERED_CLASS} gap`, props)}
+        className={combineClassNamePropAndString(`dragging ${CENTERED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS}`, props)}
         task={t}
         ref={ref}
     >
@@ -128,7 +132,7 @@ export const DeleteTaskConfirmationPopup = observer(forwardRef(({
             <br />
             { taskToDelete && <TaskTitle passedTask={taskToDelete} className={CENTERED_CLASS}/> }
             <br />
-            <div className={`rows gap ${CENTERED_CLASS}`}>
+            <div className={`${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} ${CENTERED_CLASS}`}>
                 <button 
                     className={"btn med"} 
                     onClick={ () => {closePopup()} }
@@ -297,7 +301,7 @@ export const TaskComponentAndHeader = observer(({
         }}
     >
         <div 
-            className="rows space-between"
+            className={`${GRID_ROWS_CLASS} ${GRID_SPACE_BETWEEN_CLASS}`}
         >
             { labelElement }
             <div className="field-btns">
@@ -850,7 +854,7 @@ const EditableDatePortion = observer(({
     const dateErrorListId = useId();
 
     return <label
-        className={`${DATE_CLASS} ${ALIGNED_CLASS} rows small gap`}
+        className={`${DATE_CLASS} ${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} small`}
     >
         Date
         <ResizableInput 
@@ -911,14 +915,14 @@ const EditableTimePortion = observer(({
     };
 
     return showTime ? <div 
-        className={`${ALIGNED_CLASS} rows small gap relative ${CENTERED_CLASS}`}
+        className={`${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} small ${RELATIVE_CLASS} ${CENTERED_CLASS}`}
         onMouseEnter={() => {
             setTimeHovered(true)}}
         onMouseLeave={() => {
             setTimeHovered(false)}}
         >
             <label
-                className={`${TIME_CLASS} ${ALIGNED_CLASS} rows small gap`} 
+                className={`${TIME_CLASS} ${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} small`} 
                 >
                     Time
                     <div className={ALIGNED_CLASS}>
