@@ -75,7 +75,8 @@ const DashboardLayout = observer(({
                         />}
                     />
                     <DeleteTaskConfirmationPopup
-                        renderAnchor={({anchorProps, openPopup}, ref) => <Draggable 
+                        renderAnchor={({anchorProps, openPopup}, ref) => 
+                        <Draggable 
                                 actionTitle="Drag to item to delete"
                                 droppable={true}
                                 itemType={TASK_ACTIONS.delete}

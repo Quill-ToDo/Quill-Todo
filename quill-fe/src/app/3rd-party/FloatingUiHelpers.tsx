@@ -398,9 +398,9 @@ export const PersistentPopupContextProvider = ({children}: {
             ...popupProps
         });
     
-        //   5) When the popup is open, render popup content but transparent so not visible before positioning it. 
-        //      After it has been postioned, update the content again as it will no longer be transparent
-        useEffect(() => {
+    //   5) When the popup is open, render popup content but transparent so not visible before positioning it. 
+    //      After it has been positioned, update the content again as it will no longer be transparent
+    useEffect(() => {
             if (showPopup) {
                 setPopupContent(content as ReactElement);
                 setAnchorProps(getAnchorProps());

@@ -38,6 +38,7 @@ margin-bottom: 2px;
     "left-menu ..."
     "list calendar"; 
     grid-template-columns: 100% 100%;
+    grid-template-rows: min-content;
     gap: var(--section-gap);
     align-items: flex-start;
 }
