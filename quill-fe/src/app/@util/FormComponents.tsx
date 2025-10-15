@@ -147,11 +147,10 @@ export const ResizableInput = observer(forwardRef(<T extends ResizableInputTypes
     width?: "wide" | "narrow",
 } & ResizableInputParameters, forwardedRef?: ForwardedRef<HTMLElement>) => {
     const [inputValue, setInputVal] = useState(props.value); 
-    const inputRef: MutableRefObject<null | HTMLElement> = useRef(null)
 
     const input = createElement(version, {
         ...props,
-        ref: useMergeRefs([inputRef, forwardedRef]),
+        ref: forwardedRef,
         onChange: (e: ChangeEvent<HTMLInputElement & HTMLTextAreaElement>) => {
             setInputVal(e.target.value);
             props.onChange && props.onChange(e);

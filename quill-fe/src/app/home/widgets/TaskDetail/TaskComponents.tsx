@@ -10,12 +10,14 @@ import { observer } from "mobx-react-lite";
 import { 
     ChangeEvent,
     ComponentPropsWithoutRef, 
+    FormEvent, 
     ForwardedRef, 
     forwardRef, 
     ForwardRefRenderFunction, 
     MouseEvent, 
     MutableRefObject, 
     ReactNode, 
+    Ref, 
     useCallback, 
     useContext, 
     useEffect, 
@@ -553,18 +555,23 @@ const PlainTaskTitle = observer((
 /**
  *  Render a task title that can be edited on click.
  */
-const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskModel}>((props, ref) => {
+const EditableTaskTitle = observer(forwardRef<HTMLTextAreaElement, {passedTask?: TaskModel}>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
     const invalid = !!task.validationErrors.title.length;
+    const formRef = useRef<null | HTMLFormElement>(null);
+    const input = useRef<null | HTMLTextAreaElement>(null);
+    const inputRef = useMergeRefs([ref, input]) as Ref<HTMLTextAreaElement> as MutableRefObject<HTMLTextAreaElement>;
     
     // Use input elements if editable to try and get a sort of inline effect
     const errorId = `detail-${task.id}-title-errors`;
 
-    return <>
+    return <form
+        ref={formRef}
+    >
         <ResizableInput
             {...props}
             version="textarea"
-            ref={ref}
+            ref={inputRef}
             value={task.title}
             placeholder={UNSET_TASK_TITLE_PLACEHOLDER}
             aria-label={"Title"}
@@ -572,10 +579,17 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
             aria-describedby={invalid ? errorId : undefined}
             title={"Edit Title"}
             rows={1}
+            onBeforeInputCapture={(e: FormEvent<HTMLTextAreaElement>) => {
+                if (e.nativeEvent.data === `\n`) {
+                    input && input.current && input.current.blur();
+                }
+            }}
             onChange={(e: ChangeEvent<HTMLTextAreaElement>) => {
-                    let inputText = e.target.value;
+                let inputText = e.target.value;
+                if (!inputText.endsWith(`\n`)) {
                     task.title = inputText;
                     task.saveEdits("title");
+                }
             }}
         />
             {
@@ -584,7 +598,7 @@ const EditableTaskTitle = observer(forwardRef<HTMLElement, {passedTask?: TaskMod
                 id={errorId}
                 />
             }         
-        </>
+        </form>
 }));
 
 /** Render a task title. Can make editable on click with editAllowed=true */
