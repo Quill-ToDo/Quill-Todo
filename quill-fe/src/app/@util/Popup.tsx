@@ -23,6 +23,7 @@ export type InnerPopupProps = {
     draggable?: boolean,
     useDragHandle?: boolean,
     popupMargin?: number,
+    closeWhenClickOutside?: boolean,
 }
 export type PopupSetupProps = {
     popupRenderMethod: PopupRenderMethod,
@@ -85,6 +86,7 @@ export const AttachedPopupOnClick = observer((
         doneLoading=true, 
         draggable=false, 
         useDragHandle=false,
+        closeWhenClickOutside=true,
         ...props
     } : PopupSetupProps) => {
         const defaultProps = {
@@ -94,6 +96,7 @@ export const AttachedPopupOnClick = observer((
             doneLoading: doneLoading,
             draggable: draggable,
             useDragHandle: useDragHandle,
+            closeWhenClickOutside: closeWhenClickOutside,
         }
         return <FloatingUiAttachedPopup 
             {...props}
@@ -136,6 +139,7 @@ export const AnchorWithPersistentPopupAttached = observer((
         doneLoading=true, 
         draggable=false, 
         useDragHandle=false,
+        closeWhenClickOutside=true,
         ...props
     } : PopupSetupProps) => {
         // Popup helper to serve as an interface between Quill and
@@ -149,6 +153,7 @@ export const AnchorWithPersistentPopupAttached = observer((
             doneLoading: doneLoading,
             draggable: draggable,
             useDragHandle: useDragHandle,
+            closeWhenClickOutside: closeWhenClickOutside,
         }
         return <FloatingUiPersistentPopup {...props} {...defaultProps} />;
 });

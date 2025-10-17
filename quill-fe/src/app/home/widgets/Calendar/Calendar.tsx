@@ -9,13 +9,11 @@ import {
     MID_SECTION_CLASS, 
     START_OF_WEEK_WEEKDAY 
 } from "@/util/constants";
-import { combineClassNamePropAndString } from '@util/jsTools';
 import './Calendar.css';
 import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskBeingDragged, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { 
     ComponentProps, 
-    ForwardedRef, 
     MutableRefObject,
     useEffect, 
     useRef, 
@@ -24,7 +22,8 @@ import {
 import { PlaceableWidget } from "../generic-widgets/Widget";
 import { useTaskStore } from "@/store/StoreProvider";
 import { Draggable } from "@/app/@util/Draggable";
-import { TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
+import { PersistentPopupContextProvider } from "@/app/3rd-party/FloatingUiHelpers";
+import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
@@ -324,13 +323,15 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                 { monthData.weeks.map((weekData, i) =>
                                     <div key={weekData.key} className={"week-container"}>
                                         { weekData.days.map(day =>  
-                                        <DraggableDroppableDate
-                                            useDragHandle={false}
-                                            date={day.date}
-                                            renderChild={(props, ref) => 
+                                        <PersistentPopupContextProvider>
+                                            <DraggableDroppableDate
+                                                mayBeDropped={true}
+                                                actionTitle={"Assign date"}
+                                                useDragHandle={false}
+                                                date={day.date}    
+                                            >
                                                 <div 
-                                                    {...props}
-                                                    ref={today.current.hasSame(day.date, 'day') ? currentDayRef : ref}
+                                                    ref={today.current.hasSame(day.date, 'day') ? currentDayRef : null}
                                                     key={day.key}
                                                     aria-labelledby={`${day.key}-header`}
                                                     title={`${day.date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
@@ -349,13 +350,15 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                                 keyOverride: `${day.key}-${taskData.task.id}`,
                                                                 ...{className: "inline"}
                                                             }
-                                                            return <Draggable
-                                                                droppable={true}
-                                                                itemType={TASK_DRAG_TYPE}
-                                                                itemData={{id: taskWrapperProps.task.id}}
+                                                            return <Draggable<TaskDragData>
+                                                                mayBeDropped={true}
+                                                                itemData={{
+                                                                    type: TASK_DRAG_TYPE,
+                                                                    id: taskWrapperProps.task.id,
+                                                                }}
                                                                 actionTitle="Move task"
                                                                 key={taskWrapperProps.keyOverride}
-                                                                onDragStart={() => {
+                                                                dragStart={() => {
                                                                     console.log("drag")
                                                                 }}
                                                                 draggedPresentation={
@@ -376,8 +379,8 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                         })}
                                                     </div>
                                                 </div>    
-                                            }
-                                        />
+                                            </DraggableDroppableDate>
+                                        </PersistentPopupContextProvider>
                                     )}
                                     </div>
                                 )}

@@ -7,7 +7,6 @@ import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
 import { DraggingContent } from "../3rd-party/DndKit";
 // Quill 
 import { addAlert, ERROR_ALERT, NOTICE_ALERT } from '@/alerts/alertEvent';
-import { TASK_DRAG_TYPE } from "@/store/tasks/TaskModel";
 import { useTaskStore } from "@/store/StoreProvider";
 // Widgets
 import { AddNewTaskPopUp } from "@/widgets/NewTask/NewTaskPopUp";
@@ -15,10 +14,17 @@ import { DeleteTaskConfirmationPopup } from "@/widgets/TaskDetail/TaskComponents
 import { ListWidget } from "@/widgets/List/List";
 import { CalendarWidget } from "@/widgets/Calendar/Calendar";
 // Utils
-import { ICONS, HOME_ID, DELETE_DRAG_TYPE } from "@/util/constants";
+import { ICONS, HOME_ID } from "@/util/constants";
 import { Draggable, Droppable } from "@/util/Draggable";
 import { AttachedPopupOnClick } from "@/util/Popup";
 import { combineClassNamePropAndString } from '@/util/jsTools';
+import { 
+    DEFAULT_DELETE_DRAG_DATA, 
+    DELETE_DRAG_TYPE, 
+    DeleteDragData, 
+    DeleteDropData, 
+    TASK_DRAG_TYPE
+ } from "../@util/DraggableTypes";
 
 export const NEW_TASK_TEXT = "Add task";
 
@@ -47,6 +53,7 @@ const DashboardLayout = observer(({
                 >
                     <AttachedPopupOnClick
                         draggable={true}
+                        closeWhenClickOutside={false}
                         useDragHandle={true}
                         anchorRenderMethod={(props, ref) => <button 
                                 {...props.anchorProps}
@@ -76,12 +83,18 @@ const DashboardLayout = observer(({
                     />
                     <DeleteTaskConfirmationPopup
                         renderAnchor={({anchorProps, openPopup}, ref) => 
-                        <Draggable 
+                        <Draggable <DeleteDragData> 
+                                itemData={{
+                                    type: DELETE_DRAG_TYPE,
+                                }}
                                 actionTitle="Drag to item to delete"
-                                droppable={true}
-                                itemType={DELETE_DRAG_TYPE}
+                                mayBeDropped={true}
                             >
-                                <Droppable 
+                                <Droppable <DeleteDropData>
+                                    itemData={{
+                                        type: DELETE_DRAG_TYPE,
+                                        accepts: DEFAULT_DELETE_DRAG_DATA.accepts,
+                                    }}
                                     callbacksForAcceptedDragTypes={[{
                                         type: TASK_DRAG_TYPE,
                                         dragEnd: ({drag}) => {
@@ -94,7 +107,6 @@ const DashboardLayout = observer(({
                                             }
                                         }
                                     }]}
-                                    itemType={DELETE_DRAG_TYPE}
                                 >
                                     <button 
                                         ref={ref}
@@ -114,8 +126,9 @@ const DashboardLayout = observer(({
                         }
                     /> 
                     <Draggable
+                        itemData={{type: "settings"}}
                         actionTitle="Drag settings button"
-                        droppable={true}
+                        mayBeDropped={true}
                     >
                         <button 
                             role="menuitem" 

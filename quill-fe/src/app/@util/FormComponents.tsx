@@ -79,7 +79,7 @@ export const FormField = observer((
         element,
         type,
         inputProps,
-        errors
+        errors,
     } 
     : FormFieldParams) => {
     const areErrors = errors && !!errors.length;

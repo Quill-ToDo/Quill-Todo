@@ -10,6 +10,14 @@
   background-color: var(--list-hover);
 }
 
+.droppable.valid .task-wrapper {
+  background-color: var(--list-hover);
+}
+
+.droppable.valid:has(.task-wrapper) {
+  border: none;
+}
+
 .task-wrapper {
   padding: 5px 10px 5px 10px;
 }

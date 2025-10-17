@@ -662,11 +662,15 @@ hr {
     }
 }
 /*#endregion Animations*/
-.droppable {
+.droppable, .draggable {
     transition: transform 5ms;
 }
 
 .droppable.valid {
     transform: scale(1.1);
     border: solid var(--focus-highlight) var(--focus-border-width);
+}
+
+.draggable.valid {
+    transform: scale(.8);
 }

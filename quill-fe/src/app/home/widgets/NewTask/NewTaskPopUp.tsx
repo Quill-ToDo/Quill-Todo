@@ -2,7 +2,7 @@ import {
     ComponentPropsWithoutRef,
     forwardRef,
     useRef, 
-    useState 
+    useState
 } from "react";
 import { observer } from "mobx-react-lite";
 import './NewTask.css';
@@ -53,7 +53,6 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
     const [showDue, setShowDue] = useState(true);
     const [showStart, setShowStart] = useState(true);
     const [showDescription, setShowDescription] = useState(true);
-
     const contextMenuData = [
         {
             label: "Add due date",
@@ -142,7 +141,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                         <FormField
                             name="Title"
                             required={true}
-                            element={<TaskTitle editAllowed={true} {...{autoFocus: true}}/>}
+                            element={<TaskTitle autoFocus editAllowed />}
                         />
                     </div>
                     { showDescription &&

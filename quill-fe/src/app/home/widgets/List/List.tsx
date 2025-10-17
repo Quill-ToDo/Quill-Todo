@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import { TASK_DRAG_TYPE, TaskModel } from "@/store/tasks/TaskModel";
+import { TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     TaskTitle, 
@@ -30,6 +30,7 @@ import {
 import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
 import { Draggable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
+import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
 
 const SECTION_TOGGLE_DURATION = 100;
 export const OVERDUE = "Overdue";
@@ -359,10 +360,12 @@ const TaskList = observer(({
         >
         { tasks.map((task) => {
             return ( 
-                <Draggable
-                    droppable={true}
-                    itemType={TASK_DRAG_TYPE}
-                    itemData={{id: task.id}}
+                <Draggable <TaskDragData>
+                    mayBeDropped={true}
+                    itemData={{
+                        type: TASK_DRAG_TYPE,
+                        id: task.id
+                    }}
                     actionTitle="Move task"
                     key={`task-li-${task.id}`}
                     draggedPresentation={<TaskBeingDragged 

@@ -1,6 +1,5 @@
 import { ErrorsList, ResizableInput } from "@util/FormComponents";
 import { 
-    TASK_DRAG_TYPE,
     TaskColorCodes, 
     TaskContext,
     TaskModel,
@@ -30,8 +29,7 @@ import {
     ALIGNED_CLASS, 
     CENTERED_CLASS, 
     DARK_SECTION_CLASS, 
-    DATE_CLASS, 
-    DELETE_DRAG_TYPE, 
+    DATE_CLASS,  
     GRID_ROWS_CLASS, 
     GRID_SPACE_BETWEEN_CLASS, 
     GRID_WITH_GAP_CLASS, 
@@ -39,14 +37,12 @@ import {
     MID_SECTION_CLASS, 
     RELATIVE_CLASS, 
     TIME_CLASS, 
-    UNSET_TASK_TITLE_PLACEHOLDER 
+    UNSET_TASK_TITLE_PLACEHOLDER,
 } from "@util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick, PopupRenderMethod } from "@/util/Popup";
 import './tasks.css';
 import { 
-    DATE_DRAG_TYPE, 
-    DATE_FIELD_DRAG_TYPE, 
     DateFormat, 
     PARTIAL_DATETIME_FORMATS
  } from "@/util/DateTimeHelper";
@@ -54,9 +50,20 @@ import { DraggableContext } from "@/app/3rd-party/DndKit";
 import { Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
 import { useMergeRefs } from "@floating-ui/react";
 import { PersistentPopupContext } from "@/app/3rd-party/FloatingUiHelpers";
+import { 
+    DATE_DRAG_TYPE, 
+    DATE_FIELD_DRAG_TYPE, 
+    DateDragData, 
+    DateFieldDropData, 
+    DEFAULT_DATE_DRAG_DATA, 
+    DEFAULT_TASK_DRAG_DATA, 
+    DELETE_DRAG_TYPE, 
+    DeleteDragData, 
+    TASK_DRAG_TYPE, 
+    TaskDropData 
+} from "@/app/@util/DraggableTypes";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
-
 
 const useTaskContextOrPassedTask = (passedTask?: TaskModel): TaskModel => {
     if (passedTask) {
@@ -144,7 +151,6 @@ export const DeleteTaskConfirmationPopup = observer(forwardRef(({
                 <button 
                     className={"btn med bg"} 
                     type={"submit"} 
-                    autoFocus={true} 
                     onClick={() => {
                         if (taskToDelete) {
                             taskToDelete.deleteSelf();
@@ -220,14 +226,17 @@ export const TaskWrapper = observer(forwardRef((
         droppable ? 
             <DeleteTaskConfirmationPopup 
                 renderAnchor={({openPopup: openDeleteConfirmPopup, anchorProps: deleteConfirmPopupAnchorProps}, deleteConfirmPopupAnchorRef) => 
-                    <Droppable 
-                        itemType={TASK_DRAG_TYPE}
-                        itemData={{id: task.id }}
+                    <Droppable <TaskDropData>
+                        itemData={{
+                            type: TASK_DRAG_TYPE,
+                            id: task.id,
+                            accepts: DEFAULT_TASK_DRAG_DATA.accepts,
+                        }}
                         callbacksForAcceptedDragTypes={[
                             { 
                                 type: DELETE_DRAG_TYPE,
-                                dragEnd: ({drag, drop}) => {
-                                    if (drop && drop.type == TASK_DRAG_TYPE && drop.value.id === task.id) {
+                                dragEnd: ({drag, drop}: {drag: DeleteDragData , drop: TaskDropData}) => {
+                                    if (drop && drop.id === task.id) {
                                         if (drag && drag.type === DELETE_DRAG_TYPE) {
                                             // Does this element have the same ID as anchorElementId
                                             openDeleteConfirmPopup(() => task);
@@ -425,7 +434,6 @@ const ColorGridPicker = observer(forwardRef<any, {
             <div className="name-and-errors max-width-height">
                 <input 
                     className="max-width-height"
-                    autoFocus={true}
                     value={task.colorStringUnderEdit} 
                     onChange={(e) => {
                         task.colorStringUnderEdit = e.target.value;
@@ -522,6 +530,7 @@ const PlainTaskTitle = observer((
     </p>;
     if (openTaskDetailPopup) {
         return <AnchorWithPersistentPopupAttached
+                closeWhenClickOutside={false}
                 alignment="middle"
                 placement="auto"
                 popupMargin={10}
@@ -555,20 +564,17 @@ const PlainTaskTitle = observer((
 /**
  *  Render a task title that can be edited on click.
  */
-const EditableTaskTitle = observer(forwardRef<HTMLTextAreaElement, {passedTask?: TaskModel}>((props, ref) => {
-    const task = useTaskContextOrPassedTask(props.passedTask);
+const EditableTaskTitle = observer(forwardRef<HTMLTextAreaElement, {passedTask?: TaskModel}>(({passedTask, ...props}, ref) => {
+    const task = useTaskContextOrPassedTask(passedTask);
     const invalid = !!task.validationErrors.title.length;
-    const formRef = useRef<null | HTMLFormElement>(null);
     const input = useRef<null | HTMLTextAreaElement>(null);
     const inputRef = useMergeRefs([ref, input]) as Ref<HTMLTextAreaElement> as MutableRefObject<HTMLTextAreaElement>;
     
     // Use input elements if editable to try and get a sort of inline effect
     const errorId = `detail-${task.id}-title-errors`;
 
-    return <form
-        ref={formRef}
-    >
-        <ResizableInput
+    return <>
+    <ResizableInput
             {...props}
             version="textarea"
             ref={inputRef}
@@ -598,11 +604,11 @@ const EditableTaskTitle = observer(forwardRef<HTMLTextAreaElement, {passedTask?:
                 id={errorId}
                 />
             }         
-        </form>
+    </>
 }));
 
 /** Render a task title. Can make editable on click with editAllowed=true */
-export const TaskTitle = observer((
+export const TaskTitle = observer(forwardRef((
     {
         passedTask, 
         editAllowed=false,
@@ -610,7 +616,7 @@ export const TaskTitle = observer((
     }: {
         passedTask?: TaskModel, 
         editAllowed?: boolean,
-    } & ComponentPropsWithoutRef<any>) => {
+    } & ComponentPropsWithoutRef<any>, ref) => {
     const task = useTaskContextOrPassedTask(passedTask);
     const overdue = task.overdue();
 
@@ -626,28 +632,28 @@ export const TaskTitle = observer((
 
     if (!editAllowed) {
         return <PlainTaskTitle 
-            passedTask={task}
             {...formattedProps}
+            ref={ref}
+            passedTask={task}
         />;
     }
     return <EditableTaskTitle
-        passedTask={task}
-        {...formattedProps}
+            {...formattedProps}
+            passedTask={task}
+            ref={ref}
     />
-});
+}));
 
 //#endregion 
 //#region Description 
 export const TaskDescription = observer(forwardRef<HTMLObjectElement, {
     passedTask?: TaskModel, 
     editAllowed?: boolean,
-    autofocus?: boolean,
 }>((props, ref) => {
     const task = useTaskContextOrPassedTask(props.passedTask);
 
     const propsToUse: ComponentPropsWithoutRef<any> = {
         className: `description ${DARK_SECTION_CLASS} keep-whitespace`,
-        autoFocus: props.autofocus ?  props.autofocus : false,
     };
 
     return (props.editAllowed && props.editAllowed) 
@@ -680,10 +686,6 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
         }
     }
 
-    useEffect(() => {
-        editInputRef && editInputRef.current ? (editInputRef.current as HTMLElement).focus():null;
-    }, [])
-
     return <>
         <ResizableInput 
             version="textarea"
@@ -706,18 +708,25 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
 }));
 //#endregion 
 //#region Date / Time
+type TaskDateParams = {
+    droppable?: boolean,
+    format?: DateFormat,
+    passedTask?: TaskModel,
+    editable?: boolean,
+}
+
 export const TaskDueDate = observer(({
     format,
     passedTask,
     editable,
-} : {
-    format: DateFormat,
-    passedTask?: TaskModel,
-    editable?: boolean,
-}) => {
+    droppable,
+    ...props
+} : TaskDateParams) => {
     const task = useTaskContextOrPassedTask(passedTask);
 
     return <TaskDate 
+        {...props} 
+        { ...(droppable === undefined && editable && { droppable: true })}
         type={"due"}
         passedTask={task}
         editable={editable}
@@ -728,14 +737,13 @@ export const TaskStartDate = observer(({
     format,
     passedTask,
     editable,
-} : {
-    format: DateFormat,
-    passedTask?: TaskModel,
-    editable?: boolean,
-
-}) => {
+    droppable,
+    ...props
+} : TaskDateParams) => {
     const task = useTaskContextOrPassedTask(passedTask);
-    return <TaskDate 
+    return <TaskDate
+        {...props} 
+        { ...(droppable === undefined && editable && { droppable: true })}
         type={"start"}
         passedTask={task}
         editable={editable}
@@ -748,15 +756,14 @@ export const TaskStartDate = observer(({
  */
 export const TaskDate = observer(({
     type, 
-    passedTask, 
+    passedTask,
     droppable=false,
     editable=false,
 }: {
     type: "start" | "due", 
-    passedTask?: TaskModel, 
     editable?: boolean,
     droppable?: boolean,
-}) => {
+} & TaskDateParams) => {
     const dueType = "due";
     const task = useTaskContextOrPassedTask(passedTask);
     const isDueType = type === dueType;
@@ -828,17 +835,30 @@ const EditableTaskDate = observer(({
     </div>
     
     return droppable ? 
-        <Droppable
-            itemType={DATE_FIELD_DRAG_TYPE}
-            itemData={{date: dateField}}
+        <Droppable<DateFieldDropData>
+            itemData={{
+                type: DATE_FIELD_DRAG_TYPE,
+                fieldType: type, 
+                taskId: task.id,
+                date: dateField as DateTime<boolean>,
+                accepts: DEFAULT_DATE_DRAG_DATA.accepts,
+            }}
             callbacksForAcceptedDragTypes={[
                 {
                     type: DATE_DRAG_TYPE,
-                    dragEnd: ({drag, drop}) => {}
+                    dragEnd: ({drag, drop}: {drag: DateDragData, drop: DateFieldDropData}) => {
+                        // TODO Dragging a date to a task date field sets the field to the passed
+                        if (drag &&  drop) {
+                            console.log(drag);
+                            console.log(drop.date);
+                        }
+                    }
                 }, 
                 {
                     type: DELETE_DRAG_TYPE,
-                    dragEnd: ({drag, drop}) => {}
+                    dragEnd: ({drag, drop}) => {
+                        // TODO Dragging trash onto a task date field clears it
+                    }
                 }]}
         >
             {content}

@@ -48,6 +48,8 @@ import {
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
+//#region Floating UI
+
 /**
  *  Get Floating UI positioning options to apply to elements
  * @param param0 
@@ -59,6 +61,7 @@ const getFloatingUiPositioning = ({
     placement,
     popupMargin,
     alignment,
+    closeWhenClickOutside,
  }: InnerPopupProps & {isOpen: boolean, openChange: Dispatch<SetStateAction<boolean>>}) => {
     // Configure middleware for Floating UI module
     const middleware = [];
@@ -105,7 +108,7 @@ const getFloatingUiPositioning = ({
     // context:
     interactions.push(useDismiss(context, {
         // close the popup when click outside of it
-        // outsidePress: true,
+        outsidePress: closeWhenClickOutside,
         // close the popup when click anchor element
         // referencePress: true,
         // TODO ? what do
@@ -151,6 +154,7 @@ const getPositionedDraggablePopup = ({
     useDragHandle,
     popupMargin,
     forwardedPopupRef,
+    closeWhenClickOutside,
     ...props
 }: InnerPopupProps 
 & {
@@ -164,13 +168,15 @@ const getPositionedDraggablePopup = ({
         floatingUiPopupPositioningProps,
         floatingUiContext, 
         floatingUiPopupIsPositioned, 
-        getFloatingUiAnchorProps 
+        getFloatingUiAnchorProps
     } = getFloatingUiPositioning({
         isOpen, 
         openChange,
         placement,
         popupMargin,
-        alignment
+        alignment,
+        closeWhenClickOutside,
+        ...props
     });
 
     const mergedRef = useMergeRefs([floatingUiRefs.setFloating, forwardedPopupRef])
@@ -185,7 +191,7 @@ const getPositionedDraggablePopup = ({
     const popupWithDraggingApplied = 
     draggable ? 
         <Draggable
-            droppable={false} 
+            mayBeDropped={false} 
             useHandle={useDragHandle} 
             actionTitle='Move popup'
             positioningProps={propsHiddenWhileNotPositioned}
@@ -235,6 +241,9 @@ const getPositionedDraggablePopup = ({
     }
 }
 
+//#endregion Floating UI
+//#region Attached popups
+
 /** Use Floating UI to create a positioned popup that will disappear if the anchor element is 
  * re-rendered
  */
@@ -283,6 +292,10 @@ export const FloatingUiAttachedPopup = observer(forwardRef((
         { showPopup && content }
     </>
 }))
+
+//#endregion Attached popups
+//#region Persistent popups
+
 
 /**
  * Render a popup positioned near a reference element that will persist even if the
@@ -407,10 +420,14 @@ export const PersistentPopupContextProvider = ({children}: {
     //      After it has been positioned, update the content again as it will no longer be transparent
     useEffect(() => {
             if (showPopup) {
-                setPopupContent(content as ReactElement);
                 setAnchorProps(getAnchorProps());
+                setPopupContent(content as ReactElement);
             }
-    }, [showPopup, popupIsPositioned]);
+            return () => {
+                setAnchorProps({});
+                setPopupContent(null);
+            }
+    }, [showPopup, popupIsPositioned, popupProps, setPopupAnchor]);
 
     //  4) Pass the anchor ref and anchor props to position the popup in context data so that 
     //     the anchor element can access them and render them into it's returned anchor element 
@@ -428,3 +445,4 @@ export const PersistentPopupContextProvider = ({children}: {
         { showPopup && popupContent }
     </PersistentPopupContext.Provider>
 }
+//#endregion Attached popups

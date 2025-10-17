@@ -195,10 +195,6 @@ export default class TaskStore {
         if (this.taskBeingCreated) {
             // If a new task is already being added, return focus to it
             // until it's intentionally disgarded
-            const popup = document.getElementById("new-wrapper");
-            if (!popup) { return this.taskBeingCreated; }
-            const firstInput = popup.querySelector("input");
-            firstInput && firstInput.focus();
             return this.taskBeingCreated;
         } 
         else {

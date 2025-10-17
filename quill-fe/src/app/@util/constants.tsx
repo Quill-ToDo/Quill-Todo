@@ -1,6 +1,5 @@
 export const DRAGGABLE_HANDLE_CLASS = "draggable-handle";
 export const DRAGGABLE_CONTAINER_CLASS = "draggable";
-export const DELETE_DRAG_TYPE = "delete";
 export const HOME_ID = "home-wrapper";
 
 // URLs
