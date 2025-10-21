@@ -245,6 +245,15 @@ textarea,
     width: 100%;
 }
 
+.take-min-space {
+    height: min-content;
+    width: min-content;
+}
+
+.take-min-width {
+    width: min-content;
+}
+
 .take-full-space {
     height: 100%;
     width: 100%;
@@ -328,8 +337,8 @@ lives */
     width: fit-content;
   }
 
-section .mid-section,
-section.mid-section {
+.mid-section,
+.mid-section {
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);
     padding: var(--inner-box-padding);
@@ -351,6 +360,11 @@ section.more-padding {
     transform-origin: 100% 7%;
 }
 /*#endregion Sections*/
+/*#region Icons*/
+.icon {
+    color: var(--g2);
+}
+/*#endregion Icons*/
 /*#region Buttons*/
 .btn {
     /* Main button class */
@@ -370,18 +384,24 @@ section.more-padding {
 }
 
 /*#region Button Styles*/
-.btn.square {
+.btn.square,
+.icon.square
+ {
     aspect-ratio: 1 / 1;
 }
-.btn.x-small {
+.btn.x-small,
+.icon.x-small {
     width: 30px;
     height: auto;
     font-size: 15px;
 }
 
-.btn.small {
+.btn.small, 
+.icon.small,
+.icon.small > * {
     width: 35px;
     height: auto;
+    font-size: 25px;
 }
 
 .btn.small.text {
@@ -390,11 +410,17 @@ section.more-padding {
     font-size: medium;
 }
 
-.btn.med {
-    min-width: 100px;
+.btn.med,
+.icon.med,
+.icon.med > * {
+    font-size: 30px;
+    /* min-width: 100px; */
+    min-width: 50px;
     min-height: 30px;
 }
-.btn.large {
+.btn.large,
+.icon.large,
+.icon.large > * {
     min-width: 250px;
     min-height: 50px;
     height: fit-content;
@@ -406,7 +432,8 @@ section.more-padding {
     font-size: 23px;
 }
 
-.btn.large i {
+.btn.large i,
+.icon.large i {
     height: 35px;
     margin: 5px;
 }
@@ -663,7 +690,7 @@ hr {
 }
 /*#endregion Animations*/
 .droppable, .draggable {
-    transition: transform 5ms;
+    transition: opacity 5ms, transform 5ms;
 }
 
 .droppable.valid {
@@ -673,4 +700,5 @@ hr {
 
 .draggable.valid {
     transform: scale(.8);
+    opacity: 50%;
 }

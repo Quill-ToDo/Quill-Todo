@@ -77,3 +77,7 @@
 .task-wrapper.complete .title:focus s {
   text-decoration: line-through solid var(--g2) 2px;
 }
+
+.list.widget .task-wrapper.error {
+  background-color: var(--error-transparent-bg);
+}

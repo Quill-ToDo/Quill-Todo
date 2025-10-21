@@ -43,7 +43,7 @@ import {
     LOADING_CLASS, 
     POPUP_POSITIONER_CLASS, 
     TAKE_FULL_SPACE_CLASS, 
-    TRANSPARENT 
+    TRANSPARENT_CLASS 
 } from '../@util/constants';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
@@ -185,7 +185,7 @@ const getPositionedDraggablePopup = ({
     // get the width and height of the popup for positioning
     const propsHiddenWhileNotPositioned = floatingUiPopupIsPositioned ? floatingUiPopupPositioningProps : {
             ...floatingUiPopupPositioningProps,
-            className: combineClassNamePropAndString(TRANSPARENT, floatingUiPopupPositioningProps), 
+            className: combineClassNamePropAndString(TRANSPARENT_CLASS, floatingUiPopupPositioningProps), 
         }
 
     const popupWithDraggingApplied = 

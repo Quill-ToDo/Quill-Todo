@@ -1,6 +1,5 @@
 'use client';
 import { observer } from "mobx-react-lite";
-import { useRef } from "react";
 import './home.css'
 // Internal 3rd party implementations, would be good to remove somehow
 import { PORTAL_HOLDER_ID } from "../3rd-party/FloatingUiHelpers";
@@ -20,10 +19,11 @@ import { AttachedPopupOnClick } from "@/util/Popup";
 import { combineClassNamePropAndString } from '@/util/jsTools';
 import { 
     DEFAULT_DELETE_DRAG_DATA, 
+    defaultTaskDeleteInteraction, 
     DELETE_DRAG_TYPE, 
     DeleteDragData, 
     DeleteDropData, 
-    TASK_DRAG_TYPE
+    TASK_DRAG_TYPE,
  } from "../@util/DraggableTypes";
 
 export const NEW_TASK_TEXT = "Add task";
@@ -33,7 +33,7 @@ const DashboardLayout = observer(({
 }: {
     children?: React.ReactNode,
 }) => {
-    const taskStore = useRef(useTaskStore());
+    const taskStore = useTaskStore();
     const widgets = children ? children :<>
         <ListWidget />
         <CalendarWidget />
@@ -64,7 +64,7 @@ const DashboardLayout = observer(({
                                 className={combineClassNamePropAndString("btn small square bg", props.anchorProps)}
                                 title={NEW_TASK_TEXT} 
                                 onClick={() => {
-                                    taskStore.current.createNewTask();
+                                    taskStore.createNewTask();
                                     props.openPopup();
                                 }}
                             >
@@ -73,12 +73,12 @@ const DashboardLayout = observer(({
                         popupRenderMethod={({closePopup}, ref) => <AddNewTaskPopUp
                             ref={ref}
                             close={() => closePopup(()=> {
-                                    if (taskStore.current && taskStore.current.taskBeingCreated && taskStore.current.taskBeingCreated.isNewAndUnsubmitted) {
-                                        taskStore.current.taskBeingCreated.abortTaskCreation();
+                                    if (taskStore && taskStore.taskBeingCreated && taskStore.taskBeingCreated.isNewAndUnsubmitted) {
+                                        taskStore.taskBeingCreated.abortTaskCreation();
                                     }
                                 })
                             }
-                            taskToCreate={taskStore.current.taskBeingCreated}
+                            taskToCreate={taskStore.taskBeingCreated}
                         />}
                     />
                     <DeleteTaskConfirmationPopup
@@ -95,18 +95,13 @@ const DashboardLayout = observer(({
                                         type: DELETE_DRAG_TYPE,
                                         accepts: DEFAULT_DELETE_DRAG_DATA.accepts,
                                     }}
-                                    callbacksForAcceptedDragTypes={[{
-                                        type: TASK_DRAG_TYPE,
-                                        dragEnd: ({drag}) => {
-                                            if (drag && drag.type === TASK_DRAG_TYPE) {
-                                                const droppedTaskId = drag.value.id; 
-                                                const droppedTask = taskStore.current.getTaskById(droppedTaskId);
-                                                if (droppedTask) {
-                                                    openPopup(() => droppedTask);
-                                                }
-                                            }
-                                        }
-                                    }]}
+                                    callbacksForAcceptedDragTypes={{
+                                        [TASK_DRAG_TYPE]: {
+                                            saveDataWhenDragEnds({ drag, drop, e}) {
+                                                const task = taskStore.getTaskById(drag.id);
+                                                task && defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task: task, openDeleteConfirmPopup: openPopup});
+                                            },
+                                    }}}
                                 >
                                     <button 
                                         ref={ref}
@@ -140,6 +135,17 @@ const DashboardLayout = observer(({
                                 { ICONS.SETTINGS }
                             </button>
                     </Draggable>
+                    <button 
+                        onClick={() => {
+                            taskStore.loadTasks();
+                        }}
+                        role="menuitem" 
+                        className={"btn small square bg"} 
+                        title="Re-load tasks from the server" 
+                        type="button"
+                        >
+                        sync
+                    </button>
                     <button role="menuitem" className="btn small square bg" title="Log out" type="button" onClick={() => addAlert(document.querySelector("#left-menu button[title='Log out']"), ERROR_ALERT, "We haven't implemented users or logging out.")}>
                         { ICONS.LOG_OUT }
                     </button>

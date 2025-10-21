@@ -49,7 +49,25 @@ type TaskValidationErrors = {
     colorStringUnderEdit: string[];
 };
 
+type TaskJsonDataFromServer = {
+    id: string,
+    created_at: string | null,
+    title: string, 
+    description: string,
+    start: string | null,
+    show_start_time: boolean,
+    due: string | null,
+    show_due_time: boolean,
+    complete: boolean,
+    completed_at: string | null,
+    updated_at: string | null,
+    color: string,
+}
+
+type TaskJsonDataToServer = Omit<TaskJsonDataFromServer, "completed_at" | "created_at" | "updated_at">
+
 type EditableTaskFields =  "title" | "complete" | "start" | "showStartTime" | "due" | "showDueTime" | "description" | "color";
+export type TaskDateFields =  "start" | "due";
 
 export const TaskColorCodes = [
     { 
@@ -113,7 +131,6 @@ export const TaskColorCodes = [
  */
 export class TaskModel {
     //#region CLASS FIELDS AND CONSTRUCTOR
-            static checkboxStyles : "start" | "due" | "scheduled" = "due";
             private _id : string = "";
             private _title : string = "";
             private _start : DateTime | null = null;
@@ -123,12 +140,14 @@ export class TaskModel {
             private _description : string = "";
             private _complete : boolean = false;
             private _completedDate : DateTime | null = null;
-            private _createdDate : DateTime;
+            private _createdDate : DateTime | null = null;
             private _color : string = "#ffffff";
             private _store : TaskStore | undefined;
             private _colorStringUnderEdit: string = "";
+            private _isUnderEdit: boolean = false;
+            private _taskVersionBeforeEdits : TaskJsonDataToServer | null = null;
             autoSave : boolean = true;
-
+            
     /**
      * An object to represent one task in the database. It has the same 
      * fields as the task in the database and handles updating the task in the DB
@@ -137,7 +156,7 @@ export class TaskModel {
      * @param {uuid} id V4 UUID id of the task. If one is not passed in, one 
      * is generated upon init.
      */
-    constructor ({taskJsonData, store}:{taskJsonData?: object, store: TaskStore}) {
+    constructor ({taskJsonData, store}:{taskJsonData?: TaskJsonDataFromServer, store: TaskStore}) {
         makeObservable(this, {
             /// --- Task data --- 
             _id: false, // This ID of this task
@@ -162,14 +181,20 @@ export class TaskModel {
             due: computed,
             _showDueTime: observable,
             showDueTime: computed,
-            overdue: false, // Is the current time and date past the due time and date
+            overdue: computed, // Is the current time and date past the due time and date
             _color: observable, // The color of the task
             color: computed,
             json: computed, // This tasks data in JSON form
             highlighted: computed,
             // --- Editing mode ---
-            submitNewTask: action, // Submit this task to the server (if new)
+            _isUnderEdit: false,
+            isUnderEdit: computed, 
+            startEditing: action, // turn off server syncing and save a version of the task to return to
+            abortEdits: action, // reset changes to the task since it entered edit mode
+            _taskVersionBeforeEdits: observable,
             isNewAndUnsubmitted: computed, // Is this a new task being created?
+            submitNewTask: action, // Submit this task to the server (if new)
+            saveEdits: action, // Update all task properties to server. Can still be called if autosave is off.
             /// vvv all fields that are for display purposes during editing. For example, 
             // if the user enters a string "3cshjaklfdhsa" for the startDateStringUnderEdit, 
             // this value can be displayed as needed in form fields to show the user typing but
@@ -181,7 +206,6 @@ export class TaskModel {
             // --- Server Syncing ---
             autoSave: observable, // Whether or not changes to this task are synced to the 
             // database. Turn on or off with `saveEdits()` and `turnOffAutosaveToDb`.
-            saveEdits: false, // Update all task properties to server. Can still be called if autosave is off.
             patchToServer: false, // Save specific properties of the task to the server. Can still be called even if autosave is off.
             // --- Validation ---
             validationTests: computed,
@@ -348,7 +372,7 @@ export class TaskModel {
      * @returns if this task is overdue at the moment this method
      * is called
      */
-    overdue () {
+    get overdue () {
         return this.due ? this.due < DateTime.now() && !this.complete : false;
     }
 //#endregion
@@ -399,6 +423,7 @@ export class TaskModel {
                     break;
             }
         } else {
+            // Do not try to set fields that the server manages
             update = this.json;
         }
         if (this._store) {
@@ -419,6 +444,16 @@ export class TaskModel {
         }
     }
 
+    /** Mark this task as being edited: Do not patch changes to the server and
+     * save a version of the task before changes to revert to on abortEdits
+     */
+    startEditing () {
+        this.autoSave = false;
+        this._isUnderEdit = true;
+        this._taskVersionBeforeEdits = this.json;
+    }
+
+
     /**
      * Turn on autosave for this task for future changes and 
      * patch fields to the server
@@ -429,24 +464,34 @@ export class TaskModel {
             this.autoSave = true;
             return this.patchToServer(field);
         }
+        this._isUnderEdit = false;
     }
 
     /**
-     * Revert any strings under edit to their original states. 
+     * If a field is provided, revert the strings under edit for that field to their original states.
+     * Otherwise,  
      */
     abortEdits (field?: EditableTaskFields) {
-        // If has been initialized and this is not a task not yet posted to the server
-        switch (field) {
-            case "start":
-                break;
-            case "due":
-                break;
-            case "color":
-                this.colorStringUnderEdit = this.color;
-                break;
-            default:
-                this.colorStringUnderEdit = this._color;
-                break;
+        if (field) {
+            switch (field) {
+                case "start":
+                    break;
+                case "due":
+                    break;
+                case "color":
+                    this._colorStringUnderEdit = this.color;
+                    break;
+                default:
+                    this._colorStringUnderEdit = this._color;
+                    break;
+            }
+        }
+        else {
+            if (this._taskVersionBeforeEdits) {
+                this.json = this._taskVersionBeforeEdits;
+            }
+            this._isUnderEdit = false;
+            this.autoSave = true;
         }
     }
 //#endregion
@@ -454,38 +499,46 @@ export class TaskModel {
     /** 
      * Get the fields of this task formatted as a JSON
      */
-    get json() {
-        return {
+    get json (): TaskJsonDataToServer {
+        const data: TaskJsonDataToServer = {
             id: this.id,
-            created_date: this.createdDate,
             title: this.title,
             complete: this.complete,
-            start: this.start ? this.start.toJSON() : undefined, 
+            start: this.start ? this.start.toJSON() : null, 
             show_start_time: this.showStartTime,
-            due: this.due ? this.due.toJSON() : undefined,
+            due: this.due ? this.due.toJSON() : null,
             show_due_time: this.showDueTime,
             description: this.description,
             color: this.color,
         };
+        return data;
     } 
     /**
      * Update this TaskModel with info pulled from a passed JSON
      * @param {object} json 
      */
-    set json(json : {[index : string]: any}) {
+    set json(json : TaskJsonDataToServer | TaskJsonDataFromServer) {
         this.autoSave = false;
         this._id = json.id;
         this.title = json.title;
         this.description = json.description;
-        this.start = json.start;
+        this.start = json.start ? DateTime.fromISO(json.start) : null;
         this.showStartTime = json.show_start_time;
-        this.due = json.due;
+        this.due = json.due ? DateTime.fromISO(json.due) : null;
         this.showDueTime = json.show_due_time;
         this.complete = json.complete;
-        this.completedDate = json.completed_at !== null ? dateTimeHelper(json.completed_at) : null;
-        this._createdDate = dateTimeHelper(json.created_at);
         this.color = json.color;
         this.autoSave = true;
+        // Fields only from the server, don't patch these to the server
+        const completed = "completed_at"
+        const created = "created_at"
+        if (Object.keys(json).includes(completed)) {
+            this._completedDate = json[completed] ? DateTime.fromISO(json[completed]) : null;
+        }
+        if (Object.keys(json).includes(created)) {
+            this._createdDate = json[created] ? DateTime.fromISO(json[created]) : null;
+        }
+        // this._createdDate = json.created_at ? DateTime.fromISO(json.created_at) : null;
     }
 
 //#endregion JSON
@@ -506,6 +559,10 @@ set highlighted(value: boolean) {
 }
 //#endregion Visual
 //#region NEW TASK CREATION
+    get isUnderEdit () {
+        return this._isUnderEdit;
+    };
+
     get isNewAndUnsubmitted() {
         return this._store ? this._store.taskBeingCreated === this : true;
     }

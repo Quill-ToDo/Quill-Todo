@@ -1,5 +1,6 @@
 import { observer } from "mobx-react-lite";
 import { 
+    ComponentPropsWithoutRef,
     ForwardedRef,
     forwardRef, 
     PropsWithoutRef, 
@@ -30,7 +31,7 @@ export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 * as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
 * should have the class DRAGGABLE_HANDLE_CLASS.**
 */
-export const Draggable: <DragData extends RequiredDragData,>(props: DraggableParams<DragData>, ref: any) => ReactNode 
+export const Draggable: <DragData extends RequiredDragData,>({...props}: DraggableParams<DragData>, ref: any) => ReactNode 
 = observer(forwardRef(({
     children,
     useHandle=false,
@@ -51,15 +52,15 @@ export const Draggable: <DragData extends RequiredDragData,>(props: DraggablePar
 
 // Params draggable items must supply
 export type DraggableParams<DragData extends RequiredDragData> = {
+    itemData: DragData,
+    actionTitle: string,
     children: ReactNode,
-    useHandle?: boolean,
-    draggedPresentation?: ReactNode,
     mayBeDropped: boolean,
+    draggedPresentation?: ReactNode,
+    useHandle?: boolean,
     dragStart?: ({drag, e}: DragEventData<DragData>) => void,
     dragEnd?: ({drag, e}: DragEventData<DragData>) => void,
-    actionTitle: string,
     positioningProps?: PropsWithoutRef<any>,
-    itemData: DragData,
 }
 export type DragEventData<DragData extends RequiredDragData> = {
     e: DragStartEvent | DragEndEvent,
@@ -89,14 +90,21 @@ export const Droppable: <DropData extends RequiredDropData,>({...props}: Droppab
 export type DroppableParams<DropData extends RequiredDropData> = {
     children: ReactNode,
     callbacksForAcceptedDragTypes: {
-        type: string,
+        [key: string] : {
+        setDataWhenDragOver?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
+        saveDataWhenDragEnds?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
+        resetDataWhenDragOff?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
         dragEnd?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
         dragOver?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
-    }[],
+        dragCancel?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
+        dragStart?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
+        dragMove?: ({drag, drop, e}: DropEventData<any, DropData>) => void,
+    }},
     itemData: DropData,
-}
+    collisionPriority?: number,
+} & ComponentPropsWithoutRef<"div">;
 export type DropEventData<DragData extends RequiredDragData, DropData extends RequiredDropData> = {
-    e: DragEndEvent | DragOverEvent,
+    e: DragEndEvent | DragOverEvent | DragStartEvent,
     drag: DragData, 
     drop: DropData,
 };

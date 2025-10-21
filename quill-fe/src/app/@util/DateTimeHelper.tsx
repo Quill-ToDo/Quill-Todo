@@ -2,8 +2,19 @@ import { DateTime, DateTimeFormatOptions } from "luxon";
 import { observer } from "mobx-react-lite";
 import { ComponentPropsWithoutRef, ForwardedRef, forwardRef, } from "react";
 import { Draggable, DraggableParams, Droppable } from "./Draggable";
-import { POPUP_CLASS } from "./Popup";
-import { DATE_CLASS, PADDING_CLASS, ROUND_CORNERS_CLASS, SUBTLE_CLASS } from "./constants";
+import { 
+    DATE_CLASS,
+    TIME_CLASS, 
+    ROWS_CLASS,
+    ICONS,
+    ICON_CLASS,
+    BUTTON_OR_ICON_SMALL,
+    BUTTON_OR_ICON_MEDIUM,
+    ALIGNED_CLASS,
+    CENTERED_CLASS,
+    ROWS_OR_COLS_WITH_GAP_CLASS,
+    POPUP_SMALL_CLASS,
+ } from "./constants";
 import { useTaskStore } from "../home/_globalStore/StoreProvider";
 import { 
     DATE_DRAG_TYPE, 
@@ -11,7 +22,10 @@ import {
     DateDragData, 
     DateDropData, 
     DateFieldDragData, 
-    DEFAULT_DATE_DRAG_DATA 
+    DEFAULT_DATE_DRAG_DATA, 
+    defaultChangeTaskFieldToEndOrStartOfDay, 
+    TASK_DRAG_TYPE,
+    TaskDragData
 } from "./DraggableTypes";
 
 // Date and Time Constants
@@ -20,6 +34,33 @@ export const END_OF_DAY = () => DateTime.now().endOf('day');
 export const START_OF_DAY = () => DateTime.now().startOf('day');
 
 const DRAGGED_DATE_CLASS = "dragged-date";
+
+export const DraggedDatePresentation = observer(({
+    date,
+    includeTime=false,
+}: {
+    date: DateTime<boolean> | null,
+    includeTime?: boolean,
+}) => {
+    return <div className={`
+        ${DRAGGED_DATE_CLASS} 
+        ${POPUP_SMALL_CLASS} 
+        ${ROWS_CLASS}
+        ${ROWS_OR_COLS_WITH_GAP_CLASS}
+    `}>
+            <div className={`${ALIGNED_CLASS} ${CENTERED_CLASS} ${ICON_CLASS} ${BUTTON_OR_ICON_MEDIUM}`}>
+                { ICONS.CALENDAR }
+            </div>
+            <div>
+                <p className={`${DATE_CLASS}`}>
+                    {`${date ? date.toLocaleString(DateTime.DATE_HUGE) : "unset date"}`}
+                </p>
+                {includeTime && <p className={`${TIME_CLASS}`}>
+                    {`${date ? date.toLocaleString(DateTime.TIME_SIMPLE) : "unset date"}`}
+                </p>}
+            </div>
+    </div>
+})
 
 /**
  * Wrap around a draggable and droppable date component. 
@@ -48,45 +89,68 @@ export const DraggableDroppableDate = observer(forwardRef((
             itemData={{
                 type: DATE_DRAG_TYPE,
                 date: date,
-                accepts: DEFAULT_DATE_DRAG_DATA.accepts as string[],
+                accepts: DEFAULT_DATE_DRAG_DATA.accepts,
             }}
-            callbacksForAcceptedDragTypes={[{
-                type: DATE_FIELD_DRAG_TYPE,
-                dragEnd: ({drag, drop}: {drag: DateFieldDragData, drop: DateDropData}) => {
-                    if (drag && drop) {
-                        const taskId = drag.taskId;
-                        const task = taskStore.getTaskById(taskId);
-                        // TODO
-                        // If date field, get the task ID from drag
-                        // get task from store given ID
-                        // change the task due date to passed date
-                        // task. 
-                    }
-                }
-            }]}
+            callbacksForAcceptedDragTypes={{
+                [DATE_FIELD_DRAG_TYPE]: {
+                    setDataWhenDragOver: ({drag, drop}: {drag: DateFieldDragData, drop: DateDropData }) => {
+                        const task = taskStore.getTaskById(drag.taskId);
+                        task && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task})
+                    }, resetDataWhenDragOff({ drag, drop }) {
+                        if (drag && drop) {
+                            const taskId = drag.taskId;
+                            const task = taskStore.getTaskById(taskId);
+                            task && defaultChangeTaskFieldToEndOrStartOfDay.reset && defaultChangeTaskFieldToEndOrStartOfDay.reset(drag, drop, {task})
+                            // defaultTypeInteractionReset && defaultTypeInteractionReset({drag, task});
+                        }
+                    },
+                }, 
+                [TASK_DRAG_TYPE]: {
+                    setDataWhenDragOver: ({drag, drop}: {drag: TaskDragData, drop: DateDropData}) => {
+                        if (drag && drop) {
+                            // If task dropped on date, get task from store given ID
+                            // aaannnddd change the task due? or start? date to date from drop 
+                            const taskId = drag.id;
+                            const task = taskStore.getTaskById(taskId);
+                            if (task && task.start && !task.due) {
+                                task.start = drop.date;
+                            } else if (task) {
+                                task.due = drop.date;
+                            }
+                        }
+                    }, resetDataWhenDragOff({ drag, drop, e }) {
+                        if (drag) {
+                            const taskId = drag.taskId;
+                            const task = taskStore.getTaskById(taskId);
+                            task && task.abortEdits();
+                        }
+                    },
+            }
+            }
+        }
         >
             <Draggable <DateDragData>
-                ref={ref}
-                {...props}
+                // ref={ref}
+                // {...props}
+                actionTitle={"Assign date"}
+                itemData={{
+                    type: DATE_DRAG_TYPE,
+                    date: date,
+                }}
                 mayBeDropped={true}
                 useHandle={useDragHandle}
-                draggedPresentation={draggedPresentation ? draggedPresentation : <div className={`${DRAGGED_DATE_CLASS} ${POPUP_CLASS} ${ROUND_CORNERS_CLASS}`}>
-                <header><p>date:</p></header>
-                <div className={PADDING_CLASS}>
-                    <p className={`${DATE_CLASS}`}>
-                        {`${date.toLocaleString(DateTime.DATE_HUGE)}`}
-                    </p>
-                </div>
-            </div>
-            }
-        >
-                { children }
-        </Draggable>
+                draggedPresentation={draggedPresentation ? 
+                        draggedPresentation 
+                        : <DraggedDatePresentation date={date}/>
+                }
+            >
+                    { children }
+            </Draggable>
         </Droppable>
 }))
 
 export interface DateFormat {
-    token: DateTimeFormatOptions,
+    token?: DateTimeFormatOptions,
     serializer: (dateTime: DateTime<boolean>) => string,
     deserializer: (string: string, s2?: string) => DateTime<boolean>,
 }
@@ -132,7 +196,6 @@ export const DATETIME_FORMATS: {D_t: DateFormat, ISO: DateFormat, [index : strin
         },
     },
     ISO: {
-        token: DateTime.ISO,
         serializer: function (dateTime) {
             const val = dateTime.toISO(); 
             return val === null ? "" : val;
@@ -151,19 +214,19 @@ export const stringToDateTimeHelper = (dtString: string) =>
         return DateTime.fromMillis(parsed.valueOf());
     };
 
-export const dateTimeHelper = (maybeDateTime: string | DateTime<boolean>) => {
+export const dateTimeHelper = (maybeDateTime: string | DateTime<boolean> | Date) => {
     var validatedDate;
     switch (typeof(maybeDateTime)) {
         case "string":
             validatedDate = stringToDateTimeHelper(maybeDateTime);
             break;
         case "object":
-            if (maybeDateTime.isLuxonDateTime) {
+            if ( maybeDateTime instanceof DateTime) {
                 validatedDate = maybeDateTime;
-            } else {
-                validatedDate = DateTime.fromObject(maybeDateTime);
+            } else if (maybeDateTime instanceof Date) {
+                validatedDate = DateTime.fromJSDate(maybeDateTime as Date);
             }
-            if (validatedDate.isValid) {
+            if (validatedDate && validatedDate.isValid) {
                 break;
             }
         default:

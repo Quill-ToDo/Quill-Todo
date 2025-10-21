@@ -241,3 +241,7 @@ i.checkmark {
   height: min-content;
   border-radius: var(--small-box-corner-rounding);
 }
+
+.task-wrapper.error {
+  border: solid 2px var(--failure-outline);
+}

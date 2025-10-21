@@ -17,8 +17,8 @@ import {
     ALIGNED_CLASS, 
     MID_SECTION_CLASS, 
     DARK_SECTION_CLASS, 
-    GRID_ROWS_CLASS,
-    GRID_WITH_GAP_CLASS
+    ROWS_CLASS,
+    ROWS_OR_COLS_WITH_GAP_CLASS
 } from "@/util/constants";
 import { ContextMenuPopup } from "@/util/Popup";
 import { INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
@@ -32,7 +32,6 @@ import {
 import { 
     Checkbox, 
     ColorBubble, 
-    TaskDate, 
     TaskComponentAndHeader, 
     TaskDescription, 
     TaskTitle, 
@@ -53,9 +52,7 @@ const TaskDetail = observer(forwardRef<any, {
     ...props
 }, forwardedRef) => {
     const previouslyFocused: MutableRefObject<null | HTMLElement> = useRef(null);
-    const [showDescription, setShowDescription] = useState(true);
-    const [showDue, setShowDue] = useState(true);
-    const [showStart, setShowStart] = useState(true);
+    const [showDescription, setShowDescription] = useState(task.description.length > 0);
     const descRef = useRef(null);
     const contextMenuData = [
         {
@@ -65,9 +62,8 @@ const TaskDetail = observer(forwardRef<any, {
             onClick: () => { 
                 task.due = DEFAULT_DUE_DATETIME();
                 task.saveEdits("due");
-                setShowDue(true); 
             },
-            visible: !showDue,
+            visible: !task.due,
         },
         {
             label: "Add start date",
@@ -76,9 +72,8 @@ const TaskDetail = observer(forwardRef<any, {
             onClick: () => { 
                 task.start = DEFAULT_START_DATETIME();
                 task.saveEdits("start");
-                setShowDue(true); 
             },
-            visible: !showStart,
+            visible: !task.start,
         },
         {
             label: "Add description",
@@ -99,11 +94,9 @@ const TaskDetail = observer(forwardRef<any, {
     ]
 
     useEffect(() => {
-        setShowDue(task.due ? true : false);
-        setShowStart(task.start ? true : false)
-        setShowDescription(task.description.length > 0);
         // Keep track of the previously focused element
         previouslyFocused.current = document.activeElement as HTMLElement;
+        setShowDescription(task.description.length > 0);
         return () => {
             // return focus to previous point after the popup closes
             previouslyFocused && previouslyFocused.current ? previouslyFocused.current.focus():null;
@@ -175,25 +168,24 @@ const TaskDetail = observer(forwardRef<any, {
             aria-labelledby="task-show-title"
         >
             <div>
-                <div className={`${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} small`}>
+                <div className={`${ALIGNED_CLASS} ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} small`}>
                     <button className="btn x-small square">
                         {ICONS.DOWN}
                     </button>
                     <h5>Task Metadata</h5>
                 </div>
                 <div className={`meta-data ${DARK_SECTION_CLASS}`}>
-                    <label className="inline">Created<p>{DATETIME_FORMATS.D_t.serializer(task.createdDate)}</p></label>
+                    <label className="inline">Created<p>{task.createdDate ? DATETIME_FORMATS.D_t.serializer(task.createdDate): "Unknown"}</p></label>
                     { task.complete && <label className="inline">Completed<p>{task.completedDate ? DATETIME_FORMATS.D_t.serializer(task.completedDate): "Unknown"}</p></label> }
                 </div>
             </div>
-            {showStart || showDue || task.start || task.due ? 
-                <div className={task.start && task.due ? `${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} same-size` : ""}>
-                        {(showStart || task.start) && <TaskComponentAndHeader 
+            { task.start || task.due ? 
+                <div className={task.start && task.due ? `${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} same-size` : ""}>
+                        {(task.start) && <TaskComponentAndHeader 
                                 fieldName="start"
                                 optional={true}
                                 labelElement={<h3>Start</h3>}
                                 onCloseClick={(e) => {
-                                    setShowStart(false);
                                     task.start = null;
                                     task.saveEdits("start");
                                 }}
@@ -201,12 +193,11 @@ const TaskDetail = observer(forwardRef<any, {
                                 <TaskStartDate editable={true} format={DATETIME_FORMATS.D_t}/>
                             </TaskComponentAndHeader> 
                         }
-                        {(showDue || task.due) && <TaskComponentAndHeader 
+                        {(task.due) && <TaskComponentAndHeader 
                                 fieldName="due"
                                 optional={true}
                                 labelElement={<h3>Due</h3>}
                                 onCloseClick={(e) => {
-                                    setShowDue(false);
                                     task.due = null;
                                     task.saveEdits("due");
                                 }}
@@ -219,7 +210,7 @@ const TaskDetail = observer(forwardRef<any, {
             undefined
             }
             
-            { (showDescription || task.description.length > 0) && <TaskComponentAndHeader
+            { (showDescription) && <TaskComponentAndHeader
                 fieldName={"description"}
                 labelElement={<h3>Description</h3>}
                 optional={true}

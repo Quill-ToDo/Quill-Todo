@@ -170,3 +170,7 @@
     width: 100%;
     overflow: inherit;
 }
+
+.calendar.widget .task-wrapper.error {
+  background-color: var(--error-transparent-bg);
+}

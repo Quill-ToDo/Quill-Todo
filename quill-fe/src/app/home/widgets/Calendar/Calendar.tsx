@@ -14,7 +14,6 @@ import TaskStore, { TaskDataOnDay } from "@/store/tasks/TaskStore";
 import { Checkbox, TaskBeingDragged, TaskTitle, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { 
     ComponentProps, 
-    MutableRefObject,
     useEffect, 
     useRef, 
     useState
@@ -24,6 +23,7 @@ import { useTaskStore } from "@/store/StoreProvider";
 import { Draggable } from "@/app/@util/Draggable";
 import { PersistentPopupContextProvider } from "@/app/3rd-party/FloatingUiHelpers";
 import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
+import { Rect } from "@floating-ui/react";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
@@ -84,8 +84,8 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
             // Add a new MonthData
             allLoadedMonthData.push({
                 key: day.toLocaleString({year: "2-digit", month: "2-digit"}),
-                monthName: day.monthLong as string, 
-                year: day.year as string, 
+                monthName: day.monthLong ? day.monthLong : "Unknown", 
+                year: `${day.year}`, 
                 weeks: [],
                 closeToBeginningOfDataRange: monthNearBeginning.hasSame(day, "month") || day < monthNearBeginning,
                 closeToEndOfDataRange: monthNearEnd.hasSame(day, "month") || day > monthNearEnd,
@@ -102,7 +102,7 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
         const newDay = {
             date: day,
             tasksToday: taskStore.taskTimeline.get(day.toLocaleString(DateTime.DATE_SHORT)),
-            key: day.toISODate(),
+            key: `${day.toISODate()}`,
             props: {
                     className: [
                         "day-container",
@@ -122,29 +122,30 @@ const getCalendarData = ({start, end, taskStore}: {start: DateTime, end: DateTim
     
 export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}={}) => {
     const taskStore: TaskStore = passedStore ? passedStore : useTaskStore();
-    const thisCalendarRef = useRef(null);
-    const thisCalendarHeaderRef = useRef(null);
-    const scrollContainerRef = useRef(null);
-    const today = useRef(START_OF_DAY());
-    const defaultStart = today.current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND});
-    const defaultEnd = today.current.endOf('month').startOf('day').plus({months: NUM_MONTHS_LOOKAHEAD});
-    const currentDayRef = useRef(null);
-    const [start, setStart] = useState(defaultStart);
-    const earlyMonthRef = useRef(null);
-    const lateMonthRef = useRef(null);
-    const [end, setEnd] = useState(defaultEnd);
+    const thisCalendarRef = useRef<null | HTMLDivElement>(null);
+    const thisCalendarHeaderRef = useRef<null | HTMLHeadElement>(null);
+    const scrollContainerRef = useRef<null | HTMLDivElement>(null);
+    const today = useRef<DateTime<boolean>>(START_OF_DAY());
+    const currentDayRef = useRef<null | HTMLDivElement>(null);
+    const defaultStart: DateTime<boolean> = today.current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND});
+    const defaultEnd: DateTime<boolean> = today.current.endOf('month').startOf('day').plus({months: NUM_MONTHS_LOOKAHEAD});
+    const [start, setStart] = useState<DateTime<boolean>>(defaultStart);
+    const earlyMonthRef = useRef<null | HTMLDivElement>(null);
+    const lateMonthRef = useRef<null | HTMLDivElement>(null);
+    const [end, setEnd] = useState<DateTime<boolean>>(defaultEnd);
     const [scrollTo, setScrollTo] = useState<number | null>(null);
-    const monthRefs = useRef<MutableRefObject<HTMLElement>[]>([]);
 
-    const allLoadedMonthData = getCalendarData({start, end, taskStore});
+    const monthRefs = useRef<(HTMLElement | null)[]>([]);
 
-    const scrollToEle = (toScroll: HTMLElement) => {
+    const allLoadedMonthData: MonthData[] = getCalendarData({start, end, taskStore});
+
+    const scrollToEle = (toScroll: HTMLElement | null) => {
             if (!thisCalendarRef.current || !toScroll) {
                 console.error("Could not scroll to", toScroll);
                 return;
             }
             const calendarHeader = thisCalendarHeaderRef.current;
-            const yOffset = toScroll.getBoundingClientRect().y - (calendarHeader.getBoundingClientRect().y + calendarHeader.getBoundingClientRect().height);
+            const yOffset = toScroll.getBoundingClientRect().y - (calendarHeader ? calendarHeader.getBoundingClientRect().y + calendarHeader.getBoundingClientRect().height : 0);
             scrollContainerRef.current && scrollContainerRef.current.scrollBy({behavior: "smooth", top: yOffset, left: 0 });
     }
 
@@ -163,9 +164,12 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
     }
 
     const getMonthIntersectingWithTopOfCalendar = () => {
-        const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
-        const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
-        return monthRefs.current.findIndex((month) => {                  
+        const calendarHeaderClientRect: Rect | null = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
+        const calendarTop = calendarHeaderClientRect ? calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1 : 0;
+        return monthRefs.current.findIndex((month) => {    
+            if (!month) {
+                return false;
+            }              
             const monthRect = month.getBoundingClientRect();
             if (monthRect.y > calendarTop) {
                 return true;
@@ -212,7 +216,8 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
         }
         return () => {
             if (scrollContainerRef.current) {
-                for (const child of scrollContainerRef.current.children) {
+                for (let i=0; i < scrollContainerRef.current.children.length; i++) {
+                    const child = scrollContainerRef.current.children[i];
                     earlyMonthAppearsObserver.unobserve(child);
                     laterMonthAppearsObserver.unobserve(child);
                 }
@@ -243,10 +248,10 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                     // Calculate the month intersecting with the top of the calendar
                                     const monthOnTop = getMonthIntersectingWithTopOfCalendar();
                                     const calendarHeaderClientRect = thisCalendarHeaderRef.current && thisCalendarHeaderRef.current.getBoundingClientRect(); 
-                                    const calendarTop = calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1;
+                                    const calendarTop = calendarHeaderClientRect ? calendarHeaderClientRect.y + calendarHeaderClientRect.height + 1 : 0;
 
                                     if (monthOnTop >= 0) {
-                                        if (monthOnTop > 0 && Math.abs(monthRefs.current[monthOnTop].getBoundingClientRect().y - calendarTop) < 10) {
+                                        if (monthOnTop > 0 && monthRefs.current[monthOnTop] && Math.abs(monthRefs.current[monthOnTop].getBoundingClientRect().y - calendarTop) < 10) {
                                             // If the first visible month is at the very top of the calendar then scroll to the month before that instead
                                             scrollToMonth(monthOnTop-1);
                                         } 
@@ -312,7 +317,8 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                 if (monthData.closeToEndOfDataRange) {
                                     lateMonthRef.current = node;
                                 }
-                                monthRefs.current[index] = node;
+                                const refs = monthRefs.current 
+                                refs[index] = node;
                             }}    
                         >
                             <div className="month-title" id={`${monthData.key}-header`}> 
@@ -341,7 +347,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                     <h4 
                                                         id={`${day.key}-header`}
                                                     >
-                                                        <time dateTime={day.date.toISODate()}>{day.date.day}</time>
+                                                        <time dateTime={`${day.date.toISODate()}`}>{day.date.day}</time>
                                                     </h4>
                                                     <div className={DARK_SECTION_CLASS}>
                                                         { day.tasksToday && day.tasksToday.map((taskData) => {
@@ -372,7 +378,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                                         {...taskWrapperProps}
                                                                         {...{className: taskWrapperProps.className}}
                                                                     >
-                                                                        <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>
+                                                                        {taskData.type !== "scheduled" && <Checkbox type={taskData.type} checkboxId={`calendar-checkbox-${taskData.task.id}`}></Checkbox>}
                                                                         <TaskTitle />
                                                                     </TaskWrapper>
                                                             </Draggable>

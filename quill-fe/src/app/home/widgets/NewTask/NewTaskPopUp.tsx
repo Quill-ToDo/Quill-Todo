@@ -13,8 +13,8 @@ import {
     TAKE_FULL_SPACE_CLASS, 
     ALIGNED_CLASS, 
     MID_SECTION_CLASS,
-    GRID_ROWS_CLASS,
-    GRID_WITH_GAP_CLASS
+    ROWS_CLASS,
+    ROWS_OR_COLS_WITH_GAP_CLASS
  } from "@/util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { 
@@ -100,7 +100,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                 className={DRAGGABLE_HANDLE_CLASS}
                 title="Move window"    
             >
-                <div className={`${ALIGNED_CLASS} ${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS}`}>
+                <div className={`${ALIGNED_CLASS} ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`}>
                     {ICONS.DRAG}
                     <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
                 </div>
@@ -131,7 +131,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                         }
                     }}
                 >
-                    <div id="title-color" className={`${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS}`}>
+                    <div id="title-color" className={`${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`}>
                         <FormField 
                             name="Color"
                             required={true}
@@ -161,7 +161,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                                     />
                         </TaskComponentAndHeader>
                     }
-                    <div className={showDue && showStart ? `${GRID_ROWS_CLASS} ${GRID_WITH_GAP_CLASS} same-size` : ""}>
+                    <div className={showDue && showStart ? `${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} same-size` : ""}>
                         { showStart && 
                             <TaskComponentAndHeader
                             fieldName={"start"}

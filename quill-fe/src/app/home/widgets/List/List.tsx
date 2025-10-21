@@ -6,7 +6,7 @@ import React, {
 } from "react";
 import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
-import { TaskModel } from "@/store/tasks/TaskModel";
+import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskDateFields, TaskModel } from "@/store/tasks/TaskModel";
 import { 
     Checkbox, 
     TaskTitle, 
@@ -28,7 +28,7 @@ import {
     SUBTLE_CLASS 
 } from "@/app/@util/constants";
 import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
-import { Draggable } from "@/app/@util/Draggable";
+import { Draggable, Droppable } from "@/app/@util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
 import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
 
@@ -142,7 +142,17 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             content: [{
                 "tasks": overdue,
                 "type": "due",
-                "emptyText": "No overdue tasks"
+                "emptyText": "No overdue tasks",
+                taskDropInSectionCallback: (task) => {
+                    // If not already overdue, 
+                    // Change task due date to this morning
+                    if (!task.overdue) {
+                        task.due = DEFAULT_START_DATETIME()
+                        if (task.start && task.start > task.due) {
+                            task.start = null;
+                        }
+                    }
+                }
             }],
         },
         {
@@ -154,12 +164,34 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
                     "tasks": todayDue,
                     "type": "due",
                     "emptyText": "No tasks due today",
+                    taskDropInSectionCallback: (task) => {
+                        // If not already due today, change due date to this date
+                        if (!task.due) {
+                            task.due = DEFAULT_DUE_DATETIME();
+                            return;
+                        }
+                        // Keep the existing time if the due date is already set
+                        if (!task.due.hasSame(now, "day")) {
+                            task.due.set({year: now.year, month: now.month, day: now.day});
+                        }
+                        if (task.overdue) {
+                            task.due = DEFAULT_DUE_DATETIME();
+                        }
+                        if (task.start && task.start > task.due) {
+                            task.start = null;
+                        }
+                    }
                 },
                 {
                     "title": "In Progress",
                     "tasks": todayWork,
                     "type": "scheduled",
                     "emptyText": "No tasks to work on today",
+                    taskDropInSectionCallback: (task) => {
+                        // Change task due date to tomorrow and start date to this morning if unset
+                        // If not already in progress,
+                        
+                    }
                 }
             ]
         },
@@ -169,7 +201,25 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             content: [{
                 "tasks": upcoming,
                 "type": "due",
-                "emptyText": "No upcoming tasks"
+                "emptyText": "No upcoming tasks",
+                taskDropInSectionCallback: (task) => {
+                    // If not already upcoming,
+                    // Change task start date to tomorrow
+                    if (task) {
+                        // TODO it ends in error sometime here
+                        // If there is a due or start date behind current time, move it forward a day
+                        // If there is no start or due time, set due to tomorrow
+                        if (task.start && task.start < now) {
+                            task.start = DEFAULT_START_DATETIME().plus({day: 1});
+                        } 
+                        if (task.due && task.due < now) {
+                            task.due = DEFAULT_DUE_DATETIME().plus({day: 1});
+                        }
+                        if (!task.due && !task.start) {
+                            task.due = DEFAULT_DUE_DATETIME().plus({day: 1});
+                        }
+                    }
+                },
             }]
         },
         {
@@ -178,7 +228,15 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             content: [{
                 "tasks": undated,
                 "type": "due",
-                "emptyText": "No undated tasks"
+                "emptyText": "No undated tasks",
+                taskDropInSectionCallback: (task) => {
+                    // If not already undated
+                    // Remove task start and due date
+                    if (task && (task.start || task.due)) {
+                        task.start = null;
+                        task.due = null;
+                    }
+                },
             }]
         },
         {
@@ -187,10 +245,16 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             content: [{
                 "tasks": complete,
                 "type": "due",
-                "emptyText": "No undated tasks"
+                "emptyText": "No undated tasks",
+                taskDropInSectionCallback: (task) => {
+                    // If not already complete
+                    // Mark task complete
+                    if (task && !task.complete) {
+                        task.complete = true;
+                    }
+                },
             }]
         },
-
     ]
 
     if (!sectionData.some(section => section.content.some(subsection => subsection.tasks.length > 0))) {
@@ -292,8 +356,9 @@ function getSectionId(sectionId: number) {
 interface SubSectionContent {
     title?: string, 
     tasks: TaskModel[], 
-    type: typeof TaskModel.checkboxStyles, 
+    type: TaskDateFields | "scheduled", 
     emptyText: string,
+    taskDropInSectionCallback: (task: TaskModel) => void
 };
 /**
  * The contents of a subsection with a list section serparated out for performance
@@ -319,27 +384,65 @@ const SubSection = observer(({
  * The tasks within a subsection.
  */
 const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
+    const taskStore = useTaskStore();
     const sectionTitleId = `${DARK_SECTION_CLASS}-title-${content.title}`;
     return (
-        <section 
-            aria-labelledby={content.title ? sectionTitleId : ""} 
-        >
-            {content.title && <h3 
-                id={sectionTitleId} 
-                className={CENTERED_CLASS}
-                >
-                    {content.title}
-                </h3>}
-            <div className={DARK_SECTION_CLASS}>
-                {content.tasks.length ? 
-                <TaskList 
-                    tasks={content.tasks} 
-                    type={content.type}    
-                /> :
-                <p className={`${SUBTLE_CLASS} ${CENTERED_CLASS}`}>{content.emptyText}</p>
+        <Droppable
+            collisionPriority={1}
+            itemData={
+                {
+                    type: "list section",
+                    accepts: [TASK_DRAG_TYPE],
                 }
-            </div>
-        </section>
+            }
+            callbacksForAcceptedDragTypes={{
+                [TASK_DRAG_TYPE]: {
+                    setDataWhenDragOver({drag}: {drag: TaskDragData }) {
+                        // set dragged task as being edited and then do the thing
+                        const task = taskStore.getTaskById(drag.id);
+                        if (task) {
+                            task.startEditing();
+                            content.taskDropInSectionCallback(task);
+                        }
+                    },
+                    saveDataWhenDragEnds({ drag}: { drag: TaskDragData }) {
+                        // Save task edits, set as done editing
+                        const task = taskStore.getTaskById(drag.id);
+                        if (task) {
+                            content.taskDropInSectionCallback(task);
+                            task.saveEdits();
+                        }
+                    },
+                    resetDataWhenDragOff({ drag, drop, e }) {
+                        // Reset task edits
+                        const task = taskStore.getTaskById(drag.id);
+                        if (task) {
+                            task.abortEdits();
+                        }
+                    },
+                }}
+            }
+        >
+            <section 
+                aria-labelledby={content.title ? sectionTitleId : ""} 
+            >
+                {content.title && <h3 
+                    id={sectionTitleId} 
+                    className={CENTERED_CLASS}
+                    >
+                        {content.title}
+                    </h3>}
+                <div className={DARK_SECTION_CLASS}>
+                    {content.tasks.length ? 
+                    <TaskList 
+                        tasks={content.tasks} 
+                        type={content.type}    
+                    /> :
+                    <p className={`${SUBTLE_CLASS} ${CENTERED_CLASS}`}>{content.emptyText}</p>
+                    }
+                </div>
+            </section>
+        </Droppable>
     )
 })
 
@@ -351,7 +454,7 @@ const TaskList = observer(({
     type
 }: {
     tasks: TaskModel[], 
-    type: typeof TaskModel.checkboxStyles,
+    type: TaskDateFields | "scheduled",
 }) => {
     const listRef = useRef(null);
     return <ul 
@@ -364,13 +467,13 @@ const TaskList = observer(({
                     mayBeDropped={true}
                     itemData={{
                         type: TASK_DRAG_TYPE,
-                        id: task.id
+                        id: task.id,
                     }}
                     actionTitle="Move task"
                     key={`task-li-${task.id}`}
                     draggedPresentation={<TaskBeingDragged 
                         task={task} 
-                        type={type} 
+                        type={type ==="scheduled" ? "start" : type} 
                     />}
                 >
                     <li 
@@ -395,7 +498,7 @@ const ListViewTask = observer(({
     type,
 }: {
     task: TaskModel, 
-    type: typeof TaskModel.checkboxStyles,
+    type: TaskDateFields | "scheduled",
 }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
@@ -409,7 +512,7 @@ const ListViewTask = observer(({
                 }}
             >
                 <Checkbox
-                    type={type}
+                    type={type === "scheduled" ? "start" : type}
                     checkboxId={checkboxId}
                 />
                 <div 
@@ -464,8 +567,8 @@ function toggleSection(taskSectionToToggle: HTMLElement) {
     }
     
     toggleInlineHeightAttribute(outerSection);
-
-    const sectionHeaderHeight = parseFloat(window.getComputedStyle(taskSectionToToggle.querySelector(".header-container.collapsible")).getPropertyValue('height'));
+    const header = taskSectionToToggle.querySelector(".header-container.collapsible");
+    const sectionHeaderHeight = header ? parseFloat(window.getComputedStyle(header).getPropertyValue('height')) : 0;
 
     if (innerContent.style.display === "none") {
         // Expand
@@ -521,15 +624,16 @@ function flipkarat (taskSectionWithKarat: HTMLElement) {
     const start = "rotate(180deg)";
     const end = "rotate(0deg)";
     symbol.style.transition = `transform ${SECTION_TOGGLE_DURATION}ms ease-in-out 0s`;
-    if (symbol.style._webkit_transform === start || 
-        symbol.style._ms_transform === start || 
+    if (
+        // symbol.style._webkit_transform === start || 
+        // symbol.style._ms_transform === start || 
         symbol.style.transform === start) {
-        symbol.style._webkit_transform = end;
-        symbol.style._ms_transform = end;
+        // symbol.style._webkit_transform = end;
+        // symbol.style._ms_transform = end;
         symbol.style.transform = end;
         } else {
-        symbol.style._webkit_transform = start;
-        symbol.style._ms_transform = start;
+        // symbol.style._webkit_transform = start;
+        // symbol.style._ms_transform = start;
         symbol.style.transform = start;
     }
 }

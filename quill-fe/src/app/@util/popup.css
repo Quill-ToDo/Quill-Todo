@@ -69,6 +69,14 @@
         width: 340px;
     }
 
+.small-popup {
+    background-color: var(--g8);
+    width: fit-content;
+    border-radius: var(--box-corner-rounding);
+    box-shadow: inset 0px 0px 0px calc(var(--popup-border-width) / 2) var(--popup-border);
+    padding: calc(var(--popup-border-width) - 1px);
+}
+
 #portal-holder {
     position: absolute;
     top: 0;
