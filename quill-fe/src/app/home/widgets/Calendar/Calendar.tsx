@@ -365,7 +365,6 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                                                 actionTitle="Move task"
                                                                 key={taskWrapperProps.keyOverride}
                                                                 dragStart={() => {
-                                                                    console.log("drag")
                                                                 }}
                                                                 draggedPresentation={
                                                                     <TaskBeingDragged 

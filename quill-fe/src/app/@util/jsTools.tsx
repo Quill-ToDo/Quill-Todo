@@ -1,5 +1,4 @@
-import { ClientRect } from "@dnd-kit/core";
-import { ComponentPropsWithoutRef, ForwardedRef, RefCallback } from "react";
+import { ComponentPropsWithoutRef } from "react";
 
 export const iterateThroughParents = ({
     start,

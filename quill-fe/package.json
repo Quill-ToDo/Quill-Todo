@@ -10,13 +10,13 @@
     "test": "jest"
   },
   "dependencies": {
-    "@dnd-kit/core": "^6.1.0",
-    "@dnd-kit/modifiers": "^7.0.0",
+    "@dnd-kit/helpers": "^0.1.21",
+    "@dnd-kit/react": "^0.1.21",
     "@floating-ui/react": "^0.26.16",
     "@types/node": "20.5.0",
+    "@types/pluralize": "^0.0.33",
     "@types/react": "18.2.20",
     "@types/react-dom": "18.2.7",
-    "@types/pluralize": "^0.0.33",
     "autoprefixer": "10.4.15",
     "axios": "^1.7.2",
     "eslint": "^8.0.0",

@@ -49,7 +49,6 @@ import {
     DraggedDatePresentation, 
     PARTIAL_DATETIME_FORMATS
  } from "@/util/DateTimeHelper";
-import { DraggableContext } from "@/app/3rd-party/DndKit";
 import { Draggable, Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
 import { useMergeRefs } from "@floating-ui/react";
 import { PersistentPopupContext } from "@/app/3rd-party/FloatingUiHelpers";
@@ -68,6 +67,7 @@ import {
     defaultTaskDateClearInteraction,
     defaultChangeTaskFieldToDate,
 } from "@/app/@util/DraggableTypes";
+import { DraggableContext } from "@/app/3rd-party/DndKit";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
 
@@ -214,12 +214,12 @@ export const TaskWrapper = observer(forwardRef((
         key={keyOverride ? keyOverride : task.id}
         onMouseEnter={(e) => {
             if (!dragContext.isDragging) {
-                task.highlighted = true;
+            task.highlighted = true;
             }
         }}
         onMouseLeave={(e) => {
             if (!dragContext.isDragging) {
-                task.highlighted = false;
+            task.highlighted = false;
             }
         }}
         className={combineClassNamePropAndString(
@@ -246,9 +246,10 @@ export const TaskWrapper = observer(forwardRef((
                         }}
                         callbacksForAcceptedDragTypes={{
                             [DELETE_DRAG_TYPE]: { 
-                                saveDataWhenDragEnds({drag, drop, e}) {
-                                    // defaultTypeInteractionSave && defaultTypeInteractionSave({DeleteData: drop, TaskData: drag, task, openDeleteConfirmPopup});
-                                    defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drop, drag, {task, openDeleteConfirmPopup})
+                                saveDataWhenDragEnds({drag, drop}) {
+                                    if (drag && drop) {
+                                        defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task, openDeleteConfirmPopup})
+                                    }
                                 },
                             },
                         }}
@@ -525,12 +526,10 @@ const PlainTaskTitle = observer(forwardRef<HTMLTextAreaElement, {
         passedTask,
         openTaskDetailPopup=true,
         ...props
-    }, ref
+    }, forwardedRef
 ) => {
     const [task] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
-    const popupForwardedRef = useRef<HTMLElement | null>(null);
-    const mergedRef = useMergeRefs([popupForwardedRef, ref]);
 
     let toReturn: ReactNode = <p 
         {...props}
@@ -540,6 +539,7 @@ const PlainTaskTitle = observer(forwardRef<HTMLTextAreaElement, {
 
     if (openTaskDetailPopup) {
         return <AnchorWithPersistentPopupAttached
+                ref={forwardedRef}
                 closeWhenClickOutside={false}
                 alignment="middle"
                 placement="auto"
@@ -560,15 +560,11 @@ const PlainTaskTitle = observer(forwardRef<HTMLTextAreaElement, {
                         {toReturn}
                     </button>
                     }
-            popupRenderMethod={({closePopup}, ref) => {
-                if (ref) {
-                    popupForwardedRef.current = (ref as MutableRefObject<any>).current;
-                }
-                return <TaskDetail 
+            popupRenderMethod={({closePopup}, ref) => <TaskDetail 
                         task={task} 
+                        ref={ref}
                         closeWidget={closePopup}
-                        ref={mergedRef}
-                />}
+                />
             }
         />;
     }
@@ -880,7 +876,7 @@ const EditableTaskDate = observer(({
             callbacksForAcceptedDragTypes={{
                 [DATE_DRAG_TYPE]: {
                     setDataWhenDragOver({ drag, drop }) {
-                        defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task});
+                        drag && drop && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task});
                     },
                     resetDataWhenDragOff({ drop }) {
                         if (startingDate.current !== dateField && (!drop || drop.taskId !== task.id) ) {
@@ -891,15 +887,15 @@ const EditableTaskDate = observer(({
                 }, 
                 [DELETE_DRAG_TYPE]: {
                     setDataWhenDragOver({ drag, drop }) {
-                        defaultTaskDateClearInteraction.set && defaultTaskDateClearInteraction.set(drag, drop, {task})
+                        drag && drop && defaultTaskDateClearInteraction.set && defaultTaskDateClearInteraction.set(drag, drop, {task})
                     },
                 }, 
                 [DATE_FIELD_DRAG_TYPE]: {
                     setDataWhenDragOver({ drag, drop }) {
-                        defaultChangeTaskFieldToDate.set && defaultChangeTaskFieldToDate.set(drag, drop, {task});
+                        drag && drop && defaultChangeTaskFieldToDate.set && defaultChangeTaskFieldToDate.set(drag, drop, {task});
                     },
                     resetDataWhenDragOff({drag, drop}) {
-                        defaultChangeTaskFieldToDate.reset && defaultChangeTaskFieldToDate.reset(drag, drop, {task});
+                        drag && drop && defaultChangeTaskFieldToDate.reset && defaultChangeTaskFieldToDate.reset(drag, drop, {task});
                     },
                 },
             }}

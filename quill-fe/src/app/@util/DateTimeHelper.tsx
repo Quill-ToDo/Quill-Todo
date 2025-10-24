@@ -8,7 +8,6 @@ import {
     ROWS_CLASS,
     ICONS,
     ICON_CLASS,
-    BUTTON_OR_ICON_SMALL,
     BUTTON_OR_ICON_MEDIUM,
     ALIGNED_CLASS,
     CENTERED_CLASS,
@@ -21,11 +20,9 @@ import {
     DATE_FIELD_DRAG_TYPE, 
     DateDragData, 
     DateDropData, 
-    DateFieldDragData, 
     DEFAULT_DATE_DRAG_DATA, 
     defaultChangeTaskFieldToEndOrStartOfDay, 
     TASK_DRAG_TYPE,
-    TaskDragData
 } from "./DraggableTypes";
 
 // Date and Time Constants
@@ -93,10 +90,13 @@ export const DraggableDroppableDate = observer(forwardRef((
             }}
             callbacksForAcceptedDragTypes={{
                 [DATE_FIELD_DRAG_TYPE]: {
-                    setDataWhenDragOver: ({drag, drop}: {drag: DateFieldDragData, drop: DateDropData }) => {
-                        const task = taskStore.getTaskById(drag.taskId);
-                        task && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task})
-                    }, resetDataWhenDragOff({ drag, drop }) {
+                    setDataWhenDragOver: ({drag, drop}) => {
+                        if (drag && drop) {
+                            const task = taskStore.getTaskById(drag.taskId);
+                            task && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task})
+                        }
+                    }, 
+                    resetDataWhenDragOff({ drag, drop }) {
                         if (drag && drop) {
                             const taskId = drag.taskId;
                             const task = taskStore.getTaskById(taskId);
@@ -106,7 +106,7 @@ export const DraggableDroppableDate = observer(forwardRef((
                     },
                 }, 
                 [TASK_DRAG_TYPE]: {
-                    setDataWhenDragOver: ({drag, drop}: {drag: TaskDragData, drop: DateDropData}) => {
+                    setDataWhenDragOver: ({drag, drop}) => {
                         if (drag && drop) {
                             // If task dropped on date, get task from store given ID
                             // aaannnddd change the task due? or start? date to date from drop 
@@ -120,7 +120,7 @@ export const DraggableDroppableDate = observer(forwardRef((
                         }
                     }, resetDataWhenDragOff({ drag, drop, e }) {
                         if (drag) {
-                            const taskId = drag.taskId;
+                            const taskId = drag.id;
                             const task = taskStore.getTaskById(taskId);
                             task && task.abortEdits();
                         }

@@ -530,13 +530,11 @@ export class TaskModel {
         this.color = json.color;
         this.autoSave = true;
         // Fields only from the server, don't patch these to the server
-        const completed = "completed_at"
-        const created = "created_at"
-        if (Object.keys(json).includes(completed)) {
-            this._completedDate = json[completed] ? DateTime.fromISO(json[completed]) : null;
+        if (Object.keys(json).includes("completed_at")) {
+            this._completedDate = json["completed_at"] ? DateTime.fromISO(json["completed_at"]) : null;
         }
-        if (Object.keys(json).includes(created)) {
-            this._createdDate = json[created] ? DateTime.fromISO(json[created]) : null;
+        if (Object.keys(json).includes("created_at")) {
+            this._createdDate = json["created_at"] ? DateTime.fromISO(json["created_at"]) : null;
         }
         // this._createdDate = json.created_at ? DateTime.fromISO(json.created_at) : null;
     }

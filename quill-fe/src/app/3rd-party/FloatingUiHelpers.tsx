@@ -191,6 +191,9 @@ const getPositionedDraggablePopup = ({
     const popupWithDraggingApplied = 
     draggable ? 
         <Draggable
+            itemData={{
+                type: "task popup"
+            }}
             mayBeDropped={false} 
             useHandle={useDragHandle} 
             actionTitle='Move popup'
@@ -310,7 +313,7 @@ export const FloatingUiPersistentPopup = observer(forwardRef((
         popupRenderMethod,
         ...props
     } : PopupSetupProps, 
-    forwardedRef: ForwardedRef<any>) => {
+    forwardedPopupRef: ForwardedRef<any>) => {
     // Get the ref for the positioning reference/anchor element from FloatingUi
     const { 
         anchorRef: setPopupAnchorRef, 
@@ -343,9 +346,9 @@ export const FloatingUiPersistentPopup = observer(forwardRef((
                 // based on this anchor's data. 
                 setPopupOpenedAttachedToThisAnchor(true);
                 setPopupProps({
-                    popupRenderMethod,
+                    popupRenderMethod: (props, ref) => popupRenderMethod(props, ref),
                     anchorRenderMethod,
-                    forwardedPopupRef: forwardedRef,
+                    forwardedPopupRef: forwardedPopupRef,
                     ...props
                 });
                 setShowPopup(true);
@@ -401,16 +404,16 @@ export const PersistentPopupContextProvider = ({children}: {
     //  3) based on current popup props, generate popup content to render from this component, 
     //     an anchor ref, and anchor props to pass back to the 
     //     paricular anchor element that opened the popup
-    const { content, anchorRef: setPopupAnchor, getAnchorProps, popupIsPositioned } = getPositionedDraggablePopup({
-        getPositionedPopup: ({closePopup}, ref) => 
-            popupProps.popupRenderMethod({
-                    closePopup: (callback?: Function) => {
-                        setShowPopup(false);
-                        callback && callback();
-                        closePopup();
-                    }, 
-                }, 
-                ref),
+    const { content, anchorRef: setPopupAnchor, getAnchorProps, popupIsPositioned } = getPositionedDraggablePopup(
+        {
+            getPositionedPopup: ({closePopup}, ref) => 
+                popupProps.popupRenderMethod({
+                        closePopup: (callback?: Function) => {
+                            setShowPopup(false);
+                            callback && callback();
+                            closePopup();
+                        }, 
+                    }, ref),
             isOpen: showPopup,
             openChange: setShowPopup,
             ...popupProps

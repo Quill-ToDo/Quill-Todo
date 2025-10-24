@@ -4,17 +4,12 @@ import { TaskModel, TaskDateFields } from "../home/_globalStore/tasks/TaskModel"
 // Types to be assigned to Draggable and Droppable components as types.
 // You don't have to follow this pattern strictly but:
 
-// 1. Add a drag type name like <name>_DRAG_TYPE at the top of this file so that
+// 1. Add a drag type name like <name>_DRAG_TYPE so that
 //    all the drag types below can reference each other using these names.
-//#region Names
-export const DATE_DRAG_TYPE = "date";
-export const DATE_FIELD_DRAG_TYPE = "date field";
-export const DELETE_DRAG_TYPE = "delete";
-export const TASK_DRAG_TYPE = "task";
-//# endregion Names
-
-// 2. Add drag and or drop Type(s) to pass to Droppable and Draggable components which extend RequiredDragData
-//    or RequiredDropData
+// 2. Add drag and or drop data Type(s) to pass to Droppable and Draggable components 
+//    which extend RequiredDragData (for dragged data) or RequiredDropData (for dropped data)
+// 3. Add the mapping of the type string name to the drag and drop data types you made for it in DragTypesToDragDataTypes
+// 4. Add default data to re-use following the Type restraints of DragDropConstants
 export interface RequiredDragData {
     type: string,
     showDropPreview?: boolean,
@@ -23,30 +18,37 @@ export interface RequiredDropData {
     type: string,
     accepts: string[],
 };
-//#region Types
-// Date
+//#region Names and Data Types 
+export const DATE_DRAG_TYPE = "date";
 export type DateDragData = {
     date: DateTime<boolean>,
 } & RequiredDragData;
 export type DateDropData = DateDragData & RequiredDropData;
-// Date Field
+export const DATE_FIELD_DRAG_TYPE = "date field";
 export type DateFieldDragData = {
     date: DateTime<boolean>,
     fieldType: "due" | "start",
     taskId: string,
 } & RequiredDragData;
 export type DateFieldDropData = DateFieldDragData & RequiredDropData;
-// Delete
+export const DELETE_DRAG_TYPE = "delete";
 export type DeleteDragData = RequiredDragData;
 export type DeleteDropData = RequiredDropData;
-// Task
+export const TASK_DRAG_TYPE = "task";
 export type TaskDragData = {
     id: string,
 } & RequiredDragData;
 export type TaskDropData = TaskDragData & RequiredDropData;
-//#endregion Types
+//#region Type name to data type
+export type DragTypesToDragDataTypes = {
+    [DATE_DRAG_TYPE]: DateDragData,
+    [DATE_FIELD_DRAG_TYPE]: DateFieldDragData,
+    [DELETE_DRAG_TYPE]: DeleteDragData,
+    [TASK_DRAG_TYPE]: TaskDragData,
+};
+//#endregion Type name to data type
+//#endregion Names and Data Types 
 
-// 3. Add default data to re-use following the Type restraints of DragDropConstants
 export interface DragDropConstants {
     type: string,
     accepts: string[],
@@ -163,24 +165,4 @@ export const defaultTaskDateClearInteraction: DragDropInteraction<DeleteDragData
             }
         }, 
         // Reset turns the task field to whatever datetime it was before
-}
-         
-// Set: Set the data that should change when a type is dragged over a droppable type which accepts it
-// Save: Confirm changes to data on drag item being dropped on droppable spot that accepts it
-// Reset: Clear the data to its previous state before anything was dragged onto it
-export const DRAG_INTERACTIONS: {[dragType: string]: {[dropType: string] : null | {set?: Function | null, save?: Function | null, reset?:  Function | null}}} = {
-    [TASK_DRAG_TYPE]: {
-        [DELETE_DRAG_TYPE]: defaultTaskDeleteInteraction,
-    },
-    [DATE_FIELD_DRAG_TYPE]: {
-        [DATE_FIELD_DRAG_TYPE]: defaultChangeTaskFieldToDate,
-        [DATE_DRAG_TYPE]: defaultChangeTaskFieldToDate
-    },
-    [DATE_DRAG_TYPE]: {
-        [DATE_FIELD_DRAG_TYPE]: defaultChangeTaskFieldToEndOrStartOfDay
-    },
-    [DELETE_DRAG_TYPE]: {
-        [DATE_FIELD_DRAG_TYPE]: defaultTaskDateClearInteraction,
-        [TASK_DRAG_TYPE]: defaultTaskDeleteInteraction,
-    }
 }

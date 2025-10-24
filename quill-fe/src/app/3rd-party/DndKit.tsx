@@ -1,23 +1,15 @@
 import {
-    ClientRect,
-    DndContext, 
-    DragEndEvent,  
     DragOverlay,  
-    DragStartEvent,  
-    Modifier,  
+    useDragDropMonitor,
     PointerSensor,    
-    PointerSensorProps,    
-    useDndMonitor,  
     useDraggable,
     useDroppable,
-    useSensor,
-    useSensors,
-} from '@dnd-kit/core';
-import type {Transform} from '@dnd-kit/utilities';
+    KeyboardSensor,
+    DragDropProvider,
+} from '@dnd-kit/react';
 import React, { 
     ReactNode, 
     useId, 
-    PointerEvent,
     useState, 
     ComponentPropsWithoutRef,
     useContext,
@@ -27,26 +19,21 @@ import React, {
     forwardRef,
     ReactElement,
     ForwardedRef,
+    MutableRefObject,
 } from 'react';
 import { 
-    DragEventData, 
+    FormattedDragDropEventData, 
     DraggableParams, 
-    DroppableParams,
-    DropEventData, } from '@util/Draggable';
+    DroppableParams, } from '@util/Draggable';
 import { combineClassNamePropAndString } from '@util/jsTools';
-import { clickedInBounds, searchThroughParents } from '@util/jsTools';
 import { observer } from 'mobx-react-lite';
 import { 
     DRAGGABLE_CONTAINER_CLASS, 
     DRAGGABLE_HANDLE_CLASS, 
-    LIGHT_SECTION_CLASS, 
-    LOADING_CLASS, 
-    PADDING_CLASS, 
-    POPUP_POSITIONER_CLASS, 
-    ROUND_CORNERS_CLASS, 
+    POPUP_POSITIONER_CLASS,
 } from '../@util/constants';
-import { useMergeRefs } from '@floating-ui/react';
 import { RequiredDragData, RequiredDropData } from '../@util/DraggableTypes';
+import { useMergeRefs } from '@floating-ui/react';
 const translate = (x: number, y: number) => `translate3d(${x}px, ${y}px, 0)`;
 const numbersFromTranslate = (s: String) => {
     const x = Number(s.substring(s.indexOf("(")+1, s.indexOf("px")));
@@ -95,34 +82,27 @@ export const DraggableContext = createContext<{
  * @returns 
  */
 export const DraggingContent = observer(() => {
-    const {dragOverlay, isDragging, position, draggedOverValidTarget } = useContext(DraggableContext); 
-    const modifiers: any = [];
+    const {dragOverlay, position, draggedOverValidTarget } = useContext(DraggableContext); 
     const { draggedContent } = dragOverlay;
     // Use content from nearest drag context to render dragged content in a drag overlay
 
     // TODO how to make drag overlay container class take the classes of the real div...
     // Drag overlay should always be mounted and content within should be conditionally rendered
     return (
-    <DragOverlay 
-            dropAnimation={null}
-            modifiers={modifiers}
+        <DragOverlay 
             className='drag-overlay'
             >
-            <div 
-                className={`${DRAGGABLE_CONTAINER_CLASS} ${isDragging && draggedOverValidTarget ? "valid" : "invalid"}`}
-                {...(position && {style: {transform: translate(position.x, position.y)}})}
-    >
-                { isDragging && draggedContent ? 
-                    draggedContent 
-                    : <div className={`${LIGHT_SECTION_CLASS} ${ROUND_CORNERS_CLASS} ${PADDING_CLASS} ${LOADING_CLASS}`}>
-                        <p className='jiggle'>
-                            Loading...
-                        </p>
-                    </div>
-                }
-            </div>
-    </DragOverlay>
-            ) 
+                { (source) => <div 
+                    className={`${source.element?source.element.className:""} ${DRAGGABLE_CONTAINER_CLASS} ${draggedOverValidTarget && source.isDropping ? "valid" : "invalid"}`}
+                    {...(position && {style: {transform: translate(position.x, position.y)}})}
+        >
+                    { source.isDragging && draggedContent ? 
+                        draggedContent 
+                    : <></>
+                    }
+            </div>}
+        </DragOverlay>
+    ) 
 })
 
 
@@ -135,49 +115,40 @@ export const WrapWithDndContext = observer(({
 }: {
     children: ReactNode,
 }) => {
-    // Modifiers can be applied to drag overlay
-    // Sensors can only be applied to dnd context
     const [dragOverlay, setDragOverlay] = useState<DraggedOverlayData>({draggedContent: null, anchorId: null});
     const [draggedOverValidTarget, setDraggedOverValidTarget] = useState<boolean>(false);
     const [position, setPosition] = useState<{x: number, y: number} | null>(null);
     const [isDragging, setIsDragging] = useState(false);
-    const pointerSensor = useSensor(PointerSensor);
-    const dragHandleSensor = useSensor(DragHandleSensor, {
-        activationConstraint: {
-            distance: 10,
+    const sensorsToUse = [PointerSensor.configure({
+        activationConstraints: {
+            distance: {value: 10},
         }
-    });
-    const modifiers: Modifier[] = [];
-    const sensorsToUse = [];
-    
-    sensorsToUse.push(pointerSensor);
-    sensorsToUse.push(dragHandleSensor);
-    
-    const sensors = useSensors(...sensorsToUse);
-    return <DraggableContext.Provider value={{
-            dragOverlay, 
-            setDragOverlay, 
-            position,
-            setPosition, 
-            isDragging,
-            draggedOverValidTarget,
-            setDraggedOverValidTarget,
-        }}
-    >
-        <DndContext 
-            modifiers={modifiers}
-            sensors={sensors}
-            autoScroll={false}
+    }), KeyboardSensor];
+        
+    return (
+    <DragDropProvider
+            sensors={sensorsToUse}
             onDragStart={(e) => {
                 setIsDragging(true);
             }}
             onDragEnd={(e) => {
                 setIsDragging(false);
             }}
-            >
+        >
+                <DraggableContext.Provider value={{
+                        dragOverlay, 
+                        setDragOverlay, 
+                        position,
+                        setPosition, 
+                        isDragging,
+                        draggedOverValidTarget,
+                        setDraggedOverValidTarget,
+                    }}
+                >
             { children }
-        </DndContext>
-    </DraggableContext.Provider>;
+        </DraggableContext.Provider>
+     </DragDropProvider>
+    )
 });
 //#endregion Context
 //region Draggable
@@ -213,56 +184,54 @@ export const DraggableDndKitImplementation = observer(forwardRef(({
        draggedPresentation
         : children;
 
-    const sharedDragStart: DragOptions<any>["sharedDragStart"] = (e, callback) => {
-        startDragIfIdMatchesDraggedId(id, e, (props) => {
+    const sharedDragStart: DragOptions<any>["sharedDragStart"] = (props) => {
+        continueIfThisElementDragging({...props, callbackIfValid: (data) => {
             // Set drag overlay content to be that of the actual item
             setDragOverlay && setDragOverlay({draggedContent: draggedContent as ReactElement, anchorId: id});
-            callback && callback(props, () => {
-                dragStart && dragStart(props);
-            });
-        })
+            dragStart && dragStart(data);
+            props.callbackIfValid && props.callbackIfValid(data);
+        }})
     }
 
-    const sharedDragEnd: DragOptions<any>["sharedDragEnd"] = (e, callback) => {
-        endDragIfIdMatchesDraggedId(id, e as DragEndEvent, (props) => {
+    const sharedDragEnd: DragOptions<any>["sharedDragEnd"] = (props) => {
+        continueIfThisElementDragging({...props, callbackIfValid: (data) => {
             setDragOverlay && setDragOverlay({draggedContent: null, anchorId: null});
-            callback && callback(props, () => {
-                dragEnd && dragEnd(props);
-            });
-        })
+            dragEnd && dragEnd(data);
+            props.callbackIfValid && props.callbackIfValid(data);
+        }})
     }
 
     return (
-    mayBeDropped 
-    ? <PickUpAndMove
-        {...sharedPositioningProps}
-        ref={ref}
-        id={id}
-        sharedDragStart={sharedDragStart}
-        sharedDragEnd={sharedDragEnd}
-        itemData={itemData}
-    >
-        {children}
-    </PickUpAndMove>
-    : 
-    <FreelyDraggable 
-        {...sharedPositioningProps}
-        ref={ref}
-        id={id}
-        sharedDragStart={sharedDragStart}
-        sharedDragEnd={sharedDragEnd}
-        itemData={itemData}
-    >
-        {children}
-    </FreelyDraggable> )
+        mayBeDropped 
+            ? <PickUpAndMove
+                {...sharedPositioningProps}
+                ref={ref}
+                id={id}
+                sharedDragStart={sharedDragStart}
+                sharedDragEnd={sharedDragEnd}
+                itemData={itemData}
+                >
+                {children}
+            </PickUpAndMove>
+            : 
+            <FreelyDraggable 
+                {...sharedPositioningProps}
+                ref={ref}
+                id={id}
+                sharedDragStart={sharedDragStart}
+                sharedDragEnd={sharedDragEnd}
+                itemData={itemData}
+            >
+                {children}
+            </FreelyDraggable> )
 }));
 
 // The subset of props required in both free drag and "pick up and move item" implementations
 type DragOptions<DragData extends RequiredDragData> = {
     children: ReactNode,
     id: string,
-    sharedDragStart: (e: DragStartEvent, callback?: (data: DragData, after: () => void ) => void) => void,
-    sharedDragEnd: (e: DragEndEvent, callback?: (data: DragData, after: () => void) => void) => void,
+    sharedDragStart: (props: DndItemsNeededForAbstraction) => void,
+    sharedDragEnd: (props: DndItemsNeededForAbstraction) => void,
     itemData: DragData,
 } & ComponentPropsWithoutRef<any>;
 
@@ -270,71 +239,65 @@ type DragOptions<DragData extends RequiredDragData> = {
  * DND Kit implementation of a freely draggable element that stays where it is last moved to. 
  * @returns 
  */
-const FreelyDraggable = observer(forwardRef(({
+const FreelyDraggable = observer(forwardRef<any, DragOptions<any>>(({
     children,
     id,
     itemData,
     sharedDragStart, 
     sharedDragEnd,
     ...props
-}: DragOptions<any>, forwardedRef): ReactNode => {
+}, forwardedRef): ReactNode => {
     const { setPosition: setPopupPosition } = useContext(DraggableContext);
     const [startingCoords, setStartingCoords] = useState<null | {x: number, y: number}>(null);
     const [itemIsBeingDragged, setItemIsBeingDragged] = useState(false);
-    
-    const {attributes, listeners, setNodeRef} = useDraggable({
+    const {ref} = useDraggable({
         id: id,
-        attributes: {
-            role: "generic",
-        },
         data: itemData,
     });
-    const ref = useMergeRefs([setNodeRef, forwardedRef]);
+    const merged = useMergeRefs([ref, forwardedRef]);
     /// Render the draggable item with drag start and end listeners, 
     // when drag starts use dragContext to set content for a dragOverlay rendered elsewhere. Hide the actual element. Set the dragged content to be the  
     // correct element and set a starting position as necessary. 
     // When drag ends, update the position of the actual element to be where the drag ended and unhide it. 
 
-    useDndMonitor({
-        onDragStart(e) {
-            sharedDragStart(e, ({after}) => {
-                if (e.active && e.active.id === id) {
-                    setItemIsBeingDragged(true);
-                    // Set the starting coords of the drag and dragOverlay element to be where the item starts being dragged from
-                    const draggedContentElement = document.getElementById(id); 
-                    if (!!draggedContentElement) {
-                        const topLeftCornerOfElementBeforeDrag = numbersFromTranslate(draggedContentElement.style.transform);
-                        if (topLeftCornerOfElementBeforeDrag.x !== 0 || topLeftCornerOfElementBeforeDrag.y !== 0) {
-                            // Set starting position of drag overlay to be where the real item is
-                            setPopupPosition && setPopupPosition(topLeftCornerOfElementBeforeDrag);       
-                            setStartingCoords(topLeftCornerOfElementBeforeDrag);
-                            after && after();
-                        }
-                    } 
+    useDragDropMonitor({
+        onDragStart(e, manager) {
+            sharedDragStart({targetElementId: id, operation: e.operation, callbackIfValid: ({drag}: FormattedDragDropEventData<any, any>) => {
+                setItemIsBeingDragged(true);
+                // TODO might be able to update this to use new dnd kit options and not query the document
+                // Set the starting coords of the drag and dragOverlay element to be where the item starts being dragged from
+                const draggedContentElement = document.getElementById(id); 
+                if (!!draggedContentElement) {
+                    const topLeftCornerOfElementBeforeDrag = numbersFromTranslate(draggedContentElement.style.transform);
+                    if (topLeftCornerOfElementBeforeDrag.x !== 0 || topLeftCornerOfElementBeforeDrag.y !== 0) {
+                        // Set starting position of drag overlay to be where the real item is
+                        setPopupPosition && setPopupPosition(topLeftCornerOfElementBeforeDrag);       
+                        setStartingCoords(topLeftCornerOfElementBeforeDrag);
+                    }
                 }
-            });
+            }});
         },
-        onDragEnd(e) {
-            sharedDragEnd(e, ({after}) => {
+        onDragEnd(e, manager) {
+            sharedDragEnd({targetElementId: id, operation: e.operation, callbackIfValid: ({drag}: FormattedDragDropEventData<any, any>) => {
                 setItemIsBeingDragged(false);
+                // const final = op.position;
+                const final = e.operation.position;
                 // Move the actual HTML element (not overlay) to the ending position of the DragOverlay and make it visible
-                if (e.active.rect.current.translated) {
-                    const translated = {x: e.active.rect.current.translated.left, y: e.active.rect.current.translated.top}
+                if (drag && final) {
+                    // TODO this seems to be moving to where the cursor ended up and not where the element ended up
+                    const translated = {x: final.current.x, y: final.current.y}
                     setPopupPosition && setPopupPosition(null);
                     setStartingCoords(translated);
-                    after && after();
                 }
-            })
+            }})
         },
     })
 
     // Hide the actual item when the drag overlay is not rendered
     return itemIsBeingDragged ? <></> : <div
             id={id}
-            ref={ref}
+            ref={merged}
             {...props}
-            {...listeners}
-            {...attributes}
             {
                 // Set the position of the actual element not while dragging
                 ...(startingCoords && {style: {transform: translate(startingCoords.x, startingCoords.y)}})
@@ -357,71 +320,90 @@ const PickUpAndMove = observer(forwardRef(({
     ...props
 }: DragOptions<any>, forwardedRef: ForwardedRef<any>) => {
     const { setDraggedOverValidTarget } = useContext(DraggableContext);
-    const {attributes, listeners, setNodeRef} = useDraggable({
+    const { ref } = useDraggable({
         id: id,
-        attributes: {
-            role: "button",
-        },
         data: itemData,  
     });
-    const ref = useMergeRefs([forwardedRef, setNodeRef]);
-    useDndMonitor({
-        onDragStart: (e) => {
-            sharedDragStart(e, () => {});
+    const merged = useMergeRefs([forwardedRef, ref])
+
+    useDragDropMonitor({
+        onDragStart: (e, manager) => {
+            sharedDragStart({operation: e.operation, targetElementId: id, callbackIfValid: () => {}});
         },
-        onDragEnd: sharedDragEnd,
-        onDragOver: (e) => {
-            endDragIfIdMatchesDraggedId(id, e, ({drop}: {drop: RequiredDropData}) => {
+        onDragEnd: (e, manager) => {
+            sharedDragEnd({operation: e.operation, targetElementId: id, callbackIfValid: () => {}});
+        },
+        onDragOver: (e, manager) => {
+            continueIfThisElementDragging({targetElementId: id, operation: e.operation, callbackIfValid: ({drop}) => {
                 if (itemData && drop && drop.accepts && setDraggedOverValidTarget) {
                     setDraggedOverValidTarget(drop.accepts.includes(itemData.type));
                 }
-            });
+            }});
         }
     });
 
     return <div
         {...props}
-        ref={ref}
+        ref={merged}
         id={id}
-        {...attributes}
-        {...listeners}
     >
         { children }
     </div>;
 }));
 
+export type DndKitDraggableData<DragData extends RequiredDragData> = {
+    id: any,
+    element: Element | undefined, 
+    type: any, 
+    isDragging: boolean, 
+    isDropping: boolean, 
+    alignment: any, 
+    isDragSource: boolean, 
+    status: any,
+    data: DragData, 
+} | null;
 
+export type DndKitDroppableData<DropData extends RequiredDropData> = {
+    id: any,
+    element: Element | undefined, 
+    type: any, 
+    data: DropData,
+} | null;
+
+export type DndKitDragOperation = {
+    activatorEvent: Event | null,
+    canceled: boolean,
+    position: any,
+    transform: {x: number, y: number},
+    status: any,
+    source: DndKitDraggableData<any>,
+    target: DndKitDroppableData<any>,
+} | null;
+
+type DndItemsNeededForAbstraction = {
+    targetElementId: string, 
+    operation: DndKitDragOperation, 
+    callbackIfValid: (data: FormattedDragDropEventData<RequiredDragData, RequiredDropData>) => void
+}
 /**
- * Check if this element is the one being dragged, and if so, pass on any drag and drop data
+ * Check if this element is the one being dragged, and if so, pass on any drag and drop data. 
+ * Changing the data type of the returned data is meant to abstract away some of the particularities of how dndKit stores data, so that if that
+ * shape changes we only have to change this method, hopefully.
  * @param draggedElementId 
  * @param e 
  * @param onDragEnd 
  * @returns 
  */
-const endDragIfIdMatchesDraggedId = (draggedElementId: string, e: DragEndEvent, onDragEnd: (data: DropEventData<any, any>) => void) => {
-    const {active, over} = e;
-    if (e.active.id !== draggedElementId) {
-        return;
+const continueIfThisElementDragging = <DragData extends RequiredDragData, DropData extends RequiredDropData>({operation, targetElementId, callbackIfValid}: DndItemsNeededForAbstraction) => {
+    if (operation) {
+        const droppable = operation.target;
+        const dragged = operation.source;
+        if (!dragged || dragged.id !== targetElementId) {
+            return;
+        }
+        const data: FormattedDragDropEventData<DragData, DropData> = {e: {isDragging: !!(dragged && dragged.isDragging)}, drag: dragged.data, drop: droppable ? droppable.data : null}; 
+        callbackIfValid && callbackIfValid(data);
     }
-    const droppableData = over ? over.data.current : null;
-    const draggedData = active.data.current;
-    onDragEnd && onDragEnd({e, drag: draggedData, drop: droppableData});
-}
-
-/**
- * Check if this element is the one being dragged, and if so, execute the callback
- * @param targetElementId 
- * @param e 
- * @param onDragStart 
- * @returns 
- */
-const startDragIfIdMatchesDraggedId = (targetElementId: string, e: DragStartEvent, onDragStart: (data: DragEventData<any>) => void) => {
-    const {active} = e;
-    if (active.id !== targetElementId) {
-        return;
-    }
-    const draggedData = active.data.current;
-    onDragStart && onDragStart({drag: draggedData, e});
 }
 
 /**
@@ -431,14 +413,17 @@ const startDragIfIdMatchesDraggedId = (targetElementId: string, e: DragStartEven
  * @param onDragEnd 
  * @returns 
  */
-const dropIfIdMatchesDroppedId = (droppedElementId: string, e: DragEndEvent, onDragEnd: (data: DropEventData<any, any>) => void) => {
-    const {active, over} = e;
-    if (!e.over || e.over.id !== droppedElementId) {
-        return;
+const continueIfThisElementDroppedOnto = ({operation, targetElementId, callbackIfValid} : DndItemsNeededForAbstraction) => {
+    if (operation) {
+        const droppable = operation.target;
+        const dragged = operation.source;
+        if (!droppable || droppable.id !== targetElementId) {
+            // This is not the same element that called this method
+            return;
+        }
+        const data: FormattedDragDropEventData<RequiredDragData, RequiredDropData> = {drag: dragged ? dragged.data : null, drop: droppable.data, e: { isDragging: !!(dragged && dragged.isDragging)}}; 
+        callbackIfValid && callbackIfValid(data);
     }
-    const droppableData = over ? over.data.current : null;
-    const draggedData = active.data.current;
-    onDragEnd && onDragEnd({e, drag: draggedData, drop: droppableData});
 }
 
 //endregion Draggable
@@ -458,69 +443,65 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
     const id = useId();
     const [validDropTarget, setValidDropTarget] = useState(false);
     const acceptedItemTypes = Object.keys(callbacksForAcceptedDragTypes);
-    const {setNodeRef, isOver} = useDroppable({
-        // element: forwardedRef,
-        // collisionPriority: collisionPriority, 
+    const {ref, isDropTarget} = useDroppable({
+        element: forwardedRef as MutableRefObject<any>,
+        collisionPriority: collisionPriority, 
         id: id,
         data: {
-                ...itemData,
-                accepts: acceptedItemTypes,
+            ...itemData,
+            accepts: acceptedItemTypes,
         }
     });
-    const ref = useMergeRefs([setNodeRef, forwardedRef])
 
-    useDndMonitor({
-        onDragOver(e) {
-            dropIfIdMatchesDroppedId(id, e, (data) => {
-                const {active, over} = e;
-                const droppableData = over ? over.data.current : null;
-                const draggedData = active.data.current;
-                if (droppableData && draggedData && droppableData.accepts.includes(draggedData.type)) {
+    useDragDropMonitor({
+        onDragOver(e, manager) {
+            continueIfThisElementDroppedOnto({targetElementId: id, operation: e.operation, callbackIfValid: ({drag, drop, e}: FormattedDragDropEventData<RequiredDragData, RequiredDropData>) => {
+                if (drop && drag && drop.accepts.includes(drag.type)) {
+                    const draggedData = drag;
                     setValidDropTarget(true)
                     const callbacks = callbacksForAcceptedDragTypes[draggedData.type];
-                    callbacks.dragOver && callbacks.dragOver(data);
-                    draggedData.showDropPreview && callbacks.setDataWhenDragOver && callbacks.setDataWhenDragOver(data);
+                    callbacks.dragOver && callbacks.dragOver({drag, drop, e});
+                    draggedData.showDropPreview && callbacks.setDataWhenDragOver && callbacks.setDataWhenDragOver({drag, drop, e});
                 } else {
                     setValidDropTarget(false);
                 }
-            })
+            }})
         },
-        onDragEnd(e) {
-            dropIfIdMatchesDroppedId(id, e, (data) => {
+        onDragEnd(e, manager) {
+            continueIfThisElementDroppedOnto({targetElementId: id, operation: e.operation, callbackIfValid: ({drag, drop, e}) => {
                 // Dropped on this droppable spot
-                // Do i need to check both drag and drop types?
-                if (validDropTarget) {
-                    const callbacks = callbacksForAcceptedDragTypes[data.drag.type];
-                    callbacks && callbacks.dragEnd && callbacks.dragEnd(data);
-                    callbacks.saveDataWhenDragEnds && callbacks.saveDataWhenDragEnds(data);
+                if (validDropTarget && drag) {
+                    const callbacks = callbacksForAcceptedDragTypes[drag.type];
+                    callbacks && callbacks.dragEnd && callbacks.dragEnd({drag, drop, e});
+                    callbacks.saveDataWhenDragEnds && callbacks.saveDataWhenDragEnds({drag, drop, e});
                 }
-            })
+                // TODO: If cancelled
+                // dropIfIdMatchesDroppedId(id, e, (data) => {
+                //     // TODO cancelled on this sroppable spot??
+                //     const callbacks = callbacksForAcceptedDragTypes[data.drag.type];
+                //     callbacks && callbacks.dragCancel && callbacks.dragCancel(data);
+                //     callbacks.resetDataWhenDragOff && callbacks.resetDataWhenDragOff(data);
+                // })
+            }})
         },
-        onDragCancel(e) {
-            dropIfIdMatchesDroppedId(id, e, (data) => {
-                // TODO cancelled on this sroppable spot??
-                const callbacks = callbacksForAcceptedDragTypes[data.drag.type];
-                callbacks && callbacks.dragCancel && callbacks.dragCancel(data);
-                callbacks.resetDataWhenDragOff && callbacks.resetDataWhenDragOff(data);
-            })
-        },
-        onDragMove(e) {
+        onDragMove(e, manager) {
             // Something was dragged
-            const drag = e.active.data.current; 
+            const drag = e.operation.source; 
+            const drop = e.operation.target; 
             if (drag) {
-                const callbacks = callbacksForAcceptedDragTypes[drag.type];
+                const callbacks = callbacksForAcceptedDragTypes[drag.data.type];
                 if (callbacks) {
-                    callbacks.dragMove && callbacks.dragMove({drag, drop: (e.over ? e.over.data.current : null), e: e});
-                    drag.showDropPreview && callbacks.resetDataWhenDragOff && callbacks.resetDataWhenDragOff({drag, drop: (e.over ? e.over.data.current : null), e: e});
+                    callbacks.dragMove && callbacks.dragMove({drag: drag.data as RequiredDragData, drop: drop ? drop.data : null, e: {isDragging: drag.isDragging}});
+                    drag.data.showDropPreview && callbacks.resetDataWhenDragOff && callbacks.resetDataWhenDragOff({drag: drag.data as RequiredDragData, drop: drop ? drop.data : null, e: {isDragging: drag.isDragging}});
                 }
             }
         },
-        onDragStart(e) {
+        onDragStart(e, manager) {
             // If something was dragging, call drag start for the droppable if it was provided
-            const drag = e.active.data.current; 
+            const drag = e.operation.source; 
             if (drag) {
-                const callbacks = callbacksForAcceptedDragTypes[drag.type];
-                callbacks && callbacks.dragStart && callbacks.dragStart({drag: drag, drop: null, e});
+                const callbacks = callbacksForAcceptedDragTypes[drag.data.type];
+                callbacks && callbacks.dragStart && callbacks.dragStart({drag: drag.data as RequiredDragData, drop: null, e: {isDragging: drag.isDragging}});
             }
         },
     })
@@ -529,7 +510,7 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
         ref={ref}
         {...props}
         id={id}
-        className={combineClassNamePropAndString(`droppable${isOver ? (validDropTarget ? " valid" : " invalid") : ""}`, props)}
+        className={combineClassNamePropAndString(`droppable${isDropTarget ? (validDropTarget ? " valid" : " invalid") : ""}`, props)}
     >
         {children}
     </div> 
@@ -537,91 +518,72 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
 
 //endregion Droppable
 //#region Modifers
-function restrictToDragHandleClass(args: any): Transform {
-    const {
-        transform,
-        activatorEvent,
-    } = args;
-    const noMove = {...transform, x: 0, y: 0};
-    if (activatorEvent && activatorEvent.explicitOriginalTarget) {
-        const target = activatorEvent.explicitOriginalTarget as HTMLElement;
-        if (target.classList && target.classList.contains(DRAGGABLE_HANDLE_CLASS)) {
-            return transform;
-        } 
+// function restrictToView(args: any): Transform {
+//     const {
+//         transform, 
+//         draggingNodeRect,
+//         windowRect,
+//     } = args;
 
-    }
-    return noMove;
-}
+//     if (draggingNodeRect && windowRect) {
+//         return restrictToBoundingRect(transform as Transform, draggingNodeRect as any, windowRect as any);
+//     }
+//     return transform;
+// }
 
-function restrictToView(args: any): Transform {
-    const {
-        transform, 
-        draggingNodeRect,
-        windowRect,
-    } = args;
+// function restrictToBoundingRect(
+//     transform: Transform,
+//     rect: any,
+//     boundingRect: any
+// ): Transform {
 
-    if (draggingNodeRect && windowRect) {
-        return restrictToBoundingRect(transform as Transform, draggingNodeRect as ClientRect, windowRect as ClientRect);
-    }
-    return transform;
-}
-
-function restrictToBoundingRect(
-    transform: Transform,
-    rect: ClientRect,
-    boundingRect: ClientRect
-): Transform {
-
-    const value = {...transform,};
+//     const value = {...transform,};
   
-    if (rect.top + transform.y <= boundingRect.top) {
-        value.y = boundingRect.top - rect.top;
-    } else if (
-        rect.bottom + transform.y >= boundingRect.bottom
-    ) {
-        value.y = boundingRect.top + boundingRect.height - rect.bottom;
-    }
+//     if (rect.top + transform.y <= boundingRect.top) {
+//         value.y = boundingRect.top - rect.top;
+//     } else if (
+//         rect.bottom + transform.y >= boundingRect.bottom
+//     ) {
+//         value.y = boundingRect.top + boundingRect.height - rect.bottom;
+//     }
   
-    // OOB on left
-    if (rect.left + transform.x <= boundingRect.left) {
-        value.x = boundingRect.left - rect.left;
-    // OOB on right
-    } else if (
-        rect.right + transform.x >= boundingRect.right
-    ) {
-        value.x = boundingRect.right - rect.right;
-    }
+//     // OOB on left
+//     if (rect.left + transform.x <= boundingRect.left) {
+//         value.x = boundingRect.left - rect.left;
+//     // OOB on right
+//     } else if (
+//         rect.right + transform.x >= boundingRect.right
+//     ) {
+//         value.x = boundingRect.right - rect.right;
+//     }
   
-    return value;
-  }
-//#endregion Modifers
-//#region Sensors
-/**
- * Activates when the user clicks on an element with DRAGGABLE_HANDLE_CLASS or a parent element with DRAGGABLE_HANDLE_CLASS
- */
-class DragHandleSensor extends PointerSensor {
-    constructor(manager: PointerSensorProps) {
-        super(manager);
-    }
-    static activators = [
-        {
-            eventName: "onPointerDown" as const,
-            handler: ({nativeEvent: event}: PointerEvent) => {
-                // Iterate through parents until you find the one with DRAGGABLE_CLASS (top draggable parent)
-                // and see if the user has clicked on the same spot as an element with DRAGGABLE_HANDLE_CLASS
-                const thisOrParentElementIsDraggable = !!searchThroughParents({
-                    start: event.target as HTMLElement,
-                    successCondition: (node) => node.classList.contains(DRAGGABLE_HANDLE_CLASS) 
-                        && clickedInBounds(node.getClientRects()[0], event.clientX, event.clientY),
-                    failCondition: (node) => {
-                        const reachedParentDraggableNode = node.classList.contains(DRAGGABLE_CONTAINER_CLASS) && !node.classList.contains(DRAGGABLE_HANDLE_CLASS);
-                        return reachedParentDraggableNode;
-                    }
-                });
-                return !!(event.isPrimary && thisOrParentElementIsDraggable);
-            },
-        },
-    ];
-}
+//     return value;
+//   }
+// //#endregion Modifers
+// //#region Sensors
+// /**
+//  * Activates when the user clicks on an element with DRAGGABLE_HANDLE_CLASS or a parent element with DRAGGABLE_HANDLE_CLASS
+//  */
+// class DragHandleSensor extends PointerSensor {
+//     static activators = [
+//         {
+//             eventName: "onPointerDown" as const,
+//             handler: ({nativeEvent: event}: PointerEvent) => {
+//                 // Iterate through parents until you find the one with DRAGGABLE_CLASS (top draggable parent)
+//                 // and see if the user has clicked on the same spot as an element with DRAGGABLE_HANDLE_CLASS
+//                 const thisOrParentElementIsDraggable = !!searchThroughParents({
+//                     start: event.target as HTMLElement,
+//                     successCondition: (node) => node.classList.contains(DRAGGABLE_HANDLE_CLASS) 
+//                         && clickedInBounds(node.getClientRects()[0], event.clientX, event.clientY),
+//                     failCondition: (node) => {
+//                         const reachedParentDraggableNode = node.classList.contains(DRAGGABLE_CONTAINER_CLASS) && !node.classList.contains(DRAGGABLE_HANDLE_CLASS);
+//                         return reachedParentDraggableNode;
+//                     }
+//                 });
+//                 return !!(event.isPrimary && thisOrParentElementIsDraggable);
+//             },
+//         },
+//     ];
+// }
 
   //#endregionSensors

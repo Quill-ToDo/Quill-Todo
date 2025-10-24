@@ -388,7 +388,7 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
     const sectionTitleId = `${DARK_SECTION_CLASS}-title-${content.title}`;
     return (
         <Droppable
-            collisionPriority={1}
+            collisionPriority={3}
             itemData={
                 {
                     type: "list section",
@@ -397,27 +397,33 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
             }
             callbacksForAcceptedDragTypes={{
                 [TASK_DRAG_TYPE]: {
-                    setDataWhenDragOver({drag}: {drag: TaskDragData }) {
+                    setDataWhenDragOver({drag}) {
                         // set dragged task as being edited and then do the thing
-                        const task = taskStore.getTaskById(drag.id);
-                        if (task) {
-                            task.startEditing();
-                            content.taskDropInSectionCallback(task);
+                        if (drag) {
+                            const task = taskStore.getTaskById(drag.id);
+                            if (task) {
+                                task.startEditing();
+                                content.taskDropInSectionCallback(task);
+                            }
                         }
                     },
-                    saveDataWhenDragEnds({ drag}: { drag: TaskDragData }) {
+                    saveDataWhenDragEnds({drag}) {
                         // Save task edits, set as done editing
-                        const task = taskStore.getTaskById(drag.id);
-                        if (task) {
-                            content.taskDropInSectionCallback(task);
-                            task.saveEdits();
+                        if (drag) {
+                            const task = taskStore.getTaskById(drag.id);
+                            if (task) {
+                                content.taskDropInSectionCallback(task);
+                                task.saveEdits();
+                            }
                         }
                     },
                     resetDataWhenDragOff({ drag, drop, e }) {
                         // Reset task edits
-                        const task = taskStore.getTaskById(drag.id);
-                        if (task) {
-                            task.abortEdits();
+                        if (drag) {
+                            const task = taskStore.getTaskById(drag.id);
+                            if (task) {
+                                task.abortEdits();
+                            }
                         }
                     },
                 }}

@@ -97,9 +97,11 @@ const DashboardLayout = observer(({
                                     }}
                                     callbacksForAcceptedDragTypes={{
                                         [TASK_DRAG_TYPE]: {
-                                            saveDataWhenDragEnds({ drag, drop, e}) {
-                                                const task = taskStore.getTaskById(drag.id);
-                                                task && defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task: task, openDeleteConfirmPopup: openPopup});
+                                            saveDataWhenDragEnds ({ drag, drop, e}) {
+                                                if (drag && drop) {
+                                                    const task = taskStore.getTaskById(drag.id);
+                                                    task && defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task: task, openDeleteConfirmPopup: openPopup});
+                                                }
                                             },
                                     }}}
                                 >

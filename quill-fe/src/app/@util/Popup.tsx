@@ -3,7 +3,8 @@ import {
     ComponentPropsWithoutRef, 
     ForwardRefRenderFunction, 
     ReactElement, 
-    LegacyRef, 
+    LegacyRef,
+    forwardRef, 
 } from "react";
 import { combineClassNamePropAndString } from '@util/jsTools';
 
@@ -131,7 +132,7 @@ export const AttachedPopupOnClick = observer((
  * 
  * @returns setup methods to get and set the popup content
  */
-export const AnchorWithPersistentPopupAttached = observer((
+export const AnchorWithPersistentPopupAttached = observer(forwardRef<any, PopupSetupProps>((
     {   
         position="positioned",
         placement="right",
@@ -141,7 +142,7 @@ export const AnchorWithPersistentPopupAttached = observer((
         useDragHandle=false,
         closeWhenClickOutside=true,
         ...props
-    } : PopupSetupProps) => {
+    }, popupRef) => {
         // Popup helper to serve as an interface between Quill and
         // 3rd party libraries.
         // Use context to hold the popup content so that it may persist even when the anchor element
@@ -155,8 +156,8 @@ export const AnchorWithPersistentPopupAttached = observer((
             useDragHandle: useDragHandle,
             closeWhenClickOutside: closeWhenClickOutside,
         }
-        return <FloatingUiPersistentPopup {...props} {...defaultProps} />;
-});
+        return <FloatingUiPersistentPopup {...props} {...defaultProps} ref={popupRef} />;
+}));
 
 
 /**

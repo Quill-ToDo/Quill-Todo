@@ -17,17 +17,16 @@ const QuillContext = observer(({
   rootStore?: RootStore,
 }) => {
   return (
-    <StoreProvider rootStore={rootStore}>
-      <AlertWrapper>
-        <DragContextProvider>
-          <PersistentPopupContextProvider>
-            <DashboardLayout>
-              {widgets}
-            </DashboardLayout>
-          </PersistentPopupContextProvider>
-        </DragContextProvider>
-      </AlertWrapper>
-    </StoreProvider>
+      <DragContextProvider>
+        <StoreProvider rootStore={rootStore}>
+            <AlertWrapper>
+                <PersistentPopupContextProvider>
+                  <DashboardLayout>
+                  </DashboardLayout>
+                </PersistentPopupContextProvider>
+            </AlertWrapper>
+        </StoreProvider>
+      </DragContextProvider>
   )
 })
 
