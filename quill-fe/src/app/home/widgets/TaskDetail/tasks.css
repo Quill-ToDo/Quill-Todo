@@ -108,9 +108,13 @@ p.title.blank,
 }
 
 .task-wrapper.complete p.title,
-.task-wrapper.complete i.checkmark {
+.task-wrapper.complete i.checkmark,
+.task-wrapper.complete .color-bar {
   color: var(--g4);
-}
+} 
+.task-wrapper.complete .color-bar {
+  background-color: var(--g4);
+} 
 /*#endregion Title */
 /*#region Checkbox*/
 label.check-box-wrapper {

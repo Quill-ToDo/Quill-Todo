@@ -443,7 +443,7 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
     const id = useId();
     const [validDropTarget, setValidDropTarget] = useState(false);
     const acceptedItemTypes = Object.keys(callbacksForAcceptedDragTypes);
-    const {ref, isDropTarget} = useDroppable({
+    const {ref, isDropTarget, droppable} = useDroppable({
         element: forwardedRef as MutableRefObject<any>,
         collisionPriority: collisionPriority, 
         id: id,
@@ -457,11 +457,10 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
         onDragOver(e, manager) {
             continueIfThisElementDroppedOnto({targetElementId: id, operation: e.operation, callbackIfValid: ({drag, drop, e}: FormattedDragDropEventData<RequiredDragData, RequiredDropData>) => {
                 if (drop && drag && drop.accepts.includes(drag.type)) {
-                    const draggedData = drag;
                     setValidDropTarget(true)
-                    const callbacks = callbacksForAcceptedDragTypes[draggedData.type];
+                    const callbacks = callbacksForAcceptedDragTypes[drag.type];
                     callbacks.dragOver && callbacks.dragOver({drag, drop, e});
-                    draggedData.showDropPreview && callbacks.setDataWhenDragOver && callbacks.setDataWhenDragOver({drag, drop, e});
+                    drag.showDropPreview && callbacks.setDataWhenDragOver && callbacks.setDataWhenDragOver({drag, drop, e});
                 } else {
                     setValidDropTarget(false);
                 }
@@ -488,10 +487,12 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
             // Something was dragged
             const drag = e.operation.source; 
             const drop = e.operation.target; 
-            if (drag) {
+            if (drag && validDropTarget && !droppable.isDropTarget) {
+                setValidDropTarget(false);
                 const callbacks = callbacksForAcceptedDragTypes[drag.data.type];
                 if (callbacks) {
                     callbacks.dragMove && callbacks.dragMove({drag: drag.data as RequiredDragData, drop: drop ? drop.data : null, e: {isDragging: drag.isDragging}});
+                    // Todo figure out if this element was dragged off?
                     drag.data.showDropPreview && callbacks.resetDataWhenDragOff && callbacks.resetDataWhenDragOff({drag: drag.data as RequiredDragData, drop: drop ? drop.data : null, e: {isDragging: drag.isDragging}});
                 }
             }
@@ -510,7 +511,7 @@ export const DroppableDndKitImplementation = observer(forwardRef<any, DroppableP
         ref={ref}
         {...props}
         id={id}
-        className={combineClassNamePropAndString(`droppable${isDropTarget ? (validDropTarget ? " valid" : " invalid") : ""}`, props)}
+        className={combineClassNamePropAndString(`droppable${droppable.isDropTarget ? (validDropTarget ? " dropping valid" : " dropping invalid") : ""}`, props)}
     >
         {children}
     </div> 

@@ -83,10 +83,12 @@ export const DraggableDroppableDate = observer(forwardRef((
     const taskStore = useTaskStore();
 
     return <Droppable <DateDropData>
+            collisionPriority={30}
             itemData={{
                 type: DATE_DRAG_TYPE,
                 date: date,
                 accepts: DEFAULT_DATE_DRAG_DATA.accepts,
+                showDropPreview: true,
             }}
             callbacksForAcceptedDragTypes={{
                 [DATE_FIELD_DRAG_TYPE]: {
@@ -134,6 +136,7 @@ export const DraggableDroppableDate = observer(forwardRef((
                 // {...props}
                 actionTitle={"Assign date"}
                 itemData={{
+                    showDropPreview: true,
                     type: DATE_DRAG_TYPE,
                     date: date,
                 }}

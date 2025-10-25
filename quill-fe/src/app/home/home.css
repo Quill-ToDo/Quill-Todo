@@ -272,6 +272,15 @@ textarea,
     opacity: 0;
 }
 
+.grid {
+    display: grid;
+}
+
+.subgrid {
+    display: grid;
+    grid-template-columns: subgrid;
+}
+
 /* .positioner.draggable-handle {
     background-color: rgba(255, 0, 0, 0.136);
 }
@@ -690,7 +699,7 @@ hr {
 }
 /*#endregion Animations*/
 .droppable, .draggable {
-    transition: opacity 5ms, transform 5ms;
+    transition: opacity 5ms, transform 5ms, border 5ms;
 }
 
 .droppable.valid {

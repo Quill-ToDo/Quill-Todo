@@ -12,7 +12,7 @@ import { TaskModel, TaskDateFields } from "../home/_globalStore/tasks/TaskModel"
 // 4. Add default data to re-use following the Type restraints of DragDropConstants
 export interface RequiredDragData {
     type: string,
-    showDropPreview?: boolean,
+    showDropPreview: boolean,
 } 
 export interface RequiredDropData {
     type: string,

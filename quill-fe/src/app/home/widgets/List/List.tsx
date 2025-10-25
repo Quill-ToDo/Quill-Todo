@@ -388,7 +388,7 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
     const sectionTitleId = `${DARK_SECTION_CLASS}-title-${content.title}`;
     return (
         <Droppable
-            collisionPriority={3}
+            collisionPriority={30}
             itemData={
                 {
                     type: "list section",
@@ -472,6 +472,7 @@ const TaskList = observer(({
                 <Draggable <TaskDragData>
                     mayBeDropped={true}
                     itemData={{
+                        showDropPreview: true,
                         type: TASK_DRAG_TYPE,
                         id: task.id,
                     }}

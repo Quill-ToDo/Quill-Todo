@@ -240,6 +240,7 @@ export const TaskWrapper = observer(forwardRef((
                 renderAnchor={({openPopup: openDeleteConfirmPopup, anchorProps: deleteConfirmPopupAnchorProps}, deleteConfirmPopupAnchorRef) => 
                     <Droppable <TaskDropData>
                         itemData={{
+                            showDropPreview: true,
                             type: TASK_DRAG_TYPE,
                             id: task.id,
                             accepts: DEFAULT_TASK_DRAG_DATA.accepts,
@@ -1031,3 +1032,9 @@ const EditableTimePortion = observer(({
             </button> 
 })
 //#endregion 
+
+export const TaskGantLine = observer(({task}: {task: TaskModel}) => {
+    return <div 
+        className="color-bar" 
+        {...(!task.complete && {style: {backgroundColor: task.color}})}></div>  
+})

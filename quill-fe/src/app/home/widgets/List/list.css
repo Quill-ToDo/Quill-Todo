@@ -71,6 +71,9 @@
 .task-wrapper.complete.highlighted .checkmark {
     color: var(--g2);
 }
+.task-wrapper.complete.highlighted .color-bar {
+    background-color: var(--g2);
+}
 
 .task-wrapper.complete:hover s,
 .task-wrapper.complete.highlighted s,

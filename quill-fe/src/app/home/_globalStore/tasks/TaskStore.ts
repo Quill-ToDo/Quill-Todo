@@ -146,8 +146,8 @@ export default class TaskStore {
         return this.taskMap.get(id);
     }
     
-    tasksInRange ({startTime, endTime}: {startTime : DateTime, endTime : DateTime}) {
-        return this.tasks.filter(task => (!task.start || (task.start <= endTime && task.start >= startTime)) || (!task.due || (task.due <= endTime && task.due >= startTime)));
+    tasksInRange ({startTime, endTime}: {startTime : DateTime<boolean>, endTime : DateTime<boolean>}) {
+        return this.tasks.filter(task => (task.start && (task.start <= endTime && task.start >= startTime)) || (task.due && (task.due <= endTime && task.due >= startTime)));
     }
 
     get taskTimeline () {

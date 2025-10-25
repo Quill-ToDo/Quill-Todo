@@ -86,6 +86,7 @@ const DashboardLayout = observer(({
                         <Draggable <DeleteDragData> 
                                 itemData={{
                                     type: DELETE_DRAG_TYPE,
+                                    showDropPreview: false,
                                 }}
                                 actionTitle="Drag to item to delete"
                                 mayBeDropped={true}
@@ -123,7 +124,7 @@ const DashboardLayout = observer(({
                         }
                     /> 
                     <Draggable
-                        itemData={{type: "settings"}}
+                        itemData={{type: "settings", showDropPreview: false,}}
                         actionTitle="Drag settings button"
                         mayBeDropped={true}
                     >
