@@ -3,19 +3,17 @@ import { DraggableDroppableDate, START_OF_DAY } from "@/app/@util/DateTimeHelper
 import { DateTime } from "luxon";
 import { 
     ALIGNED_CLASS,
-    CENTERED_CLASS,
     DARK_SECTION_CLASS,
     END_OF_WEEK_WEEKDAY,
     ICONS, 
     MID_SECTION_CLASS, 
-    ROUND_CORNERS_CLASS, 
-    ROWS_CLASS, 
+    ROUND_CORNERS_CLASS,
     START_OF_WEEK_WEEKDAY, 
     SUBGRID_CLASS, 
 } from "@/util/constants";
 import './Calendar.css';
 import TaskStore from "@/store/tasks/TaskStore";
-import { Checkbox, TaskBeingDragged, TaskGantLine, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
+import { TaskGantLine, TaskWrapper } from "@/widgets/TaskDetail/TaskComponents";
 import { 
     ComponentProps, 
     forwardRef, 
@@ -26,8 +24,6 @@ import {
 } from "react";
 import { PlaceableWidget } from "../generic-widgets/Widget";
 import { useTaskStore } from "@/store/StoreProvider";
-import { Draggable } from "@/app/@util/Draggable";
-import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
 import { Rect } from "@floating-ui/react";
 import { TaskModel } from "../../_globalStore/tasks/TaskModel";
 import { combineClassNamePropAndString } from "@/app/@util/jsTools";
@@ -362,11 +358,11 @@ const CalendarWeek = observer(forwardRef<any, WeekData & {today: MutableRefObjec
                 ref={today.current.hasSame(day.date, 'day') ? currentDayRef : null}
             />
     )}
-        <TasksInWeek tasks={tasksInWeek} weekKey={key} firstDay={firstDay.date}/>
+        <TasksMap tasks={tasksInWeek} key={key} firstDay={firstDay.date}/>
     </div>
 }))
 
-const CalendarDay = observer(forwardRef<any, DayData>(({date, key, props}, ref) => {
+const CalendarDay = observer(forwardRef<any, DayData & {tasks: TaskModel[]}>(({date, key, props, tasks}, ref) => {
     return <DraggableDroppableDate
                 mayBeDropped={true}
                 actionTitle={"Assign date"}
@@ -388,57 +384,60 @@ const CalendarDay = observer(forwardRef<any, DayData>(({date, key, props}, ref) 
                         <time dateTime={`${date.toISODate()}`}>{date.day}</time>
                     </h4>
                     <div className={`tasks ${DARK_SECTION_CLASS} ${SUBGRID_CLASS}`}>
-                         {/* {tasksOnDay ? <TasksOnDay tasks={tasksOnDay} dayKey={key} date={date}/> : null} */}
+                         {/* {tasks ? <TasksMap tasks={tasks} key={key} date={date}/> : null} */}
                     </div>
                 </div>    
             </DraggableDroppableDate>
 }))
 
-const TasksInWeek = observer(({tasks, weekKey, firstDay}: {tasks: TaskModel[], weekKey: string, firstDay: DateTime<boolean>}) => {
-    return tasks.map((task) => {
-        const taskWrapperProps = {
-            task: task,
-            keyOverride: `${weekKey}-${task.id}`,
-        }
+const TasksMap = observer(({tasks, key, firstDay}: {tasks: TaskModel[], key: string, firstDay: DateTime<boolean>}) => {
+    return (
+    <div className={`${SUBGRID_CLASS} task-container`}>
+        { tasks.map((task) => {
+            const taskWrapperProps = {
+                task: task,
+                keyOverride: `${key}-${task.id}`,
+            }
+            // Grid column index starts at 1, and an item spanning the first grid column (one day) would be like
+            // grid columns: 1 / 2. 
+            // By default the task spans the entire week (for tasks that are in progress and appear in the
+            // passed array of task models for this week to be shown)
+            let taskStartIndex = 1; 
+            let taskDueIndex = 8; 
+            // If the due date happens sometime this week, adjust the ending index to reflect this
+            const taskDueThisWeek = !!(task.due && task.due < firstDay.plus({days: 7})); 
+            if ( task.due && taskDueThisWeek) {
+                taskDueIndex = taskStartIndex + task.due.startOf("day").diff(firstDay, "days").days;
+            }
+            // If the task starts sometime this week, change the start index to reflect this 
+            const taskStartsThisWeek = !!(task.start && task.start > firstDay); 
+            if (task.start && taskStartsThisWeek) {
+                taskStartIndex += task.start.startOf("day").diff(firstDay, "days").days;
+            }
+            else if (!task.start) {
+                taskStartIndex = taskDueIndex;
+            }
+            // The start of the task might be before the end of the task if it's in error but the first grid column 
+            // number of the grid item always needs to be smaller, so switch these if needed.
+            const colStart = Math.min(taskDueIndex, taskStartIndex);
+            const colEnd = Math.max(taskDueIndex, taskStartIndex);
 
-        const taskStartsThisWeek = task.start && task.start > firstDay; 
-        const taskDueThisWeek = task.due && task.due < firstDay.plus({days: 7}); 
-        const taskStartEndSpanStyling = {
-            gridColumnStart: taskStartsThisWeek ? task.start.startOf("day").diff(firstDay, "days").days + 1 : 1 ,
-            gridColumnEnd: taskDueThisWeek ? task.due.startOf("day").diff(firstDay.plus({days: 7}), "days").days : 8 ,
-        }
+            const taskStartEndSpanStyling = {
+                gridColumnStart: colStart ? colStart : undefined,
+                gridColumnEnd: colEnd ? colEnd + 1 : undefined,
+            }
 
-        return <Draggable<TaskDragData>
-            mayBeDropped={true}
-            itemData={{
-                showDropPreview: true,
-                type: TASK_DRAG_TYPE,
-                id: taskWrapperProps.task.id,
-            }}
-            actionTitle="Move task"
-            key={taskWrapperProps.keyOverride}
-            positioningProps={{
-                style: taskStartEndSpanStyling,
-                className: `calendar-task`,
-            }}
-            draggedPresentation={
-                <TaskBeingDragged 
-                    task={task} 
-                />
-        }
-        >
-            <TaskWrapper 
+            return <TaskWrapper 
+                    key={taskWrapperProps.keyOverride}
                     {...taskWrapperProps}
-                    className={`${ROUND_CORNERS_CLASS}`}
-                >
-                    <div className={`${ROWS_CLASS} ${CENTERED_CLASS}`} >
-                        { taskStartsThisWeek && <Checkbox type={"start"} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>}
-                        <TaskGantLine task={task} />
-                        { taskDueThisWeek && <Checkbox type={"due"} checkboxId={`calendar-checkbox-${task.id}`}></Checkbox>}
-                    </div>
-                </TaskWrapper>
-        </Draggable>
-    })}
-)
+                    className={`${ROUND_CORNERS_CLASS} calendar-task`}
+                    style={taskStartEndSpanStyling}
+                    >
+                        <TaskGantLine task={task} showStart={taskStartsThisWeek} showDue={taskDueThisWeek}/>
+                    </TaskWrapper>  
+        })}
+    </div>
+    )
+})
 
 export const ShowSelectableCalendarDays = () => {};

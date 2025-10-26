@@ -249,3 +249,13 @@ i.checkmark {
 .task-wrapper.error {
   border: solid 2px var(--failure-outline);
 }
+
+.dragged-task-date .color-bar.start {
+  scale: 1.5;
+}
+
+.spacer {
+  width: 20px;
+  min-width: 20px;
+  aspect-ratio: 1/1;
+}

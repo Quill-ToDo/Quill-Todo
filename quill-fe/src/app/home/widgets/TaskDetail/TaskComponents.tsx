@@ -40,6 +40,8 @@ import {
     TIME_CLASS, 
     UNSET_TASK_TITLE_PLACEHOLDER,
     TAKE_FULL_SPACE_CLASS,
+    POPUP_SMALL_CLASS,
+    PADDING_CLASS,
 } from "@util/constants";
 import { combineClassNamePropAndString } from '@util/jsTools';
 import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick, PopupRenderMethod } from "@/util/Popup";
@@ -209,7 +211,7 @@ export const TaskWrapper = observer(forwardRef((
     const dragContext = useContext(DraggableContext);
 
     let renderTaskWrapper: ForwardRefRenderFunction<HTMLDivElement, ComponentPropsWithoutRef<"div">> = (props, ref) => <div 
-        {...props}
+        {...(!droppable && props)}
         ref={ref}
         key={keyOverride ? keyOverride : task.id}
         onMouseEnter={(e) => {
@@ -254,6 +256,7 @@ export const TaskWrapper = observer(forwardRef((
                                 },
                             },
                         }}
+                        {...props}
                         > 
                             { renderTaskWrapper({
                                 ...props,
@@ -366,29 +369,29 @@ export const Checkbox = observer(({
             checked={task.complete}
             >
         </input>
-        <TaskCheckbox passedTask={task} type={type} /> 
+        <TaskCheckbox task={task} type={type} /> 
     </label>;
 });
 
 const TaskCheckbox = observer(({
-    passedTask, 
+    task, 
     type
 }: {
-    passedTask?: TaskModel, 
+    task?: TaskModel, 
     type: TaskDateFields,
 }) => {
-    const task = useTaskContextOrPassedTask(passedTask);
-    const styleText = !task.complete ? {color: task.color} : {};
+    const t = useTaskContextOrPassedTask(task);
+    const styleText = !t.complete ? {color: t.color} : {};
     let checkboxIcon;
     switch (type) {
         case "due":
-            checkboxIcon = task.complete ? `fa-check-square` : `fa-square`;
+            checkboxIcon = t.complete ? `fa-check-square` : `fa-square`;
             break;
         default:
-            checkboxIcon = task.complete ? `fa-check-circle round` : `fa-circle round`;
+            checkboxIcon = t.complete ? `fa-check-circle round` : `fa-circle round`;
             break;
     }
-    const checkFormat = task.complete ? checkboxIcon : checkboxIcon;
+    const checkFormat = t.complete ? checkboxIcon : checkboxIcon;
     return <i className={`far fa-fw checkmark ${checkFormat}`} style={styleText}></i>;  
 });
 
@@ -722,40 +725,40 @@ const EditableTaskDescription = observer(forwardRef(({...props}: { passedTask?: 
 type TaskDateParams = {
     droppable?: boolean,
     format?: DateFormat,
-    passedTask?: TaskModel,
+    task?: TaskModel,
     editable?: boolean,
 }
 
 export const TaskDueDate = observer(({
     format,
-    passedTask,
+    task,
     editable,
     droppable,
     ...props
 } : TaskDateParams) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const t = useTaskContextOrPassedTask(task);
     return <TaskDate 
         {...props} 
         { ...(droppable === undefined && editable && { droppable: true })}
         type={"due"}
-        passedTask={task}
+        task={t}
         editable={editable}
     />
 })
 
 export const TaskStartDate = observer(({
     format,
-    passedTask,
+    task,
     editable,
     droppable,
     ...props
 } : TaskDateParams) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const t = useTaskContextOrPassedTask(task);
     return <TaskDate
         {...props} 
         { ...(droppable === undefined && editable && { droppable: true })}
         type={"start"}
-        passedTask={task}
+        task={t}
         editable={editable}
     />
 })
@@ -766,7 +769,7 @@ export const TaskStartDate = observer(({
  */
 export const TaskDate = observer(({
     type, 
-    passedTask,
+    task,
     droppable=false,
     editable=false,
 }: {
@@ -774,18 +777,18 @@ export const TaskDate = observer(({
     editable?: boolean,
     droppable?: boolean,
 } & TaskDateParams) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const t = useTaskContextOrPassedTask(task);
     const wrapperClasses = `date-time-wrapper`;
     if (editable) {
         return <EditableTaskDate 
             droppable={droppable}
-            task={task}
+            task={t}
             wrapperClasses={wrapperClasses}
             type={type}
         />
     }
     return <PlainTaskDate 
-        task={task}
+        task={t}
         wrapperClasses={wrapperClasses}
         type={type}
     />;
@@ -857,7 +860,13 @@ const EditableTaskDate = observer(({
         }
     }
 
-    const draggedPresentation = <DraggedDatePresentation date={dateField} includeTime={!!dateField && dateField.hour !== 0 && dateField.minute !== 0} />
+    const draggedPresentation = <div className={`dragged-task-date ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} ${POPUP_SMALL_CLASS} ${ALIGNED_CLASS} ${PADDING_CLASS}`}>
+        {type === "start" ? <TaskGantLineStart task={task}/> : <TaskCheckbox type="due" task={task}/> }
+        <div>
+            <p>{type}:</p> 
+            <p>{dateField?.toLocaleString(DateTime.DATETIME_SHORT)}</p>
+        </div>
+    </div>
     const maybeDraggable = draggable ? <Draggable <DateFieldDragData>
         actionTitle="Drag date"
         mayBeDropped={true}
@@ -1033,8 +1042,34 @@ const EditableTimePortion = observer(({
 })
 //#endregion 
 
-export const TaskGantLine = observer(({task}: {task: TaskModel}) => {
-    return <div 
-        className="color-bar" 
-        {...(!task.complete && {style: {backgroundColor: task.color}})}></div>  
+export const TaskGantLine = observer(({task, showStart, showDue}: {task: TaskModel, showStart: boolean, showDue: boolean}) => {
+    return (<div className={`${ROWS_CLASS} ${ALIGNED_CLASS} ${CENTERED_CLASS} line-holder`}>
+        {showStart && task.start && (!task.due || task.start < task.due) && <TaskGantLineStart task={task} />}
+        {showDue && task.due && task.start && task.start > task.due && <TaskCheckbox type="due" task={task} />}
+        {task.start && <div 
+            className="color-bar horizontal" 
+            {...(!task.complete && {style: {backgroundColor: task.color}})}
+            /> }
+        {/* Allow the start to come on the other side of the gant line is the task is in error and start > due */}
+        {showStart && task.due && task.start && task.start > task.due && <TaskGantLineStart task={task} />}
+        {showDue && task.due && (!task.start || task.start < task.due) && <TaskCheckbox type="due" task={task} />}
+        </div>
+    ) 
+})
+
+export const TaskGantLineStart = observer(({task}: {task: TaskModel}) => {
+    return <Draggable
+        itemData={{
+            type: DATE_FIELD_DRAG_TYPE,
+            showDropPreview: true,
+        }}
+        actionTitle="Change task start"
+        mayBeDropped={true}
+    >
+        <div className={`spacer ${CENTERED_CLASS}`}>
+            <div className="color-bar start"
+                {...(!task.complete && {style: {backgroundColor: task.color}})}
+            />
+        </div>
+    </Draggable>
 })

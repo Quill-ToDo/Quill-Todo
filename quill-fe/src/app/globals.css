@@ -71,6 +71,7 @@
   
     /* Alerts */
     --alert-bg: #444444;
+    --alert-transparent-bg: #1b1d1f6e;
     --error-alert-bg: #751b1b;
     --error-transparent-bg: rgba(255, 0, 0, 0.194); 
     --success-alert-bg: #245e13;
