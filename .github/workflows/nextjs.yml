@@ -29,6 +29,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - name: Change directory
+        run: "cd ./quill-fe"
       - name: Checkout
         uses: actions/checkout@v4
       - name: Detect package manager
