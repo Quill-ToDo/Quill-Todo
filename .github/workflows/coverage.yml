@@ -1,9 +1,12 @@
 name: Coverage
 on: push
 jobs:
-  run:
+  coverage: 
     name: Generate coverage
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./quill-fe
     environment: dev
     strategy:
       matrix:
