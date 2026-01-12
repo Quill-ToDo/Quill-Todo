@@ -1,7 +1,7 @@
 import { createContext, ReactNode, useCallback, useEffect, useRef, useState } from 'react';
 import { AlertEvent, ERROR_ALERT, NOTICE_ALERT, SUCCESS_ALERT } from '@/alerts/alertEvent';
 import './alerts.css'
-import { ICONS } from '@/app/@util/constants';
+import { ICONS } from '@/app/util/constants';
 
 export const ERROR_TEXT = "Aw snap :(";
 /**

@@ -346,7 +346,6 @@ lives */
     width: fit-content;
   }
 
-.mid-section,
 .mid-section {
     background-color: var(--g8);
     border-radius: var(--box-corner-rounding);

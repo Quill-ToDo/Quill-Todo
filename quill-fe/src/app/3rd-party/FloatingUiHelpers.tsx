@@ -35,16 +35,16 @@ import {
     POPUP_CLASS,
     POPUP_ANCHOR_CLASS,
     PopupRenderMethod, 
-} from '@util/Popup';
-import { combineClassNamePropAndString } from '@util/jsTools';
-import { Draggable } from '@/util/Draggable';
+} from '@/app/util/Popup';
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
+import { Draggable } from '@/app/util/Draggable';
 import { 
     CENTERED_CLASS, 
     LOADING_CLASS, 
     POPUP_POSITIONER_CLASS, 
     TAKE_FULL_SPACE_CLASS, 
     TRANSPARENT_CLASS 
-} from '../@util/constants';
+} from '../util/constants';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
@@ -192,12 +192,13 @@ const getPositionedDraggablePopup = ({
     draggable ? 
         <Draggable
             itemData={{
-                type: "task popup"
+                type: "task popup",
+                showDropPreview: false,
             }}
             mayBeDropped={false} 
             useHandle={useDragHandle} 
             actionTitle='Move popup'
-            positioningProps={propsHiddenWhileNotPositioned}
+            {...propsHiddenWhileNotPositioned}
             ref={mergedRef}
         >
             { getPositionedPopup({closePopup: () => {}}, null) }

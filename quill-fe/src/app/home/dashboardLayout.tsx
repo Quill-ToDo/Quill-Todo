@@ -13,18 +13,18 @@ import { DeleteTaskConfirmationPopup } from "@/widgets/TaskDetail/TaskComponents
 import { ListWidget } from "@/widgets/List/List";
 import { CalendarWidget } from "@/widgets/Calendar/Calendar";
 // Utils
-import { ICONS, HOME_ID } from "@/util/constants";
-import { Draggable, Droppable } from "@/util/Draggable";
-import { AttachedPopupOnClick } from "@/util/Popup";
-import { combineClassNamePropAndString } from '@/util/jsTools';
+import { ICONS, HOME_ID } from "@/app/util/constants";
+import { Draggable, DraggableRenderMethod, Droppable, DroppableRenderMethod } from "@/app/util/Draggable";
+import { AttachedPopupOnClick } from "@/app/util/Popup";
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
 import { 
     DEFAULT_DELETE_DRAG_DATA, 
     defaultTaskDeleteInteraction, 
-    DELETE_DRAG_TYPE, 
+    DELETE_DRAGDROP_TYPE, 
     DeleteDragData, 
     DeleteDropData, 
-    TASK_DRAG_TYPE,
- } from "../@util/DraggableTypes";
+    TASK_DRAGDROP_TYPE,
+ } from "../util/DraggableTypes";
 
 export const NEW_TASK_TEXT = "Add task";
 
@@ -82,47 +82,54 @@ const DashboardLayout = observer(({
                         />}
                     />
                     <DeleteTaskConfirmationPopup
-                        renderAnchor={({anchorProps, openPopup}, ref) => 
-                        <Draggable <DeleteDragData> 
+                        renderAnchor={({anchorProps, openPopup}, anchorRef) => <DraggableRenderMethod <DeleteDragData> 
+                            ref={anchorRef}
+                            {...anchorProps}
+                            itemData={{
+                                type: DELETE_DRAGDROP_TYPE,
+                                showDropPreview: false,
+                            }}
+                            actionTitle="Drag to item to delete"
+                            mayBeDropped={true}
+                            render={(draggableProps, draggableRef) => <DroppableRenderMethod <DeleteDropData>
+                                {...draggableProps}
+                                ref={draggableRef}
                                 itemData={{
-                                    type: DELETE_DRAG_TYPE,
-                                    showDropPreview: false,
+                                    type: DELETE_DRAGDROP_TYPE,
+                                    accepts: DEFAULT_DELETE_DRAG_DATA.accepts,
                                 }}
-                                actionTitle="Drag to item to delete"
-                                mayBeDropped={true}
-                            >
-                                <Droppable <DeleteDropData>
-                                    itemData={{
-                                        type: DELETE_DRAG_TYPE,
-                                        accepts: DEFAULT_DELETE_DRAG_DATA.accepts,
-                                    }}
-                                    callbacksForAcceptedDragTypes={{
-                                        [TASK_DRAG_TYPE]: {
-                                            saveDataWhenDragEnds ({ drag, drop, e}) {
-                                                if (drag && drop) {
-                                                    const task = taskStore.getTaskById(drag.id);
-                                                    task && defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task: task, openDeleteConfirmPopup: openPopup});
-                                                }
-                                            },
+                                callbacksForAcceptedDragTypes={{
+                                    [TASK_DRAGDROP_TYPE]: {
+                                        saveDataWhenDragEnds ({ drag, drop, e}) {
+                                            if (drag && drop) {
+                                                const task = taskStore.getTaskById(drag.id);
+                                                task && defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save({drag, drop, task: task, openDeleteConfirmPopup: openPopup});
+                                            }
+                                        },
+                                        setDataWhenDragOver({ drag, drop, e }) {
+                                            
+                                        },
+                                        resetDataWhenDragOff({ drag, drop, e }) {
+                                            
+                                        },
                                     }}}
-                                >
-                                    <button 
-                                        ref={ref}
-                                        {...anchorProps}
-                                        onClick={() => {
-                                            addAlert(document.getElementById(HOME_ID), "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
-                                        }}
-                                        role="menuitem" 
-                                        className={combineClassNamePropAndString("btn small square bg", anchorProps)} 
-                                        title="Trash" 
-                                        type="button"
-                                        >
-                                        { ICONS.TRASH }
-                                    </button>
-                                </Droppable>
-                            </Draggable>
+                                render={(droppableProps, droppableRef) => <button 
+                                    ref={droppableRef}
+                                    {...droppableProps}
+                                    onClick={() => {
+                                        addAlert(document.getElementById(HOME_ID), "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
+                                    }}
+                                    role="menuitem" 
+                                    className={combineClassNamePropAndString("btn small square bg", droppableProps)} 
+                                    title="Trash" 
+                                    type="button"
+                                    >
+                                    { ICONS.TRASH }
+                                </button>}
+                            />                                
                         }
-                    /> 
+                    />}
+                />
                     <Draggable
                         itemData={{type: "settings", showDropPreview: false,}}
                         actionTitle="Drag settings button"

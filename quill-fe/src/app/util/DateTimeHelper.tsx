@@ -16,13 +16,13 @@ import {
  } from "./constants";
 import { useTaskStore } from "../home/_globalStore/StoreProvider";
 import { 
-    DATE_DRAG_TYPE, 
-    DATE_FIELD_DRAG_TYPE, 
+    DATE_DRAGDROP_TYPE, 
+    DATE_FIELD_DRAGDROP_TYPE, 
     DateDragData, 
     DateDropData, 
     DEFAULT_DATE_DRAG_DATA, 
     defaultChangeTaskFieldToEndOrStartOfDay, 
-    TASK_DRAG_TYPE,
+    TASK_DRAGDROP_TYPE,
 } from "./DraggableTypes";
 
 // Date and Time Constants
@@ -85,59 +85,59 @@ export const DraggableDroppableDate = observer(forwardRef((
     return <Droppable <DateDropData>
             collisionPriority={30}
             itemData={{
-                type: DATE_DRAG_TYPE,
+                type: DATE_DRAGDROP_TYPE,
                 date: date,
                 accepts: DEFAULT_DATE_DRAG_DATA.accepts,
                 showDropPreview: true,
             }}
             callbacksForAcceptedDragTypes={{
-                [DATE_FIELD_DRAG_TYPE]: {
+                [DATE_FIELD_DRAGDROP_TYPE]: {
                     setDataWhenDragOver: ({drag, drop}) => {
-                        if (drag && drop) {
-                            const task = taskStore.getTaskById(drag.taskId);
-                            task && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task})
-                        }
+                        const task = taskStore.getTaskById(drag.taskId);
+                        task && defaultChangeTaskFieldToEndOrStartOfDay.set({task, drag, drop}); 
                     }, 
                     resetDataWhenDragOff({ drag, drop }) {
-                        if (drag && drop) {
-                            const taskId = drag.taskId;
-                            const task = taskStore.getTaskById(taskId);
-                            task && defaultChangeTaskFieldToEndOrStartOfDay.reset && defaultChangeTaskFieldToEndOrStartOfDay.reset(drag, drop, {task})
-                            // defaultTypeInteractionReset && defaultTypeInteractionReset({drag, task});
-                        }
+                        const task = taskStore.getTaskById(drag.taskId);
+                        task && defaultChangeTaskFieldToEndOrStartOfDay.reset({task, drag, drop});
+                    },
+                    saveDataWhenDragEnds({ drag, drop}) {
+                        const task = taskStore.getTaskById(drag.taskId);
+                        task && defaultChangeTaskFieldToEndOrStartOfDay.save({task, drag, drop});
                     },
                 }, 
-                [TASK_DRAG_TYPE]: {
-                    setDataWhenDragOver: ({drag, drop}) => {
-                        if (drag && drop) {
-                            // If task dropped on date, get task from store given ID
-                            // aaannnddd change the task due? or start? date to date from drop 
-                            const taskId = drag.id;
-                            const task = taskStore.getTaskById(taskId);
-                            if (task && task.start && !task.due) {
-                                task.start = drop.date;
-                            } else if (task) {
-                                task.due = drop.date;
-                            }
-                        }
-                    }, resetDataWhenDragOff({ drag, drop, e }) {
-                        if (drag) {
-                            const taskId = drag.id;
-                            const task = taskStore.getTaskById(taskId);
-                            task && task.abortEdits();
-                        }
-                    },
-            }
-            }
-        }
+            //     [TASK_DRAGDROP_TYPE]: {
+            //         setDataWhenDragOver: ({drag, drop}) => {
+            //             // If task dropped on date, get task from store given ID
+            //             // aaannnddd change the task due? or start? date to date from drop 
+            //             const taskId = drag.id;
+            //             const task = taskStore.getTaskById(taskId);
+            //             if (task && task.start && !task.due) {
+            //                 task.startEditing();
+            //                 task.start = drop.date;
+            //             } else if (task) {
+            //                 task.due = drop.date;
+            //             }
+            //         }, resetDataWhenDragOff({drag, drop}) {
+            //             const taskId = drag.id;
+            //             const task = taskStore.getTaskById(taskId);
+            //             task && task.abortEdits();
+            //         },
+            //         saveDataWhenDragEnds({drag, drop}) {
+            //             const taskId = drag.id;
+            //             const task = taskStore.getTaskById(taskId);
+            //             task && task.saveEdits();
+            //         },
+            // }
+            }}
+            {...props}
         >
             <Draggable <DateDragData>
                 // ref={ref}
-                // {...props}
+                {...props}
                 actionTitle={"Assign date"}
                 itemData={{
                     showDropPreview: true,
-                    type: DATE_DRAG_TYPE,
+                    type: DATE_DRAGDROP_TYPE,
                     date: date,
                 }}
                 mayBeDropped={true}

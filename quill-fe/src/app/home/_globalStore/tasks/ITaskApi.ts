@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_URL } from "@/util/constants"
+import { API_URL } from "@/app/util/constants"
 
 export class TaskApi {
     url;

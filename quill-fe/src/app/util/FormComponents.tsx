@@ -10,7 +10,7 @@ import {
     ReactNode,
     createElement, forwardRef,
     useRef, useState } from "react";
-import { combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
 import { useMergeRefs } from "@floating-ui/react";
 
 const getSafeName = (unsafeName: string) => unsafeName.split(" ").join("-").toLowerCase();

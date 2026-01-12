@@ -5,12 +5,12 @@ import { DateTime, Interval } from "luxon";
 import { 
     END_OF_DAY,
     dateTimeHelper,
-} from "@util/DateTimeHelper";
+} from "@/app/util/DateTimeHelper";
 import { addAlert, ERROR_ALERT } from "@/alerts/alertEvent";
 import TaskStore from "./TaskStore";
 import { AxiosResponse } from "axios";
 import { createContext } from "react";
-import { HOME_ID } from "@/util/constants";
+import { HOME_ID } from "@/app/util/constants";
 
 export const DEFAULT_START_DATETIME = () => DateTime.now();
 export const DEFAULT_DUE_DATETIME = () => END_OF_DAY();
@@ -162,6 +162,7 @@ export class TaskModel {
             _id: false, // This ID of this task
             id: computed,
             _store: false, // The store which holds and syncronizes all tasks 
+            store: computed, // The store which holds and syncronizes all tasks 
             _createdDate: false, // The DateTime when this task was created
             _title: observable, // Task name
             title: computed,
@@ -240,6 +241,10 @@ export class TaskModel {
         }
         this.autoSave = true;
     }
+
+get store () {
+    return this._store;
+}
 //#endregion
 //#region LOGICAL METHODS     
     /**
@@ -469,7 +474,7 @@ export class TaskModel {
 
     /**
      * If a field is provided, revert the strings under edit for that field to their original states.
-     * Otherwise,  
+     * Otherwise, revert entire task to state before editing
      */
     abortEdits (field?: EditableTaskFields) {
         if (field) {

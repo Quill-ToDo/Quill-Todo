@@ -5,6 +5,8 @@
     overflow: hidden;
     box-shadow: inset 0px 0px 0px var(--popup-border-width) var(--popup-border);
     padding: calc(var(--popup-border-width) - 1px);
+    z-index: 5;
+    position: relative;
 }
 
 .popup:has(header) {

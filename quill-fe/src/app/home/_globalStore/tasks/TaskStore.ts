@@ -4,7 +4,7 @@ import { DateTime } from "luxon";
 import { addAlert, ERROR_ALERT, SUCCESS_ALERT, NOTICE_ALERT, updateAlertText } from '@/alerts/alertEvent';
 import { TaskApi } from "@/store/tasks/TaskApi";
 import  RootStore from '@/store/RootStore';
-import { HOME_ID } from "@/util/constants";
+import { HOME_ID } from "@/app/util/constants";
 
 export type TaskDataOnDay =  {
     task: TaskModel, 

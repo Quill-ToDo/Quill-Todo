@@ -19,18 +19,18 @@ import {
     DARK_SECTION_CLASS, 
     ROWS_CLASS,
     ROWS_OR_COLS_WITH_GAP_CLASS
-} from "@/util/constants";
-import { ContextMenuPopup } from "@/util/Popup";
-import { INTERACTABLE_ELEMENT_CLASS } from "@/util/Draggable";
-import { DATETIME_FORMATS } from "@/util/DateTimeHelper";
-import { combineClassNamePropAndString } from '@util/jsTools';
+} from "@/app/util/constants";
+import { ContextMenuPopup } from "@/app/util/Popup";
+import { INTERACTABLE_ELEMENT_CLASS } from "@/app/util/Draggable";
+import { DATETIME_FORMATS } from "@/app/util/DateTimeHelper";
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
 import { 
     DEFAULT_DUE_DATETIME, 
     DEFAULT_START_DATETIME, 
     TaskModel 
 } from "@/store/tasks/TaskModel";
 import { 
-    Checkbox, 
+    TaskCheckbox, 
     ColorBubble, 
     TaskComponentAndHeader, 
     TaskDescription, 
@@ -118,7 +118,7 @@ const TaskDetail = observer(forwardRef<any, {
                         {ICONS.DRAG}
                     </button>
                     <ColorBubble buttonProps={{className: INTERACTABLE_ELEMENT_CLASS}} />
-                    <Checkbox 
+                    <TaskCheckbox 
                         type={"due"}
                     />
                     <TaskTitle editAllowed={true} />   

@@ -4,13 +4,15 @@ import {
     ForwardRefRenderFunction, 
     ReactElement, 
     LegacyRef,
-    forwardRef, 
+    forwardRef,
+    Suspense, 
 } from "react";
-import { combineClassNamePropAndString } from '@util/jsTools';
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
 
 import { FloatingUiAttachedPopup, FloatingUiPersistentPopup } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 import { ReferenceType } from "@floating-ui/react";
+import { Loading } from "../home/widgets/TaskDetail/TaskComponents";
 
 export const POPUP_CLASS = "popup";
 export const POPUP_ANCHOR_CLASS = "popup-anchor";
@@ -156,7 +158,11 @@ export const AnchorWithPersistentPopupAttached = observer(forwardRef<any, PopupS
             useDragHandle: useDragHandle,
             closeWhenClickOutside: closeWhenClickOutside,
         }
-        return <FloatingUiPersistentPopup {...props} {...defaultProps} ref={popupRef} />;
+        
+        return <Suspense fallback={props.popupRenderMethod({closePopup: () => {}}, popupRef)} 
+        >
+            <FloatingUiPersistentPopup {...props} {...defaultProps} ref={popupRef} />
+        </Suspense>;
 }));
 
 

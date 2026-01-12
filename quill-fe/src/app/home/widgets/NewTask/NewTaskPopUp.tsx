@@ -15,8 +15,8 @@ import {
     MID_SECTION_CLASS,
     ROWS_CLASS,
     ROWS_OR_COLS_WITH_GAP_CLASS
- } from "@/util/constants";
-import { combineClassNamePropAndString } from '@util/jsTools';
+ } from "@/app/util/constants";
+import { combineClassNamePropAndString } from '@/app/util/jsTools';
 import { 
     ColorBubble, 
     TaskComponentAndHeader, 
@@ -25,14 +25,14 @@ import {
     TaskStartDate, 
     TaskTitle 
 } from "@/widgets/TaskDetail/TaskComponents";
-import { FormField } from "@util/FormComponents";
+import { FormField } from "@/app/util/FormComponents";
 import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskContext, TaskModel } from "@/store/tasks/TaskModel";
-import { DATETIME_FORMATS } from "@/app/@util/DateTimeHelper";
-import { ContextMenuPopup } from "@/app/@util/Popup";
+import { DATETIME_FORMATS } from "@/app/util/DateTimeHelper";
+import { ContextMenuPopup } from "@/app/util/Popup";
 
 const OUTER_WRAPPER_NAME = "new-wrapper";
 export const NEW_TASK_POPUP_TITLE = "New Task";
-export const ADD_BUTTON_TEXT = "Create Task";
+export const ADD_BUTTON_TEXT = "Save Task";
 
 /**
  * A form to create a new task. 
@@ -211,16 +211,16 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
                                     title="Add task field" 
-                                    className={combineClassNamePropAndString(`add-field-btn btn small ${CENTERED_CLASS} ${TAKE_FULL_SPACE_CLASS}`, props.anchorProps)} 
+                                    className={combineClassNamePropAndString(`add-field-btn btn small ${TAKE_FULL_SPACE_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`, props.anchorProps)} 
                                     > 
-                                        { ICONS.PLUS }
+                                        { ICONS.PLUS } Add property
                                     </button>
                             }
                         />
                     </div> : undefined
                     }
                     <div className={CENTERED_CLASS}>
-                        <button id="add-btn" className="btn large text" type="submit" formNoValidate={true}>{ADD_BUTTON_TEXT}</button>
+                        <button id="add-btn" className="btn bg large text" type="submit" formNoValidate={true}>{ADD_BUTTON_TEXT}</button>
                     </div>
                 </form>
             </section>

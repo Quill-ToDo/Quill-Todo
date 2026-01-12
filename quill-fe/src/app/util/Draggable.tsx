@@ -3,20 +3,24 @@ import {
     ComponentPropsWithoutRef,
     ForwardedRef,
     forwardRef, 
+    ForwardRefRenderFunction, 
     PropsWithoutRef, 
     ReactNode,
  } from "react";
 import "./draggable.css";
 import { 
     DraggableDndKitImplementation, 
+    DraggableDndKitRenderMethodImplementation, 
     DroppableDndKitImplementation, 
+    DroppableDndKitRenderMethodImplementation, 
     WrapWithDndContext 
 } from "@/external/DndKit";
 import { 
-    DragTypesToDragDataTypes, 
+    DragStringTypesToDragDataType, 
     RequiredDragData, 
     RequiredDropData 
 } from "./DraggableTypes";
+import { DragMoveEvent } from "@dnd-kit/core";
 
 export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 
@@ -34,7 +38,7 @@ export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 * as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
 * should have the class DRAGGABLE_HANDLE_CLASS.**
 */
-export const Draggable: <DragData extends RequiredDragData,>(props: DraggableParams<DragData> & ComponentPropsWithoutRef<any>, ref: ForwardedRef<any>) => ReactNode
+export const Draggable: <DragData extends RequiredDragData,>(props: DraggableParams<DragData> & {children: any}, ref: ForwardedRef<any>) => ReactNode
 = observer(forwardRef<any, DraggableParams<any>>(({
     children,
     useHandle=false,
@@ -53,28 +57,74 @@ export const Draggable: <DragData extends RequiredDragData,>(props: DraggablePar
         </DraggableDndKitImplementation>
 }));
 
+export const DraggableRenderMethod: <DragData extends RequiredDragData,>(props: DraggableRenderMethodParams<DragData>, ref: ForwardedRef<any>) => ReactNode
+= observer(forwardRef<any, DraggableParams<any>>(({
+    useHandle=false,
+    mayBeDropped=false,
+    actionTitle="Drag item",
+    ...props
+}, ref) => {
+    return <DraggableDndKitRenderMethodImplementation
+            ref={ref}
+            actionTitle={actionTitle}    
+            useHandle={useHandle}
+            mayBeDropped={mayBeDropped}
+            {...props}
+        />
+}));
+
 // Params draggable items must supply
 export type DraggableParams<DragData extends RequiredDragData> = {
     itemData: DragData,
     actionTitle: string,
-    children: ReactNode,
     mayBeDropped: boolean,
     draggedPresentation?: ReactNode,
     useHandle?: boolean,
     dragStart?: ({drag, e}: FormattedDragDropEventData<DragData, any>) => void,
     dragEnd?: ({drag, e}: FormattedDragDropEventData<DragData, any>) => void,
-    positioningProps?: PropsWithoutRef<any>,
-} & ComponentPropsWithoutRef<"div">
+} & ComponentPropsWithoutRef<any>;
+
+export type DraggableRenderMethodParams<DragData extends RequiredDragData> = DraggableParams<DragData> & {
+    render: ForwardRefRenderFunction<any, any>
+}
 
 export type FormattedDragDropEventData<DragData extends RequiredDragData, DropData extends RequiredDropData> = {
     e: GenericDragEvent,
-    drag: DragData | null, 
-    drop: DropData | null,
+    drag: DragData, 
+    drop: DropData,
 };
 
 type GenericDragEvent = {
     isDragging: boolean,
 }
+
+export type DndKitDraggableData<DragData extends RequiredDragData> = {
+    id: any,
+    element: Element | undefined, 
+    type: any, 
+    isDragging: boolean, 
+    isDropping: boolean, 
+    alignment: any, 
+    isDragSource: boolean, 
+    status: any,
+    data: DragData, 
+} | null;
+
+export type DndKitDroppableData<DropData extends RequiredDropData> = {
+    id: any,
+    element: Element | undefined, 
+    type: any, 
+    data: DropData,
+} | null;
+
+export type DndKitDragOperation = {
+    canceled: boolean,
+    position: any,
+    transform: {x: number, y: number},
+    status: any,
+    source: DndKitDraggableData<any>,
+    target: DndKitDroppableData<any>,
+} | null;
 
 
 export const DragContextProvider = observer(({children}: {children: ReactNode}) => {
@@ -88,18 +138,25 @@ export const DragContextProvider = observer(({children}: {children: ReactNode}) 
 * 3rd party libraries.
 * 
 */
-export const Droppable: <DropData extends RequiredDropData,>(props: DroppableParams<DropData>, ref: ForwardedRef<any>) => ReactNode 
+export const Droppable: <DropData extends RequiredDropData,>(props: DroppableParams<DropData> & {children: ReactNode}, ref: ForwardedRef<any>) => ReactNode 
     = observer(forwardRef<any, DroppableParams<any>>((props, ref) => {
         return <DroppableDndKitImplementation
+            ref={ref}
+            {...props}
+    />}))
+
+export const DroppableRenderMethod: <DropData extends RequiredDropData,>(props: DroppableRenderMethodParams<DropData>, ref: ForwardedRef<any>) => ReactNode 
+    = observer(forwardRef<any, any>((props, ref) => {
+        return <DroppableDndKitRenderMethodImplementation
             ref={ref}
             {...props}
     />
 }))
 
 export type DragCallbacks<DragData extends RequiredDragData, DropData extends RequiredDropData> = {
-        setDataWhenDragOver?: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
-        saveDataWhenDragEnds?: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
-        resetDataWhenDragOff?:({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
+        setDataWhenDragOver: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
+        saveDataWhenDragEnds: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
+        resetDataWhenDragOff:({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
         dragEnd?: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
         dragOver?: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
         dragCancel?: ({drag, drop, e}: FormattedDragDropEventData<DragData, DropData>) => void,
@@ -108,14 +165,17 @@ export type DragCallbacks<DragData extends RequiredDragData, DropData extends Re
 }
 
  type CallbackMap<DropData extends RequiredDropData> = {
-    [key in keyof Partial<DragTypesToDragDataTypes>]: DragCallbacks<DragTypesToDragDataTypes[key], DropData>;
+    [key in keyof Partial<DragStringTypesToDragDataType>]: DragCallbacks<DragStringTypesToDragDataType[key], DropData>;
 } & {
     [key: string]: DragCallbacks<any, DropData>;
 }
 // Params droppable items must supply
 export type DroppableParams<DropData extends RequiredDropData> = {
-    children: ReactNode,
     callbacksForAcceptedDragTypes: CallbackMap<DropData>,
     itemData: DropData,
     collisionPriority?: number,
-} & ComponentPropsWithoutRef<"div">;
+} & ComponentPropsWithoutRef<any>;
+
+export type DroppableRenderMethodParams<DropData extends RequiredDropData> = DroppableParams<DropData> & {
+    render: ForwardRefRenderFunction<any, any>
+}
