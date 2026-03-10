@@ -252,10 +252,6 @@ i.checkmark {
 
 .dragged-task-date .color-bar.start {
   scale: 1.5;
+  position: relative;
 }
 
-.spacer {
-  width: 20px;
-  min-width: 20px;
-  aspect-ratio: 1/1;
-}

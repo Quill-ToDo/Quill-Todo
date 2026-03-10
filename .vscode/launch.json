@@ -2,20 +2,24 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug FE Chrome",
-            "type": "chrome",
+            "name": "Debug next.js client",
+            "type": "node-terminal",
             "request": "launch",
-            "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}/src",
-            "sourceMapPathOverrides": {
-                "webpack:///src/*": "${webRoot}/*"
-            }
+            "command": "npm run debug",
+            "cwd": "${workspaceFolder}/quill-fe"
         },
         {
-            "name": "Debug FE Firefox",
+            "name": "Debug Chrome",
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:3001",
+            "webRoot": "${workspaceFolder}/quill-fe"
+        },
+        {
+            "name": "Debug Firefox",
             "type": "firefox",
             "request": "launch",
-            "url": "http://localhost:3000",
+            "url": "http://localhost:3001",
             "pathMappings": [
                 {
                     "url": "webpack://_n_e/src/app",
@@ -24,13 +28,15 @@
             ]
         },
         {
-            "name": "Debug BE",
+            "name": "Debug server",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}\\manage.py",
-            "args": ["runserver"],
+            "args": [
+                "runserver"
+            ],
             "django": true,
             "justMyCode": true
-        },
+        }
     ]
 }

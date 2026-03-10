@@ -36,8 +36,9 @@
 
   .new-wrapper .add-field-btn {
     width: 100%;
-    height: 50px;
+    height: 40px;
     aspect-ratio: auto;
+    font-size: var(--p-size);
   }
 
   #title-color .color {

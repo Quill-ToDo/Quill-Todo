@@ -100,10 +100,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                 className={DRAGGABLE_HANDLE_CLASS}
                 title="Move window"    
             >
-                <div className={`${ALIGNED_CLASS} ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`}>
-                    {ICONS.DRAG}
-                    <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
-                </div>
+                <h2 id="new-task-title">{NEW_TASK_POPUP_TITLE}</h2>
                 <button className="btn small square end" title="Close" onClick={() => {
                     taskToCreate && taskToCreate.abortTaskCreation();
                     close();
@@ -125,7 +122,7 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                                 })); 
                             }
                             else {
-                                let focusEle = (e.target as HTMLElement).querySelector(`[aria-invalid="true"]`);
+                                let focusEle: HTMLElement | null = (e.target as HTMLElement).querySelector(`[aria-invalid="true"]`);
                                 !!focusEle && focusEle.focus();
                             }
                         }
@@ -204,14 +201,14 @@ export const AddNewTaskPopUp = observer(forwardRef<any, {
                             header={<header>Add field</header>}
                             labelsAndClickCallbacks={contextMenuData}
                             renderElementToClick={({openPopup, ...props}, ref) => <button 
-                                    {...props.anchorProps}
+                                    {...props}
                                     ref={ref}
                                     onClick={() => {openPopup();}}
                                     type="button"
                                     aria-label="Add task field"
                                     aria-haspopup="menu"
                                     title="Add task field" 
-                                    className={combineClassNamePropAndString(`add-field-btn btn small ${TAKE_FULL_SPACE_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`, props.anchorProps)} 
+                                    className={combineClassNamePropAndString(`add-field-btn btn small ${TAKE_FULL_SPACE_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`, props)} 
                                     > 
                                         { ICONS.PLUS } Add property
                                     </button>

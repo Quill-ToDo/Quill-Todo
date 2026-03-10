@@ -234,7 +234,7 @@ If there are any issues with these instructions or if anything is unclear, pleas
 #### Back-End Notes
 
 - After this initial setup, you can use the appropriate script for your OS to start the database and server
-  - **Windows:** You can use `$ npm run be-win` to just start the API, or `$ npm run dev-win` to start the FE and BE at once
+  - **Windows:** You can use `$ npm run be-win` to just start the API, or `$ npm run dev-win` to start the client and server at once
   - **Mac/Unix**: `$ npm run dev-unix`
   - Or just run `$ pg_ctl start` to start the database and `$ py manage.py runserver` to start the server (make sure your virtual environment is active)
 
@@ -301,7 +301,7 @@ You may consider installing PgAdmin to make working with databases using an UI.
 
 #### Debugging
 
-To debug using VS Code, use the "Debug FE Firefox" Run and Debug Profile.
+To debug using VS Code, open Run and Debug and use the "Debug next.js client" and "Debug client Firefox" profiles. These will start next.js on port 3001 instead of 3000 and open a connected Firefox debugging instance.
 
 #### Front-end Testing
 

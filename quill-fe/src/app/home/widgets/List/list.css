@@ -27,9 +27,13 @@
     position: relative;
     width: 100%;
   }
-  
+
   .list.widget>section:last-child {
     margin-bottom: var(--section-gap);
+  }
+
+  .list.widget .mid-section li:not(:last-child) {
+      margin-bottom: var(--section-gap);
   }
 
   .list.widget .dark-section button:focus {

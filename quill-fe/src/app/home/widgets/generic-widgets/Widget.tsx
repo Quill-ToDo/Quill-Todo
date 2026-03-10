@@ -1,5 +1,5 @@
-import { LOADING_CLASS, TAKE_FULL_SPACE_CLASS } from "@/app/@util/constants";
-import { getSessionStorageItem, setSessionStorageItem } from "@/app/@util/SessionStorageHelper";
+import { LOADING_CLASS, TAKE_FULL_SPACE_CLASS } from "@/app/util/constants";
+import { getSessionStorageItem, setSessionStorageItem } from "@/app/util/SessionStorageHelper";
 import { observer } from "mobx-react-lite";
 import { 
     ComponentPropsWithoutRef, 

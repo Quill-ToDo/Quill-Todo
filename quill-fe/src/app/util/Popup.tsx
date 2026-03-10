@@ -4,58 +4,47 @@ import {
     ForwardRefRenderFunction, 
     ReactElement, 
     LegacyRef,
-    forwardRef,
-    Suspense, 
 } from "react";
 import { combineClassNamePropAndString } from '@/app/util/jsTools';
 
-import { FloatingUiAttachedPopup, FloatingUiPersistentPopup } from "../3rd-party/FloatingUiHelpers";
+import { FloatingUiAttachedPopup, FloatingUiPersistentPopupAnchor } from "../3rd-party/FloatingUiHelpers";
 import "./popup.css"
 import { ReferenceType } from "@floating-ui/react";
-import { Loading } from "../home/widgets/TaskDetail/TaskComponents";
 
 export const POPUP_CLASS = "popup";
 export const POPUP_ANCHOR_CLASS = "popup-anchor";
 
-// Options used in both "attached" and "persistent" popup types
-export type InnerPopupProps = {
+// Positioning options that will be used to calculate popup position
+export type PopupPositioningConfig = {
+    draggable?: boolean,
     position?: "centered" | "positioned",
     placement?: "left" | "bottom" | "right" | "top" | "centered" | "auto",
     alignment?: "start" | "middle" | "end",
-    doneLoading?: boolean,
-    draggable?: boolean,
     useDragHandle?: boolean,
     popupMargin?: number,
     closeWhenClickOutside?: boolean,
 }
-export type PopupSetupProps = {
+
+export type PopupAnchorRenderMethods = {
     popupRenderMethod: PopupRenderMethod,
     anchorRenderMethod: AnchorRenderMethod,
-} & InnerPopupProps;
+}
 
-export type PersistentProps = PopupSetupProps;
+export type PopupParams = {
+    closePopup: (callback?: any) => any,
+} & ComponentPropsWithoutRef<any>;
 
-export type PopupRenderMethod = ForwardRefRenderFunction<HTMLElement, {
-    closePopup: (callback?: Function)=>void,
-}>;
+export type PopupRenderMethod = ForwardRefRenderFunction<any, PopupParams>;
 
-export type AnchorRenderMethod = ForwardRefRenderFunction<HTMLButtonElement, {
-    openPopup: (callback?: Function)=>void, 
-    anchorProps: ComponentPropsWithoutRef<any>,
-}>;
-
-export type PopupSetup = { 
-    openPopup: (callback?: Function)=>void,
-    closePopup: (callback?: Function)=>void,
-    setPopupPositioningAnchor: ((node: ReferenceType | null) => void) & ((node: ReferenceType | null) => void),
-    getAnchorProps: (userProps?: React.HTMLProps<Element>) => Record<string, unknown>,
-};
+export type AnchorRenderMethod = ForwardRefRenderFunction<any, {
+    openPopup: (callback?: any) => any,
+} & ComponentPropsWithoutRef<any>>;
 
 /**
  * Given a render method for an anchor element, the content to popup, 
  * and popup configuration options, return the anchor ref element to be rendered
  * with popup listners attached.
- * If the anchor element is unmounted, the popup will as well--if this is not desired behavior, 
+ * If the anchor element is unmounted, the popup will as well. If this is not desired behavior, 
  * use PersistentPopupOnClick instead.
  * 
  * # renderPopUpContent requirements:
@@ -86,24 +75,21 @@ export const AttachedPopupOnClick = observer((
         position="positioned",
         placement="auto",
         alignment="middle",
-        doneLoading=true, 
         draggable=false, 
         useDragHandle=false,
         closeWhenClickOutside=true,
-        ...props
-    } : PopupSetupProps) => {
-        const defaultProps = {
-            position: position,
-            placement: placement,
-            alignment: alignment,
-            doneLoading: doneLoading,
-            draggable: draggable,
-            useDragHandle: useDragHandle,
-            closeWhenClickOutside: closeWhenClickOutside,
-        }
+        popupRenderMethod,
+        anchorRenderMethod,
+    } : PopupPositioningConfig & PopupAnchorRenderMethods) => {
         return <FloatingUiAttachedPopup 
-            {...props}
-            {...defaultProps}
+            popupRenderMethod={popupRenderMethod}
+            anchorRenderMethod={anchorRenderMethod}
+            position={position}
+            placement={placement}
+            alignment={alignment}
+            draggable={draggable}
+            useDragHandle={useDragHandle}
+            closeWhenClickOutside={closeWhenClickOutside}
         />;
 });
 
@@ -134,36 +120,49 @@ export const AttachedPopupOnClick = observer((
  * 
  * @returns setup methods to get and set the popup content
  */
-export const AnchorWithPersistentPopupAttached = observer(forwardRef<any, PopupSetupProps>((
+export const AnchorWithPersistentPopupAttached = observer((
     {   
         position="positioned",
         placement="right",
         alignment="middle",
-        doneLoading=true, 
         draggable=false, 
         useDragHandle=false,
         closeWhenClickOutside=true,
-        ...props
-    }, popupRef) => {
+        popupRenderMethod,
+        anchorRenderMethod, 
+    }: PopupPositioningConfig & PopupAnchorRenderMethods) => {
+        // Dont accept component props here because would be unclear if its for anchor or popup.
+        // pass component props in the render methods for anchor or popup
         // Popup helper to serve as an interface between Quill and
         // 3rd party libraries.
         // Use context to hold the popup content so that it may persist even when the anchor element
         // is unmounteds from the dom
-        const defaultProps = {
-            position: position,
-            placement: placement,
-            alignment: alignment,
-            doneLoading: doneLoading,
-            draggable: draggable,
-            useDragHandle: useDragHandle,
-            closeWhenClickOutside: closeWhenClickOutside,
-        }
+
+        return <FloatingUiPersistentPopupAnchor 
+            popupRenderMethod={popupRenderMethod}
+            anchorRenderMethod={anchorRenderMethod}
+            position={position}
+            placement={placement}
+            alignment={alignment}
+            draggable={draggable}
+            useDragHandle={useDragHandle}
+            closeWhenClickOutside={closeWhenClickOutside}
+        />;
         
-        return <Suspense fallback={props.popupRenderMethod({closePopup: () => {}}, popupRef)} 
-        >
-            <FloatingUiPersistentPopup {...props} {...defaultProps} ref={popupRef} />
-        </Suspense>;
-}));
+        // return <Suspense fallback={popupRenderMethod({closePopup: () => {}}, forwardedPopupRef)} 
+        // >
+            // return <FloatingUiPersistentPopupAnchor 
+            //     popupRenderMethod={popupRenderMethod}
+            //     anchorRenderMethod={anchorRenderMethod}
+            //     position={position}
+            //     placement={placement}
+            //     alignment={alignment}
+            //     draggable={draggable}
+            //     useDragHandle={useDragHandle}
+            //     closeWhenClickOutside={closeWhenClickOutside}
+            // />
+        // </Suspense>;
+});
 
 
 /**
@@ -178,7 +177,7 @@ export const ContextMenuPopup = observer((
         header,
         placement="right",
         alignment="middle",
-        ...props
+        ...menuProps
     } : {
         labelsAndClickCallbacks: {
             label: string, // Accessibility, the name
@@ -194,10 +193,12 @@ export const ContextMenuPopup = observer((
 ) => {
     return <AttachedPopupOnClick
         anchorRenderMethod={(props, ref) => renderElementToClick(props, ref)}
-        popupRenderMethod={({closePopup}, ref) => 
+        popupRenderMethod={({closePopup, ...props}, ref) => 
             <div 
               ref={ref as LegacyRef<HTMLDivElement>}
-              className="context-menu"
+              {...props}
+              {...menuProps}
+              className={combineClassNamePropAndString(`context-menu ${props.className}`, menuProps)}
             >
                 <menu
                     role="menu"

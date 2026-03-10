@@ -114,9 +114,6 @@ const TaskDetail = observer(forwardRef<any, {
     >
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
-                    <button>
-                        {ICONS.DRAG}
-                    </button>
                     <ColorBubble buttonProps={{className: INTERACTABLE_ELEMENT_CLASS}} />
                     <TaskCheckbox 
                         type={"due"}

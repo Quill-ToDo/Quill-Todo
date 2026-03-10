@@ -4,7 +4,6 @@ import {
     ForwardedRef,
     forwardRef, 
     ForwardRefRenderFunction, 
-    PropsWithoutRef, 
     ReactNode,
  } from "react";
 import "./draggable.css";
@@ -24,60 +23,11 @@ import { DragMoveEvent } from "@dnd-kit/core";
 
 export const INTERACTABLE_ELEMENT_CLASS = "interactable";
 
-/**
-* Draggable helper to serve as an interface between Quill and any
-* 3rd party libraries.
-* ## To mark an element potentially within the drag handle as 
-* NOT being part of the handle, give it the class INTERACTABLE_ELEMENT_CLASS
-* 
-* @param id a unique ID for this draggable element
-* @param droppable whether the element should be able to be dropped into Droppable containers and
-*  return to its origin position when the user releases their cursor 
-*  or be free drag and remain in its last dropped position
-* @param useHandle Whether to use a specific element within the droppable content as a drag handle or use any point
-* as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
-* should have the class DRAGGABLE_HANDLE_CLASS.**
-*/
-export const Draggable: <DragData extends RequiredDragData,>(props: DraggableParams<DragData> & {children: any}, ref: ForwardedRef<any>) => ReactNode
-= observer(forwardRef<any, DraggableParams<any>>(({
-    children,
-    useHandle=false,
-    mayBeDropped=false,
-    actionTitle="Drag item",
-    ...props
-}, ref) => {
-    return <DraggableDndKitImplementation
-            ref={ref}
-            actionTitle={actionTitle}    
-            useHandle={useHandle}
-            mayBeDropped={mayBeDropped}
-            {...props}
-        >
-            {children}
-        </DraggableDndKitImplementation>
-}));
-
-export const DraggableRenderMethod: <DragData extends RequiredDragData,>(props: DraggableRenderMethodParams<DragData>, ref: ForwardedRef<any>) => ReactNode
-= observer(forwardRef<any, DraggableParams<any>>(({
-    useHandle=false,
-    mayBeDropped=false,
-    actionTitle="Drag item",
-    ...props
-}, ref) => {
-    return <DraggableDndKitRenderMethodImplementation
-            ref={ref}
-            actionTitle={actionTitle}    
-            useHandle={useHandle}
-            mayBeDropped={mayBeDropped}
-            {...props}
-        />
-}));
-
 // Params draggable items must supply
 export type DraggableParams<DragData extends RequiredDragData> = {
     itemData: DragData,
     actionTitle: string,
-    mayBeDropped: boolean,
+    droppable: boolean,
     draggedPresentation?: ReactNode,
     useHandle?: boolean,
     dragStart?: ({drag, e}: FormattedDragDropEventData<DragData, any>) => void,
@@ -109,6 +59,74 @@ export type DndKitDraggableData<DragData extends RequiredDragData> = {
     status: any,
     data: DragData, 
 } | null;
+
+/**
+* Draggable helper to serve as an interface between Quill and any
+* 3rd party libraries.
+* ## To mark an element potentially within the drag handle as 
+* NOT being part of the handle, give it the class INTERACTABLE_ELEMENT_CLASS
+* 
+* @param id a unique ID for this draggable element
+* @param droppable whether the element should be able to be dropped into Droppable containers and
+*  return to its origin position when the user releases their cursor 
+*  or be free drag and remain in its last dropped position
+* @param useHandle Whether to use a specific element within the droppable content as a drag handle or use any point
+* as a drag handle. **If true, one element within the draggable content that will serve as a drag handle 
+* should have the class DRAGGABLE_HANDLE_CLASS.**
+*/
+export const Draggable: <DragData extends RequiredDragData,>(props: DraggableParams<DragData> & {children: any}, ref: ForwardedRef<any>) => ReactNode
+= observer(forwardRef<any, DraggableParams<any>>(({
+    children,
+    draggedPresentation,
+    itemData,
+    dragStart,
+    dragEnd,
+    useHandle=false,
+    droppable=false,
+    actionTitle="Drag item",
+    ...props
+}, ref) => {
+    return <DraggableDndKitImplementation
+            ref={ref}
+            actionTitle={actionTitle}    
+            useHandle={useHandle}
+            droppable={droppable}
+            draggedPresentation={draggedPresentation}
+            itemData={itemData}
+            dragStart={dragStart}
+            dragEnd={dragEnd}
+            componentProps={props}
+        >
+            {children}
+        </DraggableDndKitImplementation>
+}));
+
+export const DraggableRenderMethod: <DragData extends RequiredDragData,>(props: DraggableRenderMethodParams<DragData>, ref: ForwardedRef<any>) => ReactNode
+= observer(forwardRef<any, DraggableParams<any>>(({
+    render,
+    draggedPresentation,
+    dragStart,
+    dragEnd,
+    itemData,
+    useHandle=false,
+    droppable=false,
+    actionTitle="Drag item",
+    ...props
+}, ref) => {
+    return <DraggableDndKitRenderMethodImplementation
+            ref={ref}
+            render={render}
+            actionTitle={actionTitle}    
+            useHandle={useHandle}
+            droppable={droppable}
+            draggedPresentation={draggedPresentation}
+            itemData={itemData}
+            dragStart={dragStart}
+            dragEnd={dragEnd}
+            componentProps={props}
+        />
+}));
+
 
 export type DndKitDroppableData<DropData extends RequiredDropData> = {
     id: any,

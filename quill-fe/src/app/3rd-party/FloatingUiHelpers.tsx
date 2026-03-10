@@ -1,14 +1,12 @@
 import React, { 
-    ComponentPropsWithoutRef,
     createContext,
     Dispatch, 
     ForwardedRef, 
-    forwardRef, 
+    forwardRef,  
     ReactElement, 
     ReactNode, 
     SetStateAction, 
-    useContext, 
-    useEffect, 
+    useContext,  
     useRef, 
     useState
  } from 'react';
@@ -26,25 +24,22 @@ import {
     size,
     autoPlacement,
     Placement,
-    useMergeRefs,
+    autoUpdate,
+    useFloatingRootContext,
+    UseFloatingRootContextOptions,
+    FloatingRootContext,
+    FloatingContext,
   } from '@floating-ui/react';
 import { observer } from 'mobx-react-lite';
 import { 
-    PopupSetupProps,
-    InnerPopupProps,
+    PopupPositioningConfig,
     POPUP_CLASS,
     POPUP_ANCHOR_CLASS,
-    PopupRenderMethod, 
+    PopupRenderMethod,
+    PopupParams,
+    PopupAnchorRenderMethods,
 } from '@/app/util/Popup';
 import { combineClassNamePropAndString } from '@/app/util/jsTools';
-import { Draggable } from '@/app/util/Draggable';
-import { 
-    CENTERED_CLASS, 
-    LOADING_CLASS, 
-    POPUP_POSITIONER_CLASS, 
-    TAKE_FULL_SPACE_CLASS, 
-    TRANSPARENT_CLASS 
-} from '../util/constants';
 
 export const PORTAL_HOLDER_ID = "portal-holder";
 
@@ -56,13 +51,15 @@ export const PORTAL_HOLDER_ID = "portal-holder";
  * @returns 
  */
 const getFloatingUiPositioning = ({
-    isOpen,
-    openChange,
+    showPopup,
+    setShowPopup,
     placement,
     popupMargin,
     alignment,
     closeWhenClickOutside,
- }: InnerPopupProps & {isOpen: boolean, openChange: Dispatch<SetStateAction<boolean>>}) => {
+ }: PopupPositioningConfig 
+ & Pick<PopupContextValues, "setShowPopup">
+& {showPopup: boolean}) => {
     // Configure middleware for Floating UI module
     const middleware = [];
     // Add corresponding middleware configuration for given placement.
@@ -94,154 +91,40 @@ const getFloatingUiPositioning = ({
         ? ''
         : `${availableHeight}px`;
       }}));
-    const positioning: UseFloatingOptions = {
-        open: isOpen,
-        onOpenChange: openChange,
-        placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
-        middleware: middleware,
-        // autoUpdate must only be used in this way if popup is conditionally rendered attached to the 
-        // isOpen state
-    };
-    // Configure interactions
-    const { refs, floatingStyles, context, isPositioned, update, elements } = useFloating(positioning);
-    const interactions: ElementProps[] = [];
-    // context:
-    interactions.push(useDismiss(context, {
-        // close the popup when click outside of it
-        outsidePress: closeWhenClickOutside,
-        // close the popup when click anchor element
-        // referencePress: true,
-        // TODO ? what do
-        bubbles: false,
-    }));
-    // generate the positioning props for the anchor and popup from Floating UI module
-    const { getReferenceProps, getFloatingProps } = useInteractions(interactions);
 
-    let floatingUiPopupPositioningProps = {
-        style: floatingStyles,
-        ...getFloatingProps(),
-        className: combineClassNamePropAndString(`floating ${POPUP_CLASS}`, getFloatingProps()),
-    }
-    return {
-        floatingUiRefs: refs,
-        floatingUiContext: context,
-        floatingUiPopupPositioningProps: floatingUiPopupPositioningProps,
-        floatingUiPopupIsPositioned: isPositioned,
-        getFloatingUiAnchorProps: getReferenceProps,
-    }
-}
-
-type InnerPopupConfig = {
-    content: ReactNode,
-    anchorRef: ForwardedRef<any>,
-    getAnchorProps: () => ComponentPropsWithoutRef<"button">,
-    popupIsPositioned: boolean,
-}
-
-/**
- * Return the "guts" of the popup with Floating UI content applied as needed
- * 
- * @returns 
- */
-const getPositionedDraggablePopup = ({
-    getPositionedPopup,
-    isOpen,
-    openChange,
-    placement,
-    alignment,
-    doneLoading, 
-    draggable,
-    useDragHandle,
-    popupMargin,
-    forwardedPopupRef,
-    closeWhenClickOutside,
-    ...props
-}: InnerPopupProps 
-& {
-    getPositionedPopup: PopupRenderMethod, 
-    isOpen: boolean, 
-    openChange: Dispatch<SetStateAction<boolean>>,
-    forwardedPopupRef?: ForwardedRef<any>,
-}): InnerPopupConfig => {
-    const {
-        floatingUiRefs, 
-        floatingUiPopupPositioningProps,
-        floatingUiContext, 
-        floatingUiPopupIsPositioned, 
-        getFloatingUiAnchorProps
-    } = getFloatingUiPositioning({
-        isOpen, 
-        openChange,
-        placement,
-        popupMargin,
-        alignment,
-        closeWhenClickOutside,
-        ...props
-    });
-
-    const mergedRef = useMergeRefs([floatingUiRefs.setFloating, forwardedPopupRef])
-
-    // Make the popup transparent but still in the DOM until it is positioned so floating UI can 
-    // get the width and height of the popup for positioning
-    const propsHiddenWhileNotPositioned = floatingUiPopupIsPositioned ? floatingUiPopupPositioningProps : {
-            ...floatingUiPopupPositioningProps,
-            className: combineClassNamePropAndString(TRANSPARENT_CLASS, floatingUiPopupPositioningProps), 
-        }
-
-    const popupWithDraggingApplied = 
-    draggable ? 
-        <Draggable
-            itemData={{
-                type: "task popup",
-                showDropPreview: false,
+    const getProps = (context: FloatingRootContext | FloatingContext) => {
+        const interactions: ElementProps[] = [];
+        interactions.push(useDismiss(context, {
+            // close the popup when click outside of it
+            outsidePress: closeWhenClickOutside,
+            // close the popup when click anchor element
+            // referencePress: true,
+            // TODO ? what do
+            bubbles: false,
+        }));
+        // generate the positioning props for the anchor and popup from Floating UI module
+        const { getReferenceProps, getFloatingProps } = useInteractions(interactions);
+        return {
+            getAnchorProps: () => { return {
+                ...getReferenceProps(),
+                className: combineClassNamePropAndString(`${POPUP_ANCHOR_CLASS}`, getReferenceProps()),
+            }},
+            getPopupProps: () => {return {
+                ...getFloatingProps(),
+                className: combineClassNamePropAndString(`${POPUP_CLASS}`, getFloatingProps()),
             }}
-            mayBeDropped={false} 
-            useHandle={useDragHandle} 
-            actionTitle='Move popup'
-            {...propsHiddenWhileNotPositioned}
-            ref={mergedRef}
-        >
-            { getPositionedPopup({closePopup: () => {}}, null) }
-        </Draggable>
-        : 
-        <div
-            ref={mergedRef}
-            {...propsHiddenWhileNotPositioned}
-            className={combineClassNamePropAndString(POPUP_POSITIONER_CLASS, propsHiddenWhileNotPositioned)}
-        >
-            { getPositionedPopup({closePopup: () => {}}, null) }
-        </div>;
-
-    // Portal this shit away
-    const popupWithPortalApplied = 
-        <FloatingPortal id={PORTAL_HOLDER_ID}>
-            <FloatingFocusManager context={floatingUiContext}>
-                { doneLoading ? 
-                    popupWithDraggingApplied as ReactElement
-                : 
-                <div
-                    ref={mergedRef}
-                    {...floatingUiPopupPositioningProps}
-                    className={`${LOADING_CLASS} ${TAKE_FULL_SPACE_CLASS} ${CENTERED_CLASS} ${POPUP_POSITIONER_CLASS}`}
-                >
-                    <p>Loading...</p>
-                </div>
-                }
-            </FloatingFocusManager>
-        </FloatingPortal>;
+        }
+    }
 
     return {
-        content: popupWithPortalApplied,
-        popupIsPositioned: floatingUiPopupIsPositioned,
-        // Set portal anchor and apply anchor props
-        anchorRef: floatingUiRefs.setReference,
-        getAnchorProps: () => { 
-            const anchorProps = getFloatingUiAnchorProps();
-            return {
-                ...anchorProps,
-                className: combineClassNamePropAndString(POPUP_ANCHOR_CLASS, anchorProps),
-            };
-        },
+          open: showPopup,
+          onOpenChange: setShowPopup,
+          placement: placement && placement !== "centered" ? (`${placement}${alignment && alignment !== "middle" ? "-"+alignment : ""}` as Placement) : undefined,
+          middleware: middleware,
+          whileElementsMounted: autoUpdate,
+          getProps,
+          // autoUpdate must only be used in this way if popup is conditionally rendered attached to the 
+          // isOpen state
     }
 }
 
@@ -251,202 +134,264 @@ const getPositionedDraggablePopup = ({
 /** Use Floating UI to create a positioned popup that will disappear if the anchor element is 
  * re-rendered
  */
-export const FloatingUiAttachedPopup = observer(forwardRef((
+export const FloatingUiAttachedPopup = observer((
     {   
         popupRenderMethod,
         anchorRenderMethod,
-        ...props
-    } : PopupSetupProps,
-    forwardedRef: ForwardedRef<any>) => {
+        closeWhenClickOutside,
+        ...popupPositioningConfig
+    } : PopupPositioningConfig & PopupAnchorRenderMethods) => {
     const [showPopup, setShowPopup] = useState(false);
-
-    const {
-        content, 
-        anchorRef, 
-        getAnchorProps
-    } = getPositionedDraggablePopup({
-        getPositionedPopup: ({}, ref) => 
-            popupRenderMethod({
-                closePopup: (callback?: Function) => {
-                        setShowPopup(false);
-                        callback && callback();
-                    }, 
-                }, 
-                ref,
-            ),
-            forwardedPopupRef: forwardedRef,
-            isOpen: showPopup,
-            openChange: setShowPopup,
-            ...props
+    const {getProps, ...positioning} = getFloatingUiPositioning({
+        showPopup, 
+        setShowPopup,
+        ...popupPositioningConfig,
     });
-    
+
+    const { refs, context, floatingStyles } = useFloating(positioning);
+
+    const popupProps = getProps(context).getPopupProps();
+    const anchorProps = getProps(context).getAnchorProps();
+    // draggable ? 
+    //     <DraggableRenderMethod
+    //         ref={mergedPopupRef}
+    //         itemData={{
+    //             type: "task popup",
+    //             showDropPreview: false,
+    //         }}
+    //         droppable={false} 
+    //         useHandle={useDragHandle} 
+    //         actionTitle='Move popup'
+    //         render={(props, ref) => getPositionedPopup({
+    //             closePopup: () => {}, 
+    //             ...propsHiddenWhileNotPositioned,
+    //             ...props
+    //         }, ref)}
+    //     />
+    //     :                     ;
     return <>
         {/* Anchor element  */}
         { anchorRenderMethod(
             {
+                ...anchorProps,
                 openPopup: (callback?: Function) => {
-                        setShowPopup(true);
-                        callback && callback();
+                    setShowPopup(true);
+                    callback && callback();
                 },
-                anchorProps: getAnchorProps(),
-            },
-            anchorRef, 
+            }, 
+            refs.setReference
         )} 
         {/* Popup */}
-        { showPopup && content }
+        { showPopup && <FloatingPortal id={PORTAL_HOLDER_ID}>
+            <FloatingFocusManager context={context}>
+                { !!showPopup ? 
+                    popupRenderMethod({
+                        ...popupProps,
+                        style: floatingStyles,
+                        closePopup: (callback?: Function) => {
+                            setShowPopup(false);
+                            callback && callback();
+                        },
+                    }, refs.setFloating) as ReactElement
+                : <div
+                    ref={refs.setFloating}
+                    style={floatingStyles}
+                >
+                    <p>Loading...</p>
+                </div> 
+                }
+            </FloatingFocusManager>
+        </FloatingPortal> }
     </>
-}))
+});
 
 //#endregion Attached popups
 //#region Persistent popups
 
 
 /**
- * Render a popup positioned near a reference element that will persist even if the
- * reference is unmounted.
+ * Render an anchor element with an attached popup that will persist even if the
+ * anchor element is unmounted.
  * Returns a method so that the user can set the reference positioning element and
  * a method that opens the popup and a method that closes the popup.
  * Must be wrapped with PersistentPopupContextProvider.
  */
-export const FloatingUiPersistentPopup = observer(forwardRef((
+export const FloatingUiPersistentPopupAnchor = observer((
     {
         anchorRenderMethod,
         popupRenderMethod,
-        ...props
-    } : PopupSetupProps, 
-    forwardedPopupRef: ForwardedRef<any>) => {
-    // Get the ref for the positioning reference/anchor element from FloatingUi
-    const { 
-        anchorRef: setPopupAnchorRef, 
-        setPopupProps, 
-        setShowPopup, 
-        anchorProps, 
-        popupIsPositioned 
+        ...popupPositioningConfig
+    } : PopupPositioningConfig & PopupAnchorRenderMethods) => {
+    const thisAnchor = useRef<Element | null>(null);
+    const {
+        setShowPopup,
+        setPersistentPopupRenderMethod,
+        setCurrentAnchor,
+        getAnchorProps,
+        setFloatingConfig,
     } = useContext(PersistentPopupContext);
-    // Maintain a ref to this particular anchor element
-    const thisAnchorRef = useRef(null);
-    const setPopupAnchor = useMergeRefs([thisAnchorRef, setPopupAnchorRef]);
-    const [popupOpenedAttachedToThisAnchor, setPopupOpenedAttachedToThisAnchor] = useState(false); 
+    
+    // Make the popup transparent but still in the DOM until it is positioned so floating UI can 
+    // get the width and height of the popup for positioning
+    // draggable ? 
+    //     <DraggableRenderMethod
+    //         ref={mergedPopupRef}
+    //         itemData={{
+    //             type: "task popup",
+    //             showDropPreview: false,
+    //         }}
+    //         droppable={false} 
+    //         useHandle={useDragHandle} 
+    //         actionTitle='Move popup'
+    //         render={(props, ref) => getPositionedPopup({
+    //             closePopup: () => {}, 
+    //             ...propsHiddenWhileNotPositioned,
+    //             ...props
+    //         }, ref)}
+    //     />
+    //     :                     ;
 
-    useEffect(() => {
-        // Only attach persistent popup positioning to this anchor until the popup is 
-        // correctly positioned relative to it from the persistent popup context. so that 
-        // if persistent popup is opened from a different anchor the floatingReferenceRef can
-        // immediately be switched to the new anchor to re-position it as the content is also re-set
-        if (popupIsPositioned) {
-            setPopupOpenedAttachedToThisAnchor(false);
-        }
-    }, [popupIsPositioned]);
-        
-    return anchorRenderMethod({
+    return anchorRenderMethod(
+        {
+            ...getAnchorProps(),
             openPopup: (callback?: Function) => {
-                // When the popup is opened from this anchor, mark it as being the one that
-                // should recieve the floating UI positioning ref. 
-                // Also set relevant popup content into the persistent 
-                // popup context so that the popup can be rendered in PersistentPopupContextProvider 
-                // based on this anchor's data. 
-                setPopupOpenedAttachedToThisAnchor(true);
-                setPopupProps({
-                    popupRenderMethod: (props, ref) => popupRenderMethod(props, ref),
-                    anchorRenderMethod,
-                    forwardedPopupRef: forwardedPopupRef,
-                    ...props
-                });
+                // When the popup is opened from this anchor, mark this anchor element as
+                // the one that should recieve the floating UI anchor ref for persistent popup positioning. 
+                // Also set props for popup rendering in the persistent popup context provider so that the 
+                // popup can be rendered within PersistentPopupContextProvider based on this anchor's data. 
+                setCurrentAnchor(thisAnchor.current);
+                setFloatingConfig(popupPositioningConfig);
+                const render: ForwardedRender = (props: PopupParams, ref: ForwardedRef<any>) => popupRenderMethod({
+                    ...props,
+                }, ref);
+                setPersistentPopupRenderMethod((prev: ForwardedRender) => render);
                 setShowPopup(true);
                 callback && callback();
-            }, 
-            anchorProps,
+            },
         }, 
-        // Either set the anchor ref to be just a pointer ref to this element or
-        // the floating UI one if this is the anchor which opened the popup
-        popupOpenedAttachedToThisAnchor ? setPopupAnchor : thisAnchorRef,  
-    );
-}))
+        thisAnchor,
+    )
+})
 
-type PopupParamsNeededInContextProvider = PopupSetupProps & { 
-    forwardedPopupRef: ForwardedRef<any>,
-};
-export const PersistentPopupContext = createContext<{
-    setPopupContent?: Dispatch<SetStateAction<ReactNode>>,
-    setGetPopupContent?: Dispatch<SetStateAction<(isOpen: boolean, openChange: Dispatch<SetStateAction<boolean>>) => InnerPopupConfig>>,
-    showPopup: boolean,
+type ForwardedRender = PopupRenderMethod;
+export type PopupContextValues = {
+    setPersistentPopupRenderMethod: Dispatch<SetStateAction<ForwardedRender>>,
+    setCurrentAnchor: Dispatch<SetStateAction<Element | null>>,
+    getAnchorProps: () => any,
     setShowPopup: Dispatch<SetStateAction<boolean>>,
-    anchorRef: ForwardedRef<any> | null,
-    anchorProps: ComponentPropsWithoutRef<any>,
-    setPopupProps: Dispatch<SetStateAction<PopupParamsNeededInContextProvider>> ,
-    popupIsPositioned: boolean,
-}>({
-    setPopupContent: () => null,
-    setGetPopupContent: () => null,
-    setPopupProps: () => null,
-    showPopup: false,
+    setFloatingConfig: Dispatch<SetStateAction<PopupPositioningConfig | null>>
+};
+
+export const PersistentPopupContext = createContext<PopupContextValues>({
+    setPersistentPopupRenderMethod: () => null,
+    getAnchorProps: () => null,
+    setCurrentAnchor: () => null,
     setShowPopup: () => null,
-    anchorRef: null,
-    anchorProps: {},
-    popupIsPositioned: false,
+    setFloatingConfig: () => null,
 });
 
-export const PersistentPopupContextProvider = ({children}: {
+/**
+ * Provide context to allow:
+ * - setting popup props elsewhere that are used to render popup element here 
+ * - setting popup to show or not show
+ * - setting anchor props used to render the anchor element
+ * @param param0 
+ * @returns 
+ */
+export const PersistentPopupContextProvider = observer(({children}: {
     children: ReactNode,
 }) => {
-    //  1) Anchor elements are rendered elsewere in AnchorWithPersistentPopupAttached components. 
-    //     They have attached open popup methods which set the popup setup props here so that the popups
-    //     can be rendered here
-    const [popupProps, setPopupProps] = useState<PopupParamsNeededInContextProvider>({
-        forwardedPopupRef: () => null,
-        popupRenderMethod: () => null,
-        anchorRenderMethod: () => null,
-    }); 
-    const [popupContent, setPopupContent] = useState<ReactNode>(null);
-    // showPopup controls whether popup is shown or not in floating UI as well
+    // showPopup controls whether popup is shown or not
     const [showPopup, setShowPopup] = useState(false);
-    const [anchorProps, setAnchorProps] = useState<ComponentPropsWithoutRef<any>>({});
+    const [thisPopup, setPopup] = useState<HTMLElement | null>(null);
+    // Anchor elements are rendered elsewere in AnchorWithPersistentPopupAttached 
+    // components. The openPopup method in FloatingUiPersistentPopupAnchor
+    // sets popupPositioningConfig and persistentPopupRenderMethod here
+    // so the popup associated with that anchors data is the one that's rendered
+    const [currentAnchor, setCurrentAnchor] = useState<Element | null>(null);
+    const [popupPositioningConfig, setPopupPositioningConfig] = useState<PopupPositioningConfig | {}>({});  
+    const [persistentPopupRenderMethod, setPersistentPopupRenderMethod] = useState<ForwardedRender>(() => () => <></>);
 
-    //  3) based on current popup props, generate popup content to render from this component, 
-    //     an anchor ref, and anchor props to pass back to the 
-    //     paricular anchor element that opened the popup
-    const { content, anchorRef: setPopupAnchor, getAnchorProps, popupIsPositioned } = getPositionedDraggablePopup(
-        {
-            getPositionedPopup: ({closePopup}, ref) => 
-                popupProps.popupRenderMethod({
-                        closePopup: (callback?: Function) => {
-                            setShowPopup(false);
-                            callback && callback();
-                            closePopup();
-                        }, 
-                    }, ref),
-            isOpen: showPopup,
-            openChange: setShowPopup,
-            ...popupProps
-        });
-    
-    //   5) When the popup is open, render popup content but transparent so not visible before positioning it. 
-    //      After it has been positioned, update the content again as it will no longer be transparent
-    useEffect(() => {
-            if (showPopup) {
-                setAnchorProps(getAnchorProps());
-                setPopupContent(content as ReactElement);
-            }
-            return () => {
-                setAnchorProps({});
-                setPopupContent(null);
-            }
-    }, [showPopup, popupIsPositioned, popupProps, setPopupAnchor]);
+    // Use the config specified by the anchor component that laucnhed this popup 
+    // to get methods to apply floating interactions via props, and floating positioning needed
+    // to generate floating root context
+    const { getProps, ...floatingPositioning } = getFloatingUiPositioning({
+        showPopup, 
+        setShowPopup,
+        ...popupPositioningConfig,
+    });
 
-    //  4) Pass the anchor ref and anchor props to position the popup in context data so that 
-    //     the anchor element can access them and render them into it's returned anchor element 
+    const ops: UseFloatingRootContextOptions = {
+        ...floatingPositioning,
+        elements: {
+            reference: currentAnchor,
+            floating: thisPopup,
+        }
+    };
+
+    const rootContext = useFloatingRootContext(ops);
+
+    // 
+    const popup = <PersistentPopup 
+        persistentPopupRenderMethod={persistentPopupRenderMethod}
+        setShowPopup={setShowPopup}
+        rootContext={rootContext}
+        ref={setPopup}
+        {...getProps(rootContext).getPopupProps()}
+    />;
+    // Pass the anchor ref and anchor props used to to position the popup in context so that 
+    // the anchor element can access them and render them into its returned anchor element.
     return <PersistentPopupContext.Provider
         value={{
-            showPopup: showPopup,
-            setShowPopup: setShowPopup,
-            setPopupProps: setPopupProps,
-            anchorRef: setPopupAnchor,
-            anchorProps: anchorProps,
-            popupIsPositioned: popupIsPositioned,
+            // Allow anchor elsewhere to set the popup as closed or open via context
+            setShowPopup,
+            // Allow anchor elsewhere to specify the render method used for this popup
+            setPersistentPopupRenderMethod,
+            // Allow components elsewhere to specify that they are the current anchor
+            // (setCurrentAnchor should be used like a ref)
+            setCurrentAnchor,
+            // Pass props for anchor from here to the element via context
+            getAnchorProps: () => getProps(rootContext).getAnchorProps(),
+            // Allow anchor elsewhere to specify the config used here via context
+            setFloatingConfig: () => setPopupPositioningConfig,
         }}
     >
         { children }
-        { showPopup && popupContent }
+        { showPopup && <FloatingPortal id={PORTAL_HOLDER_ID}>
+                    { popup}
+                </FloatingPortal> }
     </PersistentPopupContext.Provider>
-}
+})
+
+const PersistentPopup = forwardRef<any, {
+        persistentPopupRenderMethod : ForwardedRender,
+        setShowPopup: PopupContextValues["setShowPopup"],
+        rootContext: FloatingRootContext,
+        positioning: UseFloatingOptions,
+    } & PopupParams
+        >(({
+        persistentPopupRenderMethod, 
+        setShowPopup, 
+        rootContext, 
+        positioning,
+        ...props}, ref) => {
+            const {
+                context,
+                floatingStyles, 
+            } = useFloating({
+                ...positioning,
+                whileElementsMounted: autoUpdate,
+                rootContext: rootContext,
+            });
+            return <FloatingFocusManager context={context as FloatingContext}>
+                    { persistentPopupRenderMethod({
+                            ...props,
+                            style: floatingStyles,
+                            closePopup: (callback?: Function) => {
+                                setShowPopup(false);
+                                callback && callback();
+                            },
+                        }, ref) as ReactElement }
+                </FloatingFocusManager>
+})
 //#endregion Attached popups

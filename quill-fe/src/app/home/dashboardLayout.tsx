@@ -55,22 +55,22 @@ const DashboardLayout = observer(({
                         draggable={true}
                         closeWhenClickOutside={false}
                         useDragHandle={true}
-                        anchorRenderMethod={(props, ref) => <button 
-                                {...props.anchorProps}
+                        anchorRenderMethod={({openPopup, ...props}, ref) => <button 
                                 ref={ref}
+                                {...props}
                                 id="add-task"
                                 role="menuitem" 
                                 aria-haspopup="dialog"
-                                className={combineClassNamePropAndString("btn small square bg", props.anchorProps)}
+                                className={combineClassNamePropAndString("btn small square bg", props)}
                                 title={NEW_TASK_TEXT} 
                                 onClick={() => {
                                     taskStore.createNewTask();
-                                    props.openPopup();
+                                    openPopup();
                                 }}
                             >
                                 { ICONS.PLUS }
                             </button>}
-                        popupRenderMethod={({closePopup}, ref) => <AddNewTaskPopUp
+                        popupRenderMethod={({closePopup, ...props}, ref) => <AddNewTaskPopUp
                             ref={ref}
                             close={() => closePopup(()=> {
                                     if (taskStore && taskStore.taskBeingCreated && taskStore.taskBeingCreated.isNewAndUnsubmitted) {
@@ -79,18 +79,19 @@ const DashboardLayout = observer(({
                                 })
                             }
                             taskToCreate={taskStore.taskBeingCreated}
+                            {...props}
                         />}
                     />
                     <DeleteTaskConfirmationPopup
-                        renderAnchor={({anchorProps, openPopup}, anchorRef) => <DraggableRenderMethod <DeleteDragData> 
+                        renderAnchor={({openPopup, ...props}, anchorRef) => <DraggableRenderMethod <DeleteDragData> 
                             ref={anchorRef}
-                            {...anchorProps}
+                            {...props}
                             itemData={{
                                 type: DELETE_DRAGDROP_TYPE,
                                 showDropPreview: false,
                             }}
                             actionTitle="Drag to item to delete"
-                            mayBeDropped={true}
+                            droppable={true}
                             render={(draggableProps, draggableRef) => <DroppableRenderMethod <DeleteDropData>
                                 {...draggableProps}
                                 ref={draggableRef}
@@ -129,11 +130,11 @@ const DashboardLayout = observer(({
                             />                                
                         }
                     />}
-                />
+                /> 
                     <Draggable
                         itemData={{type: "settings", showDropPreview: false,}}
                         actionTitle="Drag settings button"
-                        mayBeDropped={true}
+                        droppable={true}
                     >
                         <button 
                             role="menuitem" 
