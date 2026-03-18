@@ -1,7 +1,7 @@
 import { DateTime, DateTimeFormatOptions } from "luxon";
 import { observer } from "mobx-react-lite";
-import { ComponentPropsWithoutRef, ForwardedRef, forwardRef, } from "react";
-import { Draggable, DraggableParams, Droppable } from "./Draggable";
+import { ComponentPropsWithoutRef, ForwardedRef, forwardRef, ForwardRefRenderFunction, } from "react";
+import { Draggable, DraggableParams, DraggableRenderMethod, Droppable, DroppableRenderMethod } from "./Draggable";
 import { 
     DATE_CLASS,
     TIME_CLASS, 
@@ -24,6 +24,7 @@ import {
     defaultChangeTaskFieldToEndOrStartOfDay, 
     TASK_DRAGDROP_TYPE,
 } from "./DraggableTypes";
+import { combineClassNamePropAndString } from "./jsTools";
 
 // Date and Time Constants
 // Make sure you call these inside of a hook in a React component to avoid hydration errors!
@@ -32,19 +33,24 @@ export const START_OF_DAY = () => DateTime.now().startOf('day');
 
 const DRAGGED_DATE_CLASS = "dragged-date";
 
-export const DraggedDatePresentation = observer(({
-    date,
-    includeTime=false,
-}: {
+export const DraggedDatePresentation = observer(forwardRef<any, {
     date: DateTime<boolean> | null,
     includeTime?: boolean,
-}) => {
-    return <div className={`
-        ${DRAGGED_DATE_CLASS} 
-        ${POPUP_SMALL_CLASS} 
-        ${ROWS_CLASS}
-        ${ROWS_OR_COLS_WITH_GAP_CLASS}
-    `}>
+}>(({
+    date,
+    includeTime=false,
+    ...props
+}, ref) => {
+    return <div 
+        {...props}
+        className={combineClassNamePropAndString(`
+            ${DRAGGED_DATE_CLASS} 
+            ${POPUP_SMALL_CLASS} 
+            ${ROWS_CLASS}
+            ${ROWS_OR_COLS_WITH_GAP_CLASS}
+        `, props)}
+        ref={ref}
+    >
             <div className={`${ALIGNED_CLASS} ${CENTERED_CLASS} ${ICON_CLASS} ${BUTTON_OR_ICON_MEDIUM}`}>
                 { ICONS.CALENDAR }
             </div>
@@ -57,7 +63,7 @@ export const DraggedDatePresentation = observer(({
                 </p>}
             </div>
     </div>
-})
+}))
 
 /**
  * Wrap around a draggable and droppable date component. 
@@ -66,23 +72,28 @@ export const DraggedDatePresentation = observer(({
  */
 export const DraggableDroppableDate = observer(forwardRef((
     {
-        useDragHandle,
         date,
-        children,
+        render,
         dragStart,
         dragEnd,
         draggedPresentation,
-        ...props
+        itemData,
+        actionTitle,
+        droppable,
+        useDragHandle,
+        ...passedProps
     }
     : 
     {
-        useDragHandle: boolean,
+        render: ForwardRefRenderFunction<any, any>
         date: DateTime<boolean>,
-        props?: ComponentPropsWithoutRef<any>,
-    } & Omit<DraggableParams<any>, "itemData">, ref: ForwardedRef<any>) => {
+    } & Omit<DraggableParams<any>, "itemData">, 
+    forwardedRef: ForwardedRef<any>) => {
     const taskStore = useTaskStore();
 
-    return <Droppable <DateDropData>
+    return <DroppableRenderMethod <DateDropData>
+            ref={forwardedRef}
+            {...passedProps}
             collisionPriority={30}
             itemData={{
                 type: DATE_DRAGDROP_TYPE,
@@ -129,27 +140,28 @@ export const DraggableDroppableDate = observer(forwardRef((
             //         },
             // }
             }}
-            {...props}
-        >
-            <Draggable <DateDragData>
-                // ref={ref}
+            render={(props, ref) => <DraggableRenderMethod <DateDragData>
                 {...props}
+                ref={ref}
                 actionTitle={"Assign date"}
                 itemData={{
                     showDropPreview: true,
                     type: DATE_DRAGDROP_TYPE,
                     date: date,
                 }}
-                mayBeDropped={true}
+                droppable={true}
                 useHandle={useDragHandle}
-                draggedPresentation={draggedPresentation ? 
-                        draggedPresentation 
-                        : <DraggedDatePresentation date={date}/>
+                draggedPresentation={(props, ref) => draggedPresentation ? 
+                        draggedPresentation(props, ref) 
+                        : <DraggedDatePresentation 
+                            {...props}
+                            ref={ref}
+                            date={date}
+                        />
                 }
-            >
-                    { children }
-            </Draggable>
-        </Droppable>
+                render={render}
+            />}        
+        />
 }))
 
 export interface DateFormat {

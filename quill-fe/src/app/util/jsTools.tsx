@@ -1,4 +1,18 @@
-import { ComponentPropsWithoutRef } from "react";
+import { ComponentPropsWithoutRef, MutableRefObject, RefCallback } from "react";
+
+export function mergeRefs(refs: (RefCallback<any> | MutableRefObject<any>)[]): RefCallback<any> {
+  return (node: HTMLElement) => {
+    refs.forEach((ref) => {
+        if (ref === null) {
+            return;
+        } else if (typeof ref === 'function') {
+            ref(node);
+        } else {
+            ref.current = node;
+        }
+    });
+  };
+}
 
 export const iterateThroughParents = ({
     start,

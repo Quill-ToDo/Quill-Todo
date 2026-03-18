@@ -18,10 +18,6 @@
   border: none;
 }
 
-.task-wrapper {
-  padding: 5px 10px 5px 10px;
-}
-
 /*#region Time and date */
 .due.field .dark-section {
   display: flex;

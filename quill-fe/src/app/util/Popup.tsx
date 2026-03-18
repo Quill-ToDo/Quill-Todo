@@ -177,7 +177,7 @@ export const ContextMenuPopup = observer((
         header,
         placement="right",
         alignment="middle",
-        ...menuProps
+        ...passedProps
     } : {
         labelsAndClickCallbacks: {
             label: string, // Accessibility, the name
@@ -192,13 +192,13 @@ export const ContextMenuPopup = observer((
     }
 ) => {
     return <AttachedPopupOnClick
-        anchorRenderMethod={(props, ref) => renderElementToClick(props, ref)}
+        anchorRenderMethod={renderElementToClick}
         popupRenderMethod={({closePopup, ...props}, ref) => 
             <div 
               ref={ref as LegacyRef<HTMLDivElement>}
               {...props}
-              {...menuProps}
-              className={combineClassNamePropAndString(`context-menu ${props.className}`, menuProps)}
+              {...passedProps}
+              className={(combineClassNamePropAndString(`context-menu ${props.className ? props.className : ""}`, passedProps))}
             >
                 <menu
                     role="menu"
@@ -216,7 +216,7 @@ export const ContextMenuPopup = observer((
                                     }}
                                     aria-labelledby={labelAndCallback.label} 
                                     title={labelAndCallback.label}
-                                    className={combineClassNamePropAndString(`item`, props)} 
+                                    className={`item`} 
                                     > 
                                     { labelAndCallback.content }
                                 </button>

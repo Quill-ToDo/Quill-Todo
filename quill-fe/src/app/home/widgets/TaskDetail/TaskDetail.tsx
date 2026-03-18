@@ -42,11 +42,12 @@ import {
 import { addAlert, NOTICE_ALERT } from "@/alerts/alertEvent";
 
 export const TASK_DETAIL_POPUP_NAME = "Task Detail";
+export const TASK_DETAIL_POPUP_CLASS = "task-detail";
 
 const TaskDetail = observer(forwardRef<any, {
     task: TaskModel,  
     closeWidget?: (() => void) | undefined,
-}>(({
+} & ComponentPropsWithoutRef<any>>(({
     task, 
     closeWidget, 
     ...props
@@ -104,14 +105,11 @@ const TaskDetail = observer(forwardRef<any, {
     }, [task])
 
     return <TaskWrapper 
-        {...props}
-        highlightable={false}
-        task={task} 
-        aria-label={TASK_DETAIL_POPUP_NAME}
-        role="dialog"
-        className={combineClassNamePropAndString(`task-detail`, props as ComponentPropsWithoutRef<"div">)}
-        ref={forwardedRef} 
-    >
+            highlightable={false}
+            task={task} 
+            ref={forwardedRef}
+            {...props}
+        >
         <header className={DRAGGABLE_HANDLE_CLASS}>
                 <div className="checkbox-color">
                     <ColorBubble buttonProps={{className: INTERACTABLE_ELEMENT_CLASS}} />
@@ -122,14 +120,14 @@ const TaskDetail = observer(forwardRef<any, {
                 </div>
                 <div className={`${ALIGNED_CLASS} end`}>
                     <ContextMenuPopup
-                        renderElementToClick={(props, ref) => <button 
-                                {...props.anchorProps}
+                        renderElementToClick={({openPopup, ...props}, ref) => <button 
+                                {...props}
                                 ref={ref}
-                                className={combineClassNamePropAndString("btn small square no-shadow", props.anchorProps)}
+                                className={combineClassNamePropAndString("btn small square no-shadow", props)}
                                 title="Options" 
                                 aria-haspopup="menu"
                                 onClick={() => {
-                                        props.openPopup();
+                                        openPopup();
                                     }}
                                 >
                                     { ICONS.MENU }
@@ -227,14 +225,14 @@ const TaskDetail = observer(forwardRef<any, {
                 <ContextMenuPopup
                     header={<header>Add field</header>}
                     labelsAndClickCallbacks={contextMenuData}
-                    renderElementToClick={(props, ref) => <button 
-                            {...props.anchorProps}
+                    renderElementToClick={({openPopup, ...props}, ref) => <button 
+                            {...props}
                             ref={ref}
-                            onClick={() => {props.openPopup();}}
+                            onClick={() => {openPopup();}}
                             aria-label="Add task field"
                             aria-haspopup="menu"
                             title="Add task field" 
-                            className={combineClassNamePropAndString(`add-field-btn btn large ${CENTERED_CLASS}`, props.anchorProps)} 
+                            className={combineClassNamePropAndString(`add-field-btn btn large ${CENTERED_CLASS}`, props)} 
                             > 
                                 { ICONS.PLUS }
                             </button>

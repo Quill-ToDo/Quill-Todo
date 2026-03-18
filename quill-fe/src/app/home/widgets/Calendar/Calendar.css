@@ -125,8 +125,10 @@
 
 .day-container {
     grid-auto-flow: row;
+    grid-row: 1;
     min-height: 100%;
     padding: calc(var(--section-gap)/2);
+    align-content: start;
 }
 
 .day-container.border-top {
@@ -142,6 +144,12 @@
     border-right: 2px solid var(--g4);
 }
 
+.day-container .dark-section {
+    grid-row: 1;
+    height: 100%;
+    width: 100%;
+}
+
 .day-container.past .dark-section {
     background-color: #32323356;
 }
@@ -154,22 +162,22 @@
 .day-container h4 {
     color: var(--g4);
     size: var(--h4-size);
-    align-self: center;
-    grid-row: 1 / 1;
-    grid-column: 1 / -1;
+    justify-self: center;
+    grid-row: 1;
 }
 
-.day-container .dark-section p {
+.day-container .tasks p {
     font-size: medium;
 } 
 
-.day-container .dark-section i {
+.day-container .tasks i {
     font-size: medium;
 }
 
-.day-container .tasks.dark-section {
-    grid-row: 2 / 2;
+.day-list .tasks {
+    grid-row: 1;
     grid-column: 1 / -1;
+    grid-template-columns: subgrid;
     margin: 0;
     width: 100%;
     overflow: inherit;
@@ -181,7 +189,9 @@
 
 .calendar.widget .week-container .days {
     grid-column: 1 / -1;
-    grid-row: 1 / 2;
+    /* grid-row: 1; */
+    /* grid-auto-flow: column; */
+    grid-auto-flow: dense;
 }
 
 
@@ -246,4 +256,8 @@
     background-color: red;
     opacity: 0%;
     position: absolute;
+}
+
+.contents { 
+    display: contents;
 }

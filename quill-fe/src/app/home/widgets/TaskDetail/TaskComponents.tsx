@@ -1,4 +1,5 @@
-import { ErrorsList, ResizableInput } from "@util/FormComponents";
+import { ErrorsList, ResizableInput } from "@/app/util/FormComponents";
+import Loading from "./loading.js";
 import { 
     TaskColorCodes, 
     TaskContext,
@@ -14,18 +15,19 @@ import {
     ForwardedRef, 
     forwardRef, 
     ForwardRefRenderFunction, 
+    LegacyRef, 
     MouseEvent, 
     MutableRefObject, 
     ReactNode, 
     Ref, 
+    Suspense, 
     useCallback, 
     useContext, 
-    useEffect, 
     useId, 
     useRef, 
     useState, 
 } from "react";
-import TaskDetail from "./TaskDetail";
+import TaskDetail, { TASK_DETAIL_POPUP_CLASS } from "./TaskDetail";
 import { 
     ALIGNED_CLASS, 
     CENTERED_CLASS, 
@@ -42,25 +44,25 @@ import {
     TAKE_FULL_SPACE_CLASS,
     POPUP_SMALL_CLASS,
     PADDING_CLASS,
-} from "@util/constants";
-import { combineClassNamePropAndString } from '@util/jsTools';
-import { AnchorWithPersistentPopupAttached, AttachedPopupOnClick, PopupRenderMethod } from "@/util/Popup";
+    LOADING_CLASS,
+} from "@/app/util/constants";
+import { mergeRefs, combineClassNamePropAndString } from '@/app/util/jsTools';
+import { AnchorRenderMethod, AnchorWithPersistentPopupAttached, AttachedPopupOnClick } from "@/app/util/Popup";
 import './tasks.css';
 import { 
     DateFormat, 
     DraggedDatePresentation, 
     PARTIAL_DATETIME_FORMATS
- } from "@/util/DateTimeHelper";
-import { Draggable, Droppable, INTERACTABLE_ELEMENT_CLASS } from "@/app/@util/Draggable";
+ } from "@/app/util/DateTimeHelper";
+import { Draggable, DraggableParams, Droppable, DroppableParams, DroppableRenderMethod, INTERACTABLE_ELEMENT_CLASS } from "@/app/util/Draggable";
 import { useMergeRefs } from "@floating-ui/react";
-import { PersistentPopupContext } from "@/app/3rd-party/FloatingUiHelpers";
 import { 
-    DATE_DRAG_TYPE, 
-    DATE_FIELD_DRAG_TYPE, 
+    DATE_DRAGDROP_TYPE, 
+    DATE_FIELD_DRAGDROP_TYPE, 
     DEFAULT_DATE_FIELD_DRAG_DATA, 
     DEFAULT_TASK_DRAG_DATA, 
-    DELETE_DRAG_TYPE, 
-    TASK_DRAG_TYPE, 
+    DELETE_DRAGDROP_TYPE, 
+    TASK_DRAGDROP_TYPE, 
     DateFieldDropData, 
     TaskDropData,
     DateFieldDragData,
@@ -68,8 +70,9 @@ import {
     defaultChangeTaskFieldToEndOrStartOfDay,
     defaultTaskDateClearInteraction,
     defaultChangeTaskFieldToDate,
-} from "@/app/@util/DraggableTypes";
+} from "@/app/util/DraggableTypes";
 import { DraggableContext } from "@/app/3rd-party/DndKit";
+import { useTaskStore } from "../../_globalStore/StoreProvider";
 
 const TASK_WRAPPER_CLASS = "task-wrapper";
 
@@ -100,82 +103,41 @@ export const TaskBeingDragged = observer(forwardRef((
     }
 
     return <TaskWrapper
-        droppable={false}
-        {...props}
-        className={combineClassNamePropAndString(`dragging ${CENTERED_CLASS} ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`, props)}
-        task={t}
-        ref={ref}
-    >
-        <Checkbox 
-            type={type ? type : "due" }
-        />
-        <TaskTitle/>
-    </TaskWrapper>
+            droppable={false}
+            {...props}
+            className={combineClassNamePropAndString(`dragging ${CENTERED_CLASS} ${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS}`, props)}
+            task={t}
+            ref={ref}
+        >
+            <Checkbox 
+                type={type ? type : "due" }
+            />
+            <TaskTitle/>
+        </TaskWrapper>
 }));
-
 
 /**
  * Render a persistent popup that will ask if the user wants to delete the selected task.
  * The task is passed by passing it in a callback method getTask to openPopup callback
  * in the anchorRenderMethod
  */
-export const DeleteTaskConfirmationPopup = observer(forwardRef(({
+export const DeleteTaskConfirmationPopup = observer(({
         renderAnchor
     }: {
-        renderAnchor: ForwardRefRenderFunction<HTMLButtonElement, {
-            openPopup: (getTask: () => TaskModel) => void;
-            anchorProps: ComponentPropsWithoutRef<any>;
-        }>
-    }, forwardedAnchorRef) => {
+        renderAnchor : AnchorRenderMethod
+    }) => {
     const [taskToDelete, setTaskToDelete] = useState<null | TaskModel>(null);
-    const { setPopupProps } = useContext(PersistentPopupContext);
+    // const { setPersistentPopupContent } = useContext(PersistentPopupContext);
 
     // When the task here changes, set a new popup render method to reflect it
-    useEffect(() => {
-        if (taskToDelete) {
-            setPopupProps((prev)=> {
-                return {
-                    ...prev,
-                    popupRenderMethod: getPopupContent,
-                }
-            })
-        }
-    }, [taskToDelete])
-
-    const getPopupContent: PopupRenderMethod = ({closePopup}, ref) => {
-        return taskToDelete ? <section 
-            className={`${MID_SECTION_CLASS} confirmation`}
-            ref={ref}
-        >
-            <p>Are you sure you want to delete this task?</p>
-            <br />
-            { taskToDelete && <TaskTitle passedTask={taskToDelete} className={CENTERED_CLASS}/> }
-            <br />
-            <div className={`${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} ${CENTERED_CLASS}`}>
-                <button 
-                    className={"btn med"} 
-                    onClick={ () => {closePopup()} }
-                >
-                    Cancel
-                </button>
-                <button 
-                    className={"btn med bg"} 
-                    type={"submit"} 
-                    onClick={() => {
-                        if (taskToDelete) {
-                            taskToDelete.deleteSelf();
-                        }
-                        closePopup();
-                    }}
-                >
-                    Delete
-                </button>
-            </div>
-        </section> : <></>}
-
+    // useEffect(() => {
+    //     if (taskToDelete) {
+    //         setPersistentPopupContent(getPopupContent())
+    //     }
+    // }, [taskToDelete])
     return <AnchorWithPersistentPopupAttached 
-        anchorRenderMethod={({anchorProps, openPopup}, ref) => renderAnchor({
-                anchorProps,
+        anchorRenderMethod={({openPopup, ...props}, ref) => renderAnchor({
+                ...props,
                 // Make the callback for after the popup is opened setting the task for the popup data
                 openPopup: (getTask: () => TaskModel) => {
                     const passedTask = getTask ? getTask() : null;
@@ -184,9 +146,40 @@ export const DeleteTaskConfirmationPopup = observer(forwardRef(({
                 },
             }, ref)
         }
-        popupRenderMethod={(props, ref) => getPopupContent(props, ref)}
+        popupRenderMethod={({closePopup, ...popupProps}, ref) => {
+            return taskToDelete ? <section 
+                ref={ref}
+                {...popupProps}
+                className={combineClassNamePropAndString(`${MID_SECTION_CLASS} confirmation`, popupProps)}
+            >
+                <p>Are you sure you want to delete this task?</p>
+                <br />
+                { taskToDelete && <TaskTitle passedTask={taskToDelete} className={CENTERED_CLASS}/> }
+                <br />
+                <div className={`${ROWS_CLASS} ${ROWS_OR_COLS_WITH_GAP_CLASS} ${CENTERED_CLASS}`}>
+                    <button 
+                        className={"btn med"} 
+                        onClick={ () => {closePopup()} }
+                    >
+                        Cancel
+                    </button>
+                    <button 
+                        className={"btn med bg"} 
+                        type={"submit"} 
+                        onClick={() => {
+                            if (taskToDelete) {
+                                taskToDelete.deleteSelf();
+                            }
+                            closePopup();
+                        }}
+                    >
+                        Delete
+                    </button>
+                </div>
+            </section> : <></>
+        }}
     />
-}));
+});
 
 /**
  * Provide context of a single task for all task-related components within.
@@ -206,22 +199,22 @@ export const TaskWrapper = observer(forwardRef((
         children: ReactNode, 
         droppable?:  boolean,
         highlightable?: boolean,
-    } & ComponentPropsWithoutRef<"div">, forwardedRef: ForwardedRef<HTMLDivElement>) => {
+    } & ComponentPropsWithoutRef<"div">, forwardedTaskWrapperRef: ForwardedRef<HTMLDivElement>) => {
 
     const dragContext = useContext(DraggableContext);
 
     let renderTaskWrapper: ForwardRefRenderFunction<HTMLDivElement, ComponentPropsWithoutRef<"div">> = (props, ref) => <div 
-        {...(!droppable && props)}
+        {...props}
         ref={ref}
-        key={keyOverride ? keyOverride : task.id}
+        key={keyOverride ? keyOverride : `wrapper-${task.id}`}
         onMouseEnter={(e) => {
             if (!dragContext.isDragging) {
-            task.highlighted = true;
+                task.highlighted = true;
             }
         }}
         onMouseLeave={(e) => {
             if (!dragContext.isDragging) {
-            task.highlighted = false;
+                task.highlighted = false;
             }
         }}
         className={combineClassNamePropAndString(
@@ -238,43 +231,55 @@ export const TaskWrapper = observer(forwardRef((
 
     const mightBeDroppable = 
         droppable ? 
+            // Task wrapper is drop container for task deletion
             <DeleteTaskConfirmationPopup 
-                renderAnchor={({openPopup: openDeleteConfirmPopup, anchorProps: deleteConfirmPopupAnchorProps}, deleteConfirmPopupAnchorRef) => 
-                    <Droppable <TaskDropData>
+                renderAnchor={({openPopup: openDeleteConfirmPopup, ...deleteConfirmPopupAnchorProps}, deleteConfirmPopupAnchorRef) => 
+                    <DroppableRenderMethod <TaskDropData>
                         itemData={{
                             showDropPreview: true,
-                            type: TASK_DRAG_TYPE,
+                            type: TASK_DRAGDROP_TYPE,
                             id: task.id,
                             accepts: DEFAULT_TASK_DRAG_DATA.accepts,
                         }}
                         callbacksForAcceptedDragTypes={{
-                            [DELETE_DRAG_TYPE]: { 
+                            [DELETE_DRAGDROP_TYPE]: { 
                                 saveDataWhenDragEnds({drag, drop}) {
-                                    if (drag && drop) {
-                                        defaultTaskDeleteInteraction.save && defaultTaskDeleteInteraction.save(drag, drop, {task, openDeleteConfirmPopup})
-                                    }
+                                    drag && drop && defaultTaskDeleteInteraction.save 
+                                    && defaultTaskDeleteInteraction.save({task, openDeleteConfirmPopup, drag, drop})
+                                },
+                                resetDataWhenDragOff({ drag, drop, e }) {
+                                    drag && drop && defaultTaskDeleteInteraction.reset 
+                                    && defaultTaskDeleteInteraction.reset({task, openDeleteConfirmPopup, drag, drop})
+                                },
+                                setDataWhenDragOver({ drag, drop, e }) {
+                                    drag && drop && defaultTaskDeleteInteraction.set 
+                                    && defaultTaskDeleteInteraction.set({task, openDeleteConfirmPopup, drag, drop})
                                 },
                             },
                         }}
                         {...props}
-                        > 
-                            { renderTaskWrapper({
+                        // merge refs not working here
+                        // ref={mergeRefs(deleteConfirmPopupAnchorRef, forwardedTaskWrapperRef)}
+                        ref={forwardedTaskWrapperRef}
+                        render={(props, ref) => renderTaskWrapper({
                                 ...props,
                                 ...deleteConfirmPopupAnchorProps,
                                 ...(props.className && deleteConfirmPopupAnchorProps.className && {className: combineClassNamePropAndString(props.className, deleteConfirmPopupAnchorProps)})
                             }, 
-                            deleteConfirmPopupAnchorRef as ForwardedRef<HTMLDivElement>)
-                            }
-                    </Droppable>
+                            ref)}
+                    /> 
                 }
             />
         : 
-        renderTaskWrapper(props, forwardedRef);
+        renderTaskWrapper(props, forwardedTaskWrapperRef);
 
     return <TaskContext.Provider value={task}>
-        { mightBeDroppable }
+        <Suspense fallback={<Loading/>}>
+            { mightBeDroppable }
+        </Suspense>
     </TaskContext.Provider>;
 }));
+
 
 /**
  * This will render a button that will clear <fieldName> provided an onClick method to do so. 
@@ -340,40 +345,60 @@ export const TaskComponentAndHeader = observer(({
 });
 
 //#region Checkbox
-export const Checkbox = observer(({
-    passedTask, 
+/**
+ * Dragging the task checkbox treats it as a draggale task due date
+ */
+export const TaskCheckbox = observer(({
+    task, 
+    draggable=false,
     type, 
-    checkboxId
+    checkboxId,
+    tabIndex,
 }: {
-    type: TaskDateFields, 
-    passedTask?: TaskModel, 
-    checkboxId?: string
+    type: TaskDateFields,
+    draggable?: boolean, 
+    task?: TaskModel, 
+    checkboxId?: string,
+    tabIndex?: number,
 }) => {
-    const task = useTaskContextOrPassedTask(passedTask);
+    const t = useTaskContextOrPassedTask(task);
 
     const id = checkboxId ? checkboxId : useId();
-    const text = `Mark task ${task.complete ? "incomplete" : "complete"}`;
-    return <label 
+    const text = `Mark task ${t.complete ? "incomplete" : "complete"}`;
+    const maybeDraggable = draggable && t.due ? <DraggableDroppableDateField 
+        draggableComponentProps={{draggedPresentation: <Checkbox type="due" task={t}/>}}
+        task={t}
+        data={{
+            taskId: t.id,
+            date: t.due,
+            fieldType: type,
+            showDropPreview: true,
+        }}
+    >
+            <TaskCheckbox type="due" task={task} tabIndex={tabIndex}/>
+        </DraggableDroppableDateField> 
+    : <label 
             className={`check-box-wrapper ${INTERACTABLE_ELEMENT_CLASS}`}
             htmlFor={id}
             title={text}
             aria-label={text}
-            tabIndex={0}
+            tabIndex={tabIndex}
         >
         <input 
             type="checkbox" 
             id={id}
+            checked={t.complete}
             onChange={() => {
-                task.toggleComplete();
+                t.toggleComplete();
             }}
-            checked={task.complete}
             >
         </input>
-        <TaskCheckbox task={task} type={type} /> 
+        <Checkbox task={t} type={type} /> 
     </label>;
+    return maybeDraggable;
 });
 
-const TaskCheckbox = observer(({
+const Checkbox = observer(({
     task, 
     type
 }: {
@@ -399,7 +424,7 @@ const TaskCheckbox = observer(({
 //#region Color Picker
 const ColorGridPicker = observer(forwardRef<any, {
     task: TaskModel, 
-    closePicker: () => void, 
+    closePicker: Function, 
     props?: ComponentPropsWithoutRef<any>
 }>(({task, closePicker, ...props}, forwardedRef) => {
     const errorId = useId();
@@ -484,16 +509,13 @@ export const ColorBubble = observer(({
         </svg>;
 
     return openColorPicker ? <AttachedPopupOnClick 
-                anchorRenderMethod={({anchorProps, openPopup}, ref) => <div
+                anchorRenderMethod={({openPopup, ...props}, ref) => <div
                     className={`color-bubble-wrapper ${CENTERED_CLASS}`}>
                     <button
-                        {...anchorProps}
+                        {...props}
                         {...buttonProps}
-                        ref={ref}
-                        className={combineClassNamePropAndString(
-                            combineClassNamePropAndString("color-bubble-input", anchorProps),
-                            buttonProps
-                        )} 
+                        ref={ref as ForwardedRef<HTMLButtonElement>}
+                        className={combineClassNamePropAndString(`color-bubble-input ${props.className}`, buttonProps)} 
                         onClick={(e) => {
                             e.preventDefault();
                             openPopup();
@@ -506,10 +528,11 @@ export const ColorBubble = observer(({
                     </button>
                     {colorBubble}
                     </div>}
-                popupRenderMethod={({closePopup}, ref) => <ColorGridPicker 
+                popupRenderMethod={({closePopup, ...props}, ref) => <ColorGridPicker 
                     ref={ref}
                     task={task} 
                     closePicker={closePopup} 
+                    {...props}
                     />}
                 position={"positioned"} 
                 placement={"bottom"}
@@ -529,47 +552,49 @@ const PlainTaskTitle = observer(forwardRef<HTMLTextAreaElement, {
     {
         passedTask,
         openTaskDetailPopup=true,
-        ...props
+        ...passedProps
     }, forwardedRef
 ) => {
     const [task] = useState(useTaskContextOrPassedTask(passedTask));
     const displayTitle = task.title ? task.title : UNSET_TASK_TITLE_PLACEHOLDER;
 
     let toReturn: ReactNode = <p 
-        {...props}
+        ref={forwardedRef as LegacyRef<any>}
+        {...passedProps}
     > 
         { task.complete ? <s>{displayTitle}</s> : displayTitle } 
     </p>;
 
     if (openTaskDetailPopup) {
         return <AnchorWithPersistentPopupAttached
-                ref={forwardedRef}
-                closeWhenClickOutside={false}
-                alignment="middle"
-                placement="auto"
-                popupMargin={10}
-                draggable={true}
-                useDragHandle={true}
-                anchorRenderMethod={({openPopup, anchorProps}, ref) => <button
-                        {...props}
-                        {...anchorProps}
-                        className={combineClassNamePropAndString(props.className, anchorProps)}
-                        onClick={(e) => {
-                            anchorProps.onClick && anchorProps.onClick(e);
-                            openPopup();
-                        }}
-                        title={"Open task details"}
-                        ref={ref}
+            closeWhenClickOutside={false}
+            alignment="end"
+            placement="auto"
+            popupMargin={10}
+            draggable={true}
+            useDragHandle={true}
+            anchorRenderMethod={({openPopup, ...props}, anchorRef) => <button
+                    ref={anchorRef as ForwardedRef<HTMLButtonElement>}
+                    {...props}
+                    onClick={(e) => {
+                        props.onClick && props.onClick(e);
+                        openPopup();
+                    }}
+                    title={"Open task details"}
                     >
                         {toReturn}
-                    </button>
-                    }
-            popupRenderMethod={({closePopup}, ref) => <TaskDetail 
+                </button>
+            }
+            popupRenderMethod={({closePopup, ...props}, popupRef) => <div
+                    ref={popupRef}
+                    {...props}
+                    className={combineClassNamePropAndString(TASK_DETAIL_POPUP_CLASS, props)}
+                >
+                    <TaskDetail 
                         task={task} 
-                        ref={ref}
                         closeWidget={closePopup}
                 />
-            }
+            </div>}
         />;
     }
     return toReturn;
@@ -646,10 +671,10 @@ export const TaskTitle = observer(forwardRef<HTMLTextAreaElement, {
 
     if (!editAllowed) {
         return <PlainTaskTitle 
-            {...formattedProps}
-            ref={ref}
-            passedTask={task}
-        />;
+                {...formattedProps}
+                ref={ref}
+                passedTask={task}
+            />;
     }
     return <EditableTaskTitle
             {...formattedProps}
@@ -808,10 +833,10 @@ const PlainTaskDate = observer(({
 }: DateImplementationParams) => {
     const date = type === "due" ? task.due : task.start;
     const showTime = type === "due" ? task.showDueTime : task.showStartTime;
-    return date ? <time dateTime={date.toISO() as string} className={wrapperClasses} suppressHydrationWarning > 
+    return date ? <label>{type}<time dateTime={date.toISO() as string} className={wrapperClasses} suppressHydrationWarning > 
         <p className={DATE_CLASS}>{date.toLocaleString(PARTIAL_DATETIME_FORMATS.D.token)}</p>
         {showTime && <p className={TIME_CLASS}>{date.toLocaleString(PARTIAL_DATETIME_FORMATS.t.token)}</p>}
-    </time> : <></>
+    </time></label> : <></>
 });
 
 
@@ -845,7 +870,7 @@ const EditableTaskDate = observer(({
     </div>
     
     const sharedDragDropProps = {
-        type: DATE_FIELD_DRAG_TYPE,
+        type: DATE_FIELD_DRAGDROP_TYPE,
         fieldType: type, 
         taskId: task.id,
         date: dateField as DateTime<boolean>,
@@ -869,7 +894,7 @@ const EditableTaskDate = observer(({
     </div>
     const maybeDraggable = draggable ? <Draggable <DateFieldDragData>
         actionTitle="Drag date"
-        mayBeDropped={true}
+        droppable={true}
         itemData={sharedDragDropProps}
         draggedPresentation={draggedPresentation}
     >
@@ -884,28 +909,37 @@ const EditableTaskDate = observer(({
             }}
             className={`${TAKE_FULL_SPACE_CLASS}`}
             callbacksForAcceptedDragTypes={{
-                [DATE_DRAG_TYPE]: {
+                [DATE_DRAGDROP_TYPE]: {
                     setDataWhenDragOver({ drag, drop }) {
-                        drag && drop && defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set(drag, drop, {task});
+                        defaultChangeTaskFieldToEndOrStartOfDay.set && defaultChangeTaskFieldToEndOrStartOfDay.set({task, drag, drop});
                     },
-                    resetDataWhenDragOff({ drop }) {
-                        if (startingDate.current !== dateField && (!drop || drop.taskId !== task.id) ) {
-                            // If date is not over the droppable area, revert to the starting date time
-                            resetDate();
-                        }
+                    resetDataWhenDragOff({ drag, drop }) {
+                        defaultChangeTaskFieldToEndOrStartOfDay.reset && defaultChangeTaskFieldToEndOrStartOfDay.reset({task, drag, drop}); 
                     },
-                }, 
-                [DELETE_DRAG_TYPE]: {
-                    setDataWhenDragOver({ drag, drop }) {
-                        drag && drop && defaultTaskDateClearInteraction.set && defaultTaskDateClearInteraction.set(drag, drop, {task})
+                    saveDataWhenDragEnds({ drag, drop, e }) {
+                        defaultChangeTaskFieldToEndOrStartOfDay.save && defaultChangeTaskFieldToEndOrStartOfDay.save({task, drag, drop})
                     },
                 }, 
-                [DATE_FIELD_DRAG_TYPE]: {
+                [DELETE_DRAGDROP_TYPE]: {
                     setDataWhenDragOver({ drag, drop }) {
-                        drag && drop && defaultChangeTaskFieldToDate.set && defaultChangeTaskFieldToDate.set(drag, drop, {task});
+                        defaultTaskDateClearInteraction.set && defaultTaskDateClearInteraction.set({task, drag, drop})
+                    },
+                    resetDataWhenDragOff({ drag, drop, e }) {
+                        defaultTaskDateClearInteraction.reset && defaultTaskDateClearInteraction.reset({task, drag, drop})
+                    },
+                    saveDataWhenDragEnds({ drag, drop, e }) {
+                        defaultTaskDateClearInteraction.save && defaultTaskDateClearInteraction.save({task, drag, drop})
+                    },
+                }, 
+                [DATE_FIELD_DRAGDROP_TYPE]: {
+                    setDataWhenDragOver({ drag, drop }) {
+                        defaultChangeTaskFieldToDate.set && defaultChangeTaskFieldToDate.set({task, drag, drop});
                     },
                     resetDataWhenDragOff({drag, drop}) {
-                        drag && drop && defaultChangeTaskFieldToDate.reset && defaultChangeTaskFieldToDate.reset(drag, drop, {task});
+                        defaultChangeTaskFieldToDate.reset && defaultChangeTaskFieldToDate.reset({task, drag, drop});
+                    },
+                    saveDataWhenDragEnds({ drag, drop, e }) {
+                        defaultChangeTaskFieldToDate.save && defaultChangeTaskFieldToDate.save({task, drag, drop});
                     },
                 },
             }}
@@ -1042,34 +1076,152 @@ const EditableTimePortion = observer(({
 })
 //#endregion 
 
-export const TaskGantLine = observer(({task, showStart, showDue}: {task: TaskModel, showStart: boolean, showDue: boolean}) => {
-    return (<div className={`${ROWS_CLASS} ${ALIGNED_CLASS} ${CENTERED_CLASS} line-holder`}>
-        {showStart && task.start && (!task.due || task.start < task.due) && <TaskGantLineStart task={task} />}
-        {showDue && task.due && task.start && task.start > task.due && <TaskCheckbox type="due" task={task} />}
-        {task.start && <div 
-            className="color-bar horizontal" 
-            {...(!task.complete && {style: {backgroundColor: task.color}})}
-            /> }
-        {/* Allow the start to come on the other side of the gant line is the task is in error and start > due */}
-        {showStart && task.due && task.start && task.start > task.due && <TaskGantLineStart task={task} />}
-        {showDue && task.due && (!task.start || task.start < task.due) && <TaskCheckbox type="due" task={task} />}
-        </div>
+export const TaskGantLine = observer(forwardRef<HTMLButtonElement, {
+    task: TaskModel, 
+    showStart: boolean, 
+    showDue: boolean,
+    startTabIndex?: number,
+    dueTabIndex?: number,
+}&ComponentPropsWithoutRef<"button">>(({
+    task, 
+    showStart, 
+    showDue, 
+    startTabIndex, 
+    dueTabIndex, 
+    ...props}, 
+ref) => {
+    return (<button 
+            ref={ref}
+            {...props}
+            className={combineClassNamePropAndString(`${ROWS_CLASS} ${ALIGNED_CLASS} ${CENTERED_CLASS} line-holder`, props)}
+        >
+            {showStart && task.start && (!task.due || task.start < task.due) && <TaskGantLineStart task={task} tabIndex={startTabIndex}/>}
+            {showDue && task.due && task.start && task.start > task.due && <TaskCheckbox type="due" task={task} draggable={true} tabIndex={dueTabIndex} />}
+            {task.start && <div 
+                className="color-bar horizontal" 
+                {...(!task.complete && {style: {backgroundColor: task.color}})}
+                /> }
+            {/* Allow the start to come on the other side of the gant line is the task is in error and start > due */}
+            {showStart && task.due && task.start && task.start > task.due && <TaskGantLineStart task={task} tabIndex={startTabIndex}/>}
+            {showDue && task.due && (!task.start || task.start < task.due) && <TaskCheckbox type="due" task={task} draggable={true} tabIndex={dueTabIndex}/>}
+        </button>
     ) 
-})
+}))
 
-export const TaskGantLineStart = observer(({task}: {task: TaskModel}) => {
-    return <Draggable
+export const TaskGantLineStart = observer(({task, tabIndex}: {task: TaskModel, tabIndex?: number}) => {
+    if (!task.start) {
+        return;
+    }
+    return <Draggable <DateFieldDragData>
         itemData={{
-            type: DATE_FIELD_DRAG_TYPE,
+            type: DATE_FIELD_DRAGDROP_TYPE,
+            date: task.start,
             showDropPreview: true,
+            taskId: task.id,
+            fieldType: "start",
         }}
         actionTitle="Change task start"
-        mayBeDropped={true}
+        droppable={true}
+        tabIndex={tabIndex}
+        className="start"
     >
-        <div className={`spacer ${CENTERED_CLASS}`}>
-            <div className="color-bar start"
-                {...(!task.complete && {style: {backgroundColor: task.color}})}
-            />
-        </div>
+        <div className={`spacer ${CENTERED_CLASS}`} />
+        <div className="color-bar start"
+            {...(!task.complete && {style: {backgroundColor: task.color}})}
+        />
     </Draggable>
+})
+
+export const DraggableDroppableDateField = observer((
+    {
+        task,
+        data,
+        children,
+        draggableComponentProps,
+        droppableComponentProps,
+    }
+    : 
+    {
+        task: TaskModel,
+        data: Omit<DateFieldDragData, "type">,
+        children: ReactNode,
+        draggableComponentProps?: Partial<DraggableParams<DateFieldDragData>>,
+        droppableComponentProps?: Partial<DroppableParams<DateFieldDropData>>,
+    }) => {
+        const taskStore = useTaskStore();
+
+    return <Droppable <DateFieldDropData>
+            {...droppableComponentProps}
+            collisionPriority={30}
+            itemData={{
+                ...data,
+                type: DATE_FIELD_DRAGDROP_TYPE,
+                accepts: DEFAULT_DATE_FIELD_DRAG_DATA.accepts,
+            }}
+            callbacksForAcceptedDragTypes={{
+                [DATE_FIELD_DRAGDROP_TYPE]: {
+                    // Task due ot start is dragged ot this due or start
+                    // Change start of due of dragged task to this date time
+                    setDataWhenDragOver: ({drag, drop}) => {
+                        if (drag && drop) {
+                            const droppedTask = taskStore.getTaskById(drag.taskId);
+                            droppedTask && defaultChangeTaskFieldToDate.set({task: droppedTask, drag, drop})
+                        }
+                    }, 
+                    resetDataWhenDragOff({ drag, drop }) {
+                        if (drag && drop) {
+                            const taskId = drag.taskId;
+                            const droppedTask = taskStore.getTaskById(taskId);
+                            droppedTask && defaultChangeTaskFieldToDate.reset({task: droppedTask, drag, drop})
+                        }
+                    },
+                    saveDataWhenDragEnds({ drag, drop, e }) {
+                        const taskId = drag.taskId;
+                        const droppedTask = taskStore.getTaskById(taskId);
+                        droppedTask && defaultChangeTaskFieldToDate.save({task: droppedTask, drag, drop})
+                    },
+                }, 
+                [DATE_DRAGDROP_TYPE]: {
+                    // Date without time is dragged to this due or start
+                    // Change this tasks due or start to the passedDate
+                    setDataWhenDragOver({drag, drop}) {
+                        defaultChangeTaskFieldToEndOrStartOfDay.set({task, drag, drop});
+                    }, 
+                    resetDataWhenDragOff({drag, drop}) {
+                        defaultChangeTaskFieldToEndOrStartOfDay.reset({task, drag, drop});
+                    },
+                    saveDataWhenDragEnds({drag, drop}) {
+                        defaultChangeTaskFieldToEndOrStartOfDay.save({task, drag, drop});
+                    },
+                }, 
+                [DELETE_DRAGDROP_TYPE]: {
+                    setDataWhenDragOver({drag, drop}) {
+                        defaultTaskDateClearInteraction.set({task, drag, drop});
+                    }, 
+                    resetDataWhenDragOff({drag, drop}) {
+                        defaultTaskDateClearInteraction.reset({task, drag, drop});
+                    },
+                    saveDataWhenDragEnds({drag, drop}) {
+                        defaultTaskDateClearInteraction.save({task, drag, drop});
+                    },
+            }
+            }
+        }
+        >
+            <Draggable <DateFieldDragData>
+                {...draggableComponentProps}
+                actionTitle={`Change task ${data.fieldType} date`}
+                itemData={{
+                    ...data,
+                    type: DATE_FIELD_DRAGDROP_TYPE,
+                }}
+                droppable={true}
+                draggedPresentation={draggableComponentProps && draggableComponentProps.draggedPresentation ? 
+                        draggableComponentProps.draggedPresentation 
+                        : <DraggedDatePresentation date={data.date}/>
+                }
+            >
+                    { children }
+            </Draggable>
+        </Droppable>
 })

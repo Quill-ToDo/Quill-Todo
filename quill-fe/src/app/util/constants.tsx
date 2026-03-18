@@ -9,7 +9,7 @@ export const START_OF_WEEK_WEEKDAY = "Monday";
 export const END_OF_WEEK_WEEKDAY = "Sunday";
 // ID and Classes
 export const UNSET_TASK_TITLE_PLACEHOLDER = "title";
-export const POPUP_POSITIONER_CLASS = "positioner";
+export const DRAG_POSITIONER_CLASS = "drag-positioner";
 export const LOADING_CLASS = "loading";
 // Styling
 export const ALIGNED_CLASS = "aligned";
@@ -20,6 +20,7 @@ export const BUTTON_OR_ICON_MEDIUM = "med";
 export const BUTTON_OR_ICON_LARGE = "large";
 export const CENTERED_CLASS = "centered";
 export const COLUMNS_CLASS = "cols";
+export const CONTENTS_CLASS = "contents";
 export const DARK_SECTION_CLASS = "dark-section";
 export const DATE_CLASS = "date";
 export const GRID_CLASS = "grid";

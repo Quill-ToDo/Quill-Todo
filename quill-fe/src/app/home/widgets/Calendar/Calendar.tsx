@@ -3,7 +3,7 @@ import { DraggableDroppableDate, START_OF_DAY } from "@/app/util/DateTimeHelper"
 import { DateTime } from "luxon";
 import { 
     ALIGNED_CLASS,
-    CENTERED_CLASS,
+    CONTENTS_CLASS,
     DARK_SECTION_CLASS,
     END_OF_WEEK_WEEKDAY,
     ICONS, 
@@ -19,6 +19,7 @@ import {
     ComponentProps, 
     forwardRef, 
     MutableRefObject, 
+    Ref, 
     useEffect, 
     useRef, 
     useState
@@ -29,7 +30,7 @@ import { Rect } from "@floating-ui/react";
 import { TaskModel } from "../../_globalStore/tasks/TaskModel";
 import { combineClassNamePropAndString } from "@/app/util/jsTools";
 import { AnchorWithPersistentPopupAttached } from "@/app/util/Popup";
-import TaskDetail from "../TaskDetail/TaskDetail";
+import TaskDetail, { TASK_DETAIL_POPUP_CLASS } from "../TaskDetail/TaskDetail";
 
 const NUM_MONTHS_LOOKAHEAD = 6;
 const NUM_MONTHS_LOOKBEHIND = 3;
@@ -42,19 +43,19 @@ type MonthData =
     {
         monthName: string;
         year: string;
-        key: string,
+        keyOverride: string,
         weeks: WeekData[];
         closeToBeginningOfDataRange: boolean;
         closeToEndOfDataRange: boolean;
     };
 type WeekData =
     {
-        key: string,
+        keyOverride: string,
         days: DayData[];
     };
 type DayData =
     {
-        key: string,
+        keyOverride: string,
         date: DateTime;
         props: ComponentProps<"div">;
     };
@@ -89,7 +90,7 @@ const getCalendarData = ({start, end}: {start: DateTime, end: DateTime}) => {
             borderPaintingCountdownFromSeven = NUM_WEEKDAYS;
             // Add a new MonthData
             allLoadedMonthData.push({
-                key: day.toLocaleString({year: "2-digit", month: "2-digit"}),
+                keyOverride: day.toLocaleString({year: "2-digit", month: "2-digit"}),
                 monthName: day.monthLong ? day.monthLong : "Unknown", 
                 year: `${day.year}`, 
                 weeks: [],
@@ -100,14 +101,14 @@ const getCalendarData = ({start, end}: {start: DateTime, end: DateTime}) => {
         mostRecentMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-1];
         if (itIsANewWeekday) {
             // Add a new WeekData to MonthData
-            mostRecentMonthLoaded.weeks.push({days: [], key: day.toISOWeekDate() as string});
+            mostRecentMonthLoaded.weeks.push({days: [], keyOverride: day.toISOWeekDate() as string});
         }
         previousMonthLoaded = allLoadedMonthData[allLoadedMonthData.length-2];
         mostRecentWeekLoaded = mostRecentMonthLoaded.weeks.length ? mostRecentMonthLoaded.weeks[mostRecentMonthLoaded.weeks.length-1] : previousMonthLoaded.weeks[previousMonthLoaded.weeks.length-1];
         paintingMonthVisualSeparatorLine = borderPaintingCountdownFromSeven > 0;
         const newDay = {
             date: day,
-            key: `${day.toISODate()}`,
+            keyOverride: `${day.toISODate()}`,
             props: {
                     className: [
                         `day-container ${SUBGRID_CLASS}`,
@@ -129,7 +130,7 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
     const taskStore: TaskStore = useTaskStore();
     const thisCalendarRef = useRef<null | HTMLDivElement>(null);
     const thisCalendarHeaderRef = useRef<null | HTMLHeadElement>(null);
-    const scrollContainerRef = useRef<null | HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLOListElement>();
     const today = useRef<DateTime<boolean>>(START_OF_DAY());
     const currentDayRef = useRef<null | HTMLDivElement>(null);
     const defaultStart: DateTime<boolean> = today.current.startOf('month').startOf('day').minus({months: NUM_MONTHS_LOOKBEHIND});
@@ -163,9 +164,9 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
         }
         setScrollTo(index);
         scrollToEle(monthRefs.current[index]);
-        setTimeout(() => {
-            setScrollTo(null);
-        }, 400);
+        // setTimeout(() => {
+        //     setScrollTo(null);
+        // }, 400);
     }
 
     const getMonthIntersectingWithTopOfCalendar = () => {
@@ -307,15 +308,15 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                 </header>
                 <ol 
                     className="calendar-month-infinite-scroll-wrapper" 
-                    ref={scrollContainerRef}
+                    ref={scrollContainerRef as Ref<any>}
                     title="Calendar body"
                     >
-                    { calendarDataWithoutTasks.map((monthData, index) => 
+                    { calendarDataWithoutTasks.map(({keyOverride, ...monthData}, index) => 
                         <li 
+                            key={`${keyOverride}-month`} 
                             tabIndex={0}
                             className="month-container" 
-                            key={monthData.key} 
-                            aria-labelledby={`${monthData.key}-header`} 
+                            aria-labelledby={`${keyOverride}-header`} 
                             ref={(node) => {
                                 if (monthData.closeToBeginningOfDataRange) {
                                     earlyMonthRef.current = node;
@@ -327,14 +328,15 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
                                 refs[index] = node;
                             }}    
                         >
-                            <div className="month-title" id={`${monthData.key}-header`}> 
+                            <div className="month-title" id={`${keyOverride}-header`}> 
                                 <h2>{monthData.monthName}</h2>
                                 <h3>{monthData.year}</h3>
                             </div>
                             <div className="day-grid"> 
-                                { monthData.weeks.map((weekData, i) =>
+                                { monthData.weeks.map(({keyOverride, ...weekData}, i) =>
                                     <CalendarWeek 
-                                        {...weekData} 
+                                        {...weekData}
+                                        keyOverride={keyOverride}
                                         today={today}
                                         ref={currentDayRef} 
                                     />
@@ -347,26 +349,40 @@ export const CalendarWidget = observer(({passedStore}: {passedStore?: TaskStore}
         </PlaceableWidget>
 });
 
-const CalendarWeek = observer(forwardRef<any, WeekData & {today: MutableRefObject<DateTime<boolean>>}>(({key, days, today}, currentDayRef) => {
-
+const CalendarWeek = observer(forwardRef<any, 
+    WeekData & {today: MutableRefObject<DateTime<boolean>>}>((
+    {days, today}, currentDayRef) => { 
+    const firstDay = days.at(0);
+    const lastDay = days.at(days.length-1);
+    if (!firstDay || !lastDay) {
+        return;
+    }
+    const taskStore: TaskStore = useTaskStore();
+    const tasksInWeek = taskStore.tasksInRange({startTime: firstDay.date.startOf("day"), endTime: lastDay.date.endOf("day")});
     
-    return <ul key={key} className={`week-container ${SUBGRID_CLASS}`}>
+       
+    return <div className={`week-container ${SUBGRID_CLASS}`}>
         <ol className={`${SUBGRID_CLASS} days`}>
 
-        { days.map((day, dayIndex) =>  
+        { days.map(({keyOverride, ...day}, dayIndex) =>  
             <CalendarDay 
-            {...day} 
-            ref={today.current.hasSame(day.date, 'day') ? currentDayRef : null}
+                {...day} 
+                key={keyOverride}
+                keyOverride={keyOverride}
+                tasksInWeek={tasksInWeek}
+                ref={today.current.hasSame(day.date, 'day') ? currentDayRef : null}
             />
         )}
         </ol>
-
-    </ul>
+    </div>
 }))
 
-const CalendarDay = observer(forwardRef<any, DayData>(({date, key, props}, ref) => {
+const CalendarDay = observer(forwardRef<any, 
+    DayData & {
+        tasksInWeek: TaskModel[]}
+        >((
+        {date, keyOverride, props: passedProps, tasksInWeek}, forwardedRef) => {
     const taskStore: TaskStore = useTaskStore();
-    const tasks = taskStore.tasksInRange({startTime: date.startOf("day"), endTime: date.endOf("day")});
     const allPossibleTabbables = taskStore.tasks.length*POSSIBLE_TABBABLE_ELEMENTS_PER_TASK;
     // Calculate tab order because Im using CSS grid which fucks it up
     // Get a big number that will allow room for all of the 
@@ -374,89 +390,90 @@ const CalendarDay = observer(forwardRef<any, DayData>(({date, key, props}, ref) 
     // week number * number of tasks * 2 allows every task to appear on every day this week 
     // and have both start and due selectable element
     const startingWeekTabIndex = date.year * date.weekNumber * allPossibleTabbables * NUM_WEEKDAYS; 
+    // Either starts on this day or first day of the week and start before
+    const dateIsFirstOfWeek = date.startOf("week").hasSame(date, "day");
+    const tasksStartingOnDay = tasksInWeek.filter((task) => (dateIsFirstOfWeek && (!task.start || task.start && task.start < date)) || task.start && task.start.hasSame(date, "day"));
     
     return <li
-        className="day-list"
+        key={`${keyOverride}-daylist`}
+        className={`day-list ${CONTENTS_CLASS}`}
     >
         <DraggableDroppableDate
-                mayBeDropped={true}
-                actionTitle={"Assign date"}
-                useDragHandle={false}
-                date={date}
-                tabIndex={startingWeekTabIndex * date.weekday}
-                >
+            droppable={true}
+            actionTitle={"Assign date"}
+            useDragHandle={false}
+            date={date}
+            // className={`${SUBGRID_CLASS}`}
+            tabIndex={startingWeekTabIndex * date.weekday}
+            render={(props, ref) => <>
                 <div 
-                    ref={ref}
-                    key={key}
-                    aria-labelledby={`${key}-header`}
-                    title={`${date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
+                // TODO need to merge refs here
+                    ref={forwardedRef}
+                    key={keyOverride}
+                    aria-labelledby={`${keyOverride}-header`}
                     suppressHydrationWarning
+                    {...passedProps}
                     {...props}
-                    >
-                    <h4 
-                        id={`${key}-header`}
-                        className={`${CENTERED_CLASS}`}
+                    className={`${passedProps.className} ${props.className} ${SUBGRID_CLASS}`}
+                    title={`${date.toLocaleString({ weekday: 'short', month: 'short', day: 'numeric'})}`}
+                >
+                    {/* Dark section has rounded borders where parent div does not to allow month border painting in straight line */}
+                    <div className={`${DARK_SECTION_CLASS} ${""}`}>
+                        <h4 
+                            id={`${keyOverride}-header`}
                         >
-                        <time dateTime={`${date.toISODate()}`}>{date.day}</time>
-                    </h4>
-                    <div className={`tasks ${DARK_SECTION_CLASS} ${SUBGRID_CLASS}`}>
-                         {/* {tasks ? <TasksMap tasks={tasks} key={key} date={date}/> : null} */}
+                            <time dateTime={`${date.toISODate()}`}>{date.day}</time>
+                        </h4>
                     </div>
-                    {tasks?<TasksMap tasks={tasks} key={key} firstDay={date} tabIndexData={{allPossibleTabbables, startingWeekTabIndex}}/>:null}
-
+                    <ul className={`tasks ${SUBGRID_CLASS}`}>
+                        {tasksStartingOnDay?<TaskSpanInWeekMap tasks={tasksStartingOnDay} day={date} tabIndexData={{allPossibleTabbables, startingWeekTabIndex}}/>:null}
+                    </ul>
                 </div>    
-            </DraggableDroppableDate>
-            </li>
+            </>}
+        >
+
+        </DraggableDroppableDate>
+    </li>
 }))
 
-const TasksMap = observer(({
+const TaskSpanInWeekMap = observer(({
     tasks, 
-    key, 
-    firstDay,
+    day,
     tabIndexData,
 }: {
     tasks: TaskModel[], 
-    key: string, 
-    firstDay: DateTime<boolean>, 
+    day: DateTime<boolean>, 
     tabIndexData?: {
         startingWeekTabIndex: number, 
         allPossibleTabbables: number
     }
 }) => {
-    return (
-    <ul className={`${SUBGRID_CLASS} task-container`}>
+    return (<>
         { tasks.map((task, taskOnDayIndex) => {
-            const taskWrapperProps = {
-                task: task,
-                keyOverride: `${key}-${task.id}`,
-            }
             // Grid column index starts at 1, and an item spanning the first grid column (one day) would be like
             // grid columns: 1 / 2. 
             // By default the task spans the entire week (for tasks that are in progress and appear in the
             // passed array of task models for this week to be shown)
-            let taskStartIndex = 1; 
-            let taskDueIndex = 8; 
+            let firstDay = day.startOf("week").startOf("day");
+            let lastDay = firstDay.endOf("week").endOf("day");
+            let taskStartIndex = day.weekday; 
             // If the due date happens sometime this week, adjust the ending index to reflect this
-            const taskDueThisWeek = !!(task.due && task.due <= firstDay.plus({days: NUM_WEEKDAYS}) && task.due >= firstDay); 
-            if ( task.due && taskDueThisWeek) {
-                taskDueIndex = taskStartIndex + task.due.startOf("day").diff(firstDay, "days").days;
-            }
+            const taskDueThisWeek = !!(task.due && task.due <= lastDay && task.due >= firstDay); 
+            let taskDueIndex = taskDueThisWeek && task.due ? task.due.weekday : 8; 
             // If the task starts sometime this week, change the start index to reflect this 
-            const taskStartsThisWeek = !!(task.start && task.start >= firstDay && task.start <= firstDay.plus({days: NUM_WEEKDAYS})); 
-            if (task.start && taskStartsThisWeek) {
-                taskStartIndex += task.start.startOf("day").diff(firstDay, "days").days;
-            }
-            else if (!task.start) {
+            const taskStartsThisWeek = !!(task.start && task.start >= firstDay && task.start <= lastDay); 
+
+            if (!task.start) {
                 taskStartIndex = taskDueIndex;
             }
             // The start of the task might be before the end of the task if it's in error but the first grid column 
             // number of the grid item always needs to be smaller, so switch these if needed.
             const colStart = Math.min(taskDueIndex, taskStartIndex);
-            const colEnd = Math.max(taskDueIndex, taskStartIndex) + 1;
+            const colEnd = Math.max(taskDueIndex, taskStartIndex);
 
             const taskStartEndSpanStyling = {
                 gridColumnStart: colStart ? colStart : undefined,
-                gridColumnEnd: colEnd ? colEnd : undefined,
+                gridColumnEnd: colEnd ? colEnd+1 : undefined,
             }
 
             const getTabIndex = (taskWeekDayIndex: number) => {
@@ -476,21 +493,21 @@ const TasksMap = observer(({
             }
 
             return <li
+                key={`${task.id}-week-tasks`}
                 style={taskStartEndSpanStyling}
-            
             >
                 <AnchorWithPersistentPopupAttached
                     draggable={true}
-                    anchorRenderMethod={({openPopup, anchorProps}, ref) => <TaskWrapper 
-                        key={taskWrapperProps.keyOverride}
-                        {...taskWrapperProps}
-                        className={combineClassNamePropAndString(`${ROUND_CORNERS_CLASS} calendar-task`, taskWrapperProps)}
+                    anchorRenderMethod={({openPopup, ...props}, ref) => <TaskWrapper 
+                        task={task}
+                        droppable={false}
+                        className={`${ROUND_CORNERS_CLASS} calendar-task`}
                         >
                                 {/* Change tab index so that it goes through all the tasks in day, then the next day in the week, then the next week */}
                                 <TaskGantLine 
-                                    onClick={(e) => openPopup()}
-                                    {...anchorProps}
+                                    {...props}
                                     ref={ref}
+                                    onClick={openPopup}
                                     task={task} 
                                     showStart={taskStartsThisWeek} 
                                     showDue={taskDueThisWeek} 
@@ -499,13 +516,22 @@ const TasksMap = observer(({
                                 />
                         </TaskWrapper>
                     }
-                    popupRenderMethod={(props, ref) => 
-                        <TaskDetail task={task} closeWidget={props.closePopup}/>
+                    popupRenderMethod={({closePopup, ...props}, ref) => 
+                        <div
+                            {...props}
+                            ref={ref}
+                            className={combineClassNamePropAndString(TASK_DETAIL_POPUP_CLASS, props)}
+                        >
+                            <TaskDetail 
+                            task={task} 
+                            closeWidget={closePopup} 
+                            />
+                        </div>
                     }
                 />
             </li>  
         })}
-    </ul>
+     </>
     )
 })
 

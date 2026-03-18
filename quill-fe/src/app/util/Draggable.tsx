@@ -30,12 +30,13 @@ export type DraggableParams<DragData extends RequiredDragData> = {
     droppable: boolean,
     draggedPresentation?: ReactNode,
     useHandle?: boolean,
-    dragStart?: ({drag, e}: FormattedDragDropEventData<DragData, any>) => void,
-    dragEnd?: ({drag, e}: FormattedDragDropEventData<DragData, any>) => void,
+    dragStart?: ({drag, drop, e}: FormattedDragDropEventData<DragData, any>) => void,
+    dragEnd?: ({drag, drop, e}: FormattedDragDropEventData<DragData, any>) => void,
 } & ComponentPropsWithoutRef<any>;
 
-export type DraggableRenderMethodParams<DragData extends RequiredDragData> = DraggableParams<DragData> & {
-    render: ForwardRefRenderFunction<any, any>
+export type DraggableRenderMethodParams<DragData extends RequiredDragData> = Omit<DraggableParams<DragData>, "draggedPresentation"> & {
+    render: ForwardRefRenderFunction<any, any>,
+    draggedPresentation?: ForwardRefRenderFunction<any, any>,
 }
 
 export type FormattedDragDropEventData<DragData extends RequiredDragData, DropData extends RequiredDropData> = {

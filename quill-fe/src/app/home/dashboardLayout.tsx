@@ -94,7 +94,25 @@ const DashboardLayout = observer(({
                             droppable={true}
                             render={(draggableProps, draggableRef) => <DroppableRenderMethod <DeleteDropData>
                                 {...draggableProps}
+                                // TODO need to combine refs here somehow
+                                // ref={(node) => {
+                                //     draggableRef(node)
+                                //     anchorRef(node)
+                                // }}
                                 ref={draggableRef}
+                                render={(droppableProps, droppableRef) => <button 
+                                    ref={droppableRef}
+                                    {...droppableProps}
+                                    onClick={() => {
+                                        addAlert(document.getElementById(HOME_ID), "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
+                                    }}
+                                    role="menuitem" 
+                                    className={combineClassNamePropAndString("btn small square bg", droppableProps)} 
+                                    title="Trash" 
+                                    type="button"
+                                    >
+                                    { ICONS.TRASH }
+                                </button>}
                                 itemData={{
                                     type: DELETE_DRAGDROP_TYPE,
                                     accepts: DEFAULT_DELETE_DRAG_DATA.accepts,
@@ -114,19 +132,6 @@ const DashboardLayout = observer(({
                                             
                                         },
                                     }}}
-                                render={(droppableProps, droppableRef) => <button 
-                                    ref={droppableRef}
-                                    {...droppableProps}
-                                    onClick={() => {
-                                        addAlert(document.getElementById(HOME_ID), "notice", "Drag a task to the trash or drag the trash to a task to delete it!");
-                                    }}
-                                    role="menuitem" 
-                                    className={combineClassNamePropAndString("btn small square bg", droppableProps)} 
-                                    title="Trash" 
-                                    type="button"
-                                    >
-                                    { ICONS.TRASH }
-                                </button>}
                             />                                
                         }
                     />}

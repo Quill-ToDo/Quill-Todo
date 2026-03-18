@@ -8,13 +8,14 @@ import { observer } from "mobx-react-lite";
 import { DateTime } from "luxon";
 import { DEFAULT_DUE_DATETIME, DEFAULT_START_DATETIME, TaskDateFields, TaskModel } from "@/store/tasks/TaskModel";
 import { 
-    Checkbox, 
+    TaskCheckbox, 
     TaskTitle, 
     TaskWrapper, 
     TaskDueDate, 
-    TaskBeingDragged
+    TaskBeingDragged,
+    TaskStartDate
 } from "@/widgets/TaskDetail/TaskComponents";
-import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@util/DateTimeHelper";
+import { DATETIME_FORMATS, timeOccursBetweenNowAndEOD } from "@/app/util/DateTimeHelper";
 import './list.css'
 import "@/widgets/TaskDetail/tasks.css";
 import TaskStore from "@/store/tasks/TaskStore";
@@ -26,11 +27,13 @@ import {
     ICONS, 
     MID_SECTION_CLASS, 
     SUBTLE_CLASS 
-} from "@/app/@util/constants";
+} from "@/app/util/constants";
 import { getWidgetSessionStorageData, PlaceableWidget, setWidgetSessionStorageData } from "@/widgets/generic-widgets/Widget";
-import { Draggable, Droppable } from "@/app/@util/Draggable";
+import { DraggableRenderMethod, Droppable, DroppableRenderMethod } from "@/app/util/Draggable";
 import { useTaskStore } from "@/store/StoreProvider";
-import { TASK_DRAG_TYPE, TaskDragData } from "@/app/@util/DraggableTypes";
+import { DEFAULT_TASK_DRAG_DATA, TASK_DRAGDROP_TYPE, TaskDragData, TaskDropData } from "@/app/util/DraggableTypes";
+import { combineClassNamePropAndString } from "@/app/util/jsTools";
+import { DraggableDndKitImplementation, DraggableDndKitRenderMethodImplementation } from "@/app/3rd-party/DndKit";
 
 const SECTION_TOGGLE_DURATION = 100;
 export const OVERDUE = "Overdue";
@@ -107,11 +110,11 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
     let todayWork : TaskModel[] = [];
     let upcoming : TaskModel[] = [];
     tasks.forEach(task => {
-        let array = undated;
+        let array;
         if (task.complete) {
             array = complete;
         }
-        else if (task.due == null && task.start == null) {
+        else if (task.due === null && task.start === null) {
             array = undated;
         } else if (task.due && task.due <= now) {
             array = overdue;
@@ -200,7 +203,7 @@ const ByStatusThreeSection = observer(({store}: {store: TaskStore}) => {
             sectionId: 2,
             content: [{
                 "tasks": upcoming,
-                "type": "due",
+                "type": "start",
                 "emptyText": "No upcoming tasks",
                 taskDropInSectionCallback: (task) => {
                     // If not already upcoming,
@@ -339,11 +342,11 @@ const Section = observer(({
                         {title}
                     </h2>
                 </header>
-                <div className="section-collapsible" role="none">
+                <ul className="section-collapsible" role="none">
                     <SubSection
                         sectionContent={content}
                     />
-                </div>
+                </ul>
             </div>
         </section>
     );
@@ -370,12 +373,11 @@ const SubSection = observer(({
     sectionContent: SubSectionContent[]
 }) => {
     return sectionContent.map((section) => {
-        return ( 
-            <TaskSectionContent 
-                content={section}
-                key={`${section.emptyText}`}
-            />
-            )
+        return <li key={`${section.title}`}>
+                <TaskSectionContent 
+                    content={section}
+                />
+            </li>
         })
 })
 //#region Task list
@@ -386,17 +388,16 @@ const SubSection = observer(({
 const TaskSectionContent = observer(({content}: {content: SubSectionContent}) => {
     const taskStore = useTaskStore();
     const sectionTitleId = `${DARK_SECTION_CLASS}-title-${content.title}`;
-    return (
-        <Droppable
+    return <Droppable <TaskDropData>
             collisionPriority={30}
             itemData={
                 {
                     type: "list section",
-                    accepts: [TASK_DRAG_TYPE],
+                    accepts: [TASK_DRAGDROP_TYPE],
                 }
             }
             callbacksForAcceptedDragTypes={{
-                [TASK_DRAG_TYPE]: {
+                [TASK_DRAGDROP_TYPE]: {
                     setDataWhenDragOver({drag}) {
                         // set dragged task as being edited and then do the thing
                         if (drag) {
@@ -449,7 +450,6 @@ const TaskSectionContent = observer(({content}: {content: SubSectionContent}) =>
                 </div>
             </section>
         </Droppable>
-    )
 })
 
 /**
@@ -463,36 +463,48 @@ const TaskList = observer(({
     type: TaskDateFields | "scheduled",
 }) => {
     const listRef = useRef(null);
-    return <ul 
+    return <ul
             role="group" 
             ref={listRef}
         >
         { tasks.map((task) => {
-            return ( 
-                <Draggable <TaskDragData>
-                    mayBeDropped={true}
+            return <DraggableRenderMethod <TaskDragData>
+                    droppable={true}
                     itemData={{
                         showDropPreview: true,
-                        type: TASK_DRAG_TYPE,
+                        type: TASK_DRAGDROP_TYPE,
                         id: task.id,
                     }}
                     actionTitle="Move task"
-                    key={`task-li-${task.id}`}
-                    draggedPresentation={<TaskBeingDragged 
+                    // key={`task-li-${task.id}`}
+                    draggedPresentation={(props, ref) => <TaskBeingDragged 
                         task={task} 
-                        type={type ==="scheduled" ? "start" : type} 
+                        type={type ==="scheduled" ? "start" : type}
+                        {...props}
+                        ref={ref} 
                     />}
-                >
-                    <li 
-                        className={"task"}
-                    >
-                        <ListViewTask
-                            task={task}
-                            type={type}
-                            />
-                    </li> 
-                </Draggable>
-            )
+                    render={(props, ref) => 
+                        <DroppableRenderMethod <TaskDropData>
+                            type={DEFAULT_TASK_DRAG_DATA.type}
+                            callbacksForAcceptedDragTypes={DEFAULT_TASK_DRAG_DATA.accepts}
+                            {...props}
+                            ref={ref}
+                            render={(props, ref) => 
+                                <li 
+                                    key={`${task.id}-task-li-render`}
+                                    {...props}
+                                    className={combineClassNamePropAndString("task", props)}
+                                    ref={ref}
+                                >
+                                    <ListViewTask
+                                        task={task}
+                                        type={type}
+                                        /> 
+                                </li> 
+                            }
+                        />
+                    }
+                />
         })}
     </ul>
 })
@@ -509,16 +521,18 @@ const ListViewTask = observer(({
 }) => {
     const id = `task-${task.id}`;
     const checkboxId = `list-checkbox-${task.id}`;
-    const dateForm = DateTime.DATE_SHORT;
 
     const taskWrapper = <TaskWrapper 
                 task={task}
+                droppable={true}
                 {...{
                     id: id,
                     className: "inline"
                 }}
             >
-                <Checkbox
+                <TaskCheckbox
+                    task={task}
+                    draggable={true}
                     type={type === "scheduled" ? "start" : type}
                     checkboxId={checkboxId}
                 />
@@ -533,7 +547,8 @@ const ListViewTask = observer(({
                     >
                         <TaskTitle editAllowed={false} />
                     </label>
-                    <TaskDueDate format={DATETIME_FORMATS.D_t} editable={false}/>
+                    { task.start && <TaskStartDate format={DATETIME_FORMATS.D_t} editable={false}/>}
+                    { task.due && <TaskDueDate format={DATETIME_FORMATS.D_t} editable={false}/>}
                 </div>
             </TaskWrapper>;
     return taskWrapper;

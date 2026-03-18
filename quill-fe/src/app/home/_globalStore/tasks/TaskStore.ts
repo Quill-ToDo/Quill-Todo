@@ -147,7 +147,10 @@ export default class TaskStore {
     }
     
     tasksInRange ({startTime, endTime}: {startTime : DateTime<boolean>, endTime : DateTime<boolean>}) {
-        return this.tasks.filter(task => (task.start && (task.start <= endTime && task.start >= startTime)) || (task.due && (task.due <= endTime && task.due >= startTime)));
+        return this.tasks.filter(task => 
+            (task.start === null && task.due === null) 
+            || (task.start && (task.start <= endTime && task.start >= startTime)) 
+            || (task.due && (task.due <= endTime && task.due >= startTime)));
     }
 
     get taskTimeline () {
